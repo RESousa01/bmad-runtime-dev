@@ -1,0 +1,200 @@
+{
+  "documents": [
+    {
+      "schema": "bmad-source-identity.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-source-identity.v1",
+        "source": "bmad_method",
+        "version": "6.10.0",
+        "archiveSha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "archiveMemberCount": 597,
+        "identityHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    },
+    {
+      "schema": "bmad-source-accounting.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-source-accounting.v1",
+        "sourceIdentityHashes": [
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        ],
+        "rows": [
+          {
+            "source": "bmad_method",
+            "memberPath": "src/example.md",
+            "memberHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "classification": "primary_skill",
+            "disposition": "adapt",
+            "targetTask": "ENG-01"
+          }
+        ],
+        "summary": {
+          "memberCount": 896,
+          "primaryMethodSkills": 48,
+          "builderSkills": 5,
+          "builderActions": 10
+        },
+        "accountingHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    },
+    {
+      "schema": "bmad-skill-package.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-skill-package.v1",
+        "packageId": "package_01J00000000000000000000000",
+        "sourceIdentityHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "skills": [
+          {
+            "skillId": "skill_01J00000000000000000000000",
+            "name": "example-skill",
+            "entrypoint": "skills/example/SKILL.md",
+            "profile": "method_primary",
+            "instructionHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          }
+        ],
+        "actions": [],
+        "packageHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    },
+    {
+      "schema": "bmad-session.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-session.v1",
+        "sessionId": "session_01J00000000000000000000000",
+        "capabilityId": "capability_01J00000000000000000000000",
+        "mode": "interactive",
+        "agentProfile": "stateless",
+        "state": "running",
+        "control": {
+          "pauseAllowed": true,
+          "resumeAllowed": false,
+          "cancelAllowed": true
+        },
+        "artifacts": [],
+        "evidence": []
+      }
+    },
+    {
+      "schema": "bmad-artifact.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-artifact.v1",
+        "artifactId": "artifact_01J00000000000000000000000",
+        "sessionId": "session_01J00000000000000000000000",
+        "kind": "document",
+        "state": "validated",
+        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "evidenceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    },
+    {
+      "schema": "bmad-builder-promotion.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-builder-promotion.v1",
+        "promotionId": "promotion_01J00000000000000000000000",
+        "subjectHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "fromState": "installed",
+        "toState": "active",
+        "approval": {
+          "required": true,
+          "decision": "approved",
+          "approvalId": "approval_01J00000000000000000000000"
+        },
+        "stage": "activation",
+        "installation": {
+          "catalogGeneration": 1,
+          "atomic": true,
+          "liveConformanceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "receiptHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    },
+    {
+      "schema": "bmad-eval.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-eval.v1",
+        "evaluationId": "evaluation_01J00000000000000000000000",
+        "subjectHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "runner": "internal_eval_runner",
+        "state": "passed",
+        "criteria": [
+          {
+            "criterionId": "schema-conformance",
+            "result": "pass",
+            "evidenceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          }
+        ],
+        "outcome": "pass",
+        "evidenceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    },
+    {
+      "schema": "bmad-module.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-module.v1",
+        "moduleId": "module_01J00000000000000000000000",
+        "moduleCode": "bmm",
+        "kind": "method",
+        "skills": [],
+        "setup": [],
+        "moduleHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    },
+    {
+      "schema": "bmad-script-plan.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-script-plan.v1",
+        "planId": "plan_01J00000000000000000000000",
+        "sourceScriptHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "steps": [
+          {
+            "stepId": "emit",
+            "operation": "emit_artifact",
+            "argumentsHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "approval": "not_required"
+          }
+        ],
+        "authorityDecisionId": "decision_01J00000000000000000000000",
+        "planHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    },
+    {
+      "schema": "bmad-config.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-config.v1",
+        "configId": "config_01J00000000000000000000000",
+        "layers": [
+          {
+            "kind": "central",
+            "ordinal": 0,
+            "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          }
+        ],
+        "resolvedHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    },
+    {
+      "schema": "bmad-memory.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-memory.v1",
+        "memoryId": "memory_01J00000000000000000000000",
+        "ownerScopeRef": "owner_01J00000000000000000000000",
+        "mode": "bounded_persistent",
+        "consent": {
+          "optedIn": true,
+          "revocable": true,
+          "grantedAt": "2026-07-28T10:00:00.000Z"
+        },
+        "bounds": {
+          "maxEntries": 100,
+          "maxBytes": 1048576,
+          "ttlSeconds": 86400,
+          "killSwitch": true
+        },
+        "state": "active",
+        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    }
+  ]
+}

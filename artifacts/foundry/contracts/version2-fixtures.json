@@ -1,0 +1,211 @@
+{
+  "schemaVersion": "forge.foundry-contract-evidence.v1",
+  "taskId": "FND-011",
+  "capturedAt": "2026-07-28T21:40:00Z",
+  "schemasAdded": [
+    {
+      "file": "packages/contracts/schemas/model-access-request-v2.schema.json",
+      "title": "sapphirus.model-access-request-v2.v1",
+      "rootTypeName": "ModelAccessRequestV2",
+      "wireDiscriminator": "desktop-model-access-request.v2",
+      "role": "The version two desktop request. It names an organization profile and a catalog epoch instead of a fixed provider profile.",
+      "authorityExclusions": [
+        "projectEndpoint",
+        "deploymentName",
+        "apiVersion",
+        "providerOptions",
+        "credential",
+        "accessToken",
+        "subscriptionId",
+        "managedIdentityClientId"
+      ]
+    },
+    {
+      "file": "packages/contracts/schemas/model-access-receipt-v2.schema.json",
+      "title": "sapphirus.model-access-receipt-v2.v1",
+      "rootTypeName": "ModelAccessReceiptV2",
+      "wireDiscriminator": "sapphirus.model-access-receipt.v2",
+      "role": "Extends the version one receipt with the resolved profile, variant, catalog epoch, deployment inventory and resolved deployment hashes, the confirmed model identity, the model the provider reported, and a usage record with provenance."
+    },
+    {
+      "file": "packages/contracts/schemas/model-access-result-v2.schema.json",
+      "title": "sapphirus.model-access-result-v2.v1",
+      "rootTypeName": "ModelAccessResultV2",
+      "wireDiscriminator": "desktop-model-access-result.v2",
+      "role": "The terminal result, split into two closed variants by request mode."
+    },
+    {
+      "file": "packages/contracts/schemas/model-stream-event.schema.json",
+      "title": "sapphirus.model-stream-event.v1",
+      "rootTypeName": "ModelStreamEvent",
+      "role": "The ten normalized stream event variants published to the desktop over the reviewed model stream route."
+    }
+  ],
+  "schemaMajorNaming": {
+    "constraint": "native-codegen.mjs hardcodes evidence-event as the only /v2/ URL family and schema-lock.compatibility pins [\"v1\", \"evidence-event/v2\"].",
+    "resolution": "Version two is expressed in the FAMILY NAME at schema major one. File model-access-request-v2.schema.json, $id .../v1/model-access-request-v2.schema.json, title sapphirus.model-access-request-v2.v1, wire discriminator desktop-model-access-request.v2. No second /v2/ URL family was introduced and the evidence-event pin was not edited.",
+    "consequence": "The generated TypeScript root type reads SapphirusModelAccessRequestV2V1: the V2 is the family, the trailing V1 is the schema major. That is intentional and is asserted in check-typescript-bindings.mjs."
+  },
+  "structuralDecisions": [
+    {
+      "decision": "The version two consent is a $def inside the request, not a fifth file.",
+      "detail": "ModelContextConsentV2 drops deploymentHash, because the desktop no longer knows or chooses a deployment, and adds modelProfileId, catalogVersion, requestedVariantId, requestMode, and contextSnapshotId. Changing the profile, catalog epoch, variant, canonical output schema, context snapshot, or request mode therefore produces a decision that no longer matches the request it is presented with."
+    },
+    {
+      "decision": "The receipt carries the request mode and the support route together in one closed response lane.",
+      "detail": "ModelResponseLane is a oneOf over StructuredResponseLane (requestMode structured_response, supportRoute model_access, canonical output schema mandatory) and StreamingChatLane (requestMode streaming_chat, supportRoute model_stream, no output schema representable). This is what makes the required receipt route mismatch fixture a real structural rejection rather than a comment."
+    },
+    {
+      "decision": "The result is a oneOf over the two request modes.",
+      "detail": "A structured response with no canonical payload and a streaming chat answer that claims a canonical output schema are both unrepresentable."
+    },
+    {
+      "decision": "The usage record is a oneOf discriminated by usageProvenance.",
+      "detail": "ReportedUsage (reported or estimated) allows null per category, so a category the provider did not report stays null and is never conflated with a reported zero. UnavailableUsage requires every category to be the null type, so an unavailable usage record cannot be read as a free call."
+    },
+    {
+      "decision": "Tool definitions reference a canonical parameter schema identifier and hash.",
+      "detail": "A request cannot carry an inline provider-shaped parameter document, so a tool definition is not a smuggling route for provider payloads."
+    },
+    {
+      "decision": "Stream events reuse the receipt usage definition and the request tool-name definition.",
+      "detail": "The stream and the receipt cannot drift on how usage or tool identity is spelled."
+    }
+  ],
+  "fixtures": {
+    "valid": [
+      "packages/contracts/fixtures/valid/model-access-request-v2.json",
+      "packages/contracts/fixtures/valid/model-access-receipt-v2.json",
+      "packages/contracts/fixtures/valid/model-access-result-v2.json",
+      "packages/contracts/fixtures/valid/model-access-result-v2-streaming.json",
+      "packages/contracts/fixtures/valid/model-stream-event-response-started.json",
+      "packages/contracts/fixtures/valid/model-stream-event-output-text-delta.json",
+      "packages/contracts/fixtures/valid/model-stream-event-tool-call-completed.json",
+      "packages/contracts/fixtures/valid/model-stream-event-usage.json",
+      "packages/contracts/fixtures/valid/model-stream-event-completed.json",
+      "packages/contracts/fixtures/valid/model-stream-event-failed.json"
+    ],
+    "invalid": [
+      {
+        "file": "packages/contracts/fixtures/invalid/model-access-request-v2-deployment-transplant.json",
+        "requiredBy": "deployment transplant",
+        "proves": "A deployment name cannot be transplanted into a version two request.",
+        "reasonCode": "UNKNOWN_PROPERTY"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-access-request-v2-provider-authority.json",
+        "requiredBy": "deployment transplant",
+        "proves": "A project endpoint and an API version cannot be serialized into a version two request.",
+        "reasonCode": "UNKNOWN_PROPERTY"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-access-request-v2-consent-deployment-hash.json",
+        "requiredBy": "deployment transplant",
+        "proves": "The version two consent decision has no deployment hash, so a version one consent envelope cannot be replayed into a version two request.",
+        "reasonCode": "UNKNOWN_PROPERTY"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-access-request-v2-missing-catalog-version.json",
+        "requiredBy": "stale catalog",
+        "proves": "A version two request cannot omit the catalog epoch. This is the structural precondition for staleness detection, not staleness itself.",
+        "reasonCode": "REQUIRED_PROPERTY_MISSING"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-access-receipt-v2-route-mismatch.json",
+        "requiredBy": "receipt route mismatch",
+        "proves": "A receipt cannot claim a streaming chat answer arrived over the structured response route.",
+        "reasonCode": "ONE_OF_MISMATCH"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-access-receipt-v2-unavailable-usage-tokens.json",
+        "proves": "An unavailable usage record cannot report zero tokens. A category that was not reported is null, never zero.",
+        "reasonCode": "ONE_OF_MISMATCH"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-access-receipt-v2-missing-resolved-profile.json",
+        "requiredBy": "profile substitution, variant substitution",
+        "proves": "A receipt cannot hide which profile and variant actually ran. This is the structural precondition for substitution detection, not substitution itself.",
+        "reasonCode": "REQUIRED_PROPERTY_MISSING"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-access-result-v2-chat-output-schema.json",
+        "proves": "A streaming chat result cannot claim a canonical output schema.",
+        "reasonCode": "ONE_OF_MISMATCH"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-stream-event-bearer-token.json",
+        "proves": "No stream event may carry a bearer token.",
+        "reasonCode": "ONE_OF_MISMATCH"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-stream-event-provider-body.json",
+        "proves": "No stream event may carry a deployment name or a raw provider body.",
+        "reasonCode": "ONE_OF_MISMATCH"
+      },
+      {
+        "file": "packages/contracts/fixtures/invalid/model-stream-event-nonpositive-sequence.json",
+        "requiredBy": "out-of-order events",
+        "proves": "A stream event sequence starts at one. This is the structural floor under monotonicity, not monotonicity itself.",
+        "reasonCode": "ONE_OF_MISMATCH"
+      }
+    ]
+  },
+  "notStructurallyExpressible": {
+    "note": "FND-011 named seven invalid fixtures. Four of them are cross-document or temporal comparisons that no single-document JSON Schema can make. Rather than shipping a fixture that appears to prove them and does not, each is recorded here with the structural precondition that WAS proved and the layer that must carry the real check.",
+    "cases": [
+      {
+        "required": "stale catalog",
+        "why": "Staleness is a comparison between the catalogVersion on the request and the catalog epoch the support plane currently considers current. Both values are well-formed CatalogVersion strings; only their relationship is wrong, and a schema cannot see the other one.",
+        "structuralPreconditionProved": "catalogVersion is mandatory and pattern-bound on both the request and the receipt, and the version two consent binds it too, so a stale request cannot be silently re-pointed at a newer catalog without invalidating consent.",
+        "enforcedBy": "The support plane catalog resolver (FND-024/FND-025) must compare and refuse."
+      },
+      {
+        "required": "profile substitution",
+        "why": "Substitution is requestedProfileId not equal to resolvedProfileId across a request and its receipt. Both are valid ModelProfileId values in isolation.",
+        "structuralPreconditionProved": "The version two receipt carries requestedProfileId, resolvedProfileId, and resolvedProfileHash as required properties, so the comparison is always possible and a receipt cannot omit the evidence.",
+        "enforcedBy": "ModelResultGuards.ValidateReceipt on the support plane and the receipt verifier in crates/desktop-cloud."
+      },
+      {
+        "required": "variant substitution",
+        "why": "Identical in kind to profile substitution: requestedVariantId against resolvedVariantId across two documents.",
+        "structuralPreconditionProved": "Both are required on the version two receipt, requestedVariantId nullable to carry the profile-default case and resolvedVariantId non-null because something always ran.",
+        "enforcedBy": "The same receipt guards."
+      },
+      {
+        "required": "out-of-order events",
+        "why": "Ordering is a property of a sequence of documents. A schema validates one event at a time and cannot know what came before it.",
+        "structuralPreconditionProved": "Every one of the ten variants requires requestId, runId, and a sequence of at least one, and the streaming receipt lane records eventCount and finalSequence so the desktop can reconcile what it saw against what was signed.",
+        "enforcedBy": "The renderer stream reducer (FND-045/FND-053) must abandon a run on a gap or a repeat."
+      },
+      {
+        "required": "duplicate terminal event",
+        "why": "Uniqueness of completed, refused, failed, and cancelled within one run is also a property of the sequence, not of one event.",
+        "structuralPreconditionProved": "The terminal variants are closed and distinct, so a terminal event cannot masquerade as a delta, and finalSequence on the receipt pins where the run actually ended.",
+        "enforcedBy": "The same stream reducer, plus the support plane normalizer that emits at most one terminal event per run."
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "pnpm --filter @sapphirus/contracts lint",
+      "exitCode": 0,
+      "result": "36 schemas, 226 closed objects, 13 discriminator refinements, 1147 resolved refs (before the FND-013 compatibility family)."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts test",
+      "exitCode": 0,
+      "result": "85 passed, 0 failed, 1 environment skip."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts check",
+      "exitCode": 0,
+      "result": "Generation check passed for 3653 files."
+    }
+  ],
+  "constraintsObserved": [
+    "productionOptionalNullablePolicy fail-closed-v1: every nullable property in the four families is required-and-nullable. No property is both optional and nullable.",
+    "check-generated-bindings.mjs regexes /\\bany\\b/ across all generated text including doc comments. Every description in these four schemas was written avoiding the bare lowercase word.",
+    "No $ref in these schemas carries a sibling keyword. The repository has no in-body $ref siblings anywhere, and the vendored generators were not asked to handle one.",
+    "cargo-typify emits `if value.chars().count() < 0usize` for a string with minLength 0, which fails the workspace -D warnings gate through unused_comparisons. The zero minLength on model-access-result-v2 outputText was removed; a zero minimum length is a no-op in JSON Schema anyway."
+  ]
+}

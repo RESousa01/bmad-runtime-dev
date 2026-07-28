@@ -120,6 +120,72 @@
     "reasonCode": null
   },
   {
+    "file": "valid/model-access-compatibility.json",
+    "schema": "model-access-compatibility.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-access-request-v2.json",
+    "schema": "model-access-request-v2.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-access-receipt-v2.json",
+    "schema": "model-access-receipt-v2.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-access-result-v2.json",
+    "schema": "model-access-result-v2.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-access-result-v2-streaming.json",
+    "schema": "model-access-result-v2.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-stream-event-response-started.json",
+    "schema": "model-stream-event.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-stream-event-output-text-delta.json",
+    "schema": "model-stream-event.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-stream-event-tool-call-completed.json",
+    "schema": "model-stream-event.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-stream-event-usage.json",
+    "schema": "model-stream-event.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-stream-event-completed.json",
+    "schema": "model-stream-event.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
+    "file": "valid/model-stream-event-failed.json",
+    "schema": "model-stream-event.schema.json",
+    "valid": true,
+    "reasonCode": null
+  },
+  {
     "file": "valid/bmad-capability-run.json",
     "schema": "bmad-capability-run.schema.json",
     "valid": true,
@@ -202,6 +268,90 @@
     "schema": "model-catalog.schema.json",
     "valid": false,
     "reasonCode": "ENUM_MISMATCH"
+  },
+  {
+    "file": "invalid/model-access-compatibility-lowering-adapter.json",
+    "schema": "model-access-compatibility.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH"
+  },
+  {
+    "file": "invalid/model-access-compatibility-client-selectable-legacy.json",
+    "schema": "model-access-compatibility.schema.json",
+    "valid": false,
+    "reasonCode": "CONST_MISMATCH"
+  },
+  {
+    "file": "invalid/model-access-compatibility-legacy-deployment-name.json",
+    "schema": "model-access-compatibility.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/model-access-request-v2-deployment-transplant.json",
+    "schema": "model-access-request-v2.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/model-access-request-v2-provider-authority.json",
+    "schema": "model-access-request-v2.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/model-access-request-v2-consent-deployment-hash.json",
+    "schema": "model-access-request-v2.schema.json",
+    "valid": false,
+    "reasonCode": "UNKNOWN_PROPERTY"
+  },
+  {
+    "file": "invalid/model-access-request-v2-missing-catalog-version.json",
+    "schema": "model-access-request-v2.schema.json",
+    "valid": false,
+    "reasonCode": "REQUIRED_PROPERTY_MISSING"
+  },
+  {
+    "file": "invalid/model-access-receipt-v2-route-mismatch.json",
+    "schema": "model-access-receipt-v2.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
+  },
+  {
+    "file": "invalid/model-access-receipt-v2-unavailable-usage-tokens.json",
+    "schema": "model-access-receipt-v2.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
+  },
+  {
+    "file": "invalid/model-access-receipt-v2-missing-resolved-profile.json",
+    "schema": "model-access-receipt-v2.schema.json",
+    "valid": false,
+    "reasonCode": "REQUIRED_PROPERTY_MISSING"
+  },
+  {
+    "file": "invalid/model-access-result-v2-chat-output-schema.json",
+    "schema": "model-access-result-v2.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
+  },
+  {
+    "file": "invalid/model-stream-event-bearer-token.json",
+    "schema": "model-stream-event.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
+  },
+  {
+    "file": "invalid/model-stream-event-provider-body.json",
+    "schema": "model-stream-event.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
+  },
+  {
+    "file": "invalid/model-stream-event-nonpositive-sequence.json",
+    "schema": "model-stream-event.schema.json",
+    "valid": false,
+    "reasonCode": "ONE_OF_MISMATCH"
   },
   {
     "file": "invalid/bmad-capability-run-unknown-property.json",

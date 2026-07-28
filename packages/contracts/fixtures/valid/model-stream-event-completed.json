@@ -1,0 +1,15 @@
+{
+  "type": "completed",
+  "requestId": "request_01J00000000000000000000000",
+  "runId": "run_01J00000000000000000000000",
+  "sequence": 5,
+  "receiptSummary": {
+    "receiptId": "receipt_01J00000000000000000000000",
+    "receiptHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "terminalStatus": "succeeded",
+    "resolvedProfileId": "coding-balanced",
+    "resolvedVariantId": "balanced",
+    "outputBytes": 1200,
+    "completedAt": "2026-07-28T10:00:02.000Z"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-script-plan.schema.json",
+  "branch": "sapphirus.bmad-script-plan.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-script-plan.v1",
+    "planId": "plan_01J00000000000000000000000",
+    "sourceScriptHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "steps": [
+      {
+        "stepId": "emit",
+        "operation": "emit_artifact",
+        "argumentsHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "approval": "not_required"
+      }
+    ],
+    "authorityDecisionId": "decision_01J00000000000000000000000",
+    "planHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "canonicalJson": "{\"authorityDecisionId\":\"decision_01J00000000000000000000000\",\"planHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"planId\":\"plan_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-script-plan.v1\",\"sourceScriptHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"steps\":[{\"approval\":\"not_required\",\"argumentsHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"operation\":\"emit_artifact\",\"stepId\":\"emit\"}]}",
+  "expectedHash": "sha256:8e10927a7ba5c2b3a85a2be7ccffdbd11697e62b0a3fcc659257bb8955b88493"
+}

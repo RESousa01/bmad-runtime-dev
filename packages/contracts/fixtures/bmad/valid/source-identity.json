@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-source-identity.schema.json",
+  "branch": "sapphirus.bmad-source-identity.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-source-identity.v1",
+    "source": "bmad_method",
+    "version": "6.10.0",
+    "archiveSha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "archiveMemberCount": 597,
+    "identityHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "canonicalJson": "{\"archiveMemberCount\":597,\"archiveSha256\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"identityHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"schemaVersion\":\"sapphirus.bmad-source-identity.v1\",\"source\":\"bmad_method\",\"version\":\"6.10.0\"}",
+  "expectedHash": "sha256:a97e7f2a68023c0ccac448fc510d32ba911c848ec9c6d1110a39cae8510ed517"
+}

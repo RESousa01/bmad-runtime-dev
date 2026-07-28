@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-rejection.v1",
+  "id": "bmad-source-accounting-unknown-property",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-source-accounting.schema.json",
+  "reason": "unknown_property",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-source-accounting.v1",
+    "sourceIdentityHashes": [
+      "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    ],
+    "rows": [
+      {
+        "source": "bmad_method",
+        "memberPath": "src/example.md",
+        "memberHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "classification": "primary_skill",
+        "disposition": "adapt",
+        "targetTask": "ENG-01"
+      }
+    ],
+    "summary": {
+      "memberCount": 896,
+      "primaryMethodSkills": 48,
+      "builderSkills": 5,
+      "builderActions": 10
+    },
+    "accountingHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "futureAuthority": true
+  }
+}

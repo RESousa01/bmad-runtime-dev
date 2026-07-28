@@ -12,6 +12,7 @@ mod entitlement;
 mod identity;
 mod installation_identity;
 mod model;
+mod model_access_compatibility;
 mod production;
 mod production_round_trip;
 // Not gated on `direct-provider`. This is the taxonomy that says *why* a model
@@ -48,6 +49,13 @@ pub use model::{
     CanonicalOutputValidator, DispatchedModelRequest, ModelAccessReceipt, ModelReceiptStatus,
     RawModelOutput, ReceiptClock, ReceiptProofVerifier, ReceiptVerifier, ReplaySafeReceiptVerifier,
     SystemReceiptClock, VerifiedModelOutput,
+};
+pub use model_access_compatibility::{
+    adapt_legacy_request, is_historical_receipt_verifiable, is_request_schema_version_accepted,
+    AdaptedLegacyRequest, LegacyRejectionReason, CURRENT_RECEIPT_SCHEMA_VERSION,
+    CURRENT_REQUEST_SCHEMA_VERSION, LEGACY_PROFILE_ID, LEGACY_RECEIPT_SCHEMA_VERSION,
+    LEGACY_REQUEST_MODE, LEGACY_REQUEST_SCHEMA_VERSION, MINIMUM_DESKTOP_CONTRACT_EPOCH,
+    REMOVAL_CONTRACT_EPOCH,
 };
 pub use production::{
     pinned_key_from_point, verify_canonical_receipt_proof, CanonicalReceiptProof, PinnedProofKey,

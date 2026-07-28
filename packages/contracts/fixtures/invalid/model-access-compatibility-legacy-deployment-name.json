@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "sapphirus.model-access-compatibility.v1",
+  "adapterDirection": "v1_to_v2_only",
+  "currentRequestSchemaVersion": "desktop-model-access-request.v2",
+  "acceptedRequestSchemaVersions": [
+    "desktop-model-access-request.v1",
+    "desktop-model-access-request.v2"
+  ],
+  "legacyProfile": {
+    "profileId": "legacy-fixed-deployment",
+    "displayName": "Legacy",
+    "deploymentResolution": "server_side_only",
+    "clientSelectable": false,
+    "requiresCatalogVersion": false,
+    "requestMode": "structured_response",
+    "variantPolicy": "profile_default_only",
+    "deploymentName": "fixture-deployment-a"
+  },
+  "rejectionReasons": [
+    "model_selection_attempted",
+    "streaming_requested",
+    "variant_requested",
+    "attachment_requested",
+    "catalog_version_supplied",
+    "tool_definition_supplied",
+    "unknown_member_present",
+    "contract_epoch_too_low"
+  ],
+  "minimumDesktopContractEpoch": 1,
+  "historicalReceiptPolicy": {
+    "verifiableReceiptSchemaVersions": [
+      "sapphirus.model-access-receipt.v1",
+      "sapphirus.model-access-receipt.v2"
+    ],
+    "digestPurpose": "model-access-receipt",
+    "version1DigestUnchanged": true,
+    "reverificationRequired": false
+  },
+  "removalGate": {
+    "removalContractEpoch": 2,
+    "minimumDesktopVersion": "0.2.0",
+    "conditions": [
+      "catalog_published_for_every_tenant",
+      "every_installation_at_removal_epoch",
+      "legacy_profile_retired_from_catalog",
+      "historical_receipt_replay_verified"
+    ]
+  }
+}

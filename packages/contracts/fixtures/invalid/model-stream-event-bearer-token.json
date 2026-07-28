@@ -1,0 +1,9 @@
+{
+  "type": "output_text_delta",
+  "requestId": "request_01J00000000000000000000000",
+  "runId": "run_01J00000000000000000000000",
+  "sequence": 2,
+  "outputIndex": 0,
+  "textDelta": "Review the selected ",
+  "accessToken": "fixture-bearer-token-value"
+}

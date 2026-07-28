@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-builder-authoring.schema.json",
+  "branch": "builder-workflow-revision",
+  "document": {
+    "objectKind": "revision",
+    "schemaVersion": "sapphirus.bmad-builder-revision.v1",
+    "revisionId": "workflowrevision_01J00000000000000000000000",
+    "draftId": "workflowdraft_01J00000000000000000000000",
+    "builderKind": "workflow",
+    "validationProfile": "BuilderOutcomeSkillV2",
+    "authoringAction": {
+      "builderKind": "workflow",
+      "action": "build"
+    },
+    "ordinal": 1,
+    "parentRevisionHash": null,
+    "proposedFileSet": {
+      "limitProfile": "sapphirus.bmad-builder-limits.v1",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "content": "# Simple inline fixture workflow\n"
+        }
+      ]
+    },
+    "sourceIdentityHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "instructionProjectionSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "rawResultHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "inventoryHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "createdAt": "2026-07-14T10:00:00.000Z",
+    "revisionHash": "sha256:1f41287eea73030cba305ca901809b6a574796d00b35e16cedfc2b1f47e2ca69"
+  },
+  "canonicalJson": "{\"authoringAction\":{\"action\":\"build\",\"builderKind\":\"workflow\"},\"builderKind\":\"workflow\",\"createdAt\":\"2026-07-14T10:00:00.000Z\",\"draftId\":\"workflowdraft_01J00000000000000000000000\",\"instructionProjectionSetHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"inventoryHash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"objectKind\":\"revision\",\"ordinal\":1,\"parentRevisionHash\":null,\"proposedFileSet\":{\"files\":[{\"content\":\"# Simple inline fixture workflow\\n\",\"path\":\"SKILL.md\"}],\"limitProfile\":\"sapphirus.bmad-builder-limits.v1\"},\"rawResultHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"revisionHash\":\"sha256:1f41287eea73030cba305ca901809b6a574796d00b35e16cedfc2b1f47e2ca69\",\"revisionId\":\"workflowrevision_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-builder-revision.v1\",\"sourceIdentityHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"validationProfile\":\"BuilderOutcomeSkillV2\"}",
+  "expectedHash": "sha256:0daccd1ddb7f23c98e4608b43ed2adc0caba45c5121e47b69dee7373679f3e92"
+}

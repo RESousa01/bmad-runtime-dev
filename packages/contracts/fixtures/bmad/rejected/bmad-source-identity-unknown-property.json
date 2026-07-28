@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-rejection.v1",
+  "id": "bmad-source-identity-unknown-property",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-source-identity.schema.json",
+  "reason": "unknown_property",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-source-identity.v1",
+    "source": "bmad_method",
+    "version": "6.10.0",
+    "archiveSha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "archiveMemberCount": 597,
+    "identityHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "futureAuthority": true
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-upgrade.schema.json",
+  "branch": "deterministic-with-defaults",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-upgrade.v1",
+    "migrationId": "migration_01J00000000000000000000000",
+    "contract": "bmad_builder_authoring",
+    "fromVersion": "sapphirus.bmad-builder-authoring.v1",
+    "toVersion": "sapphirus.bmad-builder-authoring.v2",
+    "strategy": "deterministic_with_defaults",
+    "steps": [
+      {
+        "ordinal": 0,
+        "operation": "rename",
+        "path": "/draftId",
+        "valueHash": null
+      },
+      {
+        "ordinal": 1,
+        "operation": "set_default",
+        "path": "/mode",
+        "valueHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      {
+        "ordinal": 2,
+        "operation": "validate",
+        "path": "/",
+        "valueHash": null
+      }
+    ],
+    "fixtureHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "canonicalJson": "{\"contract\":\"bmad_builder_authoring\",\"fixtureHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"fromVersion\":\"sapphirus.bmad-builder-authoring.v1\",\"migrationId\":\"migration_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-upgrade.v1\",\"steps\":[{\"operation\":\"rename\",\"ordinal\":0,\"path\":\"/draftId\",\"valueHash\":null},{\"operation\":\"set_default\",\"ordinal\":1,\"path\":\"/mode\",\"valueHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},{\"operation\":\"validate\",\"ordinal\":2,\"path\":\"/\",\"valueHash\":null}],\"strategy\":\"deterministic_with_defaults\",\"toVersion\":\"sapphirus.bmad-builder-authoring.v2\"}",
+  "expectedHash": "sha256:1f5d9cd98dd41c727580d6631202a283c644f393eef24a27c8738b1dc9ce33cb"
+}

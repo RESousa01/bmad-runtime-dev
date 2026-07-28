@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-artifact.schema.json",
+  "title": "sapphirus.bmad-artifact.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifactId", "sessionId", "kind", "state", "contentHash", "evidenceHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-artifact.v1" },
+    "artifactId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "kind": { "enum": ["document", "file_set", "report", "evaluation", "receipt", "checkpoint"] },
+    "state": { "enum": ["proposed", "validated", "persisted", "rejected"] },
+    "relativePath": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$" },
+    "mediaType": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "evidenceHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  }
+}

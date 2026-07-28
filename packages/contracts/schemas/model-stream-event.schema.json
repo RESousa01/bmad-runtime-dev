@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/model-stream-event.schema.json",
+  "title": "sapphirus.model-stream-event.v1",
+  "description": "One normalized model stream event as published to the desktop. The support plane parses the provider stream and emits only these ten closed variants; the desktop never parses a provider stream itself. Every variant carries the request identifier, the run identifier, and a monotonic sequence, and every variant is closed, so a bearer token, a project endpoint, a deployment name, a raw provider body, private reasoning text, or a markup fragment has no property it could arrive in.",
+  "oneOf": [
+    { "$ref": "#/$defs/ResponseStartedEvent" },
+    { "$ref": "#/$defs/OutputTextDeltaEvent" },
+    { "$ref": "#/$defs/ToolCallStartedEvent" },
+    { "$ref": "#/$defs/ToolCallArgumentsDeltaEvent" },
+    { "$ref": "#/$defs/ToolCallCompletedEvent" },
+    { "$ref": "#/$defs/UsageEvent" },
+    { "$ref": "#/$defs/CompletedEvent" },
+    { "$ref": "#/$defs/RefusedEvent" },
+    { "$ref": "#/$defs/FailedEvent" },
+    { "$ref": "#/$defs/CancelledEvent" }
+  ],
+  "$defs": {
+    "StreamSequence": {
+      "description": "Position of this event in its run. The support plane emits a strictly increasing sequence starting at one; a consumer that observes a gap or a repeat must abandon the run rather than reorder it.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "ToolCallId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "StreamFailureCode": {
+      "description": "Stable failure vocabulary. The desktop branches on these codes, so they are part of the contract and never carry provider wording.",
+      "enum": [
+        "provider_unavailable",
+        "provider_timeout",
+        "rate_limited",
+        "profile_unavailable",
+        "catalog_stale",
+        "consent_expired",
+        "budget_exhausted",
+        "output_limit_exceeded",
+        "output_schema_violation",
+        "internal_error"
+      ]
+    },
+    "StreamRefusalCode": {
+      "enum": [
+        "policy_blocked",
+        "content_filtered",
+        "not_entitled",
+        "tool_not_permitted",
+        "context_rejected"
+      ]
+    },
+    "StreamCancellationSource": {
+      "enum": [
+        "user",
+        "host",
+        "support_plane",
+        "deadline_exceeded"
+      ]
+    },
+    "SafeDetail": {
+      "description": "Short reviewed prose for a human. It is emitted by the support plane from a fixed vocabulary of explanations, never copied from a provider response body.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "StreamReceiptSummary": {
+      "description": "The parts of the version two receipt that are safe to publish on the event stream. The signed receipt itself is fetched over the reviewed request and response route; this summary lets the desktop close the run and name the model that answered without holding a signature.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receiptId",
+        "receiptHash",
+        "terminalStatus",
+        "resolvedProfileId",
+        "resolvedVariantId",
+        "outputBytes",
+        "completedAt"
+      ],
+      "properties": {
+        "receiptId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "receiptHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "terminalStatus": { "$ref": "./model-access-receipt-v2.schema.json#/$defs/ModelTerminalStatus" },
+        "resolvedProfileId": { "$ref": "./model-profile.schema.json#/$defs/ModelProfileId" },
+        "resolvedVariantId": { "$ref": "./model-profile.schema.json#/$defs/ModelVariantId" },
+        "outputBytes": { "$ref": "./model-access-receipt-v2.schema.json#/$defs/SafeSize" },
+        "completedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+      }
+    },
+    "ResponseStartedEvent": {
+      "description": "The support plane has resolved the profile and the provider has accepted the call. The resolved profile and variant are published here so the desktop can show which model is answering before the first token of visible text arrives.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "resolvedProfileId",
+        "resolvedVariantId",
+        "startedAt"
+      ],
+      "properties": {
+        "type": { "const": "response_started" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "resolvedProfileId": { "$ref": "./model-profile.schema.json#/$defs/ModelProfileId" },
+        "resolvedVariantId": { "$ref": "./model-profile.schema.json#/$defs/ModelVariantId" },
+        "startedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" }
+      }
+    },
+    "OutputTextDeltaEvent": {
+      "description": "A fragment of the visible answer. It is plain text destined for a text node, never markup, and never private reasoning.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "outputIndex",
+        "textDelta"
+      ],
+      "properties": {
+        "type": { "const": "output_text_delta" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "outputIndex": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "textDelta": { "type": "string", "minLength": 1, "maxLength": 65536 }
+      }
+    },
+    "ToolCallStartedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "toolCallId",
+        "toolName"
+      ],
+      "properties": {
+        "type": { "const": "tool_call_started" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "toolCallId": { "$ref": "#/$defs/ToolCallId" },
+        "toolName": { "$ref": "./model-access-request-v2.schema.json#/$defs/ModelToolName" }
+      }
+    },
+    "ToolCallArgumentsDeltaEvent": {
+      "description": "A fragment of the arguments the model is assembling for a tool call. It is accumulated by the desktop for display only; the support plane validates the completed arguments against the declared canonical parameter schema before the call is allowed to run.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "toolCallId",
+        "argumentsDelta"
+      ],
+      "properties": {
+        "type": { "const": "tool_call_arguments_delta" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "toolCallId": { "$ref": "#/$defs/ToolCallId" },
+        "argumentsDelta": { "type": "string", "minLength": 1, "maxLength": 65536 }
+      }
+    },
+    "ToolCallCompletedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "toolCallId",
+        "argumentsHash",
+        "argumentsByteCount"
+      ],
+      "properties": {
+        "type": { "const": "tool_call_completed" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "toolCallId": { "$ref": "#/$defs/ToolCallId" },
+        "argumentsHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "argumentsByteCount": { "type": "integer", "minimum": 0, "maximum": 1048576 }
+      }
+    },
+    "UsageEvent": {
+      "description": "Usage as known at this point in the run. It reuses the version two receipt usage record, so a category the provider did not report stays null on the stream exactly as it does on the receipt.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "usage"
+      ],
+      "properties": {
+        "type": { "const": "usage" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "usage": { "$ref": "./model-access-receipt-v2.schema.json#/$defs/ModelUsageV2" }
+      }
+    },
+    "CompletedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "receiptSummary"
+      ],
+      "properties": {
+        "type": { "const": "completed" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "receiptSummary": { "$ref": "#/$defs/StreamReceiptSummary" }
+      }
+    },
+    "RefusedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "refusalCode",
+        "refusalDetail"
+      ],
+      "properties": {
+        "type": { "const": "refused" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "refusalCode": { "$ref": "#/$defs/StreamRefusalCode" },
+        "refusalDetail": {
+          "oneOf": [
+            { "$ref": "#/$defs/SafeDetail" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "FailedEvent": {
+      "description": "The run ended without an answer. The code is stable and the retryable flag is decided by the support plane, so the desktop never has to infer retry behaviour from prose.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "failureCode",
+        "retryable",
+        "failureDetail"
+      ],
+      "properties": {
+        "type": { "const": "failed" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "failureCode": { "$ref": "#/$defs/StreamFailureCode" },
+        "retryable": { "type": "boolean" },
+        "failureDetail": {
+          "oneOf": [
+            { "$ref": "#/$defs/SafeDetail" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "CancelledEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "runId",
+        "sequence",
+        "cancellationSource"
+      ],
+      "properties": {
+        "type": { "const": "cancelled" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sequence": { "$ref": "#/$defs/StreamSequence" },
+        "cancellationSource": { "$ref": "#/$defs/StreamCancellationSource" }
+      }
+    }
+  }
+}

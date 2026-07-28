@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-memory.schema.json",
+  "title": "sapphirus.bmad-memory.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "memoryId", "ownerScopeRef", "mode", "consent", "bounds", "state", "contentHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-memory.v1" },
+    "memoryId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "ownerScopeRef": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "mode": { "enum": ["disabled", "session", "bounded_persistent", "autonomous_pulse"] },
+    "consent": { "$ref": "#/$defs/Consent" },
+    "bounds": { "$ref": "#/$defs/Bounds" },
+    "state": { "enum": ["inactive", "active", "revoked", "killed"] },
+    "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "Consent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["optedIn", "revocable", "grantedAt"],
+      "properties": {
+        "optedIn": { "type": "boolean" },
+        "revocable": { "const": true },
+        "grantedAt": {
+          "oneOf": [
+            { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "Bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxEntries", "maxBytes", "ttlSeconds", "killSwitch"],
+      "properties": {
+        "maxEntries": { "type": "integer", "minimum": 0, "maximum": 100000 },
+        "maxBytes": { "type": "integer", "minimum": 0, "maximum": 1073741824 },
+        "ttlSeconds": { "type": "integer", "minimum": 0, "maximum": 31536000 },
+        "killSwitch": { "const": true }
+      }
+    }
+  }
+}

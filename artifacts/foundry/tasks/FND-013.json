@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-013",
+  "title": "V1-to-V2 compatibility and migration",
+  "state": "complete_local",
+  "startedAt": "2026-07-28T22:20:00Z",
+  "completedAt": "2026-07-28T23:30:00Z",
+  "redGate": {
+    "mode": "test_first",
+    "reason": "A legacy desktop must keep working, and a legacy request must not be able to reach a version two capability by accident or by forgery. Both properties must fail closed before the support plane routes anything through the adapter.",
+    "proofPlan": [
+      "Add a canonical compatibility schema naming the single legacy profile, the closed refusal vocabulary, the minimum desktop contract epoch, and the removal gate.",
+      "Prove the legacy profile binding cannot name a deployment and cannot be marked client selectable.",
+      "Prove in Rust and in .NET that a version one request carrying a profile, deployment, variant, catalog epoch, tools, attachments, or a streaming mode is refused with the matching named reason.",
+      "Prove the adapter is one way: a version two document is not adaptable and a version one document does not validate as version two.",
+      "Prove a receipt signed before version two still hashes to its historical digest and its signature still verifies."
+    ]
+  },
+  "changedFiles": [
+    "packages/contracts/schemas/model-access-compatibility.schema.json",
+    "packages/contracts/tests/model-access-migration.test.mjs",
+    "packages/contracts/scripts/generate.mjs",
+    "packages/contracts/scripts/check-typescript-bindings.mjs",
+    "packages/contracts/scripts/lib/native-codegen.mjs",
+    "tools/contract-codegen/tool-lock.json",
+    "packages/contracts/fixtures/**",
+    "packages/contracts/generated/**",
+    "packages/contracts/schema-lock.json",
+    "services/desktop-support-api/Model/ModelAccessCompatibility.cs",
+    "services/desktop-support-api.Tests/Model/ModelAccessCompatibilityTests.cs",
+    "crates/desktop-cloud/src/model_access_compatibility.rs",
+    "crates/desktop-cloud/src/lib.rs",
+    "artifacts/foundry/tasks/FND-013.json"
+  ],
+  "policy": {
+    "legacyProfileId": "legacy-fixed-deployment",
+    "deploymentResolution": "server_side_only",
+    "clientSelectable": false,
+    "requiresCatalogVersion": false,
+    "requestMode": "structured_response",
+    "variantPolicy": "profile_default_only",
+    "adapterDirection": "v1_to_v2_only",
+    "minimumDesktopContractEpoch": 1,
+    "removalContractEpoch": 2,
+    "removalMinimumDesktopVersion": "0.2.0",
+    "removalConditions": [
+      "catalog_published_for_every_tenant",
+      "every_installation_at_removal_epoch",
+      "legacy_profile_retired_from_catalog",
+      "historical_receipt_replay_verified"
+    ],
+    "rejectionReasons": [
+      "model_selection_attempted",
+      "streaming_requested",
+      "variant_requested",
+      "attachment_requested",
+      "catalog_version_supplied",
+      "tool_definition_supplied",
+      "unknown_member_present",
+      "contract_epoch_too_low"
+    ]
+  },
+  "historicalReceiptReplay": {
+    "fixture": "packages/contracts/fixtures/valid/model-access-receipt.json",
+    "digestPurpose": "model-access-receipt",
+    "preimage": "sapphirus:model-access-receipt:v1\\n",
+    "pinnedDigest": "sha256:b30e1bebf1e57ea255397b185e90f8bb52cdabe2686ad9f168a13da7cba029b0",
+    "pinnedIn": [
+      "packages/contracts/tests/model-access-migration.test.mjs",
+      "services/desktop-support-api.Tests/Model/ModelAccessCompatibilityTests.cs"
+    ],
+    "computedIndependentlyBy": [
+      "canonicalHash in packages/contracts/scripts/lib/canonical-json.mjs",
+      "AzureModelReceiptSigner.ComputeReceiptDigest via CanonicalProof.ComputeDigest"
+    ],
+    "proof": "The .NET replay test signs the digest computed under the pre-version-two rule with a local P-256 key, recomputes the digest from the same receipt bytes with the version two families present, asserts the two digests are equal, and verifies the original signature against the recomputed digest. Version two adds a second receipt family; it does not restate or re-sign the first, and no historical receipt has to be re-issued."
+  },
+  "commands": [
+    {
+      "command": "cargo test -p desktop-cloud model_access_compatibility --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "6 passed, 0 failed, 0 ignored."
+    },
+    {
+      "command": "cargo clippy -p desktop-cloud --all-targets --locked -- -D warnings",
+      "exitCode": 101,
+      "classification": "expected_red",
+      "failureFingerprint": "unused-comparisons-on-generated-zero-minlength-string",
+      "nextAction": "cargo-typify emits `if value.chars().count() < 0usize` for a string with minLength 0, which the workspace -D warnings gate rejects through unused_comparisons in the generated desktop-runtime module. Remove the zero minLength from the schema; it is a no-op in JSON Schema."
+    },
+    {
+      "command": "cargo clippy -p desktop-cloud --all-targets --locked -- -D warnings",
+      "exitCode": 101,
+      "classification": "expected_red",
+      "failureFingerprint": "clippy-panic-and-assertions-on-constants-in-test-module",
+      "nextAction": "clippy::panic is denied for all targets, not only non-test ones, so a panic! inside unwrap_or_else in a #[cfg(test)] module fails the gate. Compare the whole Result instead, and wrap a constant assertion in a const block."
+    },
+    {
+      "command": "cargo clippy -p desktop-cloud --all-targets --locked -- -D warnings",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Clean under clippy all deny plus pedantic warn, with unwrap, expect, and panic denied."
+    },
+    {
+      "command": "cargo test -p desktop-cloud --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "69 passed, 0 failed, 0 ignored across the crate, including the five compile-fail documentation tests."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*ModelAccessCompatibility*\"",
+      "exitCode": 1,
+      "classification": "expected_red",
+      "failureFingerprint": "CS8602-assert-true-does-not-narrow-nullability",
+      "nextAction": "Assert.True on the success flag does not narrow the out parameter for the compiler under TreatWarningsAsErrors. Add an explicit Assert.NotNull, which xUnit annotates with NotNull."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*ModelAccessCompatibility*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "16 passed, 0 failed, 0 skipped (7 facts plus 9 theory cases)."
+    },
+    {
+      "command": "node --test --test-isolation=none tests/model-access-migration.test.mjs",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "8 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts test",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "93 passed, 0 failed, 1 environment skip."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts check",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Generation check passed for 3739 files; 37 schemas linted."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts verify:cross-language",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "112 passed, 0 failed, 1 environment skip."
+    }
+  ],
+  "planDivergences": [
+    {
+      "id": "CLOUDERROR-IS-EXHAUSTIVELY-MATCHED",
+      "planSays": "CloudError in crates/desktop-cloud/src/lib.rs is the stable secret-free error surface; extend it rather than inventing a new error type.",
+      "repositoryIs": "map_cloud_error in crates/desktop-app/src/bmad_model/coordinator.rs matches CloudError exhaustively with no wildcard arm. Adding a variant breaks that file, which belongs to another lane.",
+      "resolution": "No variant was added. The adapter returns LegacyRejectionReason, which is a reason vocabulary and not an error type, and impl From<LegacyRejectionReason> for CloudError maps every refusal onto the existing CloudError::CanonicalProjectionInvalid. A refused legacy request is exactly a canonical projection that could not be constructed, so the semantics fit. No new error type was invented and no out-of-lane file was touched."
+    },
+    {
+      "id": "LIB-RS-NEEDS-TWO-LINES",
+      "planSays": "Add the mod to crates/desktop-cloud/src/lib.rs; that one line is in scope.",
+      "repositoryIs": "Every other module in the crate is private with an explicit pub use re-export. A private module whose public items are never re-exported produces dead_code warnings, and the workspace gate denies warnings.",
+      "resolution": "One mod line plus one pub use block, matching the surrounding convention. Nothing else in lib.rs changed."
+    }
+  ],
+  "evidencePaths": [
+    "artifacts/foundry/contracts/version2-fixtures.json"
+  ],
+  "notProved": [
+    "No real Foundry project, deployment, identity, endpoint, or Azure session was contacted. The FND-002 blocker is unchanged and this task claims only its local gates."
+  ],
+  "nextAction": "The three contract tasks are locally complete and unreviewed. .foundry-connection/run-state.json was deliberately not updated: it is outside this lane's lease."
+}

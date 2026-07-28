@@ -38,9 +38,19 @@
           "typeName": "AuthorityRef"
         },
         {
+          "file": "bmad-artifact.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-artifact.schema.json",
+          "typeName": "BmadArtifact"
+        },
+        {
           "file": "bmad-builder-authoring.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-builder-authoring.schema.json",
           "typeName": "BuilderAuthoringObject"
+        },
+        {
+          "file": "bmad-builder-promotion.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-builder-promotion.schema.json",
+          "typeName": "BmadBuilderPromotion"
         },
         {
           "file": "bmad-capability-catalog.schema.json",
@@ -56,6 +66,21 @@
           "file": "bmad-capability-run.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-capability-run.schema.json",
           "typeName": "BmadCapabilityRun"
+        },
+        {
+          "file": "bmad-config.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-config.schema.json",
+          "typeName": "BmadConfig"
+        },
+        {
+          "file": "bmad-eval.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-eval.schema.json",
+          "typeName": "BmadEval"
+        },
+        {
+          "file": "bmad-memory.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-memory.schema.json",
+          "typeName": "BmadMemory"
         },
         {
           "file": "bmad-method-advance-result.schema.json",
@@ -78,9 +103,44 @@
           "typeName": "MethodSession"
         },
         {
+          "file": "bmad-module.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-module.schema.json",
+          "typeName": "BmadModule"
+        },
+        {
           "file": "bmad-package-descriptor.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-package-descriptor.schema.json",
           "typeName": "BmadPackageDescriptor"
+        },
+        {
+          "file": "bmad-script-plan.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-script-plan.schema.json",
+          "typeName": "BmadScriptPlan"
+        },
+        {
+          "file": "bmad-session.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-session.schema.json",
+          "typeName": "BmadSession"
+        },
+        {
+          "file": "bmad-skill-package.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-skill-package.schema.json",
+          "typeName": "BmadSkillPackage"
+        },
+        {
+          "file": "bmad-source-accounting.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-source-accounting.schema.json",
+          "typeName": "BmadSourceAccounting"
+        },
+        {
+          "file": "bmad-source-identity.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-source-identity.schema.json",
+          "typeName": "BmadSourceIdentity"
+        },
+        {
+          "file": "bmad-upgrade.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-upgrade.schema.json",
+          "typeName": "BmadUpgrade"
         },
         {
           "file": "bmad-validation-report.schema.json",
@@ -138,14 +198,34 @@
           "typeName": "FoundryDeploymentSnapshot"
         },
         {
+          "file": "model-access-compatibility.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-access-compatibility.schema.json",
+          "typeName": "ModelAccessCompatibility"
+        },
+        {
+          "file": "model-access-receipt-v2.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-access-receipt-v2.schema.json",
+          "typeName": "ModelAccessReceiptV2"
+        },
+        {
           "file": "model-access-receipt.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/model-access-receipt.schema.json",
           "typeName": "ModelAccessReceipt"
         },
         {
+          "file": "model-access-request-v2.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-access-request-v2.schema.json",
+          "typeName": "ModelAccessRequestV2"
+        },
+        {
           "file": "model-access-request.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/model-access-request.schema.json",
           "typeName": "ModelAccessRequest"
+        },
+        {
+          "file": "model-access-result-v2.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-access-result-v2.schema.json",
+          "typeName": "ModelAccessResultV2"
         },
         {
           "file": "model-access-result.schema.json",
@@ -166,6 +246,11 @@
           "file": "model-profile.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/model-profile.schema.json",
           "typeName": "ModelProfile"
+        },
+        {
+          "file": "model-stream-event.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/model-stream-event.schema.json",
+          "typeName": "ModelStreamEvent"
         },
         {
           "file": "package-compatibility.schema.json",

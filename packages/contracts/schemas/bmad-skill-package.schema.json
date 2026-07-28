@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-skill-package.schema.json",
+  "title": "sapphirus.bmad-skill-package.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "packageId", "sourceIdentityHash", "skills", "actions", "packageHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-skill-package.v1" },
+    "packageId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "sourceIdentityHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/Skill" }
+    },
+    "actions": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "$ref": "#/$defs/Action" }
+    },
+    "packageHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "Skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skillId", "name", "entrypoint", "profile", "instructionHash"],
+      "properties": {
+        "skillId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,127}$" },
+        "entrypoint": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "profile": { "enum": ["method_primary", "builder_production"] },
+        "instructionHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "Action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actionId", "skillId", "visibility", "mode"],
+      "properties": {
+        "actionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "skillId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "visibility": { "enum": ["public", "internal_eval_runner"] },
+        "mode": { "enum": ["interactive", "headless", "both"] }
+        ,
+        "aliases": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_-]{0,127}$" }
+        }
+      }
+    }
+  }
+}

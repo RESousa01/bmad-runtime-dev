@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-011",
+  "title": "Version request, result, receipt, and stream contracts",
+  "state": "complete_local",
+  "startedAt": "2026-07-28T19:40:00Z",
+  "completedAt": "2026-07-28T21:40:00Z",
+  "redGate": {
+    "mode": "test_first",
+    "reason": "The version two request must be unable to carry Foundry authority, and the receipt must be unable to misreport the route, profile, variant, or usage, before any producer or consumer of them exists.",
+    "proofPlan": [
+      "Add invalid fixtures that transplant a deployment name, a project endpoint, and an API version into a version two request and prove each is rejected as an unknown property.",
+      "Add an invalid fixture that replays a version one deployment hash into the version two consent decision and prove the field no longer exists.",
+      "Add an invalid fixture whose receipt claims a streaming chat answer over the structured response route and prove the closed response lane rejects it.",
+      "Add an invalid fixture whose unavailable usage record reports zero tokens and prove the discriminated usage record rejects it.",
+      "Add invalid fixtures that put a bearer token, a deployment name, and a raw provider body on a stream event and prove each is rejected.",
+      "Record explicitly which required invalid fixtures are semantic rather than structural instead of inventing fixtures that do not prove them."
+    ]
+  },
+  "changedFiles": [
+    "packages/contracts/schemas/model-access-request-v2.schema.json",
+    "packages/contracts/schemas/model-access-receipt-v2.schema.json",
+    "packages/contracts/schemas/model-access-result-v2.schema.json",
+    "packages/contracts/schemas/model-stream-event.schema.json",
+    "packages/contracts/scripts/generate.mjs",
+    "packages/contracts/scripts/check-typescript-bindings.mjs",
+    "packages/contracts/scripts/lib/native-codegen.mjs",
+    "tools/contract-codegen/tool-lock.json",
+    "packages/contracts/fixtures/**",
+    "packages/contracts/generated/**",
+    "packages/contracts/schema-lock.json",
+    "artifacts/foundry/contracts/version2-fixtures.json",
+    "artifacts/foundry/tasks/FND-011.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @sapphirus/contracts lint",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "36 schemas, 226 closed objects, 13 discriminator refinements, 1147 resolved refs."
+    },
+    {
+      "command": "node ./scripts/generate.mjs --typescript-only",
+      "exitCode": 1,
+      "classification": "not_run",
+      "failureFingerprint": "typescript-only-requires-check",
+      "nextAction": "--typescript-only is a read-only verification mode and must be paired with --check. Use --dry-run for a write-free full pass."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts generate",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "3653 files generated, 431 updated."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts test",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "85 passed, 0 failed, 1 environment skip. Every new valid fixture validated and every new invalid fixture produced its cataloged reason code."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts check",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Generation check passed for 3653 files; 36 schemas linted."
+    }
+  ],
+  "evidencePaths": [
+    "artifacts/foundry/contracts/version2-fixtures.json"
+  ],
+  "notProved": [
+    "Stale catalog, profile substitution, variant substitution, out-of-order events, and duplicate terminal event are cross-document or temporal properties. Each is recorded in artifacts/foundry/contracts/version2-fixtures.json with the structural precondition that was proved and the layer that must carry the real check.",
+    "No real Foundry project, deployment, identity, or endpoint was contacted. Every fixture deployment name is the synthetic fixture-deployment-a already established by FND-010."
+  ],
+  "nextAction": "FND-012 regenerates bindings and adds the cross-language golden hash vectors."
+}

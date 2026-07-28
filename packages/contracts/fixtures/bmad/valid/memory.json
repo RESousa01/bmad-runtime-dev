@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-memory.schema.json",
+  "branch": "sapphirus.bmad-memory.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-memory.v1",
+    "memoryId": "memory_01J00000000000000000000000",
+    "ownerScopeRef": "owner_01J00000000000000000000000",
+    "mode": "bounded_persistent",
+    "consent": {
+      "optedIn": true,
+      "revocable": true,
+      "grantedAt": "2026-07-28T10:00:00.000Z"
+    },
+    "bounds": {
+      "maxEntries": 100,
+      "maxBytes": 1048576,
+      "ttlSeconds": 86400,
+      "killSwitch": true
+    },
+    "state": "active",
+    "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "canonicalJson": "{\"bounds\":{\"killSwitch\":true,\"maxBytes\":1048576,\"maxEntries\":100,\"ttlSeconds\":86400},\"consent\":{\"grantedAt\":\"2026-07-28T10:00:00.000Z\",\"optedIn\":true,\"revocable\":true},\"contentHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"memoryId\":\"memory_01J00000000000000000000000\",\"mode\":\"bounded_persistent\",\"ownerScopeRef\":\"owner_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-memory.v1\",\"state\":\"active\"}",
+  "expectedHash": "sha256:3a16dfaf320364387b76449c368c6f10ddce8f9b56cfb2111afae10bb4176a71"
+}

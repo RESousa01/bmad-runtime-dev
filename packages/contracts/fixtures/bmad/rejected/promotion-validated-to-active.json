@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-rejection.v1",
+  "id": "promotion-validated-to-active",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-builder-promotion.schema.json",
+  "reason": "forbidden_transition",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-builder-promotion.v1",
+    "promotionId": "promotion_01J00000000000000000000000",
+    "subjectHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "fromState": "validated",
+    "toState": "active",
+    "approval": {
+      "required": true,
+      "decision": "approved",
+      "approvalId": "approval_01J00000000000000000000000"
+    },
+    "stage": "activation",
+    "installation": {
+      "catalogGeneration": 1,
+      "atomic": true,
+      "liveConformanceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "receiptHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  }
+}

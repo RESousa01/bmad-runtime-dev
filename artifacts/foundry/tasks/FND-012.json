@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-012",
+  "title": "Regenerate bindings and golden fixtures",
+  "state": "complete_local",
+  "startedAt": "2026-07-28T21:00:00Z",
+  "completedAt": "2026-07-28T22:20:00Z",
+  "redGate": {
+    "mode": "characterization",
+    "reason": "FND-012 regenerates existing generators over new inputs. The property under test is determinism and cross-language parity, not new behaviour.",
+    "proofPlan": [
+      "Verify the vendored native generator before generating.",
+      "Generate, then generate again and compare the emitted tree byte for byte.",
+      "Run the cross-language lane including the native generator artifact tests.",
+      "Add golden hash vectors for the catalog hash, the version two request hash, the consent binding, stream event decoding, and the version two receipt hash, and bump the hardcoded vector count in the .NET parity test."
+    ]
+  },
+  "changedFiles": [
+    "packages/contracts/scripts/generate.mjs",
+    "packages/contracts/fixtures/golden/hash-vectors.json",
+    "packages/contracts/generated/**",
+    "packages/contracts/schema-lock.json",
+    "tests/generator-qualification/dotnet/HashParityTests.cs",
+    "artifacts/foundry/tasks/FND-012.json"
+  ],
+  "goldenVectors": {
+    "placement": "supplemental",
+    "reason": "The three required vectors are quoted from external reference note 99 section 14.2 and must keep their hand-checked hashes. The five new vectors are repository-derived and are computed by canonicalHash at generation time, which is what the existing two supplemental vectors already do. All ten are iterated by the .NET and Rust parity tests.",
+    "added": [
+      {
+        "name": "model-catalog-hash",
+        "value": "The model catalog fixture with catalogHash removed, which is the projection the catalog epoch is computed over.",
+        "expectedHash": "sha256:4e8be02bd48ee851408aafd71ad7d2d11f07d4ddf61d55c9474f064584eb3f60"
+      },
+      {
+        "name": "model-access-request-v2-hash",
+        "value": "The complete version two request fixture including its consent decision, items, and tools.",
+        "expectedHash": "sha256:fd9452baa17c6d67795bd4c77cd11e9f3f6f574023fafbc81087a122872bf2bb"
+      },
+      {
+        "name": "model-context-consent-v2-binding",
+        "value": "The nine fields that bind a version two consent decision to a request: decision, request, profile, catalog epoch, requested variant, request mode, context snapshot, and canonical output schema id and hash.",
+        "expectedHash": "sha256:4d0d73998768582717f70482aedfd339af9e537b03dade5d937d0f15f5332a65"
+      },
+      {
+        "name": "model-stream-event-decoding",
+        "value": "The completed stream event with its safe receipt summary, so all three languages agree on how a decoded event canonicalizes.",
+        "expectedHash": "sha256:de127176d243a2549994b46070136a9f6aa65819e2fd2d099b835301c4f174f6"
+      },
+      {
+        "name": "model-access-receipt-v2-hash",
+        "value": "The version two receipt with receiptHash and proof removed, which is the signed payload projection.",
+        "expectedHash": "sha256:036879de1e8ae67304813e66af5a938405e8bd193fc5bb557890214eebd1f4cf"
+      }
+    ],
+    "countLiteral": {
+      "file": "tests/generator-qualification/dotnet/HashParityTests.cs",
+      "was": 5,
+      "now": 10,
+      "note": "The assertion counts required plus supplemental. The Rust equivalents in tests/generator-qualification/rust/tests/qualification.rs and crates/desktop-runtime/src/hash.rs iterate without a count literal and needed no change."
+    }
+  },
+  "determinism": {
+    "method": "The literal plan command `git diff --exit-code -- packages/contracts/generated` cannot prove determinism here, because the working tree is intentionally uncommitted: it returns 1 against HEAD for the five new families regardless of whether generation is deterministic. The equivalent proof was run instead.",
+    "proof": [
+      "Hashed every file under packages/contracts/generated into a sorted path-and-digest tree.",
+      "Ran a full generation again.",
+      "Hashed the tree again and compared."
+    ],
+    "treeDigestBefore": "sha256:80e54811138d22a3c60282519f6059b1612efaaeda5075fd5ac370273d5adab2",
+    "treeDigestAfter": "sha256:80e54811138d22a3c60282519f6059b1612efaaeda5075fd5ac370273d5adab2",
+    "fileCount": 3543,
+    "generatorSelfReport": "contracts: generated 3739 files (0 updated)",
+    "generatorInternalGuard": "generate.mjs additionally double-runs the TypeScript and native generators into separate clean staging roots and raises CONTRACT_GENERATOR_NONDETERMINISTIC on any difference before writing."
+  },
+  "commands": [
+    {
+      "command": "node tools/contract-codegen/native-generator.mjs verify",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Vendored cargo-typify matches the reviewed lock (size 8167936, normalized 29eee6240f4657e66504be3e1195366a8fc201085c41a53af9e3d9ea556ee56d). No restore was needed."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts generate",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "3739 files generated, 0 updated on the confirming run."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts verify:cross-language",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "112 passed, 0 failed, 1 environment skip, including the native generator artifact lane."
+    },
+    {
+      "command": "pnpm --filter @sapphirus/contracts typecheck",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "TypeScript binding checks passed (48 files, sha256:da7e2e85e3acfb69bf222e7f5e79b6eaf47b6b64c81af911294f8bf9aad071bc)."
+    },
+    {
+      "command": "git diff --exit-code -- packages/contracts/generated",
+      "exitCode": 1,
+      "classification": "not_applicable",
+      "result": "7 tracked files modified and 482 new files untracked, all of them the five new schema families. This is the expected uncommitted state, not a determinism failure; see the determinism block."
+    },
+    {
+      "command": "dotnet test tests/generator-qualification/dotnet/Sapphirus.GeneratorQualification.Tests.csproj -c Release -- --filter-class \"*HashParityTests*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "2 passed, 0 failed, 0 skipped, with the vector count literal at 10."
+    }
+  ],
+  "handwrittenDtosUntouched": "No existing handwritten production DTO was replaced. services/desktop-support-api/Contracts.cs is unchanged; the new .NET compatibility surface declares its own records in its own file.",
+  "evidencePaths": [
+    "artifacts/foundry/contracts/version2-fixtures.json"
+  ],
+  "nextAction": "FND-013 lands the version one to version two compatibility policy and adapters."
+}

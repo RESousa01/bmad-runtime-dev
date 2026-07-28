@@ -1,0 +1,341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/model-access-receipt-v2.schema.json",
+  "title": "sapphirus.model-access-receipt-v2.v1",
+  "description": "The second version of the signed model access receipt. It extends the version one receipt with everything needed to prove which profile, catalog epoch, variant, and deployment actually served the call, and with a usage record that distinguishes a category the provider reported from one it never reported. The request mode and the support route that produced the receipt are carried together in one closed response lane, so a receipt cannot claim a streaming chat answer arrived over the structured response route.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "receiptId",
+    "requestId",
+    "runId",
+    "requestHash",
+    "resultHash",
+    "deliveryModel",
+    "tenantHash",
+    "subjectHash",
+    "registrationId",
+    "manifestHash",
+    "invocationBindingHash",
+    "consumptionHash",
+    "consentEnvelopeHash",
+    "consentDisclosureHash",
+    "providerProfileHash",
+    "modelProfileHash",
+    "modelCapabilityHash",
+    "responseLane",
+    "requestedProfileId",
+    "resolvedProfileId",
+    "resolvedProfileHash",
+    "requestedVariantId",
+    "resolvedVariantId",
+    "catalogVersion",
+    "catalogHash",
+    "deploymentInventoryHash",
+    "resolvedDeploymentHash",
+    "resolvedModel",
+    "reportedResponseModel",
+    "credentialBindingHash",
+    "retentionMode",
+    "region",
+    "inputBytes",
+    "outputBytes",
+    "usage",
+    "retryCount",
+    "fallbackEvents",
+    "providerRequestId",
+    "startedAt",
+    "completedAt",
+    "terminalStatus",
+    "receiptHash",
+    "proof"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.model-access-receipt.v2" },
+    "receiptId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "requestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "resultHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "deliveryModel": { "const": "windows_local" },
+    "tenantHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "subjectHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "registrationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "manifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "invocationBindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consumptionHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consentEnvelopeHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "consentDisclosureHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "providerProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "modelProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "modelCapabilityHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "responseLane": { "$ref": "#/$defs/ModelResponseLane" },
+    "requestedProfileId": { "$ref": "./model-profile.schema.json#/$defs/ModelProfileId" },
+    "resolvedProfileId": { "$ref": "./model-profile.schema.json#/$defs/ModelProfileId" },
+    "resolvedProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "requestedVariantId": {
+      "oneOf": [
+        { "$ref": "./model-profile.schema.json#/$defs/ModelVariantId" },
+        { "type": "null" }
+      ]
+    },
+    "resolvedVariantId": { "$ref": "./model-profile.schema.json#/$defs/ModelVariantId" },
+    "catalogVersion": { "$ref": "./model-catalog.schema.json#/$defs/CatalogVersion" },
+    "catalogHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "deploymentInventoryHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "resolvedDeploymentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "resolvedModel": { "$ref": "#/$defs/ResolvedModelIdentity" },
+    "reportedResponseModel": {
+      "oneOf": [
+        { "$ref": "#/$defs/ReportedModelName" },
+        { "type": "null" }
+      ]
+    },
+    "credentialBindingHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "retentionMode": { "const": "transient_no_store" },
+    "region": { "$ref": "#/$defs/Region" },
+    "inputBytes": { "$ref": "#/$defs/SafeSize" },
+    "outputBytes": { "$ref": "#/$defs/SafeSize" },
+    "usage": { "$ref": "#/$defs/ModelUsageV2" },
+    "retryCount": { "type": "integer", "minimum": 0, "maximum": 32 },
+    "fallbackEvents": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/ModelFallbackEvent" }
+    },
+    "providerRequestId": {
+      "oneOf": [
+        { "$ref": "./common.schema.json#/$defs/OpaqueRef" },
+        { "type": "null" }
+      ]
+    },
+    "startedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "completedAt": { "$ref": "./common.schema.json#/$defs/UtcInstant" },
+    "terminalStatus": { "$ref": "#/$defs/ModelTerminalStatus" },
+    "receiptHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "proof": { "$ref": "#/$defs/SupportPlaneProof" }
+  },
+  "$defs": {
+    "CanonicalSchemaId": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$"
+    },
+    "Region": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "SafeSize": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "TokenCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "ReportedModelName": {
+      "description": "The model name the provider echoed on the response, recorded verbatim so a mismatch against the resolved identity is auditable. It is a model name, never a deployment name.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "ModelTerminalStatus": {
+      "enum": [
+        "succeeded",
+        "refused",
+        "incomplete",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "ResolvedModelIdentity": {
+      "description": "The model identity the support plane confirmed behind the resolved deployment before the call was made.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["publisher", "name", "version"],
+      "properties": {
+        "publisher": { "$ref": "./foundry-deployment.schema.json#/$defs/ModelIdentityPart" },
+        "name": { "$ref": "./foundry-deployment.schema.json#/$defs/ModelIdentityPart" },
+        "version": { "$ref": "./foundry-deployment.schema.json#/$defs/ModelIdentityPart" }
+      }
+    },
+    "StructuredResponseLane": {
+      "description": "A structured response served over the model access route. The canonical output schema and its provider projection are mandatory here, because a structured answer that satisfied no schema is not a structured answer.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestMode",
+        "supportRoute",
+        "canonicalOutputSchemaId",
+        "canonicalOutputSchemaHash",
+        "providerSchemaProjectionHash"
+      ],
+      "properties": {
+        "requestMode": { "const": "structured_response" },
+        "supportRoute": { "const": "model_access" },
+        "canonicalOutputSchemaId": { "$ref": "#/$defs/CanonicalSchemaId" },
+        "canonicalOutputSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "providerSchemaProjectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "StreamingChatLane": {
+      "description": "A streaming chat answer served over the model stream route. No canonical output schema or provider schema projection is representable here, and the observed event count and final sequence are recorded so the receipt can be reconciled against the events the desktop saw.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestMode",
+        "supportRoute",
+        "eventCount",
+        "finalSequence"
+      ],
+      "properties": {
+        "requestMode": { "const": "streaming_chat" },
+        "supportRoute": { "const": "model_stream" },
+        "eventCount": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+        "finalSequence": { "type": "integer", "minimum": 1, "maximum": 1000000 }
+      }
+    },
+    "ModelResponseLane": {
+      "oneOf": [
+        { "$ref": "#/$defs/StructuredResponseLane" },
+        { "$ref": "#/$defs/StreamingChatLane" }
+      ]
+    },
+    "ReportedUsage": {
+      "description": "Token categories the provider reported. A category the provider did not report is null. Zero means the provider reported zero, and the two are never conflated.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "usageProvenance",
+        "inputTokens",
+        "outputTokens",
+        "reasoningTokens",
+        "cacheReadTokens",
+        "cacheWriteTokens",
+        "costMicrounits",
+        "currency",
+        "priceProfileVersion"
+      ],
+      "properties": {
+        "usageProvenance": { "enum": ["reported", "estimated"] },
+        "inputTokens": {
+          "oneOf": [{ "$ref": "#/$defs/TokenCount" }, { "type": "null" }]
+        },
+        "outputTokens": {
+          "oneOf": [{ "$ref": "#/$defs/TokenCount" }, { "type": "null" }]
+        },
+        "reasoningTokens": {
+          "oneOf": [{ "$ref": "#/$defs/TokenCount" }, { "type": "null" }]
+        },
+        "cacheReadTokens": {
+          "oneOf": [{ "$ref": "#/$defs/TokenCount" }, { "type": "null" }]
+        },
+        "cacheWriteTokens": {
+          "oneOf": [{ "$ref": "#/$defs/TokenCount" }, { "type": "null" }]
+        },
+        "costMicrounits": {
+          "oneOf": [{ "$ref": "#/$defs/SafeSize" }, { "type": "null" }]
+        },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "priceProfileVersion": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        }
+      }
+    },
+    "UnavailableUsage": {
+      "description": "No usage was obtainable. Every category is null by construction, so an unavailable usage record cannot be read as a free call.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "usageProvenance",
+        "inputTokens",
+        "outputTokens",
+        "reasoningTokens",
+        "cacheReadTokens",
+        "cacheWriteTokens",
+        "costMicrounits",
+        "currency",
+        "priceProfileVersion"
+      ],
+      "properties": {
+        "usageProvenance": { "const": "unavailable" },
+        "inputTokens": { "type": "null" },
+        "outputTokens": { "type": "null" },
+        "reasoningTokens": { "type": "null" },
+        "cacheReadTokens": { "type": "null" },
+        "cacheWriteTokens": { "type": "null" },
+        "costMicrounits": { "type": "null" },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "priceProfileVersion": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        }
+      }
+    },
+    "ModelUsageV2": {
+      "oneOf": [
+        { "$ref": "#/$defs/ReportedUsage" },
+        { "$ref": "#/$defs/UnavailableUsage" }
+      ]
+    },
+    "ModelFallbackEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "fromProfileId",
+        "toProfileId",
+        "fromProfileHash",
+        "toProfileHash",
+        "policyTransitionHash"
+      ],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 1, "maximum": 16 },
+        "fromProfileId": { "$ref": "./model-profile.schema.json#/$defs/ModelProfileId" },
+        "toProfileId": { "$ref": "./model-profile.schema.json#/$defs/ModelProfileId" },
+        "fromProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "toProfileHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "policyTransitionHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "SupportPlaneProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proofType",
+        "algorithm",
+        "issuer",
+        "audience",
+        "keyId",
+        "signedPayloadHash",
+        "signature"
+      ],
+      "properties": {
+        "proofType": { "const": "support_plane_signature" },
+        "algorithm": { "const": "ES256" },
+        "issuer": { "type": "string", "minLength": 8, "maxLength": 2048 },
+        "audience": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "keyId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "signedPayloadHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "signature": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 2048,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      }
+    }
+  }
+}

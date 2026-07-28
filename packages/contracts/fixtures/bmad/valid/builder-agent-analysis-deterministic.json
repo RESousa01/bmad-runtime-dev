@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-builder-authoring.schema.json",
+  "branch": "builder-agent-analysis-deterministic",
+  "document": {
+    "objectKind": "analysis",
+    "schemaVersion": "sapphirus.bmad-builder-analysis.v1",
+    "analysisId": "agentanalysis_01J11111111111111111111111",
+    "draftId": "agentdraft_01J00000000000000000000000",
+    "revisionId": "agentrevision_01J00000000000000000000000",
+    "revisionHash": "sha256:55d17e3803300144b954e7ee79cff32c1a22b4607a8d64ed63a5f7dc557f23b8",
+    "builderKind": "agent",
+    "validationProfile": "BuilderAgentV2Stateless",
+    "analysisKind": "deterministic_static",
+    "sourceMemberSetHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "instructionProjectionSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "deterministicFactsHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "deterministicFindings": [],
+    "modelLensesPerformed": false,
+    "evaluationClaim": "none",
+    "createdAt": "2026-07-14T10:00:00.000Z",
+    "analysisHash": "sha256:6e12af2229a0a1b5f876409f7bfdb448cd2e8c596f66a4882da9bb38cde091e0",
+    "modelLensesNotPerformedReason": "not_requested"
+  },
+  "canonicalJson": "{\"analysisHash\":\"sha256:6e12af2229a0a1b5f876409f7bfdb448cd2e8c596f66a4882da9bb38cde091e0\",\"analysisId\":\"agentanalysis_01J11111111111111111111111\",\"analysisKind\":\"deterministic_static\",\"builderKind\":\"agent\",\"createdAt\":\"2026-07-14T10:00:00.000Z\",\"deterministicFactsHash\":\"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"deterministicFindings\":[],\"draftId\":\"agentdraft_01J00000000000000000000000\",\"evaluationClaim\":\"none\",\"instructionProjectionSetHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"modelLensesNotPerformedReason\":\"not_requested\",\"modelLensesPerformed\":false,\"objectKind\":\"analysis\",\"revisionHash\":\"sha256:55d17e3803300144b954e7ee79cff32c1a22b4607a8d64ed63a5f7dc557f23b8\",\"revisionId\":\"agentrevision_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-builder-analysis.v1\",\"sourceMemberSetHash\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"validationProfile\":\"BuilderAgentV2Stateless\"}",
+  "expectedHash": "sha256:47bed5c1d7fc3e50bb65c485ad0703e22261f60ea8a3aa8cee6cc6a02ba96b8f"
+}

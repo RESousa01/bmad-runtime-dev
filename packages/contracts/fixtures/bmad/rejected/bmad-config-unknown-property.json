@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-rejection.v1",
+  "id": "bmad-config-unknown-property",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-config.schema.json",
+  "reason": "unknown_property",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-config.v1",
+    "configId": "config_01J00000000000000000000000",
+    "layers": [
+      {
+        "kind": "central",
+        "ordinal": 0,
+        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ],
+    "resolvedHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "futureAuthority": true
+  }
+}

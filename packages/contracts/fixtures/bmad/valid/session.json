@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-session.schema.json",
+  "branch": "sapphirus.bmad-session.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-session.v1",
+    "sessionId": "session_01J00000000000000000000000",
+    "capabilityId": "capability_01J00000000000000000000000",
+    "mode": "interactive",
+    "agentProfile": "stateless",
+    "state": "running",
+    "control": {
+      "pauseAllowed": true,
+      "resumeAllowed": false,
+      "cancelAllowed": true
+    },
+    "artifacts": [],
+    "evidence": []
+  },
+  "canonicalJson": "{\"agentProfile\":\"stateless\",\"artifacts\":[],\"capabilityId\":\"capability_01J00000000000000000000000\",\"control\":{\"cancelAllowed\":true,\"pauseAllowed\":true,\"resumeAllowed\":false},\"evidence\":[],\"mode\":\"interactive\",\"schemaVersion\":\"sapphirus.bmad-session.v1\",\"sessionId\":\"session_01J00000000000000000000000\",\"state\":\"running\"}",
+  "expectedHash": "sha256:8e5ff6dd026294b3526e99b8faa1f48d82a5427afdd6778b5a2b13963dfa2a14"
+}

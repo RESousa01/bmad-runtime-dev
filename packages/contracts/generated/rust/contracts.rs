@@ -291,6 +291,3852 @@ impl ::std::convert::From<CommonAuthorityRef> for AuthorityRef {
         Self(value)
     }
 }
+#[doc = "`BmadArtifact`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-artifact.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"artifactId\","]
+#[doc = "    \"contentHash\","]
+#[doc = "    \"evidenceHash\","]
+#[doc = "    \"kind\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"sessionId\","]
+#[doc = "    \"state\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"artifactId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"contentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"evidenceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"kind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"document\","]
+#[doc = "        \"file_set\","]
+#[doc = "        \"report\","]
+#[doc = "        \"evaluation\","]
+#[doc = "        \"receipt\","]
+#[doc = "        \"checkpoint\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"mediaType\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"relativePath\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1024,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-artifact.v1\""]
+#[doc = "    },"]
+#[doc = "    \"sessionId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"state\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"proposed\","]
+#[doc = "        \"validated\","]
+#[doc = "        \"persisted\","]
+#[doc = "        \"rejected\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadArtifact {
+    #[serde(rename = "artifactId")]
+    pub artifact_id: CommonContractId,
+    #[serde(rename = "contentHash")]
+    pub content_hash: CommonSha256,
+    #[serde(rename = "evidenceHash")]
+    pub evidence_hash: CommonSha256,
+    pub kind: BmadArtifactKind,
+    #[serde(
+        rename = "mediaType",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub media_type: ::std::option::Option<BmadArtifactMediaType>,
+    #[serde(
+        rename = "relativePath",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub relative_path: ::std::option::Option<BmadArtifactRelativePath>,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "sessionId")]
+    pub session_id: CommonContractId,
+    pub state: BmadArtifactState,
+}
+impl BmadArtifact {
+    pub fn builder() -> builder::BmadArtifact {
+        Default::default()
+    }
+}
+#[doc = "`BmadArtifactKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"document\","]
+#[doc = "    \"file_set\","]
+#[doc = "    \"report\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"receipt\","]
+#[doc = "    \"checkpoint\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadArtifactKind {
+    #[serde(rename = "document")]
+    Document,
+    #[serde(rename = "file_set")]
+    FileSet,
+    #[serde(rename = "report")]
+    Report,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "receipt")]
+    Receipt,
+    #[serde(rename = "checkpoint")]
+    Checkpoint,
+}
+impl ::std::fmt::Display for BmadArtifactKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Document => f.write_str("document"),
+            Self::FileSet => f.write_str("file_set"),
+            Self::Report => f.write_str("report"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Receipt => f.write_str("receipt"),
+            Self::Checkpoint => f.write_str("checkpoint"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadArtifactKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "document" => Ok(Self::Document),
+            "file_set" => Ok(Self::FileSet),
+            "report" => Ok(Self::Report),
+            "evaluation" => Ok(Self::Evaluation),
+            "receipt" => Ok(Self::Receipt),
+            "checkpoint" => Ok(Self::Checkpoint),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadArtifactKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadArtifactMediaType`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadArtifactMediaType(::std::string::String);
+impl ::std::ops::Deref for BmadArtifactMediaType {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadArtifactMediaType> for ::std::string::String {
+    fn from(value: BmadArtifactMediaType) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadArtifactMediaType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadArtifactMediaType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactMediaType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactMediaType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadArtifactMediaType {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadArtifactRelativePath`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1024,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadArtifactRelativePath(::std::string::String);
+impl ::std::ops::Deref for BmadArtifactRelativePath {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadArtifactRelativePath> for ::std::string::String {
+    fn from(value: BmadArtifactRelativePath) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadArtifactRelativePath {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1024usize {
+            return Err("longer than 1024 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadArtifactRelativePath {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactRelativePath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactRelativePath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadArtifactRelativePath {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadArtifactState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"proposed\","]
+#[doc = "    \"validated\","]
+#[doc = "    \"persisted\","]
+#[doc = "    \"rejected\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadArtifactState {
+    #[serde(rename = "proposed")]
+    Proposed,
+    #[serde(rename = "validated")]
+    Validated,
+    #[serde(rename = "persisted")]
+    Persisted,
+    #[serde(rename = "rejected")]
+    Rejected,
+}
+impl ::std::fmt::Display for BmadArtifactState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Proposed => f.write_str("proposed"),
+            Self::Validated => f.write_str("validated"),
+            Self::Persisted => f.write_str("persisted"),
+            Self::Rejected => f.write_str("rejected"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadArtifactState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "proposed" => Ok(Self::Proposed),
+            "validated" => Ok(Self::Validated),
+            "persisted" => Ok(Self::Persisted),
+            "rejected" => Ok(Self::Rejected),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadArtifactState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-builder-promotion.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"allOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"const\": \"draft\""]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"validated\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"const\": \"validated\""]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"analysed\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"const\": \"analysed\""]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"evaluated\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"const\": \"evaluated\""]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"reviewed\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"const\": \"reviewed\""]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"approved\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"const\": \"approved\""]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"staged\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"const\": \"staged\""]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"installed\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"const\": \"installed\""]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"active\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"const\": \"active\""]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"superseded\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"enum\": ["]
+#[doc = "                \"active\","]
+#[doc = "                \"superseded\""]
+#[doc = "              ]"]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"rolled_back\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"required\": ["]
+#[doc = "            \"fromState\","]
+#[doc = "            \"toState\""]
+#[doc = "          ],"]
+#[doc = "          \"properties\": {"]
+#[doc = "            \"fromState\": {"]
+#[doc = "              \"enum\": ["]
+#[doc = "                \"installed\","]
+#[doc = "                \"active\","]
+#[doc = "                \"superseded\","]
+#[doc = "                \"rolled_back\""]
+#[doc = "              ]"]
+#[doc = "            },"]
+#[doc = "            \"toState\": {"]
+#[doc = "              \"const\": \"uninstalled\""]
+#[doc = "            }"]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  ],"]
+#[doc = "  \"required\": ["]
+#[doc = "    \"approval\","]
+#[doc = "    \"fromState\","]
+#[doc = "    \"promotionId\","]
+#[doc = "    \"receiptHash\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"stage\","]
+#[doc = "    \"subjectHash\","]
+#[doc = "    \"toState\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"approval\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadBuilderPromotionApproval\""]
+#[doc = "    },"]
+#[doc = "    \"fromState\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadBuilderPromotionLifecycleState\""]
+#[doc = "    },"]
+#[doc = "    \"installation\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadBuilderPromotionInstallation\""]
+#[doc = "    },"]
+#[doc = "    \"promotionId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"receiptHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-builder-promotion.v1\""]
+#[doc = "    },"]
+#[doc = "    \"stage\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"validation\","]
+#[doc = "        \"analysis\","]
+#[doc = "        \"evaluation\","]
+#[doc = "        \"review\","]
+#[doc = "        \"approval\","]
+#[doc = "        \"staging\","]
+#[doc = "        \"installation\","]
+#[doc = "        \"activation\","]
+#[doc = "        \"rollback\","]
+#[doc = "        \"uninstallation\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"subjectHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"toState\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadBuilderPromotionLifecycleState\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(untagged, deny_unknown_fields)]
+pub enum BmadBuilderPromotion {
+    Variant0 {
+        approval: BmadBuilderPromotionApproval,
+        #[serde(rename = "fromState")]
+        from_state: BmadBuilderPromotionVariant0FromState,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        installation: ::std::option::Option<BmadBuilderPromotionInstallation>,
+        #[serde(rename = "promotionId")]
+        promotion_id: CommonContractId,
+        #[serde(rename = "receiptHash")]
+        receipt_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        stage: BmadBuilderPromotionVariant0Stage,
+        #[serde(rename = "subjectHash")]
+        subject_hash: CommonSha256,
+        #[serde(rename = "toState")]
+        to_state: BmadBuilderPromotionVariant0ToState,
+    },
+    Variant1 {
+        approval: BmadBuilderPromotionApproval,
+        #[serde(rename = "fromState")]
+        from_state: BmadBuilderPromotionVariant1FromState,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        installation: ::std::option::Option<BmadBuilderPromotionInstallation>,
+        #[serde(rename = "promotionId")]
+        promotion_id: CommonContractId,
+        #[serde(rename = "receiptHash")]
+        receipt_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        stage: BmadBuilderPromotionVariant1Stage,
+        #[serde(rename = "subjectHash")]
+        subject_hash: CommonSha256,
+        #[serde(rename = "toState")]
+        to_state: BmadBuilderPromotionVariant1ToState,
+    },
+    Variant2 {
+        approval: BmadBuilderPromotionApproval,
+        #[serde(rename = "fromState")]
+        from_state: BmadBuilderPromotionVariant2FromState,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        installation: ::std::option::Option<BmadBuilderPromotionInstallation>,
+        #[serde(rename = "promotionId")]
+        promotion_id: CommonContractId,
+        #[serde(rename = "receiptHash")]
+        receipt_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        stage: BmadBuilderPromotionVariant2Stage,
+        #[serde(rename = "subjectHash")]
+        subject_hash: CommonSha256,
+        #[serde(rename = "toState")]
+        to_state: BmadBuilderPromotionVariant2ToState,
+    },
+    Variant3 {
+        approval: BmadBuilderPromotionApproval,
+        #[serde(rename = "fromState")]
+        from_state: BmadBuilderPromotionVariant3FromState,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        installation: ::std::option::Option<BmadBuilderPromotionInstallation>,
+        #[serde(rename = "promotionId")]
+        promotion_id: CommonContractId,
+        #[serde(rename = "receiptHash")]
+        receipt_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        stage: BmadBuilderPromotionVariant3Stage,
+        #[serde(rename = "subjectHash")]
+        subject_hash: CommonSha256,
+        #[serde(rename = "toState")]
+        to_state: BmadBuilderPromotionVariant3ToState,
+    },
+    Variant4 {
+        approval: BmadBuilderPromotionApproval,
+        #[serde(rename = "fromState")]
+        from_state: BmadBuilderPromotionVariant4FromState,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        installation: ::std::option::Option<BmadBuilderPromotionInstallation>,
+        #[serde(rename = "promotionId")]
+        promotion_id: CommonContractId,
+        #[serde(rename = "receiptHash")]
+        receipt_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        stage: BmadBuilderPromotionVariant4Stage,
+        #[serde(rename = "subjectHash")]
+        subject_hash: CommonSha256,
+        #[serde(rename = "toState")]
+        to_state: BmadBuilderPromotionVariant4ToState,
+    },
+    Variant5 {
+        approval: BmadBuilderPromotionApproval,
+        #[serde(rename = "fromState")]
+        from_state: BmadBuilderPromotionVariant5FromState,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        installation: ::std::option::Option<BmadBuilderPromotionInstallation>,
+        #[serde(rename = "promotionId")]
+        promotion_id: CommonContractId,
+        #[serde(rename = "receiptHash")]
+        receipt_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        stage: BmadBuilderPromotionVariant5Stage,
+        #[serde(rename = "subjectHash")]
+        subject_hash: CommonSha256,
+        #[serde(rename = "toState")]
+        to_state: BmadBuilderPromotionVariant5ToState,
+    },
+    Variant6 {
+        approval: BmadBuilderPromotionApproval,
+        #[serde(rename = "fromState")]
+        from_state: BmadBuilderPromotionVariant6FromState,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        installation: ::std::option::Option<BmadBuilderPromotionInstallation>,
+        #[serde(rename = "promotionId")]
+        promotion_id: CommonContractId,
+        #[serde(rename = "receiptHash")]
+        receipt_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        stage: BmadBuilderPromotionVariant6Stage,
+        #[serde(rename = "subjectHash")]
+        subject_hash: CommonSha256,
+        #[serde(rename = "toState")]
+        to_state: BmadBuilderPromotionVariant6ToState,
+    },
+    Variant7(BmadBuilderPromotionVariant7),
+    Variant8(BmadBuilderPromotionVariant8),
+    Variant9(BmadBuilderPromotionVariant9),
+    Variant10 {
+        approval: BmadBuilderPromotionApproval,
+        #[serde(rename = "fromState")]
+        from_state: BmadBuilderPromotionVariant10FromState,
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        installation: ::std::option::Option<BmadBuilderPromotionInstallation>,
+        #[serde(rename = "promotionId")]
+        promotion_id: CommonContractId,
+        #[serde(rename = "receiptHash")]
+        receipt_hash: CommonSha256,
+        #[serde(rename = "schemaVersion")]
+        schema_version: ::serde_json::Value,
+        stage: BmadBuilderPromotionVariant10Stage,
+        #[serde(rename = "subjectHash")]
+        subject_hash: CommonSha256,
+        #[serde(rename = "toState")]
+        to_state: BmadBuilderPromotionVariant10ToState,
+    },
+}
+impl ::std::convert::From<BmadBuilderPromotionVariant7> for BmadBuilderPromotion {
+    fn from(value: BmadBuilderPromotionVariant7) -> Self {
+        Self::Variant7(value)
+    }
+}
+impl ::std::convert::From<BmadBuilderPromotionVariant8> for BmadBuilderPromotion {
+    fn from(value: BmadBuilderPromotionVariant8) -> Self {
+        Self::Variant8(value)
+    }
+}
+impl ::std::convert::From<BmadBuilderPromotionVariant9> for BmadBuilderPromotion {
+    fn from(value: BmadBuilderPromotionVariant9) -> Self {
+        Self::Variant9(value)
+    }
+}
+#[doc = "`BmadBuilderPromotionApproval`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"decision\","]
+#[doc = "    \"required\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"approvalId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"decision\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"not_required\","]
+#[doc = "        \"pending\","]
+#[doc = "        \"approved\","]
+#[doc = "        \"denied\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"required\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadBuilderPromotionApproval {
+    #[serde(
+        rename = "approvalId",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub approval_id: ::std::option::Option<CommonContractId>,
+    pub decision: BmadBuilderPromotionApprovalDecision,
+    pub required: bool,
+}
+impl BmadBuilderPromotionApproval {
+    pub fn builder() -> builder::BmadBuilderPromotionApproval {
+        Default::default()
+    }
+}
+#[doc = "`BmadBuilderPromotionApprovalDecision`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"not_required\","]
+#[doc = "    \"pending\","]
+#[doc = "    \"approved\","]
+#[doc = "    \"denied\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionApprovalDecision {
+    #[serde(rename = "not_required")]
+    NotRequired,
+    #[serde(rename = "pending")]
+    Pending,
+    #[serde(rename = "approved")]
+    Approved,
+    #[serde(rename = "denied")]
+    Denied,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionApprovalDecision {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::NotRequired => f.write_str("not_required"),
+            Self::Pending => f.write_str("pending"),
+            Self::Approved => f.write_str("approved"),
+            Self::Denied => f.write_str("denied"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionApprovalDecision {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "not_required" => Ok(Self::NotRequired),
+            "pending" => Ok(Self::Pending),
+            "approved" => Ok(Self::Approved),
+            "denied" => Ok(Self::Denied),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionApprovalDecision {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionApprovalDecision {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionApprovalDecision {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionInstallation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"atomic\","]
+#[doc = "    \"catalogGeneration\","]
+#[doc = "    \"liveConformanceHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"atomic\": {"]
+#[doc = "      \"const\": true"]
+#[doc = "    },"]
+#[doc = "    \"catalogGeneration\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"liveConformanceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadBuilderPromotionInstallation {
+    pub atomic: ::serde_json::Value,
+    #[serde(rename = "catalogGeneration")]
+    pub catalog_generation: ::std::num::NonZeroU64,
+    #[serde(rename = "liveConformanceHash")]
+    pub live_conformance_hash: CommonSha256,
+}
+impl BmadBuilderPromotionInstallation {
+    pub fn builder() -> builder::BmadBuilderPromotionInstallation {
+        Default::default()
+    }
+}
+#[doc = "`BmadBuilderPromotionLifecycleState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"draft\","]
+#[doc = "    \"validated\","]
+#[doc = "    \"analysed\","]
+#[doc = "    \"evaluated\","]
+#[doc = "    \"reviewed\","]
+#[doc = "    \"approved\","]
+#[doc = "    \"staged\","]
+#[doc = "    \"installed\","]
+#[doc = "    \"active\","]
+#[doc = "    \"superseded\","]
+#[doc = "    \"rolled_back\","]
+#[doc = "    \"uninstalled\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionLifecycleState {
+    #[serde(rename = "draft")]
+    Draft,
+    #[serde(rename = "validated")]
+    Validated,
+    #[serde(rename = "analysed")]
+    Analysed,
+    #[serde(rename = "evaluated")]
+    Evaluated,
+    #[serde(rename = "reviewed")]
+    Reviewed,
+    #[serde(rename = "approved")]
+    Approved,
+    #[serde(rename = "staged")]
+    Staged,
+    #[serde(rename = "installed")]
+    Installed,
+    #[serde(rename = "active")]
+    Active,
+    #[serde(rename = "superseded")]
+    Superseded,
+    #[serde(rename = "rolled_back")]
+    RolledBack,
+    #[serde(rename = "uninstalled")]
+    Uninstalled,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionLifecycleState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Draft => f.write_str("draft"),
+            Self::Validated => f.write_str("validated"),
+            Self::Analysed => f.write_str("analysed"),
+            Self::Evaluated => f.write_str("evaluated"),
+            Self::Reviewed => f.write_str("reviewed"),
+            Self::Approved => f.write_str("approved"),
+            Self::Staged => f.write_str("staged"),
+            Self::Installed => f.write_str("installed"),
+            Self::Active => f.write_str("active"),
+            Self::Superseded => f.write_str("superseded"),
+            Self::RolledBack => f.write_str("rolled_back"),
+            Self::Uninstalled => f.write_str("uninstalled"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionLifecycleState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "draft" => Ok(Self::Draft),
+            "validated" => Ok(Self::Validated),
+            "analysed" => Ok(Self::Analysed),
+            "evaluated" => Ok(Self::Evaluated),
+            "reviewed" => Ok(Self::Reviewed),
+            "approved" => Ok(Self::Approved),
+            "staged" => Ok(Self::Staged),
+            "installed" => Ok(Self::Installed),
+            "active" => Ok(Self::Active),
+            "superseded" => Ok(Self::Superseded),
+            "rolled_back" => Ok(Self::RolledBack),
+            "uninstalled" => Ok(Self::Uninstalled),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionLifecycleState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionLifecycleState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionLifecycleState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant0FromState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"draft\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant0FromState {
+    #[serde(rename = "draft")]
+    Draft,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant0FromState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Draft => f.write_str("draft"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant0FromState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "draft" => Ok(Self::Draft),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant0FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant0FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant0FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant0Stage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validation\","]
+#[doc = "    \"analysis\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"review\","]
+#[doc = "    \"approval\","]
+#[doc = "    \"staging\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"activation\","]
+#[doc = "    \"rollback\","]
+#[doc = "    \"uninstallation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant0Stage {
+    #[serde(rename = "validation")]
+    Validation,
+    #[serde(rename = "analysis")]
+    Analysis,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "review")]
+    Review,
+    #[serde(rename = "approval")]
+    Approval,
+    #[serde(rename = "staging")]
+    Staging,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "activation")]
+    Activation,
+    #[serde(rename = "rollback")]
+    Rollback,
+    #[serde(rename = "uninstallation")]
+    Uninstallation,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant0Stage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validation => f.write_str("validation"),
+            Self::Analysis => f.write_str("analysis"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Review => f.write_str("review"),
+            Self::Approval => f.write_str("approval"),
+            Self::Staging => f.write_str("staging"),
+            Self::Installation => f.write_str("installation"),
+            Self::Activation => f.write_str("activation"),
+            Self::Rollback => f.write_str("rollback"),
+            Self::Uninstallation => f.write_str("uninstallation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant0Stage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validation" => Ok(Self::Validation),
+            "analysis" => Ok(Self::Analysis),
+            "evaluation" => Ok(Self::Evaluation),
+            "review" => Ok(Self::Review),
+            "approval" => Ok(Self::Approval),
+            "staging" => Ok(Self::Staging),
+            "installation" => Ok(Self::Installation),
+            "activation" => Ok(Self::Activation),
+            "rollback" => Ok(Self::Rollback),
+            "uninstallation" => Ok(Self::Uninstallation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant0Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant0Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant0Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant0ToState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validated\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant0ToState {
+    #[serde(rename = "validated")]
+    Validated,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant0ToState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validated => f.write_str("validated"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant0ToState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validated" => Ok(Self::Validated),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant0ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant0ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant0ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant10FromState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"installed\","]
+#[doc = "    \"rolled_back\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant10FromState {
+    #[serde(rename = "installed")]
+    Installed,
+    #[serde(rename = "rolled_back")]
+    RolledBack,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant10FromState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Installed => f.write_str("installed"),
+            Self::RolledBack => f.write_str("rolled_back"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant10FromState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "installed" => Ok(Self::Installed),
+            "rolled_back" => Ok(Self::RolledBack),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant10FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant10FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant10FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant10Stage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validation\","]
+#[doc = "    \"analysis\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"review\","]
+#[doc = "    \"approval\","]
+#[doc = "    \"staging\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"activation\","]
+#[doc = "    \"rollback\","]
+#[doc = "    \"uninstallation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant10Stage {
+    #[serde(rename = "validation")]
+    Validation,
+    #[serde(rename = "analysis")]
+    Analysis,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "review")]
+    Review,
+    #[serde(rename = "approval")]
+    Approval,
+    #[serde(rename = "staging")]
+    Staging,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "activation")]
+    Activation,
+    #[serde(rename = "rollback")]
+    Rollback,
+    #[serde(rename = "uninstallation")]
+    Uninstallation,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant10Stage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validation => f.write_str("validation"),
+            Self::Analysis => f.write_str("analysis"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Review => f.write_str("review"),
+            Self::Approval => f.write_str("approval"),
+            Self::Staging => f.write_str("staging"),
+            Self::Installation => f.write_str("installation"),
+            Self::Activation => f.write_str("activation"),
+            Self::Rollback => f.write_str("rollback"),
+            Self::Uninstallation => f.write_str("uninstallation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant10Stage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validation" => Ok(Self::Validation),
+            "analysis" => Ok(Self::Analysis),
+            "evaluation" => Ok(Self::Evaluation),
+            "review" => Ok(Self::Review),
+            "approval" => Ok(Self::Approval),
+            "staging" => Ok(Self::Staging),
+            "installation" => Ok(Self::Installation),
+            "activation" => Ok(Self::Activation),
+            "rollback" => Ok(Self::Rollback),
+            "uninstallation" => Ok(Self::Uninstallation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant10Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant10Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant10Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant10ToState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"uninstalled\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant10ToState {
+    #[serde(rename = "uninstalled")]
+    Uninstalled,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant10ToState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Uninstalled => f.write_str("uninstalled"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant10ToState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "uninstalled" => Ok(Self::Uninstalled),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant10ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant10ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant10ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant1FromState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validated\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant1FromState {
+    #[serde(rename = "validated")]
+    Validated,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant1FromState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validated => f.write_str("validated"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant1FromState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validated" => Ok(Self::Validated),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant1FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant1FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant1FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant1Stage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validation\","]
+#[doc = "    \"analysis\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"review\","]
+#[doc = "    \"approval\","]
+#[doc = "    \"staging\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"activation\","]
+#[doc = "    \"rollback\","]
+#[doc = "    \"uninstallation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant1Stage {
+    #[serde(rename = "validation")]
+    Validation,
+    #[serde(rename = "analysis")]
+    Analysis,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "review")]
+    Review,
+    #[serde(rename = "approval")]
+    Approval,
+    #[serde(rename = "staging")]
+    Staging,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "activation")]
+    Activation,
+    #[serde(rename = "rollback")]
+    Rollback,
+    #[serde(rename = "uninstallation")]
+    Uninstallation,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant1Stage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validation => f.write_str("validation"),
+            Self::Analysis => f.write_str("analysis"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Review => f.write_str("review"),
+            Self::Approval => f.write_str("approval"),
+            Self::Staging => f.write_str("staging"),
+            Self::Installation => f.write_str("installation"),
+            Self::Activation => f.write_str("activation"),
+            Self::Rollback => f.write_str("rollback"),
+            Self::Uninstallation => f.write_str("uninstallation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant1Stage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validation" => Ok(Self::Validation),
+            "analysis" => Ok(Self::Analysis),
+            "evaluation" => Ok(Self::Evaluation),
+            "review" => Ok(Self::Review),
+            "approval" => Ok(Self::Approval),
+            "staging" => Ok(Self::Staging),
+            "installation" => Ok(Self::Installation),
+            "activation" => Ok(Self::Activation),
+            "rollback" => Ok(Self::Rollback),
+            "uninstallation" => Ok(Self::Uninstallation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant1Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant1Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant1Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant1ToState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"analysed\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant1ToState {
+    #[serde(rename = "analysed")]
+    Analysed,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant1ToState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Analysed => f.write_str("analysed"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant1ToState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "analysed" => Ok(Self::Analysed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant1ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant1ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant1ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant2FromState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"analysed\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant2FromState {
+    #[serde(rename = "analysed")]
+    Analysed,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant2FromState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Analysed => f.write_str("analysed"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant2FromState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "analysed" => Ok(Self::Analysed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant2FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant2FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant2FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant2Stage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validation\","]
+#[doc = "    \"analysis\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"review\","]
+#[doc = "    \"approval\","]
+#[doc = "    \"staging\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"activation\","]
+#[doc = "    \"rollback\","]
+#[doc = "    \"uninstallation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant2Stage {
+    #[serde(rename = "validation")]
+    Validation,
+    #[serde(rename = "analysis")]
+    Analysis,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "review")]
+    Review,
+    #[serde(rename = "approval")]
+    Approval,
+    #[serde(rename = "staging")]
+    Staging,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "activation")]
+    Activation,
+    #[serde(rename = "rollback")]
+    Rollback,
+    #[serde(rename = "uninstallation")]
+    Uninstallation,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant2Stage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validation => f.write_str("validation"),
+            Self::Analysis => f.write_str("analysis"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Review => f.write_str("review"),
+            Self::Approval => f.write_str("approval"),
+            Self::Staging => f.write_str("staging"),
+            Self::Installation => f.write_str("installation"),
+            Self::Activation => f.write_str("activation"),
+            Self::Rollback => f.write_str("rollback"),
+            Self::Uninstallation => f.write_str("uninstallation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant2Stage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validation" => Ok(Self::Validation),
+            "analysis" => Ok(Self::Analysis),
+            "evaluation" => Ok(Self::Evaluation),
+            "review" => Ok(Self::Review),
+            "approval" => Ok(Self::Approval),
+            "staging" => Ok(Self::Staging),
+            "installation" => Ok(Self::Installation),
+            "activation" => Ok(Self::Activation),
+            "rollback" => Ok(Self::Rollback),
+            "uninstallation" => Ok(Self::Uninstallation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant2Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant2Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant2Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant2ToState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"evaluated\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant2ToState {
+    #[serde(rename = "evaluated")]
+    Evaluated,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant2ToState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Evaluated => f.write_str("evaluated"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant2ToState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "evaluated" => Ok(Self::Evaluated),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant2ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant2ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant2ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant3FromState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"evaluated\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant3FromState {
+    #[serde(rename = "evaluated")]
+    Evaluated,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant3FromState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Evaluated => f.write_str("evaluated"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant3FromState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "evaluated" => Ok(Self::Evaluated),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant3FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant3FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant3FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant3Stage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validation\","]
+#[doc = "    \"analysis\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"review\","]
+#[doc = "    \"approval\","]
+#[doc = "    \"staging\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"activation\","]
+#[doc = "    \"rollback\","]
+#[doc = "    \"uninstallation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant3Stage {
+    #[serde(rename = "validation")]
+    Validation,
+    #[serde(rename = "analysis")]
+    Analysis,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "review")]
+    Review,
+    #[serde(rename = "approval")]
+    Approval,
+    #[serde(rename = "staging")]
+    Staging,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "activation")]
+    Activation,
+    #[serde(rename = "rollback")]
+    Rollback,
+    #[serde(rename = "uninstallation")]
+    Uninstallation,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant3Stage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validation => f.write_str("validation"),
+            Self::Analysis => f.write_str("analysis"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Review => f.write_str("review"),
+            Self::Approval => f.write_str("approval"),
+            Self::Staging => f.write_str("staging"),
+            Self::Installation => f.write_str("installation"),
+            Self::Activation => f.write_str("activation"),
+            Self::Rollback => f.write_str("rollback"),
+            Self::Uninstallation => f.write_str("uninstallation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant3Stage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validation" => Ok(Self::Validation),
+            "analysis" => Ok(Self::Analysis),
+            "evaluation" => Ok(Self::Evaluation),
+            "review" => Ok(Self::Review),
+            "approval" => Ok(Self::Approval),
+            "staging" => Ok(Self::Staging),
+            "installation" => Ok(Self::Installation),
+            "activation" => Ok(Self::Activation),
+            "rollback" => Ok(Self::Rollback),
+            "uninstallation" => Ok(Self::Uninstallation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant3Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant3Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant3Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant3ToState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"reviewed\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant3ToState {
+    #[serde(rename = "reviewed")]
+    Reviewed,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant3ToState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Reviewed => f.write_str("reviewed"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant3ToState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "reviewed" => Ok(Self::Reviewed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant3ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant3ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant3ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant4FromState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"reviewed\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant4FromState {
+    #[serde(rename = "reviewed")]
+    Reviewed,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant4FromState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Reviewed => f.write_str("reviewed"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant4FromState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "reviewed" => Ok(Self::Reviewed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant4FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant4FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant4FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant4Stage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validation\","]
+#[doc = "    \"analysis\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"review\","]
+#[doc = "    \"approval\","]
+#[doc = "    \"staging\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"activation\","]
+#[doc = "    \"rollback\","]
+#[doc = "    \"uninstallation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant4Stage {
+    #[serde(rename = "validation")]
+    Validation,
+    #[serde(rename = "analysis")]
+    Analysis,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "review")]
+    Review,
+    #[serde(rename = "approval")]
+    Approval,
+    #[serde(rename = "staging")]
+    Staging,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "activation")]
+    Activation,
+    #[serde(rename = "rollback")]
+    Rollback,
+    #[serde(rename = "uninstallation")]
+    Uninstallation,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant4Stage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validation => f.write_str("validation"),
+            Self::Analysis => f.write_str("analysis"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Review => f.write_str("review"),
+            Self::Approval => f.write_str("approval"),
+            Self::Staging => f.write_str("staging"),
+            Self::Installation => f.write_str("installation"),
+            Self::Activation => f.write_str("activation"),
+            Self::Rollback => f.write_str("rollback"),
+            Self::Uninstallation => f.write_str("uninstallation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant4Stage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validation" => Ok(Self::Validation),
+            "analysis" => Ok(Self::Analysis),
+            "evaluation" => Ok(Self::Evaluation),
+            "review" => Ok(Self::Review),
+            "approval" => Ok(Self::Approval),
+            "staging" => Ok(Self::Staging),
+            "installation" => Ok(Self::Installation),
+            "activation" => Ok(Self::Activation),
+            "rollback" => Ok(Self::Rollback),
+            "uninstallation" => Ok(Self::Uninstallation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant4Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant4Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant4Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant4ToState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"approved\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant4ToState {
+    #[serde(rename = "approved")]
+    Approved,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant4ToState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Approved => f.write_str("approved"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant4ToState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "approved" => Ok(Self::Approved),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant4ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant4ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant4ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant5FromState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"approved\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant5FromState {
+    #[serde(rename = "approved")]
+    Approved,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant5FromState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Approved => f.write_str("approved"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant5FromState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "approved" => Ok(Self::Approved),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant5FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant5FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant5FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant5Stage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validation\","]
+#[doc = "    \"analysis\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"review\","]
+#[doc = "    \"approval\","]
+#[doc = "    \"staging\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"activation\","]
+#[doc = "    \"rollback\","]
+#[doc = "    \"uninstallation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant5Stage {
+    #[serde(rename = "validation")]
+    Validation,
+    #[serde(rename = "analysis")]
+    Analysis,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "review")]
+    Review,
+    #[serde(rename = "approval")]
+    Approval,
+    #[serde(rename = "staging")]
+    Staging,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "activation")]
+    Activation,
+    #[serde(rename = "rollback")]
+    Rollback,
+    #[serde(rename = "uninstallation")]
+    Uninstallation,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant5Stage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validation => f.write_str("validation"),
+            Self::Analysis => f.write_str("analysis"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Review => f.write_str("review"),
+            Self::Approval => f.write_str("approval"),
+            Self::Staging => f.write_str("staging"),
+            Self::Installation => f.write_str("installation"),
+            Self::Activation => f.write_str("activation"),
+            Self::Rollback => f.write_str("rollback"),
+            Self::Uninstallation => f.write_str("uninstallation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant5Stage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validation" => Ok(Self::Validation),
+            "analysis" => Ok(Self::Analysis),
+            "evaluation" => Ok(Self::Evaluation),
+            "review" => Ok(Self::Review),
+            "approval" => Ok(Self::Approval),
+            "staging" => Ok(Self::Staging),
+            "installation" => Ok(Self::Installation),
+            "activation" => Ok(Self::Activation),
+            "rollback" => Ok(Self::Rollback),
+            "uninstallation" => Ok(Self::Uninstallation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant5Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant5Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant5Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant5ToState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"staged\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant5ToState {
+    #[serde(rename = "staged")]
+    Staged,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant5ToState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Staged => f.write_str("staged"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant5ToState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "staged" => Ok(Self::Staged),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant5ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant5ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant5ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant6FromState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"staged\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant6FromState {
+    #[serde(rename = "staged")]
+    Staged,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant6FromState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Staged => f.write_str("staged"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant6FromState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "staged" => Ok(Self::Staged),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant6FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant6FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant6FromState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant6Stage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"validation\","]
+#[doc = "    \"analysis\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"review\","]
+#[doc = "    \"approval\","]
+#[doc = "    \"staging\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"activation\","]
+#[doc = "    \"rollback\","]
+#[doc = "    \"uninstallation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant6Stage {
+    #[serde(rename = "validation")]
+    Validation,
+    #[serde(rename = "analysis")]
+    Analysis,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "review")]
+    Review,
+    #[serde(rename = "approval")]
+    Approval,
+    #[serde(rename = "staging")]
+    Staging,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "activation")]
+    Activation,
+    #[serde(rename = "rollback")]
+    Rollback,
+    #[serde(rename = "uninstallation")]
+    Uninstallation,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant6Stage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Validation => f.write_str("validation"),
+            Self::Analysis => f.write_str("analysis"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Review => f.write_str("review"),
+            Self::Approval => f.write_str("approval"),
+            Self::Staging => f.write_str("staging"),
+            Self::Installation => f.write_str("installation"),
+            Self::Activation => f.write_str("activation"),
+            Self::Rollback => f.write_str("rollback"),
+            Self::Uninstallation => f.write_str("uninstallation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant6Stage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "validation" => Ok(Self::Validation),
+            "analysis" => Ok(Self::Analysis),
+            "evaluation" => Ok(Self::Evaluation),
+            "review" => Ok(Self::Review),
+            "approval" => Ok(Self::Approval),
+            "staging" => Ok(Self::Staging),
+            "installation" => Ok(Self::Installation),
+            "activation" => Ok(Self::Activation),
+            "rollback" => Ok(Self::Rollback),
+            "uninstallation" => Ok(Self::Uninstallation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant6Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant6Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant6Stage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant6ToState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"installed\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadBuilderPromotionVariant6ToState {
+    #[serde(rename = "installed")]
+    Installed,
+}
+impl ::std::fmt::Display for BmadBuilderPromotionVariant6ToState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Installed => f.write_str("installed"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadBuilderPromotionVariant6ToState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "installed" => Ok(Self::Installed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadBuilderPromotionVariant6ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadBuilderPromotionVariant6ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadBuilderPromotionVariant6ToState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadBuilderPromotionVariant7`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"allOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"type\": \"object\","]
+#[doc = "      \"required\": ["]
+#[doc = "        \"approval\","]
+#[doc = "        \"fromState\","]
+#[doc = "        \"promotionId\","]
+#[doc = "        \"receiptHash\","]
+#[doc = "        \"schemaVersion\","]
+#[doc = "        \"stage\","]
+#[doc = "        \"subjectHash\","]
+#[doc = "        \"toState\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"approval\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionApproval\""]
+#[doc = "        },"]
+#[doc = "        \"fromState\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionLifecycleState\""]
+#[doc = "        },"]
+#[doc = "        \"installation\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionInstallation\""]
+#[doc = "        },"]
+#[doc = "        \"promotionId\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "        },"]
+#[doc = "        \"receiptHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"schemaVersion\": {"]
+#[doc = "          \"const\": \"sapphirus.bmad-builder-promotion.v1\""]
+#[doc = "        },"]
+#[doc = "        \"stage\": {"]
+#[doc = "          \"enum\": ["]
+#[doc = "            \"validation\","]
+#[doc = "            \"analysis\","]
+#[doc = "            \"evaluation\","]
+#[doc = "            \"review\","]
+#[doc = "            \"approval\","]
+#[doc = "            \"staging\","]
+#[doc = "            \"installation\","]
+#[doc = "            \"activation\","]
+#[doc = "            \"rollback\","]
+#[doc = "            \"uninstallation\""]
+#[doc = "          ]"]
+#[doc = "        },"]
+#[doc = "        \"subjectHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"toState\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionLifecycleState\""]
+#[doc = "        }"]
+#[doc = "      },"]
+#[doc = "      \"additionalProperties\": false"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"required\": ["]
+#[doc = "        \"fromState\","]
+#[doc = "        \"toState\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"fromState\": {"]
+#[doc = "          \"const\": \"installed\""]
+#[doc = "        },"]
+#[doc = "        \"toState\": {"]
+#[doc = "          \"const\": \"active\""]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"draft\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"validated\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"validated\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"analysed\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"analysed\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"evaluated\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"evaluated\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"reviewed\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"reviewed\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"approved\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"approved\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"staged\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"staged\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"installed\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"active\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"superseded\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"enum\": ["]
+#[doc = "              \"active\","]
+#[doc = "              \"superseded\""]
+#[doc = "            ]"]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"rolled_back\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"enum\": ["]
+#[doc = "              \"installed\","]
+#[doc = "              \"active\","]
+#[doc = "              \"superseded\","]
+#[doc = "              \"rolled_back\""]
+#[doc = "            ]"]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"uninstalled\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+#[serde(deny_unknown_fields)]
+pub enum BmadBuilderPromotionVariant7 {}
+#[doc = "`BmadBuilderPromotionVariant8`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"allOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"type\": \"object\","]
+#[doc = "      \"required\": ["]
+#[doc = "        \"approval\","]
+#[doc = "        \"fromState\","]
+#[doc = "        \"promotionId\","]
+#[doc = "        \"receiptHash\","]
+#[doc = "        \"schemaVersion\","]
+#[doc = "        \"stage\","]
+#[doc = "        \"subjectHash\","]
+#[doc = "        \"toState\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"approval\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionApproval\""]
+#[doc = "        },"]
+#[doc = "        \"fromState\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionLifecycleState\""]
+#[doc = "        },"]
+#[doc = "        \"installation\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionInstallation\""]
+#[doc = "        },"]
+#[doc = "        \"promotionId\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "        },"]
+#[doc = "        \"receiptHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"schemaVersion\": {"]
+#[doc = "          \"const\": \"sapphirus.bmad-builder-promotion.v1\""]
+#[doc = "        },"]
+#[doc = "        \"stage\": {"]
+#[doc = "          \"enum\": ["]
+#[doc = "            \"validation\","]
+#[doc = "            \"analysis\","]
+#[doc = "            \"evaluation\","]
+#[doc = "            \"review\","]
+#[doc = "            \"approval\","]
+#[doc = "            \"staging\","]
+#[doc = "            \"installation\","]
+#[doc = "            \"activation\","]
+#[doc = "            \"rollback\","]
+#[doc = "            \"uninstallation\""]
+#[doc = "          ]"]
+#[doc = "        },"]
+#[doc = "        \"subjectHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"toState\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionLifecycleState\""]
+#[doc = "        }"]
+#[doc = "      },"]
+#[doc = "      \"additionalProperties\": false"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"required\": ["]
+#[doc = "        \"fromState\","]
+#[doc = "        \"toState\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"fromState\": {"]
+#[doc = "          \"const\": \"active\""]
+#[doc = "        },"]
+#[doc = "        \"toState\": {"]
+#[doc = "          \"const\": \"superseded\""]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"draft\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"validated\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"validated\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"analysed\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"analysed\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"evaluated\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"evaluated\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"reviewed\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"reviewed\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"approved\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"approved\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"staged\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"staged\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"installed\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"installed\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"active\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"enum\": ["]
+#[doc = "              \"active\","]
+#[doc = "              \"superseded\""]
+#[doc = "            ]"]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"rolled_back\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"enum\": ["]
+#[doc = "              \"installed\","]
+#[doc = "              \"active\","]
+#[doc = "              \"superseded\","]
+#[doc = "              \"rolled_back\""]
+#[doc = "            ]"]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"uninstalled\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+#[serde(deny_unknown_fields)]
+pub enum BmadBuilderPromotionVariant8 {}
+#[doc = "`BmadBuilderPromotionVariant9`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"allOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"type\": \"object\","]
+#[doc = "      \"required\": ["]
+#[doc = "        \"approval\","]
+#[doc = "        \"fromState\","]
+#[doc = "        \"promotionId\","]
+#[doc = "        \"receiptHash\","]
+#[doc = "        \"schemaVersion\","]
+#[doc = "        \"stage\","]
+#[doc = "        \"subjectHash\","]
+#[doc = "        \"toState\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"approval\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionApproval\""]
+#[doc = "        },"]
+#[doc = "        \"fromState\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionLifecycleState\""]
+#[doc = "        },"]
+#[doc = "        \"installation\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionInstallation\""]
+#[doc = "        },"]
+#[doc = "        \"promotionId\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "        },"]
+#[doc = "        \"receiptHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"schemaVersion\": {"]
+#[doc = "          \"const\": \"sapphirus.bmad-builder-promotion.v1\""]
+#[doc = "        },"]
+#[doc = "        \"stage\": {"]
+#[doc = "          \"enum\": ["]
+#[doc = "            \"validation\","]
+#[doc = "            \"analysis\","]
+#[doc = "            \"evaluation\","]
+#[doc = "            \"review\","]
+#[doc = "            \"approval\","]
+#[doc = "            \"staging\","]
+#[doc = "            \"installation\","]
+#[doc = "            \"activation\","]
+#[doc = "            \"rollback\","]
+#[doc = "            \"uninstallation\""]
+#[doc = "          ]"]
+#[doc = "        },"]
+#[doc = "        \"subjectHash\": {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        \"toState\": {"]
+#[doc = "          \"$ref\": \"#/$defs/BmadBuilderPromotionLifecycleState\""]
+#[doc = "        }"]
+#[doc = "      },"]
+#[doc = "      \"additionalProperties\": false"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"required\": ["]
+#[doc = "        \"fromState\","]
+#[doc = "        \"toState\""]
+#[doc = "      ],"]
+#[doc = "      \"properties\": {"]
+#[doc = "        \"fromState\": {"]
+#[doc = "          \"enum\": ["]
+#[doc = "            \"active\","]
+#[doc = "            \"superseded\""]
+#[doc = "          ]"]
+#[doc = "        },"]
+#[doc = "        \"toState\": {"]
+#[doc = "          \"const\": \"rolled_back\""]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"draft\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"validated\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"validated\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"analysed\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"analysed\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"evaluated\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"evaluated\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"reviewed\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"reviewed\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"approved\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"approved\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"staged\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"staged\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"installed\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"installed\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"active\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"const\": \"active\""]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"superseded\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"not\": {"]
+#[doc = "        \"required\": ["]
+#[doc = "          \"fromState\","]
+#[doc = "          \"toState\""]
+#[doc = "        ],"]
+#[doc = "        \"properties\": {"]
+#[doc = "          \"fromState\": {"]
+#[doc = "            \"enum\": ["]
+#[doc = "              \"installed\","]
+#[doc = "              \"active\","]
+#[doc = "              \"superseded\","]
+#[doc = "              \"rolled_back\""]
+#[doc = "            ]"]
+#[doc = "          },"]
+#[doc = "          \"toState\": {"]
+#[doc = "            \"const\": \"uninstalled\""]
+#[doc = "          }"]
+#[doc = "        }"]
+#[doc = "      }"]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+#[serde(deny_unknown_fields)]
+pub enum BmadBuilderPromotionVariant9 {}
 #[doc = "`BmadCapabilityCatalog`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -5958,6 +9804,1487 @@ impl ::std::convert::TryFrom<::std::string::String> for BmadCapabilityRunOutputS
         value: ::std::string::String,
     ) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
+    }
+}
+#[doc = "`BmadConfig`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-config.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"configId\","]
+#[doc = "    \"layers\","]
+#[doc = "    \"provenanceHash\","]
+#[doc = "    \"resolvedHash\","]
+#[doc = "    \"schemaVersion\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"configId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"layers\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadConfigConfigLayer\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 5,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"provenanceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-config.v1\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadConfig {
+    #[serde(rename = "configId")]
+    pub config_id: CommonContractId,
+    pub layers: ::std::vec::Vec<BmadConfigConfigLayer>,
+    #[serde(rename = "provenanceHash")]
+    pub provenance_hash: CommonSha256,
+    #[serde(rename = "resolvedHash")]
+    pub resolved_hash: CommonSha256,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+}
+impl BmadConfig {
+    pub fn builder() -> builder::BmadConfig {
+        Default::default()
+    }
+}
+#[doc = "`BmadConfigConfigLayer`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"contentHash\","]
+#[doc = "    \"kind\","]
+#[doc = "    \"ordinal\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"contentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"kind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"central\","]
+#[doc = "        \"bundled_module\","]
+#[doc = "        \"project\","]
+#[doc = "        \"user\","]
+#[doc = "        \"invocation\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"ordinal\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadConfigConfigLayer {
+    #[serde(rename = "contentHash")]
+    pub content_hash: CommonSha256,
+    pub kind: BmadConfigConfigLayerKind,
+    pub ordinal: i64,
+}
+impl BmadConfigConfigLayer {
+    pub fn builder() -> builder::BmadConfigConfigLayer {
+        Default::default()
+    }
+}
+#[doc = "`BmadConfigConfigLayerKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"central\","]
+#[doc = "    \"bundled_module\","]
+#[doc = "    \"project\","]
+#[doc = "    \"user\","]
+#[doc = "    \"invocation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadConfigConfigLayerKind {
+    #[serde(rename = "central")]
+    Central,
+    #[serde(rename = "bundled_module")]
+    BundledModule,
+    #[serde(rename = "project")]
+    Project,
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "invocation")]
+    Invocation,
+}
+impl ::std::fmt::Display for BmadConfigConfigLayerKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Central => f.write_str("central"),
+            Self::BundledModule => f.write_str("bundled_module"),
+            Self::Project => f.write_str("project"),
+            Self::User => f.write_str("user"),
+            Self::Invocation => f.write_str("invocation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadConfigConfigLayerKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "central" => Ok(Self::Central),
+            "bundled_module" => Ok(Self::BundledModule),
+            "project" => Ok(Self::Project),
+            "user" => Ok(Self::User),
+            "invocation" => Ok(Self::Invocation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigConfigLayerKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadConfigConfigLayerKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadConfigConfigLayerKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadEval`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-eval.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"criteria\","]
+#[doc = "    \"evaluationId\","]
+#[doc = "    \"evidenceHash\","]
+#[doc = "    \"outcome\","]
+#[doc = "    \"runner\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"state\","]
+#[doc = "    \"subjectHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"criteria\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadEvalCriterion\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"evaluationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"evidenceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"outcome\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"pass\","]
+#[doc = "        \"fail\","]
+#[doc = "        \"incomplete\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"runner\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"internal_eval_runner\","]
+#[doc = "        \"deterministic_contract\","]
+#[doc = "        \"human_review\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-eval.v1\""]
+#[doc = "    },"]
+#[doc = "    \"state\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"queued\","]
+#[doc = "        \"running\","]
+#[doc = "        \"passed\","]
+#[doc = "        \"failed\","]
+#[doc = "        \"cancelled\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"subjectHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadEval {
+    pub criteria: ::std::vec::Vec<BmadEvalCriterion>,
+    #[serde(rename = "evaluationId")]
+    pub evaluation_id: CommonContractId,
+    #[serde(rename = "evidenceHash")]
+    pub evidence_hash: CommonSha256,
+    pub outcome: BmadEvalOutcome,
+    pub runner: BmadEvalRunner,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub state: BmadEvalState,
+    #[serde(rename = "subjectHash")]
+    pub subject_hash: CommonSha256,
+}
+impl BmadEval {
+    pub fn builder() -> builder::BmadEval {
+        Default::default()
+    }
+}
+#[doc = "`BmadEvalCriterion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"criterionId\","]
+#[doc = "    \"result\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"criterionId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]{0,127}$\""]
+#[doc = "    },"]
+#[doc = "    \"evidenceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"result\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"pass\","]
+#[doc = "        \"fail\","]
+#[doc = "        \"not_run\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadEvalCriterion {
+    #[serde(rename = "criterionId")]
+    pub criterion_id: BmadEvalCriterionCriterionId,
+    #[serde(
+        rename = "evidenceHash",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub evidence_hash: ::std::option::Option<CommonSha256>,
+    pub result: BmadEvalCriterionResult,
+}
+impl BmadEvalCriterion {
+    pub fn builder() -> builder::BmadEvalCriterion {
+        Default::default()
+    }
+}
+#[doc = "`BmadEvalCriterionCriterionId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]{0,127}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadEvalCriterionCriterionId(::std::string::String);
+impl ::std::ops::Deref for BmadEvalCriterionCriterionId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadEvalCriterionCriterionId> for ::std::string::String {
+    fn from(value: BmadEvalCriterionCriterionId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadEvalCriterionCriterionId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9-]{0,127}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]{0,127}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadEvalCriterionCriterionId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadEvalCriterionCriterionId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadEvalCriterionCriterionId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadEvalCriterionCriterionId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadEvalCriterionResult`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"pass\","]
+#[doc = "    \"fail\","]
+#[doc = "    \"not_run\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadEvalCriterionResult {
+    #[serde(rename = "pass")]
+    Pass,
+    #[serde(rename = "fail")]
+    Fail,
+    #[serde(rename = "not_run")]
+    NotRun,
+}
+impl ::std::fmt::Display for BmadEvalCriterionResult {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Pass => f.write_str("pass"),
+            Self::Fail => f.write_str("fail"),
+            Self::NotRun => f.write_str("not_run"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadEvalCriterionResult {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "pass" => Ok(Self::Pass),
+            "fail" => Ok(Self::Fail),
+            "not_run" => Ok(Self::NotRun),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadEvalCriterionResult {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadEvalCriterionResult {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadEvalCriterionResult {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadEvalOutcome`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"pass\","]
+#[doc = "    \"fail\","]
+#[doc = "    \"incomplete\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadEvalOutcome {
+    #[serde(rename = "pass")]
+    Pass,
+    #[serde(rename = "fail")]
+    Fail,
+    #[serde(rename = "incomplete")]
+    Incomplete,
+}
+impl ::std::fmt::Display for BmadEvalOutcome {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Pass => f.write_str("pass"),
+            Self::Fail => f.write_str("fail"),
+            Self::Incomplete => f.write_str("incomplete"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadEvalOutcome {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "pass" => Ok(Self::Pass),
+            "fail" => Ok(Self::Fail),
+            "incomplete" => Ok(Self::Incomplete),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadEvalOutcome {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadEvalOutcome {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadEvalOutcome {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadEvalRunner`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"internal_eval_runner\","]
+#[doc = "    \"deterministic_contract\","]
+#[doc = "    \"human_review\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadEvalRunner {
+    #[serde(rename = "internal_eval_runner")]
+    InternalEvalRunner,
+    #[serde(rename = "deterministic_contract")]
+    DeterministicContract,
+    #[serde(rename = "human_review")]
+    HumanReview,
+}
+impl ::std::fmt::Display for BmadEvalRunner {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::InternalEvalRunner => f.write_str("internal_eval_runner"),
+            Self::DeterministicContract => f.write_str("deterministic_contract"),
+            Self::HumanReview => f.write_str("human_review"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadEvalRunner {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "internal_eval_runner" => Ok(Self::InternalEvalRunner),
+            "deterministic_contract" => Ok(Self::DeterministicContract),
+            "human_review" => Ok(Self::HumanReview),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadEvalRunner {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadEvalRunner {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadEvalRunner {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadEvalState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"queued\","]
+#[doc = "    \"running\","]
+#[doc = "    \"passed\","]
+#[doc = "    \"failed\","]
+#[doc = "    \"cancelled\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadEvalState {
+    #[serde(rename = "queued")]
+    Queued,
+    #[serde(rename = "running")]
+    Running,
+    #[serde(rename = "passed")]
+    Passed,
+    #[serde(rename = "failed")]
+    Failed,
+    #[serde(rename = "cancelled")]
+    Cancelled,
+}
+impl ::std::fmt::Display for BmadEvalState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Queued => f.write_str("queued"),
+            Self::Running => f.write_str("running"),
+            Self::Passed => f.write_str("passed"),
+            Self::Failed => f.write_str("failed"),
+            Self::Cancelled => f.write_str("cancelled"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadEvalState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "queued" => Ok(Self::Queued),
+            "running" => Ok(Self::Running),
+            "passed" => Ok(Self::Passed),
+            "failed" => Ok(Self::Failed),
+            "cancelled" => Ok(Self::Cancelled),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadEvalState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadEvalState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadEvalState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadMemory`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-memory.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"bounds\","]
+#[doc = "    \"consent\","]
+#[doc = "    \"contentHash\","]
+#[doc = "    \"memoryId\","]
+#[doc = "    \"mode\","]
+#[doc = "    \"ownerScopeRef\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"state\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"bounds\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadMemoryBounds\""]
+#[doc = "    },"]
+#[doc = "    \"consent\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadMemoryConsent\""]
+#[doc = "    },"]
+#[doc = "    \"contentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"memoryId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"mode\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"disabled\","]
+#[doc = "        \"session\","]
+#[doc = "        \"bounded_persistent\","]
+#[doc = "        \"autonomous_pulse\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"ownerScopeRef\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-memory.v1\""]
+#[doc = "    },"]
+#[doc = "    \"state\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"inactive\","]
+#[doc = "        \"active\","]
+#[doc = "        \"revoked\","]
+#[doc = "        \"killed\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadMemory {
+    pub bounds: BmadMemoryBounds,
+    pub consent: BmadMemoryConsent,
+    #[serde(rename = "contentHash")]
+    pub content_hash: CommonSha256,
+    #[serde(rename = "memoryId")]
+    pub memory_id: CommonContractId,
+    pub mode: BmadMemoryMode,
+    #[serde(rename = "ownerScopeRef")]
+    pub owner_scope_ref: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub state: BmadMemoryState,
+}
+impl BmadMemory {
+    pub fn builder() -> builder::BmadMemory {
+        Default::default()
+    }
+}
+#[doc = "`BmadMemoryBounds`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"killSwitch\","]
+#[doc = "    \"maxBytes\","]
+#[doc = "    \"maxEntries\","]
+#[doc = "    \"ttlSeconds\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"killSwitch\": {"]
+#[doc = "      \"const\": true"]
+#[doc = "    },"]
+#[doc = "    \"maxBytes\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1073741824.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"maxEntries\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 100000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"ttlSeconds\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 31536000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadMemoryBounds {
+    #[serde(rename = "killSwitch")]
+    pub kill_switch: ::serde_json::Value,
+    #[serde(rename = "maxBytes")]
+    pub max_bytes: i64,
+    #[serde(rename = "maxEntries")]
+    pub max_entries: i64,
+    #[serde(rename = "ttlSeconds")]
+    pub ttl_seconds: i64,
+}
+impl BmadMemoryBounds {
+    pub fn builder() -> builder::BmadMemoryBounds {
+        Default::default()
+    }
+}
+#[doc = "`BmadMemoryConsent`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"grantedAt\","]
+#[doc = "    \"optedIn\","]
+#[doc = "    \"revocable\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"grantedAt\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"optedIn\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"revocable\": {"]
+#[doc = "      \"const\": true"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadMemoryConsent {
+    #[serde(rename = "grantedAt")]
+    pub granted_at: ::std::option::Option<CommonUtcInstant>,
+    #[serde(rename = "optedIn")]
+    pub opted_in: bool,
+    pub revocable: ::serde_json::Value,
+}
+impl BmadMemoryConsent {
+    pub fn builder() -> builder::BmadMemoryConsent {
+        Default::default()
+    }
+}
+#[doc = "`BmadMemoryMode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"disabled\","]
+#[doc = "    \"session\","]
+#[doc = "    \"bounded_persistent\","]
+#[doc = "    \"autonomous_pulse\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadMemoryMode {
+    #[serde(rename = "disabled")]
+    Disabled,
+    #[serde(rename = "session")]
+    Session,
+    #[serde(rename = "bounded_persistent")]
+    BoundedPersistent,
+    #[serde(rename = "autonomous_pulse")]
+    AutonomousPulse,
+}
+impl ::std::fmt::Display for BmadMemoryMode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Disabled => f.write_str("disabled"),
+            Self::Session => f.write_str("session"),
+            Self::BoundedPersistent => f.write_str("bounded_persistent"),
+            Self::AutonomousPulse => f.write_str("autonomous_pulse"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadMemoryMode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "disabled" => Ok(Self::Disabled),
+            "session" => Ok(Self::Session),
+            "bounded_persistent" => Ok(Self::BoundedPersistent),
+            "autonomous_pulse" => Ok(Self::AutonomousPulse),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadMemoryMode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadMemoryMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadMemoryMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadMemoryState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"inactive\","]
+#[doc = "    \"active\","]
+#[doc = "    \"revoked\","]
+#[doc = "    \"killed\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadMemoryState {
+    #[serde(rename = "inactive")]
+    Inactive,
+    #[serde(rename = "active")]
+    Active,
+    #[serde(rename = "revoked")]
+    Revoked,
+    #[serde(rename = "killed")]
+    Killed,
+}
+impl ::std::fmt::Display for BmadMemoryState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Inactive => f.write_str("inactive"),
+            Self::Active => f.write_str("active"),
+            Self::Revoked => f.write_str("revoked"),
+            Self::Killed => f.write_str("killed"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadMemoryState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "inactive" => Ok(Self::Inactive),
+            "active" => Ok(Self::Active),
+            "revoked" => Ok(Self::Revoked),
+            "killed" => Ok(Self::Killed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadMemoryState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadMemoryState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadMemoryState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadModule`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-module.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"kind\","]
+#[doc = "    \"moduleCode\","]
+#[doc = "    \"moduleHash\","]
+#[doc = "    \"moduleId\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"setup\","]
+#[doc = "    \"skills\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"kind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"method\","]
+#[doc = "        \"builder\","]
+#[doc = "        \"custom\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"moduleCode\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]{0,63}$\""]
+#[doc = "    },"]
+#[doc = "    \"moduleHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"moduleId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-module.v1\""]
+#[doc = "    },"]
+#[doc = "    \"setup\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadModuleSetupStep\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64"]
+#[doc = "    },"]
+#[doc = "    \"skills\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadModule {
+    pub kind: BmadModuleKind,
+    #[serde(rename = "moduleCode")]
+    pub module_code: BmadModuleModuleCode,
+    #[serde(rename = "moduleHash")]
+    pub module_hash: CommonSha256,
+    #[serde(rename = "moduleId")]
+    pub module_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub setup: ::std::vec::Vec<BmadModuleSetupStep>,
+    pub skills: ::std::vec::Vec<CommonContractId>,
+}
+impl BmadModule {
+    pub fn builder() -> builder::BmadModule {
+        Default::default()
+    }
+}
+#[doc = "`BmadModuleKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"method\","]
+#[doc = "    \"builder\","]
+#[doc = "    \"custom\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadModuleKind {
+    #[serde(rename = "method")]
+    Method,
+    #[serde(rename = "builder")]
+    Builder,
+    #[serde(rename = "custom")]
+    Custom,
+}
+impl ::std::fmt::Display for BmadModuleKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Method => f.write_str("method"),
+            Self::Builder => f.write_str("builder"),
+            Self::Custom => f.write_str("custom"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadModuleKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "method" => Ok(Self::Method),
+            "builder" => Ok(Self::Builder),
+            "custom" => Ok(Self::Custom),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadModuleKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadModuleKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadModuleKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadModuleModuleCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]{0,63}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadModuleModuleCode(::std::string::String);
+impl ::std::ops::Deref for BmadModuleModuleCode {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadModuleModuleCode> for ::std::string::String {
+    fn from(value: BmadModuleModuleCode) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadModuleModuleCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9-]{0,63}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]{0,63}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadModuleModuleCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadModuleModuleCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadModuleModuleCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadModuleModuleCode {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadModuleSetupStep`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"action\","]
+#[doc = "    \"required\","]
+#[doc = "    \"stepId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"action\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"create_directory\","]
+#[doc = "        \"write_config\","]
+#[doc = "        \"validate_runtime\","]
+#[doc = "        \"register_module\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"required\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"stepId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]{0,127}$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadModuleSetupStep {
+    pub action: BmadModuleSetupStepAction,
+    pub required: bool,
+    #[serde(rename = "stepId")]
+    pub step_id: BmadModuleSetupStepStepId,
+}
+impl BmadModuleSetupStep {
+    pub fn builder() -> builder::BmadModuleSetupStep {
+        Default::default()
+    }
+}
+#[doc = "`BmadModuleSetupStepAction`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"create_directory\","]
+#[doc = "    \"write_config\","]
+#[doc = "    \"validate_runtime\","]
+#[doc = "    \"register_module\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadModuleSetupStepAction {
+    #[serde(rename = "create_directory")]
+    CreateDirectory,
+    #[serde(rename = "write_config")]
+    WriteConfig,
+    #[serde(rename = "validate_runtime")]
+    ValidateRuntime,
+    #[serde(rename = "register_module")]
+    RegisterModule,
+}
+impl ::std::fmt::Display for BmadModuleSetupStepAction {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::CreateDirectory => f.write_str("create_directory"),
+            Self::WriteConfig => f.write_str("write_config"),
+            Self::ValidateRuntime => f.write_str("validate_runtime"),
+            Self::RegisterModule => f.write_str("register_module"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadModuleSetupStepAction {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "create_directory" => Ok(Self::CreateDirectory),
+            "write_config" => Ok(Self::WriteConfig),
+            "validate_runtime" => Ok(Self::ValidateRuntime),
+            "register_module" => Ok(Self::RegisterModule),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadModuleSetupStepAction {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadModuleSetupStepAction {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadModuleSetupStepAction {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadModuleSetupStepStepId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]{0,127}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadModuleSetupStepStepId(::std::string::String);
+impl ::std::ops::Deref for BmadModuleSetupStepStepId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadModuleSetupStepStepId> for ::std::string::String {
+    fn from(value: BmadModuleSetupStepStepId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadModuleSetupStepStepId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9-]{0,127}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]{0,127}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadModuleSetupStepStepId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadModuleSetupStepStepId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadModuleSetupStepStepId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadModuleSetupStepStepId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
     }
 }
 #[doc = "`BmadPackageDescriptor`"]
@@ -13344,6 +18671,3328 @@ impl ::std::convert::TryFrom<::std::string::String>
         value.parse()
     }
 }
+#[doc = "`BmadScriptPlan`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-script-plan.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"authorityDecisionId\","]
+#[doc = "    \"planHash\","]
+#[doc = "    \"planId\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"sourceScriptHash\","]
+#[doc = "    \"steps\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"authorityDecisionId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"planHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"planId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-script-plan.v1\""]
+#[doc = "    },"]
+#[doc = "    \"sourceScriptHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"steps\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadScriptPlanPlanStep\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptPlan {
+    #[serde(rename = "authorityDecisionId")]
+    pub authority_decision_id: CommonContractId,
+    #[serde(rename = "planHash")]
+    pub plan_hash: CommonSha256,
+    #[serde(rename = "planId")]
+    pub plan_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "sourceScriptHash")]
+    pub source_script_hash: CommonSha256,
+    pub steps: ::std::vec::Vec<BmadScriptPlanPlanStep>,
+}
+impl BmadScriptPlan {
+    pub fn builder() -> builder::BmadScriptPlan {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptPlanPlanStep`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"approval\","]
+#[doc = "    \"argumentsHash\","]
+#[doc = "    \"operation\","]
+#[doc = "    \"stepId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"approval\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"not_required\","]
+#[doc = "        \"required\","]
+#[doc = "        \"granted\","]
+#[doc = "        \"denied\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"argumentsHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"operation\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"read_file\","]
+#[doc = "        \"write_file\","]
+#[doc = "        \"create_directory\","]
+#[doc = "        \"run_process\","]
+#[doc = "        \"network_request\","]
+#[doc = "        \"emit_artifact\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"stepId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]{0,127}$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptPlanPlanStep {
+    pub approval: BmadScriptPlanPlanStepApproval,
+    #[serde(rename = "argumentsHash")]
+    pub arguments_hash: CommonSha256,
+    pub operation: BmadScriptPlanPlanStepOperation,
+    #[serde(rename = "stepId")]
+    pub step_id: BmadScriptPlanPlanStepStepId,
+}
+impl BmadScriptPlanPlanStep {
+    pub fn builder() -> builder::BmadScriptPlanPlanStep {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptPlanPlanStepApproval`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"not_required\","]
+#[doc = "    \"required\","]
+#[doc = "    \"granted\","]
+#[doc = "    \"denied\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadScriptPlanPlanStepApproval {
+    #[serde(rename = "not_required")]
+    NotRequired,
+    #[serde(rename = "required")]
+    Required,
+    #[serde(rename = "granted")]
+    Granted,
+    #[serde(rename = "denied")]
+    Denied,
+}
+impl ::std::fmt::Display for BmadScriptPlanPlanStepApproval {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::NotRequired => f.write_str("not_required"),
+            Self::Required => f.write_str("required"),
+            Self::Granted => f.write_str("granted"),
+            Self::Denied => f.write_str("denied"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadScriptPlanPlanStepApproval {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "not_required" => Ok(Self::NotRequired),
+            "required" => Ok(Self::Required),
+            "granted" => Ok(Self::Granted),
+            "denied" => Ok(Self::Denied),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptPlanPlanStepApproval {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptPlanPlanStepApproval {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptPlanPlanStepApproval {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadScriptPlanPlanStepOperation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"read_file\","]
+#[doc = "    \"write_file\","]
+#[doc = "    \"create_directory\","]
+#[doc = "    \"run_process\","]
+#[doc = "    \"network_request\","]
+#[doc = "    \"emit_artifact\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadScriptPlanPlanStepOperation {
+    #[serde(rename = "read_file")]
+    ReadFile,
+    #[serde(rename = "write_file")]
+    WriteFile,
+    #[serde(rename = "create_directory")]
+    CreateDirectory,
+    #[serde(rename = "run_process")]
+    RunProcess,
+    #[serde(rename = "network_request")]
+    NetworkRequest,
+    #[serde(rename = "emit_artifact")]
+    EmitArtifact,
+}
+impl ::std::fmt::Display for BmadScriptPlanPlanStepOperation {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::ReadFile => f.write_str("read_file"),
+            Self::WriteFile => f.write_str("write_file"),
+            Self::CreateDirectory => f.write_str("create_directory"),
+            Self::RunProcess => f.write_str("run_process"),
+            Self::NetworkRequest => f.write_str("network_request"),
+            Self::EmitArtifact => f.write_str("emit_artifact"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadScriptPlanPlanStepOperation {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "read_file" => Ok(Self::ReadFile),
+            "write_file" => Ok(Self::WriteFile),
+            "create_directory" => Ok(Self::CreateDirectory),
+            "run_process" => Ok(Self::RunProcess),
+            "network_request" => Ok(Self::NetworkRequest),
+            "emit_artifact" => Ok(Self::EmitArtifact),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptPlanPlanStepOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptPlanPlanStepOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptPlanPlanStepOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadScriptPlanPlanStepStepId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]{0,127}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadScriptPlanPlanStepStepId(::std::string::String);
+impl ::std::ops::Deref for BmadScriptPlanPlanStepStepId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadScriptPlanPlanStepStepId> for ::std::string::String {
+    fn from(value: BmadScriptPlanPlanStepStepId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadScriptPlanPlanStepStepId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9-]{0,127}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]{0,127}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptPlanPlanStepStepId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptPlanPlanStepStepId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptPlanPlanStepStepId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadScriptPlanPlanStepStepId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSession`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-session.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"agentProfile\","]
+#[doc = "    \"artifacts\","]
+#[doc = "    \"capabilityId\","]
+#[doc = "    \"control\","]
+#[doc = "    \"evidence\","]
+#[doc = "    \"mode\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"sessionId\","]
+#[doc = "    \"state\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"agentProfile\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"stateless\","]
+#[doc = "        \"memory\","]
+#[doc = "        \"autonomous_pulse\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"artifacts\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 1024"]
+#[doc = "    },"]
+#[doc = "    \"capabilityId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"completionHooks\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadSessionCompletionHook\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 32"]
+#[doc = "    },"]
+#[doc = "    \"control\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSessionSessionControl\""]
+#[doc = "    },"]
+#[doc = "    \"evidence\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 4096"]
+#[doc = "    },"]
+#[doc = "    \"inputRequest\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSessionInputRequest\""]
+#[doc = "    },"]
+#[doc = "    \"mode\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"interactive\","]
+#[doc = "        \"headless\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-session.v1\""]
+#[doc = "    },"]
+#[doc = "    \"sessionId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"state\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"created\","]
+#[doc = "        \"running\","]
+#[doc = "        \"input_required\","]
+#[doc = "        \"paused\","]
+#[doc = "        \"completed\","]
+#[doc = "        \"failed\","]
+#[doc = "        \"cancelled\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSession {
+    #[serde(rename = "agentProfile")]
+    pub agent_profile: BmadSessionAgentProfile,
+    pub artifacts: ::std::vec::Vec<CommonContractId>,
+    #[serde(rename = "capabilityId")]
+    pub capability_id: CommonContractId,
+    #[serde(
+        rename = "completionHooks",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub completion_hooks: ::std::vec::Vec<BmadSessionCompletionHook>,
+    pub control: BmadSessionSessionControl,
+    pub evidence: ::std::vec::Vec<CommonSha256>,
+    #[serde(
+        rename = "inputRequest",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub input_request: ::std::option::Option<BmadSessionInputRequest>,
+    pub mode: BmadSessionMode,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "sessionId")]
+    pub session_id: CommonContractId,
+    pub state: BmadSessionState,
+}
+impl BmadSession {
+    pub fn builder() -> builder::BmadSession {
+        Default::default()
+    }
+}
+#[doc = "`BmadSessionAgentProfile`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"stateless\","]
+#[doc = "    \"memory\","]
+#[doc = "    \"autonomous_pulse\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSessionAgentProfile {
+    #[serde(rename = "stateless")]
+    Stateless,
+    #[serde(rename = "memory")]
+    Memory,
+    #[serde(rename = "autonomous_pulse")]
+    AutonomousPulse,
+}
+impl ::std::fmt::Display for BmadSessionAgentProfile {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Stateless => f.write_str("stateless"),
+            Self::Memory => f.write_str("memory"),
+            Self::AutonomousPulse => f.write_str("autonomous_pulse"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSessionAgentProfile {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "stateless" => Ok(Self::Stateless),
+            "memory" => Ok(Self::Memory),
+            "autonomous_pulse" => Ok(Self::AutonomousPulse),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionAgentProfile {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionAgentProfile {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionAgentProfile {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSessionCompletionHook`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"enabled\","]
+#[doc = "    \"hook\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"enabled\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"hook\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"persist_artifacts\","]
+#[doc = "        \"emit_receipt\","]
+#[doc = "        \"notify_local\","]
+#[doc = "        \"schedule_followup\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSessionCompletionHook {
+    pub enabled: bool,
+    pub hook: BmadSessionCompletionHookHook,
+}
+impl BmadSessionCompletionHook {
+    pub fn builder() -> builder::BmadSessionCompletionHook {
+        Default::default()
+    }
+}
+#[doc = "`BmadSessionCompletionHookHook`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"persist_artifacts\","]
+#[doc = "    \"emit_receipt\","]
+#[doc = "    \"notify_local\","]
+#[doc = "    \"schedule_followup\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSessionCompletionHookHook {
+    #[serde(rename = "persist_artifacts")]
+    PersistArtifacts,
+    #[serde(rename = "emit_receipt")]
+    EmitReceipt,
+    #[serde(rename = "notify_local")]
+    NotifyLocal,
+    #[serde(rename = "schedule_followup")]
+    ScheduleFollowup,
+}
+impl ::std::fmt::Display for BmadSessionCompletionHookHook {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::PersistArtifacts => f.write_str("persist_artifacts"),
+            Self::EmitReceipt => f.write_str("emit_receipt"),
+            Self::NotifyLocal => f.write_str("notify_local"),
+            Self::ScheduleFollowup => f.write_str("schedule_followup"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSessionCompletionHookHook {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "persist_artifacts" => Ok(Self::PersistArtifacts),
+            "emit_receipt" => Ok(Self::EmitReceipt),
+            "notify_local" => Ok(Self::NotifyLocal),
+            "schedule_followup" => Ok(Self::ScheduleFollowup),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionCompletionHookHook {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionCompletionHookHook {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionCompletionHookHook {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSessionInputRequest`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"prompt\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"responseSchemaHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"prompt\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 16384,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"responseSchemaHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSessionInputRequest {
+    pub prompt: BmadSessionInputRequestPrompt,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "responseSchemaHash")]
+    pub response_schema_hash: CommonSha256,
+}
+impl BmadSessionInputRequest {
+    pub fn builder() -> builder::BmadSessionInputRequest {
+        Default::default()
+    }
+}
+#[doc = "`BmadSessionInputRequestPrompt`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 16384,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSessionInputRequestPrompt(::std::string::String);
+impl ::std::ops::Deref for BmadSessionInputRequestPrompt {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSessionInputRequestPrompt> for ::std::string::String {
+    fn from(value: BmadSessionInputRequestPrompt) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSessionInputRequestPrompt {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 16384usize {
+            return Err("longer than 16384 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionInputRequestPrompt {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionInputRequestPrompt {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionInputRequestPrompt {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSessionInputRequestPrompt {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSessionMode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"interactive\","]
+#[doc = "    \"headless\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSessionMode {
+    #[serde(rename = "interactive")]
+    Interactive,
+    #[serde(rename = "headless")]
+    Headless,
+}
+impl ::std::fmt::Display for BmadSessionMode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Interactive => f.write_str("interactive"),
+            Self::Headless => f.write_str("headless"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSessionMode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "interactive" => Ok(Self::Interactive),
+            "headless" => Ok(Self::Headless),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionMode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSessionSessionControl`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"cancelAllowed\","]
+#[doc = "    \"pauseAllowed\","]
+#[doc = "    \"resumeAllowed\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"cancelAllowed\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"pauseAllowed\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"resumeAllowed\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSessionSessionControl {
+    #[serde(rename = "cancelAllowed")]
+    pub cancel_allowed: bool,
+    #[serde(rename = "pauseAllowed")]
+    pub pause_allowed: bool,
+    #[serde(rename = "resumeAllowed")]
+    pub resume_allowed: bool,
+}
+impl BmadSessionSessionControl {
+    pub fn builder() -> builder::BmadSessionSessionControl {
+        Default::default()
+    }
+}
+#[doc = "`BmadSessionState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"created\","]
+#[doc = "    \"running\","]
+#[doc = "    \"input_required\","]
+#[doc = "    \"paused\","]
+#[doc = "    \"completed\","]
+#[doc = "    \"failed\","]
+#[doc = "    \"cancelled\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSessionState {
+    #[serde(rename = "created")]
+    Created,
+    #[serde(rename = "running")]
+    Running,
+    #[serde(rename = "input_required")]
+    InputRequired,
+    #[serde(rename = "paused")]
+    Paused,
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "failed")]
+    Failed,
+    #[serde(rename = "cancelled")]
+    Cancelled,
+}
+impl ::std::fmt::Display for BmadSessionState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Created => f.write_str("created"),
+            Self::Running => f.write_str("running"),
+            Self::InputRequired => f.write_str("input_required"),
+            Self::Paused => f.write_str("paused"),
+            Self::Completed => f.write_str("completed"),
+            Self::Failed => f.write_str("failed"),
+            Self::Cancelled => f.write_str("cancelled"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSessionState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "created" => Ok(Self::Created),
+            "running" => Ok(Self::Running),
+            "input_required" => Ok(Self::InputRequired),
+            "paused" => Ok(Self::Paused),
+            "completed" => Ok(Self::Completed),
+            "failed" => Ok(Self::Failed),
+            "cancelled" => Ok(Self::Cancelled),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSkillPackage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-skill-package.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"actions\","]
+#[doc = "    \"packageHash\","]
+#[doc = "    \"packageId\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"skills\","]
+#[doc = "    \"sourceIdentityHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"actions\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadSkillPackageAction\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256"]
+#[doc = "    },"]
+#[doc = "    \"packageHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"packageId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-skill-package.v1\""]
+#[doc = "    },"]
+#[doc = "    \"skills\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadSkillPackageSkill\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 128,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"sourceIdentityHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSkillPackage {
+    pub actions: ::std::vec::Vec<BmadSkillPackageAction>,
+    #[serde(rename = "packageHash")]
+    pub package_hash: CommonSha256,
+    #[serde(rename = "packageId")]
+    pub package_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub skills: ::std::vec::Vec<BmadSkillPackageSkill>,
+    #[serde(rename = "sourceIdentityHash")]
+    pub source_identity_hash: CommonSha256,
+}
+impl BmadSkillPackage {
+    pub fn builder() -> builder::BmadSkillPackage {
+        Default::default()
+    }
+}
+#[doc = "`BmadSkillPackageAction`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"actionId\","]
+#[doc = "    \"mode\","]
+#[doc = "    \"skillId\","]
+#[doc = "    \"visibility\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"actionId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"aliases\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"type\": \"string\","]
+#[doc = "        \"pattern\": \"^[a-z][a-z0-9_-]{0,127}$\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 32,"]
+#[doc = "      \"uniqueItems\": true"]
+#[doc = "    },"]
+#[doc = "    \"mode\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"interactive\","]
+#[doc = "        \"headless\","]
+#[doc = "        \"both\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"skillId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"visibility\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"public\","]
+#[doc = "        \"internal_eval_runner\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSkillPackageAction {
+    #[serde(rename = "actionId")]
+    pub action_id: CommonContractId,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub aliases: ::std::option::Option<Vec<BmadSkillPackageActionAliasesItem>>,
+    pub mode: BmadSkillPackageActionMode,
+    #[serde(rename = "skillId")]
+    pub skill_id: CommonContractId,
+    pub visibility: BmadSkillPackageActionVisibility,
+}
+impl BmadSkillPackageAction {
+    pub fn builder() -> builder::BmadSkillPackageAction {
+        Default::default()
+    }
+}
+#[doc = "`BmadSkillPackageActionAliasesItem`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_-]{0,127}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSkillPackageActionAliasesItem(::std::string::String);
+impl ::std::ops::Deref for BmadSkillPackageActionAliasesItem {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSkillPackageActionAliasesItem> for ::std::string::String {
+    fn from(value: BmadSkillPackageActionAliasesItem) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSkillPackageActionAliasesItem {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9_-]{0,127}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_-]{0,127}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSkillPackageActionAliasesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSkillPackageActionAliasesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSkillPackageActionAliasesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSkillPackageActionAliasesItem {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSkillPackageActionMode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"interactive\","]
+#[doc = "    \"headless\","]
+#[doc = "    \"both\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSkillPackageActionMode {
+    #[serde(rename = "interactive")]
+    Interactive,
+    #[serde(rename = "headless")]
+    Headless,
+    #[serde(rename = "both")]
+    Both,
+}
+impl ::std::fmt::Display for BmadSkillPackageActionMode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Interactive => f.write_str("interactive"),
+            Self::Headless => f.write_str("headless"),
+            Self::Both => f.write_str("both"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSkillPackageActionMode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "interactive" => Ok(Self::Interactive),
+            "headless" => Ok(Self::Headless),
+            "both" => Ok(Self::Both),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSkillPackageActionMode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSkillPackageActionMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSkillPackageActionMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSkillPackageActionVisibility`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"public\","]
+#[doc = "    \"internal_eval_runner\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSkillPackageActionVisibility {
+    #[serde(rename = "public")]
+    Public,
+    #[serde(rename = "internal_eval_runner")]
+    InternalEvalRunner,
+}
+impl ::std::fmt::Display for BmadSkillPackageActionVisibility {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Public => f.write_str("public"),
+            Self::InternalEvalRunner => f.write_str("internal_eval_runner"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSkillPackageActionVisibility {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "public" => Ok(Self::Public),
+            "internal_eval_runner" => Ok(Self::InternalEvalRunner),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSkillPackageActionVisibility {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSkillPackageActionVisibility {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSkillPackageActionVisibility {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSkillPackageSkill`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"entrypoint\","]
+#[doc = "    \"instructionHash\","]
+#[doc = "    \"name\","]
+#[doc = "    \"profile\","]
+#[doc = "    \"skillId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"entrypoint\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1024,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"instructionHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"name\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]{0,127}$\""]
+#[doc = "    },"]
+#[doc = "    \"profile\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"method_primary\","]
+#[doc = "        \"builder_production\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"skillId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSkillPackageSkill {
+    pub entrypoint: BmadSkillPackageSkillEntrypoint,
+    #[serde(rename = "instructionHash")]
+    pub instruction_hash: CommonSha256,
+    pub name: BmadSkillPackageSkillName,
+    pub profile: BmadSkillPackageSkillProfile,
+    #[serde(rename = "skillId")]
+    pub skill_id: CommonContractId,
+}
+impl BmadSkillPackageSkill {
+    pub fn builder() -> builder::BmadSkillPackageSkill {
+        Default::default()
+    }
+}
+#[doc = "`BmadSkillPackageSkillEntrypoint`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1024,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSkillPackageSkillEntrypoint(::std::string::String);
+impl ::std::ops::Deref for BmadSkillPackageSkillEntrypoint {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSkillPackageSkillEntrypoint> for ::std::string::String {
+    fn from(value: BmadSkillPackageSkillEntrypoint) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSkillPackageSkillEntrypoint {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1024usize {
+            return Err("longer than 1024 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSkillPackageSkillEntrypoint {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSkillPackageSkillEntrypoint {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSkillPackageSkillEntrypoint {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSkillPackageSkillEntrypoint {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSkillPackageSkillName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]{0,127}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSkillPackageSkillName(::std::string::String);
+impl ::std::ops::Deref for BmadSkillPackageSkillName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSkillPackageSkillName> for ::std::string::String {
+    fn from(value: BmadSkillPackageSkillName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSkillPackageSkillName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9-]{0,127}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]{0,127}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSkillPackageSkillName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSkillPackageSkillName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSkillPackageSkillName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSkillPackageSkillName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSkillPackageSkillProfile`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"method_primary\","]
+#[doc = "    \"builder_production\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSkillPackageSkillProfile {
+    #[serde(rename = "method_primary")]
+    MethodPrimary,
+    #[serde(rename = "builder_production")]
+    BuilderProduction,
+}
+impl ::std::fmt::Display for BmadSkillPackageSkillProfile {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::MethodPrimary => f.write_str("method_primary"),
+            Self::BuilderProduction => f.write_str("builder_production"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSkillPackageSkillProfile {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "method_primary" => Ok(Self::MethodPrimary),
+            "builder_production" => Ok(Self::BuilderProduction),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSkillPackageSkillProfile {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSkillPackageSkillProfile {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSkillPackageSkillProfile {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSourceAccounting`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-source-accounting.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"accountingHash\","]
+#[doc = "    \"rows\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"sourceIdentityHashes\","]
+#[doc = "    \"summary\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"accountingHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"rows\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadSourceAccountingAccountingRow\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 100000,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-source-accounting.v1\""]
+#[doc = "    },"]
+#[doc = "    \"sourceIdentityHashes\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 2,"]
+#[doc = "      \"minItems\": 2,"]
+#[doc = "      \"uniqueItems\": true"]
+#[doc = "    },"]
+#[doc = "    \"summary\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSourceAccountingAccountingSummary\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSourceAccounting {
+    #[serde(rename = "accountingHash")]
+    pub accounting_hash: CommonSha256,
+    pub rows: ::std::vec::Vec<BmadSourceAccountingAccountingRow>,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "sourceIdentityHashes")]
+    pub source_identity_hashes: Vec<CommonSha256>,
+    pub summary: BmadSourceAccountingAccountingSummary,
+}
+impl BmadSourceAccounting {
+    pub fn builder() -> builder::BmadSourceAccounting {
+        Default::default()
+    }
+}
+#[doc = "`BmadSourceAccountingAccountingRow`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"classification\","]
+#[doc = "    \"disposition\","]
+#[doc = "    \"memberHash\","]
+#[doc = "    \"memberPath\","]
+#[doc = "    \"source\","]
+#[doc = "    \"targetTask\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"classification\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"primary_skill\","]
+#[doc = "        \"builder_action\","]
+#[doc = "        \"runtime_support\","]
+#[doc = "        \"documentation\","]
+#[doc = "        \"test\","]
+#[doc = "        \"asset\","]
+#[doc = "        \"package_metadata\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"disposition\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"adapt\","]
+#[doc = "        \"shim\","]
+#[doc = "        \"retain_as_data\","]
+#[doc = "        \"reject_nonruntime\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"memberHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"memberPath\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1024,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"reason\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 4096,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"source\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"bmad_method\","]
+#[doc = "        \"bmad_builder\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"targetTask\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[A-Z]+-[0-9]{2,3}$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSourceAccountingAccountingRow {
+    pub classification: BmadSourceAccountingAccountingRowClassification,
+    pub disposition: BmadSourceAccountingAccountingRowDisposition,
+    #[serde(rename = "memberHash")]
+    pub member_hash: CommonSha256,
+    #[serde(rename = "memberPath")]
+    pub member_path: BmadSourceAccountingAccountingRowMemberPath,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub reason: ::std::option::Option<BmadSourceAccountingAccountingRowReason>,
+    pub source: BmadSourceAccountingAccountingRowSource,
+    #[serde(rename = "targetTask")]
+    pub target_task: BmadSourceAccountingAccountingRowTargetTask,
+}
+impl BmadSourceAccountingAccountingRow {
+    pub fn builder() -> builder::BmadSourceAccountingAccountingRow {
+        Default::default()
+    }
+}
+#[doc = "`BmadSourceAccountingAccountingRowClassification`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"primary_skill\","]
+#[doc = "    \"builder_action\","]
+#[doc = "    \"runtime_support\","]
+#[doc = "    \"documentation\","]
+#[doc = "    \"test\","]
+#[doc = "    \"asset\","]
+#[doc = "    \"package_metadata\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSourceAccountingAccountingRowClassification {
+    #[serde(rename = "primary_skill")]
+    PrimarySkill,
+    #[serde(rename = "builder_action")]
+    BuilderAction,
+    #[serde(rename = "runtime_support")]
+    RuntimeSupport,
+    #[serde(rename = "documentation")]
+    Documentation,
+    #[serde(rename = "test")]
+    Test,
+    #[serde(rename = "asset")]
+    Asset,
+    #[serde(rename = "package_metadata")]
+    PackageMetadata,
+}
+impl ::std::fmt::Display for BmadSourceAccountingAccountingRowClassification {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::PrimarySkill => f.write_str("primary_skill"),
+            Self::BuilderAction => f.write_str("builder_action"),
+            Self::RuntimeSupport => f.write_str("runtime_support"),
+            Self::Documentation => f.write_str("documentation"),
+            Self::Test => f.write_str("test"),
+            Self::Asset => f.write_str("asset"),
+            Self::PackageMetadata => f.write_str("package_metadata"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSourceAccountingAccountingRowClassification {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "primary_skill" => Ok(Self::PrimarySkill),
+            "builder_action" => Ok(Self::BuilderAction),
+            "runtime_support" => Ok(Self::RuntimeSupport),
+            "documentation" => Ok(Self::Documentation),
+            "test" => Ok(Self::Test),
+            "asset" => Ok(Self::Asset),
+            "package_metadata" => Ok(Self::PackageMetadata),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSourceAccountingAccountingRowClassification {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadSourceAccountingAccountingRowClassification
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadSourceAccountingAccountingRowClassification
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSourceAccountingAccountingRowDisposition`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"adapt\","]
+#[doc = "    \"shim\","]
+#[doc = "    \"retain_as_data\","]
+#[doc = "    \"reject_nonruntime\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSourceAccountingAccountingRowDisposition {
+    #[serde(rename = "adapt")]
+    Adapt,
+    #[serde(rename = "shim")]
+    Shim,
+    #[serde(rename = "retain_as_data")]
+    RetainAsData,
+    #[serde(rename = "reject_nonruntime")]
+    RejectNonruntime,
+}
+impl ::std::fmt::Display for BmadSourceAccountingAccountingRowDisposition {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Adapt => f.write_str("adapt"),
+            Self::Shim => f.write_str("shim"),
+            Self::RetainAsData => f.write_str("retain_as_data"),
+            Self::RejectNonruntime => f.write_str("reject_nonruntime"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSourceAccountingAccountingRowDisposition {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "adapt" => Ok(Self::Adapt),
+            "shim" => Ok(Self::Shim),
+            "retain_as_data" => Ok(Self::RetainAsData),
+            "reject_nonruntime" => Ok(Self::RejectNonruntime),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSourceAccountingAccountingRowDisposition {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadSourceAccountingAccountingRowDisposition
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadSourceAccountingAccountingRowDisposition
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSourceAccountingAccountingRowMemberPath`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1024,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSourceAccountingAccountingRowMemberPath(::std::string::String);
+impl ::std::ops::Deref for BmadSourceAccountingAccountingRowMemberPath {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSourceAccountingAccountingRowMemberPath> for ::std::string::String {
+    fn from(value: BmadSourceAccountingAccountingRowMemberPath) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSourceAccountingAccountingRowMemberPath {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1024usize {
+            return Err("longer than 1024 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSourceAccountingAccountingRowMemberPath {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadSourceAccountingAccountingRowMemberPath
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadSourceAccountingAccountingRowMemberPath
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSourceAccountingAccountingRowMemberPath {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSourceAccountingAccountingRowReason`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 4096,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSourceAccountingAccountingRowReason(::std::string::String);
+impl ::std::ops::Deref for BmadSourceAccountingAccountingRowReason {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSourceAccountingAccountingRowReason> for ::std::string::String {
+    fn from(value: BmadSourceAccountingAccountingRowReason) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSourceAccountingAccountingRowReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 4096usize {
+            return Err("longer than 4096 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSourceAccountingAccountingRowReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSourceAccountingAccountingRowReason {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSourceAccountingAccountingRowReason {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSourceAccountingAccountingRowReason {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSourceAccountingAccountingRowSource`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"bmad_method\","]
+#[doc = "    \"bmad_builder\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSourceAccountingAccountingRowSource {
+    #[serde(rename = "bmad_method")]
+    BmadMethod,
+    #[serde(rename = "bmad_builder")]
+    BmadBuilder,
+}
+impl ::std::fmt::Display for BmadSourceAccountingAccountingRowSource {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::BmadMethod => f.write_str("bmad_method"),
+            Self::BmadBuilder => f.write_str("bmad_builder"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSourceAccountingAccountingRowSource {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "bmad_method" => Ok(Self::BmadMethod),
+            "bmad_builder" => Ok(Self::BmadBuilder),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSourceAccountingAccountingRowSource {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSourceAccountingAccountingRowSource {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSourceAccountingAccountingRowSource {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSourceAccountingAccountingRowTargetTask`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[A-Z]+-[0-9]{2,3}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSourceAccountingAccountingRowTargetTask(::std::string::String);
+impl ::std::ops::Deref for BmadSourceAccountingAccountingRowTargetTask {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSourceAccountingAccountingRowTargetTask> for ::std::string::String {
+    fn from(value: BmadSourceAccountingAccountingRowTargetTask) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSourceAccountingAccountingRowTargetTask {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Z]+-[0-9]{2,3}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Z]+-[0-9]{2,3}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSourceAccountingAccountingRowTargetTask {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadSourceAccountingAccountingRowTargetTask
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadSourceAccountingAccountingRowTargetTask
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSourceAccountingAccountingRowTargetTask {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSourceAccountingAccountingSummary`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"builderActions\","]
+#[doc = "    \"builderSkills\","]
+#[doc = "    \"memberCount\","]
+#[doc = "    \"primaryMethodSkills\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"builderActions\": {"]
+#[doc = "      \"const\": 10"]
+#[doc = "    },"]
+#[doc = "    \"builderSkills\": {"]
+#[doc = "      \"const\": 5"]
+#[doc = "    },"]
+#[doc = "    \"memberCount\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"primaryMethodSkills\": {"]
+#[doc = "      \"const\": 48"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSourceAccountingAccountingSummary {
+    #[serde(rename = "builderActions")]
+    pub builder_actions: ::serde_json::Value,
+    #[serde(rename = "builderSkills")]
+    pub builder_skills: ::serde_json::Value,
+    #[serde(rename = "memberCount")]
+    pub member_count: ::std::num::NonZeroU64,
+    #[serde(rename = "primaryMethodSkills")]
+    pub primary_method_skills: ::serde_json::Value,
+}
+impl BmadSourceAccountingAccountingSummary {
+    pub fn builder() -> builder::BmadSourceAccountingAccountingSummary {
+        Default::default()
+    }
+}
+#[doc = "`BmadSourceIdentity`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-source-identity.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"archiveMemberCount\","]
+#[doc = "    \"archiveSha256\","]
+#[doc = "    \"identityHash\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"source\","]
+#[doc = "    \"version\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"archiveMemberCount\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 100000.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"archiveSha256\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"extensions\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSourceIdentityExtensionMapV1\""]
+#[doc = "    },"]
+#[doc = "    \"identityHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-source-identity.v1\""]
+#[doc = "    },"]
+#[doc = "    \"source\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"bmad_method\","]
+#[doc = "        \"bmad_builder\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[0-9]+\\\\.[0-9]+\\\\.[0-9]+$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSourceIdentity {
+    #[serde(rename = "archiveMemberCount")]
+    pub archive_member_count: ::std::num::NonZeroU64,
+    #[serde(rename = "archiveSha256")]
+    pub archive_sha256: CommonSha256,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub extensions: ::std::option::Option<BmadSourceIdentityExtensionMapV1>,
+    #[serde(rename = "identityHash")]
+    pub identity_hash: CommonSha256,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub source: BmadSourceIdentitySource,
+    pub version: BmadSourceIdentityVersion,
+}
+impl BmadSourceIdentity {
+    pub fn builder() -> builder::BmadSourceIdentity {
+        Default::default()
+    }
+}
+#[doc = "`BmadSourceIdentityExtensionMapV1`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"patternProperties\": {"]
+#[doc = "    \"^x-v1-[a-z][a-z0-9-]{0,63}$\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"type\": \"string\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"number\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"boolean\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct BmadSourceIdentityExtensionMapV1(
+    pub  ::std::collections::HashMap<
+        BmadSourceIdentityExtensionMapV1Key,
+        BmadSourceIdentityExtensionMapV1Value,
+    >,
+);
+impl ::std::ops::Deref for BmadSourceIdentityExtensionMapV1 {
+    type Target = ::std::collections::HashMap<
+        BmadSourceIdentityExtensionMapV1Key,
+        BmadSourceIdentityExtensionMapV1Value,
+    >;
+    fn deref(
+        &self,
+    ) -> &::std::collections::HashMap<
+        BmadSourceIdentityExtensionMapV1Key,
+        BmadSourceIdentityExtensionMapV1Value,
+    > {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSourceIdentityExtensionMapV1>
+    for ::std::collections::HashMap<
+        BmadSourceIdentityExtensionMapV1Key,
+        BmadSourceIdentityExtensionMapV1Value,
+    >
+{
+    fn from(value: BmadSourceIdentityExtensionMapV1) -> Self {
+        value.0
+    }
+}
+impl
+    ::std::convert::From<
+        ::std::collections::HashMap<
+            BmadSourceIdentityExtensionMapV1Key,
+            BmadSourceIdentityExtensionMapV1Value,
+        >,
+    > for BmadSourceIdentityExtensionMapV1
+{
+    fn from(
+        value: ::std::collections::HashMap<
+            BmadSourceIdentityExtensionMapV1Key,
+            BmadSourceIdentityExtensionMapV1Value,
+        >,
+    ) -> Self {
+        Self(value)
+    }
+}
+#[doc = "`BmadSourceIdentityExtensionMapV1Key`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^x-v1-[a-z][a-z0-9-]{0,63}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSourceIdentityExtensionMapV1Key(::std::string::String);
+impl ::std::ops::Deref for BmadSourceIdentityExtensionMapV1Key {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSourceIdentityExtensionMapV1Key> for ::std::string::String {
+    fn from(value: BmadSourceIdentityExtensionMapV1Key) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSourceIdentityExtensionMapV1Key {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^x-v1-[a-z][a-z0-9-]{0,63}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^x-v1-[a-z][a-z0-9-]{0,63}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSourceIdentityExtensionMapV1Key {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSourceIdentityExtensionMapV1Key {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSourceIdentityExtensionMapV1Key {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSourceIdentityExtensionMapV1Key {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSourceIdentityExtensionMapV1Value`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"oneOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"type\": \"string\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"type\": \"number\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"type\": \"null\""]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum BmadSourceIdentityExtensionMapV1Value {
+    String(::std::string::String),
+    Number(f64),
+    Boolean(bool),
+    Null,
+}
+impl ::std::convert::From<f64> for BmadSourceIdentityExtensionMapV1Value {
+    fn from(value: f64) -> Self {
+        Self::Number(value)
+    }
+}
+impl ::std::convert::From<bool> for BmadSourceIdentityExtensionMapV1Value {
+    fn from(value: bool) -> Self {
+        Self::Boolean(value)
+    }
+}
+#[doc = "`BmadSourceIdentitySource`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"bmad_method\","]
+#[doc = "    \"bmad_builder\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSourceIdentitySource {
+    #[serde(rename = "bmad_method")]
+    BmadMethod,
+    #[serde(rename = "bmad_builder")]
+    BmadBuilder,
+}
+impl ::std::fmt::Display for BmadSourceIdentitySource {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::BmadMethod => f.write_str("bmad_method"),
+            Self::BmadBuilder => f.write_str("bmad_builder"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSourceIdentitySource {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "bmad_method" => Ok(Self::BmadMethod),
+            "bmad_builder" => Ok(Self::BmadBuilder),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSourceIdentitySource {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSourceIdentitySource {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSourceIdentitySource {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSourceIdentityVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[0-9]+\\\\.[0-9]+\\\\.[0-9]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSourceIdentityVersion(::std::string::String);
+impl ::std::ops::Deref for BmadSourceIdentityVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSourceIdentityVersion> for ::std::string::String {
+    fn from(value: BmadSourceIdentityVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSourceIdentityVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[0-9]+\\.[0-9]+\\.[0-9]+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[0-9]+\\.[0-9]+\\.[0-9]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSourceIdentityVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSourceIdentityVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSourceIdentityVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSourceIdentityVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadUpgrade`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-upgrade.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"contract\","]
+#[doc = "    \"fixtureHash\","]
+#[doc = "    \"fromVersion\","]
+#[doc = "    \"migrationId\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"steps\","]
+#[doc = "    \"strategy\","]
+#[doc = "    \"toVersion\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"contract\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"bmad_builder_authoring\","]
+#[doc = "        \"bmad_session\","]
+#[doc = "        \"bmad_config\","]
+#[doc = "        \"bmad_memory\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"fixtureHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"fromVersion\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^sapphirus\\\\.[a-z0-9-]+\\\\.v[1-9][0-9]*$\""]
+#[doc = "    },"]
+#[doc = "    \"migrationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-upgrade.v1\""]
+#[doc = "    },"]
+#[doc = "    \"steps\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadUpgradeMigrationStep\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 128,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"strategy\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"deterministic_lossless\","]
+#[doc = "        \"deterministic_with_defaults\","]
+#[doc = "        \"reject\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"toVersion\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^sapphirus\\\\.[a-z0-9-]+\\\\.v[1-9][0-9]*$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadUpgrade {
+    pub contract: BmadUpgradeContract,
+    #[serde(rename = "fixtureHash")]
+    pub fixture_hash: CommonSha256,
+    #[serde(rename = "fromVersion")]
+    pub from_version: BmadUpgradeFromVersion,
+    #[serde(rename = "migrationId")]
+    pub migration_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub steps: ::std::vec::Vec<BmadUpgradeMigrationStep>,
+    pub strategy: BmadUpgradeStrategy,
+    #[serde(rename = "toVersion")]
+    pub to_version: BmadUpgradeToVersion,
+}
+impl BmadUpgrade {
+    pub fn builder() -> builder::BmadUpgrade {
+        Default::default()
+    }
+}
+#[doc = "`BmadUpgradeContract`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"bmad_builder_authoring\","]
+#[doc = "    \"bmad_session\","]
+#[doc = "    \"bmad_config\","]
+#[doc = "    \"bmad_memory\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadUpgradeContract {
+    #[serde(rename = "bmad_builder_authoring")]
+    BmadBuilderAuthoring,
+    #[serde(rename = "bmad_session")]
+    BmadSession,
+    #[serde(rename = "bmad_config")]
+    BmadConfig,
+    #[serde(rename = "bmad_memory")]
+    BmadMemory,
+}
+impl ::std::fmt::Display for BmadUpgradeContract {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::BmadBuilderAuthoring => f.write_str("bmad_builder_authoring"),
+            Self::BmadSession => f.write_str("bmad_session"),
+            Self::BmadConfig => f.write_str("bmad_config"),
+            Self::BmadMemory => f.write_str("bmad_memory"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadUpgradeContract {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "bmad_builder_authoring" => Ok(Self::BmadBuilderAuthoring),
+            "bmad_session" => Ok(Self::BmadSession),
+            "bmad_config" => Ok(Self::BmadConfig),
+            "bmad_memory" => Ok(Self::BmadMemory),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadUpgradeContract {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadUpgradeContract {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadUpgradeContract {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadUpgradeFromVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^sapphirus\\\\.[a-z0-9-]+\\\\.v[1-9][0-9]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadUpgradeFromVersion(::std::string::String);
+impl ::std::ops::Deref for BmadUpgradeFromVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadUpgradeFromVersion> for ::std::string::String {
+    fn from(value: BmadUpgradeFromVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadUpgradeFromVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^sapphirus\\.[a-z0-9-]+\\.v[1-9][0-9]*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^sapphirus\\.[a-z0-9-]+\\.v[1-9][0-9]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadUpgradeFromVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadUpgradeFromVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadUpgradeFromVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadUpgradeFromVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadUpgradeMigrationStep`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"operation\","]
+#[doc = "    \"ordinal\","]
+#[doc = "    \"path\","]
+#[doc = "    \"valueHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"operation\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"copy\","]
+#[doc = "        \"rename\","]
+#[doc = "        \"set_default\","]
+#[doc = "        \"map_enum\","]
+#[doc = "        \"remove_redundant\","]
+#[doc = "        \"validate\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"ordinal\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 127.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"path\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^/(?:[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*)?$\""]
+#[doc = "    },"]
+#[doc = "    \"valueHash\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadUpgradeMigrationStep {
+    pub operation: BmadUpgradeMigrationStepOperation,
+    pub ordinal: i64,
+    pub path: BmadUpgradeMigrationStepPath,
+    #[serde(rename = "valueHash")]
+    pub value_hash: ::std::option::Option<CommonSha256>,
+}
+impl BmadUpgradeMigrationStep {
+    pub fn builder() -> builder::BmadUpgradeMigrationStep {
+        Default::default()
+    }
+}
+#[doc = "`BmadUpgradeMigrationStepOperation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"copy\","]
+#[doc = "    \"rename\","]
+#[doc = "    \"set_default\","]
+#[doc = "    \"map_enum\","]
+#[doc = "    \"remove_redundant\","]
+#[doc = "    \"validate\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadUpgradeMigrationStepOperation {
+    #[serde(rename = "copy")]
+    Copy,
+    #[serde(rename = "rename")]
+    Rename,
+    #[serde(rename = "set_default")]
+    SetDefault,
+    #[serde(rename = "map_enum")]
+    MapEnum,
+    #[serde(rename = "remove_redundant")]
+    RemoveRedundant,
+    #[serde(rename = "validate")]
+    Validate,
+}
+impl ::std::fmt::Display for BmadUpgradeMigrationStepOperation {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Copy => f.write_str("copy"),
+            Self::Rename => f.write_str("rename"),
+            Self::SetDefault => f.write_str("set_default"),
+            Self::MapEnum => f.write_str("map_enum"),
+            Self::RemoveRedundant => f.write_str("remove_redundant"),
+            Self::Validate => f.write_str("validate"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadUpgradeMigrationStepOperation {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "copy" => Ok(Self::Copy),
+            "rename" => Ok(Self::Rename),
+            "set_default" => Ok(Self::SetDefault),
+            "map_enum" => Ok(Self::MapEnum),
+            "remove_redundant" => Ok(Self::RemoveRedundant),
+            "validate" => Ok(Self::Validate),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadUpgradeMigrationStepOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadUpgradeMigrationStepOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadUpgradeMigrationStepOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadUpgradeMigrationStepPath`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^/(?:[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*)?$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadUpgradeMigrationStepPath(::std::string::String);
+impl ::std::ops::Deref for BmadUpgradeMigrationStepPath {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadUpgradeMigrationStepPath> for ::std::string::String {
+    fn from(value: BmadUpgradeMigrationStepPath) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadUpgradeMigrationStepPath {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^/(?:[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*)?$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^/(?:[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*)?$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadUpgradeMigrationStepPath {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadUpgradeMigrationStepPath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadUpgradeMigrationStepPath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadUpgradeMigrationStepPath {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadUpgradeStrategy`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"deterministic_lossless\","]
+#[doc = "    \"deterministic_with_defaults\","]
+#[doc = "    \"reject\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadUpgradeStrategy {
+    #[serde(rename = "deterministic_lossless")]
+    DeterministicLossless,
+    #[serde(rename = "deterministic_with_defaults")]
+    DeterministicWithDefaults,
+    #[serde(rename = "reject")]
+    Reject,
+}
+impl ::std::fmt::Display for BmadUpgradeStrategy {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::DeterministicLossless => f.write_str("deterministic_lossless"),
+            Self::DeterministicWithDefaults => f.write_str("deterministic_with_defaults"),
+            Self::Reject => f.write_str("reject"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadUpgradeStrategy {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "deterministic_lossless" => Ok(Self::DeterministicLossless),
+            "deterministic_with_defaults" => Ok(Self::DeterministicWithDefaults),
+            "reject" => Ok(Self::Reject),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadUpgradeStrategy {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadUpgradeStrategy {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadUpgradeStrategy {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadUpgradeToVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^sapphirus\\\\.[a-z0-9-]+\\\\.v[1-9][0-9]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadUpgradeToVersion(::std::string::String);
+impl ::std::ops::Deref for BmadUpgradeToVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadUpgradeToVersion> for ::std::string::String {
+    fn from(value: BmadUpgradeToVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadUpgradeToVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^sapphirus\\.[a-z0-9-]+\\.v[1-9][0-9]*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^sapphirus\\.[a-z0-9-]+\\.v[1-9][0-9]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadUpgradeToVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadUpgradeToVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadUpgradeToVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadUpgradeToVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "An evidence-backed report of early BMAD conformance facts."]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -14662,6 +23311,9 @@ impl ::std::convert::TryFrom<::std::string::String> for BmadValidationReportSubj
 #[doc = "    },"]
 #[doc = "    {"]
 #[doc = "      \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderAnalysisRun\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/BuilderAuthoringObjectBuilderAuthoringV2\""]
 #[doc = "    }"]
 #[doc = "  ]"]
 #[doc = "}"]
@@ -14673,6 +23325,7 @@ pub enum BuilderAuthoringObject {
     Draft(BuilderAuthoringObjectBuilderDraft),
     DraftRevision(BuilderAuthoringObjectBuilderDraftRevision),
     AnalysisRun(BuilderAuthoringObjectBuilderAnalysisRun),
+    AuthoringV2(BuilderAuthoringObjectBuilderAuthoringV2),
 }
 impl ::std::convert::From<BuilderAuthoringObjectBuilderDraft> for BuilderAuthoringObject {
     fn from(value: BuilderAuthoringObjectBuilderDraft) -> Self {
@@ -14687,6 +23340,11 @@ impl ::std::convert::From<BuilderAuthoringObjectBuilderDraftRevision> for Builde
 impl ::std::convert::From<BuilderAuthoringObjectBuilderAnalysisRun> for BuilderAuthoringObject {
     fn from(value: BuilderAuthoringObjectBuilderAnalysisRun) -> Self {
         Self::AnalysisRun(value)
+    }
+}
+impl ::std::convert::From<BuilderAuthoringObjectBuilderAuthoringV2> for BuilderAuthoringObject {
+    fn from(value: BuilderAuthoringObjectBuilderAuthoringV2) -> Self {
+        Self::AuthoringV2(value)
     }
 }
 #[doc = "`BuilderAuthoringObjectBuilderAnalysisKind`"]
@@ -17766,6 +26424,602 @@ impl ::std::convert::TryFrom<&::std::string::String>
 }
 impl ::std::convert::TryFrom<::std::string::String>
     for BuilderAuthoringObjectBuilderAuthoringActionAction
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderAuthoringObjectBuilderAuthoringV2`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"action\","]
+#[doc = "    \"agentProfile\","]
+#[doc = "    \"builderKind\","]
+#[doc = "    \"lifecycle\","]
+#[doc = "    \"mode\","]
+#[doc = "    \"objectKind\","]
+#[doc = "    \"payloadHash\","]
+#[doc = "    \"recordId\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"sourceHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"action\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"create_rebuild\","]
+#[doc = "        \"build\","]
+#[doc = "        \"edit\","]
+#[doc = "        \"analyze\","]
+#[doc = "        \"convert\","]
+#[doc = "        \"evaluate\","]
+#[doc = "        \"promote\","]
+#[doc = "        \"install\","]
+#[doc = "        \"rollback\","]
+#[doc = "        \"configure\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"agentProfile\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"stateless\","]
+#[doc = "        \"memory\","]
+#[doc = "        \"autonomous_pulse\","]
+#[doc = "        \"not_applicable\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"builderKind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"agent\","]
+#[doc = "        \"workflow\","]
+#[doc = "        \"module\","]
+#[doc = "        \"setup\","]
+#[doc = "        \"conversion\","]
+#[doc = "        \"evaluation\","]
+#[doc = "        \"promotion\","]
+#[doc = "        \"installation\","]
+#[doc = "        \"rollback\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"lifecycle\": {"]
+#[doc = "      \"const\": \"draft\""]
+#[doc = "    },"]
+#[doc = "    \"migration\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadUpgrade\""]
+#[doc = "    },"]
+#[doc = "    \"mode\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"interactive\","]
+#[doc = "        \"headless\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"objectKind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"draft\","]
+#[doc = "        \"revision\","]
+#[doc = "        \"analysis\","]
+#[doc = "        \"conversion\","]
+#[doc = "        \"setup\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"payloadHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"recordId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-builder-authoring.v2\""]
+#[doc = "    },"]
+#[doc = "    \"sourceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BuilderAuthoringObjectBuilderAuthoringV2 {
+    pub action: BuilderAuthoringObjectBuilderAuthoringV2Action,
+    #[serde(rename = "agentProfile")]
+    pub agent_profile: BuilderAuthoringObjectBuilderAuthoringV2AgentProfile,
+    #[serde(rename = "builderKind")]
+    pub builder_kind: BuilderAuthoringObjectBuilderAuthoringV2BuilderKind,
+    pub lifecycle: ::serde_json::Value,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub migration: ::std::option::Option<BmadUpgrade>,
+    pub mode: BuilderAuthoringObjectBuilderAuthoringV2Mode,
+    #[serde(rename = "objectKind")]
+    pub object_kind: BuilderAuthoringObjectBuilderAuthoringV2ObjectKind,
+    #[serde(rename = "payloadHash")]
+    pub payload_hash: CommonSha256,
+    #[serde(rename = "recordId")]
+    pub record_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "sourceHash")]
+    pub source_hash: CommonSha256,
+}
+impl BuilderAuthoringObjectBuilderAuthoringV2 {
+    pub fn builder() -> builder::BuilderAuthoringObjectBuilderAuthoringV2 {
+        Default::default()
+    }
+}
+#[doc = "`BuilderAuthoringObjectBuilderAuthoringV2Action`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"create_rebuild\","]
+#[doc = "    \"build\","]
+#[doc = "    \"edit\","]
+#[doc = "    \"analyze\","]
+#[doc = "    \"convert\","]
+#[doc = "    \"evaluate\","]
+#[doc = "    \"promote\","]
+#[doc = "    \"install\","]
+#[doc = "    \"rollback\","]
+#[doc = "    \"configure\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderAuthoringObjectBuilderAuthoringV2Action {
+    #[serde(rename = "create_rebuild")]
+    CreateRebuild,
+    #[serde(rename = "build")]
+    Build,
+    #[serde(rename = "edit")]
+    Edit,
+    #[serde(rename = "analyze")]
+    Analyze,
+    #[serde(rename = "convert")]
+    Convert,
+    #[serde(rename = "evaluate")]
+    Evaluate,
+    #[serde(rename = "promote")]
+    Promote,
+    #[serde(rename = "install")]
+    Install,
+    #[serde(rename = "rollback")]
+    Rollback,
+    #[serde(rename = "configure")]
+    Configure,
+}
+impl ::std::fmt::Display for BuilderAuthoringObjectBuilderAuthoringV2Action {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::CreateRebuild => f.write_str("create_rebuild"),
+            Self::Build => f.write_str("build"),
+            Self::Edit => f.write_str("edit"),
+            Self::Analyze => f.write_str("analyze"),
+            Self::Convert => f.write_str("convert"),
+            Self::Evaluate => f.write_str("evaluate"),
+            Self::Promote => f.write_str("promote"),
+            Self::Install => f.write_str("install"),
+            Self::Rollback => f.write_str("rollback"),
+            Self::Configure => f.write_str("configure"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderAuthoringObjectBuilderAuthoringV2Action {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "create_rebuild" => Ok(Self::CreateRebuild),
+            "build" => Ok(Self::Build),
+            "edit" => Ok(Self::Edit),
+            "analyze" => Ok(Self::Analyze),
+            "convert" => Ok(Self::Convert),
+            "evaluate" => Ok(Self::Evaluate),
+            "promote" => Ok(Self::Promote),
+            "install" => Ok(Self::Install),
+            "rollback" => Ok(Self::Rollback),
+            "configure" => Ok(Self::Configure),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderAuthoringObjectBuilderAuthoringV2Action {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2Action
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2Action
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderAuthoringObjectBuilderAuthoringV2AgentProfile`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"stateless\","]
+#[doc = "    \"memory\","]
+#[doc = "    \"autonomous_pulse\","]
+#[doc = "    \"not_applicable\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderAuthoringObjectBuilderAuthoringV2AgentProfile {
+    #[serde(rename = "stateless")]
+    Stateless,
+    #[serde(rename = "memory")]
+    Memory,
+    #[serde(rename = "autonomous_pulse")]
+    AutonomousPulse,
+    #[serde(rename = "not_applicable")]
+    NotApplicable,
+}
+impl ::std::fmt::Display for BuilderAuthoringObjectBuilderAuthoringV2AgentProfile {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Stateless => f.write_str("stateless"),
+            Self::Memory => f.write_str("memory"),
+            Self::AutonomousPulse => f.write_str("autonomous_pulse"),
+            Self::NotApplicable => f.write_str("not_applicable"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderAuthoringObjectBuilderAuthoringV2AgentProfile {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "stateless" => Ok(Self::Stateless),
+            "memory" => Ok(Self::Memory),
+            "autonomous_pulse" => Ok(Self::AutonomousPulse),
+            "not_applicable" => Ok(Self::NotApplicable),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderAuthoringObjectBuilderAuthoringV2AgentProfile {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2AgentProfile
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2AgentProfile
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderAuthoringObjectBuilderAuthoringV2BuilderKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"agent\","]
+#[doc = "    \"workflow\","]
+#[doc = "    \"module\","]
+#[doc = "    \"setup\","]
+#[doc = "    \"conversion\","]
+#[doc = "    \"evaluation\","]
+#[doc = "    \"promotion\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"rollback\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderAuthoringObjectBuilderAuthoringV2BuilderKind {
+    #[serde(rename = "agent")]
+    Agent,
+    #[serde(rename = "workflow")]
+    Workflow,
+    #[serde(rename = "module")]
+    Module,
+    #[serde(rename = "setup")]
+    Setup,
+    #[serde(rename = "conversion")]
+    Conversion,
+    #[serde(rename = "evaluation")]
+    Evaluation,
+    #[serde(rename = "promotion")]
+    Promotion,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "rollback")]
+    Rollback,
+}
+impl ::std::fmt::Display for BuilderAuthoringObjectBuilderAuthoringV2BuilderKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Agent => f.write_str("agent"),
+            Self::Workflow => f.write_str("workflow"),
+            Self::Module => f.write_str("module"),
+            Self::Setup => f.write_str("setup"),
+            Self::Conversion => f.write_str("conversion"),
+            Self::Evaluation => f.write_str("evaluation"),
+            Self::Promotion => f.write_str("promotion"),
+            Self::Installation => f.write_str("installation"),
+            Self::Rollback => f.write_str("rollback"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderAuthoringObjectBuilderAuthoringV2BuilderKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "agent" => Ok(Self::Agent),
+            "workflow" => Ok(Self::Workflow),
+            "module" => Ok(Self::Module),
+            "setup" => Ok(Self::Setup),
+            "conversion" => Ok(Self::Conversion),
+            "evaluation" => Ok(Self::Evaluation),
+            "promotion" => Ok(Self::Promotion),
+            "installation" => Ok(Self::Installation),
+            "rollback" => Ok(Self::Rollback),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderAuthoringObjectBuilderAuthoringV2BuilderKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2BuilderKind
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2BuilderKind
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderAuthoringObjectBuilderAuthoringV2Mode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"interactive\","]
+#[doc = "    \"headless\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderAuthoringObjectBuilderAuthoringV2Mode {
+    #[serde(rename = "interactive")]
+    Interactive,
+    #[serde(rename = "headless")]
+    Headless,
+}
+impl ::std::fmt::Display for BuilderAuthoringObjectBuilderAuthoringV2Mode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Interactive => f.write_str("interactive"),
+            Self::Headless => f.write_str("headless"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderAuthoringObjectBuilderAuthoringV2Mode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "interactive" => Ok(Self::Interactive),
+            "headless" => Ok(Self::Headless),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderAuthoringObjectBuilderAuthoringV2Mode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2Mode
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2Mode
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderAuthoringObjectBuilderAuthoringV2ObjectKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"draft\","]
+#[doc = "    \"revision\","]
+#[doc = "    \"analysis\","]
+#[doc = "    \"conversion\","]
+#[doc = "    \"setup\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderAuthoringObjectBuilderAuthoringV2ObjectKind {
+    #[serde(rename = "draft")]
+    Draft,
+    #[serde(rename = "revision")]
+    Revision,
+    #[serde(rename = "analysis")]
+    Analysis,
+    #[serde(rename = "conversion")]
+    Conversion,
+    #[serde(rename = "setup")]
+    Setup,
+}
+impl ::std::fmt::Display for BuilderAuthoringObjectBuilderAuthoringV2ObjectKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Draft => f.write_str("draft"),
+            Self::Revision => f.write_str("revision"),
+            Self::Analysis => f.write_str("analysis"),
+            Self::Conversion => f.write_str("conversion"),
+            Self::Setup => f.write_str("setup"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderAuthoringObjectBuilderAuthoringV2ObjectKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "draft" => Ok(Self::Draft),
+            "revision" => Ok(Self::Revision),
+            "analysis" => Ok(Self::Analysis),
+            "conversion" => Ok(Self::Conversion),
+            "setup" => Ok(Self::Setup),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderAuthoringObjectBuilderAuthoringV2ObjectKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2ObjectKind
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BuilderAuthoringObjectBuilderAuthoringV2ObjectKind
 {
     type Error = self::error::ConversionError;
     fn try_from(
@@ -35327,6 +44581,802 @@ impl MethodSessionMethodSessionPayloadCapabilityKey {
         Default::default()
     }
 }
+#[doc = "The reviewed compatibility policy between version one and version two of the desktop model access request. It names the single legacy profile a version one request is adapted onto, the closed set of reasons a version one request is refused, the minimum desktop contract epoch that may still speak version one, the gate that must be satisfied before version one is removed, and the guarantee that receipts signed before version two landed stay verifiable. The adapter is one way: a version one request is lifted to version two, and a version two request is never lowered."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.model-access-compatibility.v1\","]
+#[doc = "  \"description\": \"The reviewed compatibility policy between version one and version two of the desktop model access request. It names the single legacy profile a version one request is adapted onto, the closed set of reasons a version one request is refused, the minimum desktop contract epoch that may still speak version one, the gate that must be satisfied before version one is removed, and the guarantee that receipts signed before version two landed stay verifiable. The adapter is one way: a version one request is lifted to version two, and a version two request is never lowered.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"acceptedRequestSchemaVersions\","]
+#[doc = "    \"adapterDirection\","]
+#[doc = "    \"currentRequestSchemaVersion\","]
+#[doc = "    \"historicalReceiptPolicy\","]
+#[doc = "    \"legacyProfile\","]
+#[doc = "    \"minimumDesktopContractEpoch\","]
+#[doc = "    \"rejectionReasons\","]
+#[doc = "    \"removalGate\","]
+#[doc = "    \"schemaVersion\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"acceptedRequestSchemaVersions\": {"]
+#[doc = "      \"description\": \"Request document versions the support plane still accepts, oldest first. Removing version one from this list is the observable act that closes the legacy lane.\","]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelAccessCompatibilityRequestSchemaVersion\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 2,"]
+#[doc = "      \"minItems\": 1,"]
+#[doc = "      \"uniqueItems\": true"]
+#[doc = "    },"]
+#[doc = "    \"adapterDirection\": {"]
+#[doc = "      \"const\": \"v1_to_v2_only\""]
+#[doc = "    },"]
+#[doc = "    \"currentRequestSchemaVersion\": {"]
+#[doc = "      \"const\": \"desktop-model-access-request.v2\""]
+#[doc = "    },"]
+#[doc = "    \"historicalReceiptPolicy\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessCompatibilityHistoricalReceiptPolicy\""]
+#[doc = "    },"]
+#[doc = "    \"legacyProfile\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessCompatibilityLegacyProfileBinding\""]
+#[doc = "    },"]
+#[doc = "    \"minimumDesktopContractEpoch\": {"]
+#[doc = "      \"description\": \"The lowest desktop contract epoch that may still send a version one request. An installation below this epoch is refused and told to update, rather than being adapted onto the legacy profile.\","]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4096.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"rejectionReasons\": {"]
+#[doc = "      \"description\": \"Every reason a version one request is refused rather than adapted. The list is closed and exhaustive, so a refusal always has a name the desktop can render.\","]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelAccessCompatibilityLegacyRejectionReason\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 16,"]
+#[doc = "      \"minItems\": 1,"]
+#[doc = "      \"uniqueItems\": true"]
+#[doc = "    },"]
+#[doc = "    \"removalGate\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessCompatibilityLegacyRemovalGate\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.model-access-compatibility.v1\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessCompatibility {
+    #[doc = "Request document versions the support plane still accepts, oldest first. Removing version one from this list is the observable act that closes the legacy lane."]
+    #[serde(rename = "acceptedRequestSchemaVersions")]
+    pub accepted_request_schema_versions: Vec<ModelAccessCompatibilityRequestSchemaVersion>,
+    #[serde(rename = "adapterDirection")]
+    pub adapter_direction: ::serde_json::Value,
+    #[serde(rename = "currentRequestSchemaVersion")]
+    pub current_request_schema_version: ::serde_json::Value,
+    #[serde(rename = "historicalReceiptPolicy")]
+    pub historical_receipt_policy: ModelAccessCompatibilityHistoricalReceiptPolicy,
+    #[serde(rename = "legacyProfile")]
+    pub legacy_profile: ModelAccessCompatibilityLegacyProfileBinding,
+    #[doc = "The lowest desktop contract epoch that may still send a version one request. An installation below this epoch is refused and told to update, rather than being adapted onto the legacy profile."]
+    #[serde(rename = "minimumDesktopContractEpoch")]
+    pub minimum_desktop_contract_epoch: ::std::num::NonZeroU64,
+    #[doc = "Every reason a version one request is refused rather than adapted. The list is closed and exhaustive, so a refusal always has a name the desktop can render."]
+    #[serde(rename = "rejectionReasons")]
+    pub rejection_reasons: Vec<ModelAccessCompatibilityLegacyRejectionReason>,
+    #[serde(rename = "removalGate")]
+    pub removal_gate: ModelAccessCompatibilityLegacyRemovalGate,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+}
+impl ModelAccessCompatibility {
+    pub fn builder() -> builder::ModelAccessCompatibility {
+        Default::default()
+    }
+}
+#[doc = "Receipts signed before version two landed must keep verifying with no change to how their digest is computed. Version two adds a second receipt family; it does not restate or re-sign the first."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Receipts signed before version two landed must keep verifying with no change to how their digest is computed. Version two adds a second receipt family; it does not restate or re-sign the first.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"digestPurpose\","]
+#[doc = "    \"reverificationRequired\","]
+#[doc = "    \"verifiableReceiptSchemaVersions\","]
+#[doc = "    \"version1DigestUnchanged\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"digestPurpose\": {"]
+#[doc = "      \"const\": \"model-access-receipt\""]
+#[doc = "    },"]
+#[doc = "    \"reverificationRequired\": {"]
+#[doc = "      \"const\": false"]
+#[doc = "    },"]
+#[doc = "    \"verifiableReceiptSchemaVersions\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelAccessCompatibilityReceiptSchemaVersion\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 2,"]
+#[doc = "      \"minItems\": 1,"]
+#[doc = "      \"uniqueItems\": true"]
+#[doc = "    },"]
+#[doc = "    \"version1DigestUnchanged\": {"]
+#[doc = "      \"const\": true"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessCompatibilityHistoricalReceiptPolicy {
+    #[serde(rename = "digestPurpose")]
+    pub digest_purpose: ::serde_json::Value,
+    #[serde(rename = "reverificationRequired")]
+    pub reverification_required: ::serde_json::Value,
+    #[serde(rename = "verifiableReceiptSchemaVersions")]
+    pub verifiable_receipt_schema_versions: Vec<ModelAccessCompatibilityReceiptSchemaVersion>,
+    #[serde(rename = "version1DigestUnchanged")]
+    pub version1_digest_unchanged: ::serde_json::Value,
+}
+impl ModelAccessCompatibilityHistoricalReceiptPolicy {
+    pub fn builder() -> builder::ModelAccessCompatibilityHistoricalReceiptPolicy {
+        Default::default()
+    }
+}
+#[doc = "The single named profile every adapted version one request lands on. It exists so a legacy request still has a profile identity in the version two receipt, while its deployment stays resolved server side exactly as it was before version two. The desktop never names it, never chooses it, and cannot see the deployment behind it."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"The single named profile every adapted version one request lands on. It exists so a legacy request still has a profile identity in the version two receipt, while its deployment stays resolved server side exactly as it was before version two. The desktop never names it, never chooses it, and cannot see the deployment behind it.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"clientSelectable\","]
+#[doc = "    \"deploymentResolution\","]
+#[doc = "    \"displayName\","]
+#[doc = "    \"profileId\","]
+#[doc = "    \"requestMode\","]
+#[doc = "    \"requiresCatalogVersion\","]
+#[doc = "    \"variantPolicy\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"clientSelectable\": {"]
+#[doc = "      \"const\": false"]
+#[doc = "    },"]
+#[doc = "    \"deploymentResolution\": {"]
+#[doc = "      \"const\": \"server_side_only\""]
+#[doc = "    },"]
+#[doc = "    \"displayName\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"profileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"requestMode\": {"]
+#[doc = "      \"const\": \"structured_response\""]
+#[doc = "    },"]
+#[doc = "    \"requiresCatalogVersion\": {"]
+#[doc = "      \"const\": false"]
+#[doc = "    },"]
+#[doc = "    \"variantPolicy\": {"]
+#[doc = "      \"const\": \"profile_default_only\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessCompatibilityLegacyProfileBinding {
+    #[serde(rename = "clientSelectable")]
+    pub client_selectable: ::serde_json::Value,
+    #[serde(rename = "deploymentResolution")]
+    pub deployment_resolution: ::serde_json::Value,
+    #[serde(rename = "displayName")]
+    pub display_name: ModelAccessCompatibilityLegacyProfileBindingDisplayName,
+    #[serde(rename = "profileId")]
+    pub profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "requestMode")]
+    pub request_mode: ::serde_json::Value,
+    #[serde(rename = "requiresCatalogVersion")]
+    pub requires_catalog_version: ::serde_json::Value,
+    #[serde(rename = "variantPolicy")]
+    pub variant_policy: ::serde_json::Value,
+}
+impl ModelAccessCompatibilityLegacyProfileBinding {
+    pub fn builder() -> builder::ModelAccessCompatibilityLegacyProfileBinding {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessCompatibilityLegacyProfileBindingDisplayName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessCompatibilityLegacyProfileBindingDisplayName(::std::string::String);
+impl ::std::ops::Deref for ModelAccessCompatibilityLegacyProfileBindingDisplayName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessCompatibilityLegacyProfileBindingDisplayName>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessCompatibilityLegacyProfileBindingDisplayName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessCompatibilityLegacyProfileBindingDisplayName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessCompatibilityLegacyProfileBindingDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessCompatibilityLegacyProfileBindingDisplayName
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessCompatibilityLegacyProfileBindingDisplayName
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessCompatibilityLegacyProfileBindingDisplayName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Named refusals for a version one request. A version one request may keep doing exactly what its own contract already allowed and nothing more; reaching for a version two capability is refused rather than partially honoured."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Named refusals for a version one request. A version one request may keep doing exactly what its own contract already allowed and nothing more; reaching for a version two capability is refused rather than partially honoured.\","]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"model_selection_attempted\","]
+#[doc = "    \"streaming_requested\","]
+#[doc = "    \"variant_requested\","]
+#[doc = "    \"attachment_requested\","]
+#[doc = "    \"catalog_version_supplied\","]
+#[doc = "    \"tool_definition_supplied\","]
+#[doc = "    \"unknown_member_present\","]
+#[doc = "    \"contract_epoch_too_low\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelAccessCompatibilityLegacyRejectionReason {
+    #[serde(rename = "model_selection_attempted")]
+    ModelSelectionAttempted,
+    #[serde(rename = "streaming_requested")]
+    StreamingRequested,
+    #[serde(rename = "variant_requested")]
+    VariantRequested,
+    #[serde(rename = "attachment_requested")]
+    AttachmentRequested,
+    #[serde(rename = "catalog_version_supplied")]
+    CatalogVersionSupplied,
+    #[serde(rename = "tool_definition_supplied")]
+    ToolDefinitionSupplied,
+    #[serde(rename = "unknown_member_present")]
+    UnknownMemberPresent,
+    #[serde(rename = "contract_epoch_too_low")]
+    ContractEpochTooLow,
+}
+impl ::std::fmt::Display for ModelAccessCompatibilityLegacyRejectionReason {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::ModelSelectionAttempted => f.write_str("model_selection_attempted"),
+            Self::StreamingRequested => f.write_str("streaming_requested"),
+            Self::VariantRequested => f.write_str("variant_requested"),
+            Self::AttachmentRequested => f.write_str("attachment_requested"),
+            Self::CatalogVersionSupplied => f.write_str("catalog_version_supplied"),
+            Self::ToolDefinitionSupplied => f.write_str("tool_definition_supplied"),
+            Self::UnknownMemberPresent => f.write_str("unknown_member_present"),
+            Self::ContractEpochTooLow => f.write_str("contract_epoch_too_low"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelAccessCompatibilityLegacyRejectionReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "model_selection_attempted" => Ok(Self::ModelSelectionAttempted),
+            "streaming_requested" => Ok(Self::StreamingRequested),
+            "variant_requested" => Ok(Self::VariantRequested),
+            "attachment_requested" => Ok(Self::AttachmentRequested),
+            "catalog_version_supplied" => Ok(Self::CatalogVersionSupplied),
+            "tool_definition_supplied" => Ok(Self::ToolDefinitionSupplied),
+            "unknown_member_present" => Ok(Self::UnknownMemberPresent),
+            "contract_epoch_too_low" => Ok(Self::ContractEpochTooLow),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessCompatibilityLegacyRejectionReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessCompatibilityLegacyRejectionReason
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessCompatibilityLegacyRejectionReason
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelAccessCompatibilityLegacyRemovalCondition`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"catalog_published_for_every_tenant\","]
+#[doc = "    \"every_installation_at_removal_epoch\","]
+#[doc = "    \"legacy_profile_retired_from_catalog\","]
+#[doc = "    \"historical_receipt_replay_verified\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelAccessCompatibilityLegacyRemovalCondition {
+    #[serde(rename = "catalog_published_for_every_tenant")]
+    CatalogPublishedForEveryTenant,
+    #[serde(rename = "every_installation_at_removal_epoch")]
+    EveryInstallationAtRemovalEpoch,
+    #[serde(rename = "legacy_profile_retired_from_catalog")]
+    LegacyProfileRetiredFromCatalog,
+    #[serde(rename = "historical_receipt_replay_verified")]
+    HistoricalReceiptReplayVerified,
+}
+impl ::std::fmt::Display for ModelAccessCompatibilityLegacyRemovalCondition {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::CatalogPublishedForEveryTenant => {
+                f.write_str("catalog_published_for_every_tenant")
+            }
+            Self::EveryInstallationAtRemovalEpoch => {
+                f.write_str("every_installation_at_removal_epoch")
+            }
+            Self::LegacyProfileRetiredFromCatalog => {
+                f.write_str("legacy_profile_retired_from_catalog")
+            }
+            Self::HistoricalReceiptReplayVerified => {
+                f.write_str("historical_receipt_replay_verified")
+            }
+        }
+    }
+}
+impl ::std::str::FromStr for ModelAccessCompatibilityLegacyRemovalCondition {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "catalog_published_for_every_tenant" => Ok(Self::CatalogPublishedForEveryTenant),
+            "every_installation_at_removal_epoch" => Ok(Self::EveryInstallationAtRemovalEpoch),
+            "legacy_profile_retired_from_catalog" => Ok(Self::LegacyProfileRetiredFromCatalog),
+            "historical_receipt_replay_verified" => Ok(Self::HistoricalReceiptReplayVerified),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessCompatibilityLegacyRemovalCondition {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessCompatibilityLegacyRemovalCondition
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessCompatibilityLegacyRemovalCondition
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "What must be true before version one stops being accepted. Every condition is observable from evidence the support plane already produces, so the removal decision is not a judgement call."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"What must be true before version one stops being accepted. Every condition is observable from evidence the support plane already produces, so the removal decision is not a judgement call.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"conditions\","]
+#[doc = "    \"minimumDesktopVersion\","]
+#[doc = "    \"removalContractEpoch\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"conditions\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelAccessCompatibilityLegacyRemovalCondition\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 8,"]
+#[doc = "      \"minItems\": 1,"]
+#[doc = "      \"uniqueItems\": true"]
+#[doc = "    },"]
+#[doc = "    \"minimumDesktopVersion\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 5,"]
+#[doc = "      \"pattern\": \"^[0-9]+\\\\.[0-9]+\\\\.[0-9]+(-[0-9A-Za-z.-]+)?$\""]
+#[doc = "    },"]
+#[doc = "    \"removalContractEpoch\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4096.0,"]
+#[doc = "      \"minimum\": 2.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessCompatibilityLegacyRemovalGate {
+    pub conditions: Vec<ModelAccessCompatibilityLegacyRemovalCondition>,
+    #[serde(rename = "minimumDesktopVersion")]
+    pub minimum_desktop_version: ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion,
+    #[serde(rename = "removalContractEpoch")]
+    pub removal_contract_epoch: i64,
+}
+impl ModelAccessCompatibilityLegacyRemovalGate {
+    pub fn builder() -> builder::ModelAccessCompatibilityLegacyRemovalGate {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 5,"]
+#[doc = "  \"pattern\": \"^[0-9]+\\\\.[0-9]+\\\\.[0-9]+(-[0-9A-Za-z.-]+)?$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion(::std::string::String);
+impl ::std::ops::Deref for ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 5usize {
+            return Err("shorter than 5 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str>
+    for ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de>
+    for ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion
+{
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessCompatibilityReceiptSchemaVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"sapphirus.model-access-receipt.v1\","]
+#[doc = "    \"sapphirus.model-access-receipt.v2\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelAccessCompatibilityReceiptSchemaVersion {
+    #[serde(rename = "sapphirus.model-access-receipt.v1")]
+    SapphirusModelAccessReceiptV1,
+    #[serde(rename = "sapphirus.model-access-receipt.v2")]
+    SapphirusModelAccessReceiptV2,
+}
+impl ::std::fmt::Display for ModelAccessCompatibilityReceiptSchemaVersion {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::SapphirusModelAccessReceiptV1 => f.write_str("sapphirus.model-access-receipt.v1"),
+            Self::SapphirusModelAccessReceiptV2 => f.write_str("sapphirus.model-access-receipt.v2"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelAccessCompatibilityReceiptSchemaVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "sapphirus.model-access-receipt.v1" => Ok(Self::SapphirusModelAccessReceiptV1),
+            "sapphirus.model-access-receipt.v2" => Ok(Self::SapphirusModelAccessReceiptV2),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessCompatibilityReceiptSchemaVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessCompatibilityReceiptSchemaVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessCompatibilityReceiptSchemaVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelAccessCompatibilityRequestSchemaVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"desktop-model-access-request.v1\","]
+#[doc = "    \"desktop-model-access-request.v2\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelAccessCompatibilityRequestSchemaVersion {
+    #[serde(rename = "desktop-model-access-request.v1")]
+    DesktopModelAccessRequestV1,
+    #[serde(rename = "desktop-model-access-request.v2")]
+    DesktopModelAccessRequestV2,
+}
+impl ::std::fmt::Display for ModelAccessCompatibilityRequestSchemaVersion {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::DesktopModelAccessRequestV1 => f.write_str("desktop-model-access-request.v1"),
+            Self::DesktopModelAccessRequestV2 => f.write_str("desktop-model-access-request.v2"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelAccessCompatibilityRequestSchemaVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "desktop-model-access-request.v1" => Ok(Self::DesktopModelAccessRequestV1),
+            "desktop-model-access-request.v2" => Ok(Self::DesktopModelAccessRequestV2),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessCompatibilityRequestSchemaVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessCompatibilityRequestSchemaVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessCompatibilityRequestSchemaVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "`ModelAccessReceipt`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -36410,6 +46460,2008 @@ impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptUsageCurrency {
             })
     }
 }
+#[doc = "The second version of the signed model access receipt. It extends the version one receipt with everything needed to prove which profile, catalog epoch, variant, and deployment actually served the call, and with a usage record that distinguishes a category the provider reported from one it never reported. The request mode and the support route that produced the receipt are carried together in one closed response lane, so a receipt cannot claim a streaming chat answer arrived over the structured response route."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.model-access-receipt-v2.v1\","]
+#[doc = "  \"description\": \"The second version of the signed model access receipt. It extends the version one receipt with everything needed to prove which profile, catalog epoch, variant, and deployment actually served the call, and with a usage record that distinguishes a category the provider reported from one it never reported. The request mode and the support route that produced the receipt are carried together in one closed response lane, so a receipt cannot claim a streaming chat answer arrived over the structured response route.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"catalogHash\","]
+#[doc = "    \"catalogVersion\","]
+#[doc = "    \"completedAt\","]
+#[doc = "    \"consentDisclosureHash\","]
+#[doc = "    \"consentEnvelopeHash\","]
+#[doc = "    \"consumptionHash\","]
+#[doc = "    \"credentialBindingHash\","]
+#[doc = "    \"deliveryModel\","]
+#[doc = "    \"deploymentInventoryHash\","]
+#[doc = "    \"fallbackEvents\","]
+#[doc = "    \"inputBytes\","]
+#[doc = "    \"invocationBindingHash\","]
+#[doc = "    \"manifestHash\","]
+#[doc = "    \"modelCapabilityHash\","]
+#[doc = "    \"modelProfileHash\","]
+#[doc = "    \"outputBytes\","]
+#[doc = "    \"proof\","]
+#[doc = "    \"providerProfileHash\","]
+#[doc = "    \"providerRequestId\","]
+#[doc = "    \"receiptHash\","]
+#[doc = "    \"receiptId\","]
+#[doc = "    \"region\","]
+#[doc = "    \"registrationId\","]
+#[doc = "    \"reportedResponseModel\","]
+#[doc = "    \"requestHash\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"requestedProfileId\","]
+#[doc = "    \"requestedVariantId\","]
+#[doc = "    \"resolvedDeploymentHash\","]
+#[doc = "    \"resolvedModel\","]
+#[doc = "    \"resolvedProfileHash\","]
+#[doc = "    \"resolvedProfileId\","]
+#[doc = "    \"resolvedVariantId\","]
+#[doc = "    \"responseLane\","]
+#[doc = "    \"resultHash\","]
+#[doc = "    \"retentionMode\","]
+#[doc = "    \"retryCount\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"startedAt\","]
+#[doc = "    \"subjectHash\","]
+#[doc = "    \"tenantHash\","]
+#[doc = "    \"terminalStatus\","]
+#[doc = "    \"usage\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"catalogHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"catalogVersion\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogCatalogVersion\""]
+#[doc = "    },"]
+#[doc = "    \"completedAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"consentDisclosureHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"consentEnvelopeHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"consumptionHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"credentialBindingHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"deliveryModel\": {"]
+#[doc = "      \"const\": \"windows_local\""]
+#[doc = "    },"]
+#[doc = "    \"deploymentInventoryHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"fallbackEvents\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelAccessReceiptV2ModelFallbackEvent\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 16,"]
+#[doc = "      \"minItems\": 0"]
+#[doc = "    },"]
+#[doc = "    \"inputBytes\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2SafeSize\""]
+#[doc = "    },"]
+#[doc = "    \"invocationBindingHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"manifestHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelCapabilityHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelProfileHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"outputBytes\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2SafeSize\""]
+#[doc = "    },"]
+#[doc = "    \"proof\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2SupportPlaneProof\""]
+#[doc = "    },"]
+#[doc = "    \"providerProfileHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"providerRequestId\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonOpaqueRef\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"receiptHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"receiptId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"region\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2Region\""]
+#[doc = "    },"]
+#[doc = "    \"registrationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"reportedResponseModel\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelAccessReceiptV2ReportedModelName\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"requestHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"requestedProfileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"requestedVariantId\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelProfileModelVariantId\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"resolvedDeploymentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedModel\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2ResolvedModelIdentity\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedProfileHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedProfileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedVariantId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelVariantId\""]
+#[doc = "    },"]
+#[doc = "    \"responseLane\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2ModelResponseLane\""]
+#[doc = "    },"]
+#[doc = "    \"resultHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"retentionMode\": {"]
+#[doc = "      \"const\": \"transient_no_store\""]
+#[doc = "    },"]
+#[doc = "    \"retryCount\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 32.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.model-access-receipt.v2\""]
+#[doc = "    },"]
+#[doc = "    \"startedAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"subjectHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"tenantHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"terminalStatus\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2ModelTerminalStatus\""]
+#[doc = "    },"]
+#[doc = "    \"usage\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2ModelUsageV2\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessReceiptV2 {
+    #[serde(rename = "catalogHash")]
+    pub catalog_hash: CommonSha256,
+    #[serde(rename = "catalogVersion")]
+    pub catalog_version: ModelCatalogCatalogVersion,
+    #[serde(rename = "completedAt")]
+    pub completed_at: CommonUtcInstant,
+    #[serde(rename = "consentDisclosureHash")]
+    pub consent_disclosure_hash: CommonSha256,
+    #[serde(rename = "consentEnvelopeHash")]
+    pub consent_envelope_hash: CommonSha256,
+    #[serde(rename = "consumptionHash")]
+    pub consumption_hash: CommonSha256,
+    #[serde(rename = "credentialBindingHash")]
+    pub credential_binding_hash: CommonSha256,
+    #[serde(rename = "deliveryModel")]
+    pub delivery_model: ::serde_json::Value,
+    #[serde(rename = "deploymentInventoryHash")]
+    pub deployment_inventory_hash: CommonSha256,
+    #[serde(rename = "fallbackEvents")]
+    pub fallback_events: ::std::vec::Vec<ModelAccessReceiptV2ModelFallbackEvent>,
+    #[serde(rename = "inputBytes")]
+    pub input_bytes: ModelAccessReceiptV2SafeSize,
+    #[serde(rename = "invocationBindingHash")]
+    pub invocation_binding_hash: CommonSha256,
+    #[serde(rename = "manifestHash")]
+    pub manifest_hash: CommonSha256,
+    #[serde(rename = "modelCapabilityHash")]
+    pub model_capability_hash: CommonSha256,
+    #[serde(rename = "modelProfileHash")]
+    pub model_profile_hash: CommonSha256,
+    #[serde(rename = "outputBytes")]
+    pub output_bytes: ModelAccessReceiptV2SafeSize,
+    pub proof: ModelAccessReceiptV2SupportPlaneProof,
+    #[serde(rename = "providerProfileHash")]
+    pub provider_profile_hash: CommonSha256,
+    #[serde(rename = "providerRequestId")]
+    pub provider_request_id: ::std::option::Option<CommonOpaqueRef>,
+    #[serde(rename = "receiptHash")]
+    pub receipt_hash: CommonSha256,
+    #[serde(rename = "receiptId")]
+    pub receipt_id: CommonContractId,
+    pub region: ModelAccessReceiptV2Region,
+    #[serde(rename = "registrationId")]
+    pub registration_id: CommonContractId,
+    #[serde(rename = "reportedResponseModel")]
+    pub reported_response_model: ::std::option::Option<ModelAccessReceiptV2ReportedModelName>,
+    #[serde(rename = "requestHash")]
+    pub request_hash: CommonSha256,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "requestedProfileId")]
+    pub requested_profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "requestedVariantId")]
+    pub requested_variant_id: ::std::option::Option<ModelProfileModelVariantId>,
+    #[serde(rename = "resolvedDeploymentHash")]
+    pub resolved_deployment_hash: CommonSha256,
+    #[serde(rename = "resolvedModel")]
+    pub resolved_model: ModelAccessReceiptV2ResolvedModelIdentity,
+    #[serde(rename = "resolvedProfileHash")]
+    pub resolved_profile_hash: CommonSha256,
+    #[serde(rename = "resolvedProfileId")]
+    pub resolved_profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "resolvedVariantId")]
+    pub resolved_variant_id: ModelProfileModelVariantId,
+    #[serde(rename = "responseLane")]
+    pub response_lane: ModelAccessReceiptV2ModelResponseLane,
+    #[serde(rename = "resultHash")]
+    pub result_hash: CommonSha256,
+    #[serde(rename = "retentionMode")]
+    pub retention_mode: ::serde_json::Value,
+    #[serde(rename = "retryCount")]
+    pub retry_count: i64,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "startedAt")]
+    pub started_at: CommonUtcInstant,
+    #[serde(rename = "subjectHash")]
+    pub subject_hash: CommonSha256,
+    #[serde(rename = "tenantHash")]
+    pub tenant_hash: CommonSha256,
+    #[serde(rename = "terminalStatus")]
+    pub terminal_status: ModelAccessReceiptV2ModelTerminalStatus,
+    pub usage: ModelAccessReceiptV2ModelUsageV2,
+}
+impl ModelAccessReceiptV2 {
+    pub fn builder() -> builder::ModelAccessReceiptV2 {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessReceiptV2CanonicalSchemaId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 5,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9.-]*\\\\.v[1-9][0-9]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2CanonicalSchemaId(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2CanonicalSchemaId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2CanonicalSchemaId> for ::std::string::String {
+    fn from(value: ModelAccessReceiptV2CanonicalSchemaId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2CanonicalSchemaId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 5usize {
+            return Err("shorter than 5 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2CanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessReceiptV2CanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessReceiptV2CanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2CanonicalSchemaId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessReceiptV2ModelFallbackEvent`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"fromProfileHash\","]
+#[doc = "    \"fromProfileId\","]
+#[doc = "    \"policyTransitionHash\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"toProfileHash\","]
+#[doc = "    \"toProfileId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"fromProfileHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"fromProfileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"policyTransitionHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 16.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"toProfileHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"toProfileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessReceiptV2ModelFallbackEvent {
+    #[serde(rename = "fromProfileHash")]
+    pub from_profile_hash: CommonSha256,
+    #[serde(rename = "fromProfileId")]
+    pub from_profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "policyTransitionHash")]
+    pub policy_transition_hash: CommonSha256,
+    pub sequence: ::std::num::NonZeroU64,
+    #[serde(rename = "toProfileHash")]
+    pub to_profile_hash: CommonSha256,
+    #[serde(rename = "toProfileId")]
+    pub to_profile_id: ModelProfileModelProfileId,
+}
+impl ModelAccessReceiptV2ModelFallbackEvent {
+    pub fn builder() -> builder::ModelAccessReceiptV2ModelFallbackEvent {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessReceiptV2ModelResponseLane`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"oneOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2StructuredResponseLane\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2StreamingChatLane\""]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum ModelAccessReceiptV2ModelResponseLane {
+    StructuredResponseLane(ModelAccessReceiptV2StructuredResponseLane),
+    StreamingChatLane(ModelAccessReceiptV2StreamingChatLane),
+}
+impl ::std::convert::From<ModelAccessReceiptV2StructuredResponseLane>
+    for ModelAccessReceiptV2ModelResponseLane
+{
+    fn from(value: ModelAccessReceiptV2StructuredResponseLane) -> Self {
+        Self::StructuredResponseLane(value)
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2StreamingChatLane>
+    for ModelAccessReceiptV2ModelResponseLane
+{
+    fn from(value: ModelAccessReceiptV2StreamingChatLane) -> Self {
+        Self::StreamingChatLane(value)
+    }
+}
+#[doc = "`ModelAccessReceiptV2ModelTerminalStatus`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"succeeded\","]
+#[doc = "    \"refused\","]
+#[doc = "    \"incomplete\","]
+#[doc = "    \"failed\","]
+#[doc = "    \"cancelled\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelAccessReceiptV2ModelTerminalStatus {
+    #[serde(rename = "succeeded")]
+    Succeeded,
+    #[serde(rename = "refused")]
+    Refused,
+    #[serde(rename = "incomplete")]
+    Incomplete,
+    #[serde(rename = "failed")]
+    Failed,
+    #[serde(rename = "cancelled")]
+    Cancelled,
+}
+impl ::std::fmt::Display for ModelAccessReceiptV2ModelTerminalStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Succeeded => f.write_str("succeeded"),
+            Self::Refused => f.write_str("refused"),
+            Self::Incomplete => f.write_str("incomplete"),
+            Self::Failed => f.write_str("failed"),
+            Self::Cancelled => f.write_str("cancelled"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2ModelTerminalStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "succeeded" => Ok(Self::Succeeded),
+            "refused" => Ok(Self::Refused),
+            "incomplete" => Ok(Self::Incomplete),
+            "failed" => Ok(Self::Failed),
+            "cancelled" => Ok(Self::Cancelled),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2ModelTerminalStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessReceiptV2ModelTerminalStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessReceiptV2ModelTerminalStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelAccessReceiptV2ModelUsageV2`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"oneOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2ReportedUsage\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2UnavailableUsage\""]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum ModelAccessReceiptV2ModelUsageV2 {
+    ReportedUsage(ModelAccessReceiptV2ReportedUsage),
+    UnavailableUsage(ModelAccessReceiptV2UnavailableUsage),
+}
+impl ::std::convert::From<ModelAccessReceiptV2ReportedUsage> for ModelAccessReceiptV2ModelUsageV2 {
+    fn from(value: ModelAccessReceiptV2ReportedUsage) -> Self {
+        Self::ReportedUsage(value)
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2UnavailableUsage>
+    for ModelAccessReceiptV2ModelUsageV2
+{
+    fn from(value: ModelAccessReceiptV2UnavailableUsage) -> Self {
+        Self::UnavailableUsage(value)
+    }
+}
+#[doc = "`ModelAccessReceiptV2Region`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z0-9-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2Region(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2Region {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2Region> for ::std::string::String {
+    fn from(value: ModelAccessReceiptV2Region) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2Region {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z0-9-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z0-9-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2Region {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessReceiptV2Region {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessReceiptV2Region {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2Region {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "The model name the provider echoed on the response, recorded verbatim so a mismatch against the resolved identity is auditable. It is a model name, never a deployment name."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"The model name the provider echoed on the response, recorded verbatim so a mismatch against the resolved identity is auditable. It is a model name, never a deployment name.\","]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2ReportedModelName(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2ReportedModelName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2ReportedModelName> for ::std::string::String {
+    fn from(value: ModelAccessReceiptV2ReportedModelName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2ReportedModelName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2ReportedModelName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessReceiptV2ReportedModelName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessReceiptV2ReportedModelName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2ReportedModelName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Token categories the provider reported. A category the provider did not report is null. Zero means the provider reported zero, and the two are never conflated."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Token categories the provider reported. A category the provider did not report is null. Zero means the provider reported zero, and the two are never conflated.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"cacheReadTokens\","]
+#[doc = "    \"cacheWriteTokens\","]
+#[doc = "    \"costMicrounits\","]
+#[doc = "    \"currency\","]
+#[doc = "    \"inputTokens\","]
+#[doc = "    \"outputTokens\","]
+#[doc = "    \"priceProfileVersion\","]
+#[doc = "    \"reasoningTokens\","]
+#[doc = "    \"usageProvenance\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"cacheReadTokens\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelAccessReceiptV2TokenCount\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"cacheWriteTokens\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelAccessReceiptV2TokenCount\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"costMicrounits\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelAccessReceiptV2SafeSize\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"currency\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[A-Z]{3}$\""]
+#[doc = "    },"]
+#[doc = "    \"inputTokens\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelAccessReceiptV2TokenCount\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"outputTokens\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelAccessReceiptV2TokenCount\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"priceProfileVersion\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 3,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9]*(-[a-z0-9]+)*$\""]
+#[doc = "    },"]
+#[doc = "    \"reasoningTokens\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelAccessReceiptV2TokenCount\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"usageProvenance\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"reported\","]
+#[doc = "        \"estimated\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessReceiptV2ReportedUsage {
+    #[serde(rename = "cacheReadTokens")]
+    pub cache_read_tokens: ::std::option::Option<ModelAccessReceiptV2TokenCount>,
+    #[serde(rename = "cacheWriteTokens")]
+    pub cache_write_tokens: ::std::option::Option<ModelAccessReceiptV2TokenCount>,
+    #[serde(rename = "costMicrounits")]
+    pub cost_microunits: ::std::option::Option<ModelAccessReceiptV2SafeSize>,
+    pub currency: ModelAccessReceiptV2ReportedUsageCurrency,
+    #[serde(rename = "inputTokens")]
+    pub input_tokens: ::std::option::Option<ModelAccessReceiptV2TokenCount>,
+    #[serde(rename = "outputTokens")]
+    pub output_tokens: ::std::option::Option<ModelAccessReceiptV2TokenCount>,
+    #[serde(rename = "priceProfileVersion")]
+    pub price_profile_version: ModelAccessReceiptV2ReportedUsagePriceProfileVersion,
+    #[serde(rename = "reasoningTokens")]
+    pub reasoning_tokens: ::std::option::Option<ModelAccessReceiptV2TokenCount>,
+    #[serde(rename = "usageProvenance")]
+    pub usage_provenance: ModelAccessReceiptV2ReportedUsageUsageProvenance,
+}
+impl ModelAccessReceiptV2ReportedUsage {
+    pub fn builder() -> builder::ModelAccessReceiptV2ReportedUsage {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessReceiptV2ReportedUsageCurrency`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[A-Z]{3}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2ReportedUsageCurrency(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2ReportedUsageCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2ReportedUsageCurrency> for ::std::string::String {
+    fn from(value: ModelAccessReceiptV2ReportedUsageCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2ReportedUsageCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Z]{3}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Z]{3}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2ReportedUsageCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessReceiptV2ReportedUsageCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessReceiptV2ReportedUsageCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2ReportedUsageCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessReceiptV2ReportedUsagePriceProfileVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 3,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9]*(-[a-z0-9]+)*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2ReportedUsagePriceProfileVersion(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2ReportedUsagePriceProfileVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2ReportedUsagePriceProfileVersion>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessReceiptV2ReportedUsagePriceProfileVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2ReportedUsagePriceProfileVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9]*(-[a-z0-9]+)*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9]*(-[a-z0-9]+)*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2ReportedUsagePriceProfileVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessReceiptV2ReportedUsagePriceProfileVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessReceiptV2ReportedUsagePriceProfileVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2ReportedUsagePriceProfileVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessReceiptV2ReportedUsageUsageProvenance`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"reported\","]
+#[doc = "    \"estimated\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelAccessReceiptV2ReportedUsageUsageProvenance {
+    #[serde(rename = "reported")]
+    Reported,
+    #[serde(rename = "estimated")]
+    Estimated,
+}
+impl ::std::fmt::Display for ModelAccessReceiptV2ReportedUsageUsageProvenance {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Reported => f.write_str("reported"),
+            Self::Estimated => f.write_str("estimated"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2ReportedUsageUsageProvenance {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "reported" => Ok(Self::Reported),
+            "estimated" => Ok(Self::Estimated),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2ReportedUsageUsageProvenance {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessReceiptV2ReportedUsageUsageProvenance
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessReceiptV2ReportedUsageUsageProvenance
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The model identity the support plane confirmed behind the resolved deployment before the call was made."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"The model identity the support plane confirmed behind the resolved deployment before the call was made.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"name\","]
+#[doc = "    \"publisher\","]
+#[doc = "    \"version\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"name\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    },"]
+#[doc = "    \"publisher\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    },"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"$ref\": \"#/$defs/FoundryDeploymentSnapshotModelIdentityPart\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessReceiptV2ResolvedModelIdentity {
+    pub name: FoundryDeploymentSnapshotModelIdentityPart,
+    pub publisher: FoundryDeploymentSnapshotModelIdentityPart,
+    pub version: FoundryDeploymentSnapshotModelIdentityPart,
+}
+impl ModelAccessReceiptV2ResolvedModelIdentity {
+    pub fn builder() -> builder::ModelAccessReceiptV2ResolvedModelIdentity {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessReceiptV2SafeSize`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"integer\","]
+#[doc = "  \"maximum\": 9007199254740991.0,"]
+#[doc = "  \"minimum\": 0.0"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2SafeSize(pub i64);
+impl ::std::ops::Deref for ModelAccessReceiptV2SafeSize {
+    type Target = i64;
+    fn deref(&self) -> &i64 {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2SafeSize> for i64 {
+    fn from(value: ModelAccessReceiptV2SafeSize) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<i64> for ModelAccessReceiptV2SafeSize {
+    fn from(value: i64) -> Self {
+        Self(value)
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2SafeSize {
+    type Err = <i64 as ::std::str::FromStr>::Err;
+    fn from_str(value: &str) -> ::std::result::Result<Self, Self::Err> {
+        Ok(Self(value.parse()?))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2SafeSize {
+    type Error = <i64 as ::std::str::FromStr>::Err;
+    fn try_from(value: &str) -> ::std::result::Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<String> for ModelAccessReceiptV2SafeSize {
+    type Error = <i64 as ::std::str::FromStr>::Err;
+    fn try_from(value: String) -> ::std::result::Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+impl ::std::fmt::Display for ModelAccessReceiptV2SafeSize {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[doc = "A streaming chat answer served over the model stream route. No canonical output schema or provider schema projection is representable here, and the observed event count and final sequence are recorded so the receipt can be reconciled against the events the desktop saw."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"A streaming chat answer served over the model stream route. No canonical output schema or provider schema projection is representable here, and the observed event count and final sequence are recorded so the receipt can be reconciled against the events the desktop saw.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"eventCount\","]
+#[doc = "    \"finalSequence\","]
+#[doc = "    \"requestMode\","]
+#[doc = "    \"supportRoute\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"eventCount\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1000000.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"finalSequence\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1000000.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"requestMode\": {"]
+#[doc = "      \"const\": \"streaming_chat\""]
+#[doc = "    },"]
+#[doc = "    \"supportRoute\": {"]
+#[doc = "      \"const\": \"model_stream\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessReceiptV2StreamingChatLane {
+    #[serde(rename = "eventCount")]
+    pub event_count: ::std::num::NonZeroU64,
+    #[serde(rename = "finalSequence")]
+    pub final_sequence: ::std::num::NonZeroU64,
+    #[serde(rename = "requestMode")]
+    pub request_mode: ::serde_json::Value,
+    #[serde(rename = "supportRoute")]
+    pub support_route: ::serde_json::Value,
+}
+impl ModelAccessReceiptV2StreamingChatLane {
+    pub fn builder() -> builder::ModelAccessReceiptV2StreamingChatLane {
+        Default::default()
+    }
+}
+#[doc = "A structured response served over the model access route. The canonical output schema and its provider projection are mandatory here, because a structured answer that satisfied no schema is not a structured answer."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"A structured response served over the model access route. The canonical output schema and its provider projection are mandatory here, because a structured answer that satisfied no schema is not a structured answer.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"canonicalOutputSchemaHash\","]
+#[doc = "    \"canonicalOutputSchemaId\","]
+#[doc = "    \"providerSchemaProjectionHash\","]
+#[doc = "    \"requestMode\","]
+#[doc = "    \"supportRoute\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"canonicalOutputSchemaHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"canonicalOutputSchemaId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2CanonicalSchemaId\""]
+#[doc = "    },"]
+#[doc = "    \"providerSchemaProjectionHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"requestMode\": {"]
+#[doc = "      \"const\": \"structured_response\""]
+#[doc = "    },"]
+#[doc = "    \"supportRoute\": {"]
+#[doc = "      \"const\": \"model_access\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessReceiptV2StructuredResponseLane {
+    #[serde(rename = "canonicalOutputSchemaHash")]
+    pub canonical_output_schema_hash: CommonSha256,
+    #[serde(rename = "canonicalOutputSchemaId")]
+    pub canonical_output_schema_id: ModelAccessReceiptV2CanonicalSchemaId,
+    #[serde(rename = "providerSchemaProjectionHash")]
+    pub provider_schema_projection_hash: CommonSha256,
+    #[serde(rename = "requestMode")]
+    pub request_mode: ::serde_json::Value,
+    #[serde(rename = "supportRoute")]
+    pub support_route: ::serde_json::Value,
+}
+impl ModelAccessReceiptV2StructuredResponseLane {
+    pub fn builder() -> builder::ModelAccessReceiptV2StructuredResponseLane {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessReceiptV2SupportPlaneProof`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"algorithm\","]
+#[doc = "    \"audience\","]
+#[doc = "    \"issuer\","]
+#[doc = "    \"keyId\","]
+#[doc = "    \"proofType\","]
+#[doc = "    \"signature\","]
+#[doc = "    \"signedPayloadHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"algorithm\": {"]
+#[doc = "      \"const\": \"ES256\""]
+#[doc = "    },"]
+#[doc = "    \"audience\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 256,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"issuer\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 2048,"]
+#[doc = "      \"minLength\": 8"]
+#[doc = "    },"]
+#[doc = "    \"keyId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"proofType\": {"]
+#[doc = "      \"const\": \"support_plane_signature\""]
+#[doc = "    },"]
+#[doc = "    \"signature\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 2048,"]
+#[doc = "      \"minLength\": 16,"]
+#[doc = "      \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "    },"]
+#[doc = "    \"signedPayloadHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessReceiptV2SupportPlaneProof {
+    pub algorithm: ::serde_json::Value,
+    pub audience: ModelAccessReceiptV2SupportPlaneProofAudience,
+    pub issuer: ModelAccessReceiptV2SupportPlaneProofIssuer,
+    #[serde(rename = "keyId")]
+    pub key_id: ModelAccessReceiptV2SupportPlaneProofKeyId,
+    #[serde(rename = "proofType")]
+    pub proof_type: ::serde_json::Value,
+    pub signature: ModelAccessReceiptV2SupportPlaneProofSignature,
+    #[serde(rename = "signedPayloadHash")]
+    pub signed_payload_hash: CommonSha256,
+}
+impl ModelAccessReceiptV2SupportPlaneProof {
+    pub fn builder() -> builder::ModelAccessReceiptV2SupportPlaneProof {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessReceiptV2SupportPlaneProofAudience`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2SupportPlaneProofAudience(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2SupportPlaneProofAudience {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2SupportPlaneProofAudience> for ::std::string::String {
+    fn from(value: ModelAccessReceiptV2SupportPlaneProofAudience) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2SupportPlaneProofAudience {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2SupportPlaneProofAudience {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessReceiptV2SupportPlaneProofAudience
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessReceiptV2SupportPlaneProofAudience
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2SupportPlaneProofAudience {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessReceiptV2SupportPlaneProofIssuer`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 2048,"]
+#[doc = "  \"minLength\": 8"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2SupportPlaneProofIssuer(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2SupportPlaneProofIssuer {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2SupportPlaneProofIssuer> for ::std::string::String {
+    fn from(value: ModelAccessReceiptV2SupportPlaneProofIssuer) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2SupportPlaneProofIssuer {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 2048usize {
+            return Err("longer than 2048 characters".into());
+        }
+        if value.chars().count() < 8usize {
+            return Err("shorter than 8 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2SupportPlaneProofIssuer {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessReceiptV2SupportPlaneProofIssuer
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessReceiptV2SupportPlaneProofIssuer
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2SupportPlaneProofIssuer {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessReceiptV2SupportPlaneProofKeyId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2SupportPlaneProofKeyId(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2SupportPlaneProofKeyId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2SupportPlaneProofKeyId> for ::std::string::String {
+    fn from(value: ModelAccessReceiptV2SupportPlaneProofKeyId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2SupportPlaneProofKeyId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2SupportPlaneProofKeyId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessReceiptV2SupportPlaneProofKeyId
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessReceiptV2SupportPlaneProofKeyId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2SupportPlaneProofKeyId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessReceiptV2SupportPlaneProofSignature`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 2048,"]
+#[doc = "  \"minLength\": 16,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2SupportPlaneProofSignature(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2SupportPlaneProofSignature {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2SupportPlaneProofSignature>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessReceiptV2SupportPlaneProofSignature) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2SupportPlaneProofSignature {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 2048usize {
+            return Err("longer than 2048 characters".into());
+        }
+        if value.chars().count() < 16usize {
+            return Err("shorter than 16 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Za-z0-9_-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Za-z0-9_-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2SupportPlaneProofSignature {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessReceiptV2SupportPlaneProofSignature
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessReceiptV2SupportPlaneProofSignature
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2SupportPlaneProofSignature {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessReceiptV2TokenCount`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"integer\","]
+#[doc = "  \"maximum\": 9007199254740991.0,"]
+#[doc = "  \"minimum\": 0.0"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2TokenCount(pub i64);
+impl ::std::ops::Deref for ModelAccessReceiptV2TokenCount {
+    type Target = i64;
+    fn deref(&self) -> &i64 {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2TokenCount> for i64 {
+    fn from(value: ModelAccessReceiptV2TokenCount) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<i64> for ModelAccessReceiptV2TokenCount {
+    fn from(value: i64) -> Self {
+        Self(value)
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2TokenCount {
+    type Err = <i64 as ::std::str::FromStr>::Err;
+    fn from_str(value: &str) -> ::std::result::Result<Self, Self::Err> {
+        Ok(Self(value.parse()?))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2TokenCount {
+    type Error = <i64 as ::std::str::FromStr>::Err;
+    fn try_from(value: &str) -> ::std::result::Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<String> for ModelAccessReceiptV2TokenCount {
+    type Error = <i64 as ::std::str::FromStr>::Err;
+    fn try_from(value: String) -> ::std::result::Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+impl ::std::fmt::Display for ModelAccessReceiptV2TokenCount {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[doc = "No usage was obtainable. Every category is null by construction, so an unavailable usage record cannot be read as a free call."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"No usage was obtainable. Every category is null by construction, so an unavailable usage record cannot be read as a free call.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"cacheReadTokens\","]
+#[doc = "    \"cacheWriteTokens\","]
+#[doc = "    \"costMicrounits\","]
+#[doc = "    \"currency\","]
+#[doc = "    \"inputTokens\","]
+#[doc = "    \"outputTokens\","]
+#[doc = "    \"priceProfileVersion\","]
+#[doc = "    \"reasoningTokens\","]
+#[doc = "    \"usageProvenance\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"cacheReadTokens\": {"]
+#[doc = "      \"type\": \"null\""]
+#[doc = "    },"]
+#[doc = "    \"cacheWriteTokens\": {"]
+#[doc = "      \"type\": \"null\""]
+#[doc = "    },"]
+#[doc = "    \"costMicrounits\": {"]
+#[doc = "      \"type\": \"null\""]
+#[doc = "    },"]
+#[doc = "    \"currency\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"pattern\": \"^[A-Z]{3}$\""]
+#[doc = "    },"]
+#[doc = "    \"inputTokens\": {"]
+#[doc = "      \"type\": \"null\""]
+#[doc = "    },"]
+#[doc = "    \"outputTokens\": {"]
+#[doc = "      \"type\": \"null\""]
+#[doc = "    },"]
+#[doc = "    \"priceProfileVersion\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 3,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9]*(-[a-z0-9]+)*$\""]
+#[doc = "    },"]
+#[doc = "    \"reasoningTokens\": {"]
+#[doc = "      \"type\": \"null\""]
+#[doc = "    },"]
+#[doc = "    \"usageProvenance\": {"]
+#[doc = "      \"const\": \"unavailable\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessReceiptV2UnavailableUsage {
+    #[serde(rename = "cacheReadTokens")]
+    pub cache_read_tokens: (),
+    #[serde(rename = "cacheWriteTokens")]
+    pub cache_write_tokens: (),
+    #[serde(rename = "costMicrounits")]
+    pub cost_microunits: (),
+    pub currency: ModelAccessReceiptV2UnavailableUsageCurrency,
+    #[serde(rename = "inputTokens")]
+    pub input_tokens: (),
+    #[serde(rename = "outputTokens")]
+    pub output_tokens: (),
+    #[serde(rename = "priceProfileVersion")]
+    pub price_profile_version: ModelAccessReceiptV2UnavailableUsagePriceProfileVersion,
+    #[serde(rename = "reasoningTokens")]
+    pub reasoning_tokens: (),
+    #[serde(rename = "usageProvenance")]
+    pub usage_provenance: ::serde_json::Value,
+}
+impl ModelAccessReceiptV2UnavailableUsage {
+    pub fn builder() -> builder::ModelAccessReceiptV2UnavailableUsage {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessReceiptV2UnavailableUsageCurrency`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"pattern\": \"^[A-Z]{3}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2UnavailableUsageCurrency(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2UnavailableUsageCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2UnavailableUsageCurrency> for ::std::string::String {
+    fn from(value: ModelAccessReceiptV2UnavailableUsageCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2UnavailableUsageCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Z]{3}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Z]{3}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2UnavailableUsageCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessReceiptV2UnavailableUsageCurrency
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessReceiptV2UnavailableUsageCurrency
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2UnavailableUsageCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessReceiptV2UnavailableUsagePriceProfileVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 3,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9]*(-[a-z0-9]+)*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessReceiptV2UnavailableUsagePriceProfileVersion(::std::string::String);
+impl ::std::ops::Deref for ModelAccessReceiptV2UnavailableUsagePriceProfileVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessReceiptV2UnavailableUsagePriceProfileVersion>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessReceiptV2UnavailableUsagePriceProfileVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessReceiptV2UnavailableUsagePriceProfileVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9]*(-[a-z0-9]+)*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9]*(-[a-z0-9]+)*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessReceiptV2UnavailableUsagePriceProfileVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessReceiptV2UnavailableUsagePriceProfileVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessReceiptV2UnavailableUsagePriceProfileVersion
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessReceiptV2UnavailableUsagePriceProfileVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`ModelAccessRequest`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -37195,6 +49247,1907 @@ impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestPurpose {
             })
     }
 }
+#[doc = "The second version of the desktop model access request. Version two names an organization profile and a catalog version instead of a single fixed provider profile, and it separates the document version from the schema major: the wire discriminator is desktop-model-access-request.v2 while the schema family stays at major one. Foundry authority is unrepresentable here. There is no property that can carry a project endpoint, a deployment name, an API version, a provider SDK option, a credential, or a bearer token, so the desktop cannot select or influence the deployment the support plane resolves."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.model-access-request-v2.v1\","]
+#[doc = "  \"description\": \"The second version of the desktop model access request. Version two names an organization profile and a catalog version instead of a single fixed provider profile, and it separates the document version from the schema major: the wire discriminator is desktop-model-access-request.v2 while the schema family stays at major one. Foundry authority is unrepresentable here. There is no property that can carry a project endpoint, a deployment name, an API version, a provider SDK option, a credential, or a bearer token, so the desktop cannot select or influence the deployment the support plane resolves.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"budgetClass\","]
+#[doc = "    \"canonicalOutputSchemaHash\","]
+#[doc = "    \"canonicalOutputSchemaId\","]
+#[doc = "    \"catalogVersion\","]
+#[doc = "    \"consent\","]
+#[doc = "    \"contextSnapshotId\","]
+#[doc = "    \"deliveryModel\","]
+#[doc = "    \"items\","]
+#[doc = "    \"localEgressManifestHash\","]
+#[doc = "    \"modelCapabilityHash\","]
+#[doc = "    \"modelProfileHash\","]
+#[doc = "    \"modelProfileId\","]
+#[doc = "    \"modelRole\","]
+#[doc = "    \"purpose\","]
+#[doc = "    \"registrationId\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"requestMode\","]
+#[doc = "    \"requestedVariantId\","]
+#[doc = "    \"retentionMode\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"tools\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"budgetClass\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"canonicalOutputSchemaHash\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"canonicalOutputSchemaId\": {"]
+#[doc = "      \"description\": \"The canonical output schema a structured response must satisfy. Null in streaming chat mode, where no structured output is produced.\","]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelAccessRequestV2CanonicalSchemaId\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"catalogVersion\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogCatalogVersion\""]
+#[doc = "    },"]
+#[doc = "    \"consent\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessRequestV2ModelContextConsentV2\""]
+#[doc = "    },"]
+#[doc = "    \"contextSnapshotId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"deliveryModel\": {"]
+#[doc = "      \"const\": \"windows_local\""]
+#[doc = "    },"]
+#[doc = "    \"items\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelAccessRequestV2ModelContextItem\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"localEgressManifestHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelCapabilityHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelProfileHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelProfileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"modelRole\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"purpose\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"registrationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"requestMode\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelRequestMode\""]
+#[doc = "    },"]
+#[doc = "    \"requestedVariantId\": {"]
+#[doc = "      \"description\": \"The operating point the user selected within the profile. Null asks the support plane to apply the profile default variant.\","]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelProfileModelVariantId\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"retentionMode\": {"]
+#[doc = "      \"const\": \"transient_no_store\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"desktop-model-access-request.v2\""]
+#[doc = "    },"]
+#[doc = "    \"tools\": {"]
+#[doc = "      \"description\": \"Tools the model may call. A tool declares a canonical parameter schema identifier and hash rather than an inline provider parameter document, so a request cannot smuggle a provider-shaped payload through a tool definition.\","]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/ModelAccessRequestV2ModelToolDefinition\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 32,"]
+#[doc = "      \"minItems\": 0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessRequestV2 {
+    #[serde(rename = "budgetClass")]
+    pub budget_class: ModelAccessRequestV2BudgetClass,
+    #[serde(rename = "canonicalOutputSchemaHash")]
+    pub canonical_output_schema_hash: ::std::option::Option<CommonSha256>,
+    #[doc = "The canonical output schema a structured response must satisfy. Null in streaming chat mode, where no structured output is produced."]
+    #[serde(rename = "canonicalOutputSchemaId")]
+    pub canonical_output_schema_id: ::std::option::Option<ModelAccessRequestV2CanonicalSchemaId>,
+    #[serde(rename = "catalogVersion")]
+    pub catalog_version: ModelCatalogCatalogVersion,
+    pub consent: ModelAccessRequestV2ModelContextConsentV2,
+    #[serde(rename = "contextSnapshotId")]
+    pub context_snapshot_id: CommonContractId,
+    #[serde(rename = "deliveryModel")]
+    pub delivery_model: ::serde_json::Value,
+    pub items: ::std::vec::Vec<ModelAccessRequestV2ModelContextItem>,
+    #[serde(rename = "localEgressManifestHash")]
+    pub local_egress_manifest_hash: CommonSha256,
+    #[serde(rename = "modelCapabilityHash")]
+    pub model_capability_hash: CommonSha256,
+    #[serde(rename = "modelProfileHash")]
+    pub model_profile_hash: CommonSha256,
+    #[serde(rename = "modelProfileId")]
+    pub model_profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "modelRole")]
+    pub model_role: ModelAccessRequestV2ModelRole,
+    pub purpose: ModelAccessRequestV2Purpose,
+    #[serde(rename = "registrationId")]
+    pub registration_id: CommonContractId,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "requestMode")]
+    pub request_mode: ModelProfileModelRequestMode,
+    #[doc = "The operating point the user selected within the profile. Null asks the support plane to apply the profile default variant."]
+    #[serde(rename = "requestedVariantId")]
+    pub requested_variant_id: ::std::option::Option<ModelProfileModelVariantId>,
+    #[serde(rename = "retentionMode")]
+    pub retention_mode: ::serde_json::Value,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[doc = "Tools the model may call. A tool declares a canonical parameter schema identifier and hash rather than an inline provider parameter document, so a request cannot smuggle a provider-shaped payload through a tool definition."]
+    pub tools: ::std::vec::Vec<ModelAccessRequestV2ModelToolDefinition>,
+}
+impl ModelAccessRequestV2 {
+    pub fn builder() -> builder::ModelAccessRequestV2 {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessRequestV2BudgetClass`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2BudgetClass(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2BudgetClass {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2BudgetClass> for ::std::string::String {
+    fn from(value: ModelAccessRequestV2BudgetClass) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2BudgetClass {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2BudgetClass {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestV2BudgetClass {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestV2BudgetClass {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2BudgetClass {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2CanonicalSchemaId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 5,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9.-]*\\\\.v[1-9][0-9]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2CanonicalSchemaId(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2CanonicalSchemaId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2CanonicalSchemaId> for ::std::string::String {
+    fn from(value: ModelAccessRequestV2CanonicalSchemaId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2CanonicalSchemaId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 5usize {
+            return Err("shorter than 5 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2CanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestV2CanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestV2CanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2CanonicalSchemaId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2ConsentInstallationProof`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"algorithm\","]
+#[doc = "    \"keyId\","]
+#[doc = "    \"proofType\","]
+#[doc = "    \"signature\","]
+#[doc = "    \"signedPayloadHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"algorithm\": {"]
+#[doc = "      \"const\": \"ES256\""]
+#[doc = "    },"]
+#[doc = "    \"keyId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"proofType\": {"]
+#[doc = "      \"const\": \"installation_signature\""]
+#[doc = "    },"]
+#[doc = "    \"signature\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 2048,"]
+#[doc = "      \"minLength\": 16,"]
+#[doc = "      \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "    },"]
+#[doc = "    \"signedPayloadHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessRequestV2ConsentInstallationProof {
+    pub algorithm: ::serde_json::Value,
+    #[serde(rename = "keyId")]
+    pub key_id: ModelAccessRequestV2ConsentInstallationProofKeyId,
+    #[serde(rename = "proofType")]
+    pub proof_type: ::serde_json::Value,
+    pub signature: ModelAccessRequestV2ConsentInstallationProofSignature,
+    #[serde(rename = "signedPayloadHash")]
+    pub signed_payload_hash: CommonSha256,
+}
+impl ModelAccessRequestV2ConsentInstallationProof {
+    pub fn builder() -> builder::ModelAccessRequestV2ConsentInstallationProof {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessRequestV2ConsentInstallationProofKeyId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ConsentInstallationProofKeyId(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ConsentInstallationProofKeyId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ConsentInstallationProofKeyId>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessRequestV2ConsentInstallationProofKeyId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ConsentInstallationProofKeyId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ConsentInstallationProofKeyId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ConsentInstallationProofKeyId
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ConsentInstallationProofKeyId
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ConsentInstallationProofKeyId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2ConsentInstallationProofSignature`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 2048,"]
+#[doc = "  \"minLength\": 16,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ConsentInstallationProofSignature(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ConsentInstallationProofSignature {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ConsentInstallationProofSignature>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessRequestV2ConsentInstallationProofSignature) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ConsentInstallationProofSignature {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 2048usize {
+            return Err("longer than 2048 characters".into());
+        }
+        if value.chars().count() < 16usize {
+            return Err("shorter than 16 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Za-z0-9_-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Za-z0-9_-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ConsentInstallationProofSignature {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ConsentInstallationProofSignature
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ConsentInstallationProofSignature
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ConsentInstallationProofSignature {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "The signed context decision for a version two request. It drops the deployment hash the version one decision carried, because the desktop no longer knows or chooses a deployment, and it adds the profile, catalog epoch, requested variant, request mode, and context snapshot. Changing the profile, the catalog epoch, the variant, the canonical output schema, the context snapshot, or the request mode therefore produces a decision that no longer matches the request it is presented with."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"The signed context decision for a version two request. It drops the deployment hash the version one decision carried, because the desktop no longer knows or chooses a deployment, and it adds the profile, catalog epoch, requested variant, request mode, and context snapshot. Changing the profile, the catalog epoch, the variant, the canonical output schema, the context snapshot, or the request mode therefore produces a decision that no longer matches the request it is presented with.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"budgetClass\","]
+#[doc = "    \"canonicalOutputSchemaHash\","]
+#[doc = "    \"canonicalOutputSchemaId\","]
+#[doc = "    \"catalogVersion\","]
+#[doc = "    \"consentDisclosureHash\","]
+#[doc = "    \"consentEnvelopeHash\","]
+#[doc = "    \"consumptionHash\","]
+#[doc = "    \"contextSnapshotId\","]
+#[doc = "    \"decisionId\","]
+#[doc = "    \"deliveryModel\","]
+#[doc = "    \"entitlementLeaseHash\","]
+#[doc = "    \"entitlementLeaseId\","]
+#[doc = "    \"expiresAt\","]
+#[doc = "    \"installationPublicKeyHash\","]
+#[doc = "    \"invocationBindingHash\","]
+#[doc = "    \"invocationId\","]
+#[doc = "    \"issuedAt\","]
+#[doc = "    \"manifestHash\","]
+#[doc = "    \"modelCapabilityHash\","]
+#[doc = "    \"modelProfileHash\","]
+#[doc = "    \"modelProfileId\","]
+#[doc = "    \"modelRole\","]
+#[doc = "    \"nonceHash\","]
+#[doc = "    \"notBefore\","]
+#[doc = "    \"proof\","]
+#[doc = "    \"providerProfileHash\","]
+#[doc = "    \"purpose\","]
+#[doc = "    \"region\","]
+#[doc = "    \"registrationId\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"requestMode\","]
+#[doc = "    \"requestedVariantId\","]
+#[doc = "    \"retentionMode\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"subjectHash\","]
+#[doc = "    \"tenantHash\","]
+#[doc = "    \"tenantPolicyHash\","]
+#[doc = "    \"tenantPolicyId\","]
+#[doc = "    \"tenantPolicyVersion\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"budgetClass\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"canonicalOutputSchemaHash\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"canonicalOutputSchemaId\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelAccessRequestV2CanonicalSchemaId\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"catalogVersion\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelCatalogCatalogVersion\""]
+#[doc = "    },"]
+#[doc = "    \"consentDisclosureHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"consentEnvelopeHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"consumptionHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"contextSnapshotId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"decisionId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"deliveryModel\": {"]
+#[doc = "      \"const\": \"windows_local\""]
+#[doc = "    },"]
+#[doc = "    \"entitlementLeaseHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"entitlementLeaseId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"expiresAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"installationPublicKeyHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"invocationBindingHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"invocationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"issuedAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"manifestHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelCapabilityHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelProfileHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelProfileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"modelRole\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"nonceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"notBefore\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"proof\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessRequestV2ConsentInstallationProof\""]
+#[doc = "    },"]
+#[doc = "    \"providerProfileHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"purpose\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"region\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessRequestV2Region\""]
+#[doc = "    },"]
+#[doc = "    \"registrationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"requestMode\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelRequestMode\""]
+#[doc = "    },"]
+#[doc = "    \"requestedVariantId\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelProfileModelVariantId\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"retentionMode\": {"]
+#[doc = "      \"const\": \"transient_no_store\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.model-context-consent.v2\""]
+#[doc = "    },"]
+#[doc = "    \"subjectHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"tenantHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"tenantPolicyHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"tenantPolicyId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"tenantPolicyVersion\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 9007199254740991.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessRequestV2ModelContextConsentV2 {
+    #[serde(rename = "budgetClass")]
+    pub budget_class: ModelAccessRequestV2ModelContextConsentV2BudgetClass,
+    #[serde(rename = "canonicalOutputSchemaHash")]
+    pub canonical_output_schema_hash: ::std::option::Option<CommonSha256>,
+    #[serde(rename = "canonicalOutputSchemaId")]
+    pub canonical_output_schema_id: ::std::option::Option<ModelAccessRequestV2CanonicalSchemaId>,
+    #[serde(rename = "catalogVersion")]
+    pub catalog_version: ModelCatalogCatalogVersion,
+    #[serde(rename = "consentDisclosureHash")]
+    pub consent_disclosure_hash: CommonSha256,
+    #[serde(rename = "consentEnvelopeHash")]
+    pub consent_envelope_hash: CommonSha256,
+    #[serde(rename = "consumptionHash")]
+    pub consumption_hash: CommonSha256,
+    #[serde(rename = "contextSnapshotId")]
+    pub context_snapshot_id: CommonContractId,
+    #[serde(rename = "decisionId")]
+    pub decision_id: CommonContractId,
+    #[serde(rename = "deliveryModel")]
+    pub delivery_model: ::serde_json::Value,
+    #[serde(rename = "entitlementLeaseHash")]
+    pub entitlement_lease_hash: CommonSha256,
+    #[serde(rename = "entitlementLeaseId")]
+    pub entitlement_lease_id: CommonContractId,
+    #[serde(rename = "expiresAt")]
+    pub expires_at: CommonUtcInstant,
+    #[serde(rename = "installationPublicKeyHash")]
+    pub installation_public_key_hash: CommonSha256,
+    #[serde(rename = "invocationBindingHash")]
+    pub invocation_binding_hash: CommonSha256,
+    #[serde(rename = "invocationId")]
+    pub invocation_id: CommonContractId,
+    #[serde(rename = "issuedAt")]
+    pub issued_at: CommonUtcInstant,
+    #[serde(rename = "manifestHash")]
+    pub manifest_hash: CommonSha256,
+    #[serde(rename = "modelCapabilityHash")]
+    pub model_capability_hash: CommonSha256,
+    #[serde(rename = "modelProfileHash")]
+    pub model_profile_hash: CommonSha256,
+    #[serde(rename = "modelProfileId")]
+    pub model_profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "modelRole")]
+    pub model_role: ModelAccessRequestV2ModelContextConsentV2ModelRole,
+    #[serde(rename = "nonceHash")]
+    pub nonce_hash: CommonSha256,
+    #[serde(rename = "notBefore")]
+    pub not_before: CommonUtcInstant,
+    pub proof: ModelAccessRequestV2ConsentInstallationProof,
+    #[serde(rename = "providerProfileHash")]
+    pub provider_profile_hash: CommonSha256,
+    pub purpose: ModelAccessRequestV2ModelContextConsentV2Purpose,
+    pub region: ModelAccessRequestV2Region,
+    #[serde(rename = "registrationId")]
+    pub registration_id: CommonContractId,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "requestMode")]
+    pub request_mode: ModelProfileModelRequestMode,
+    #[serde(rename = "requestedVariantId")]
+    pub requested_variant_id: ::std::option::Option<ModelProfileModelVariantId>,
+    #[serde(rename = "retentionMode")]
+    pub retention_mode: ::serde_json::Value,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "subjectHash")]
+    pub subject_hash: CommonSha256,
+    #[serde(rename = "tenantHash")]
+    pub tenant_hash: CommonSha256,
+    #[serde(rename = "tenantPolicyHash")]
+    pub tenant_policy_hash: CommonSha256,
+    #[serde(rename = "tenantPolicyId")]
+    pub tenant_policy_id: CommonContractId,
+    #[serde(rename = "tenantPolicyVersion")]
+    pub tenant_policy_version: ::std::num::NonZeroU64,
+}
+impl ModelAccessRequestV2ModelContextConsentV2 {
+    pub fn builder() -> builder::ModelAccessRequestV2ModelContextConsentV2 {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelContextConsentV2BudgetClass`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ModelContextConsentV2BudgetClass(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ModelContextConsentV2BudgetClass {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ModelContextConsentV2BudgetClass>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessRequestV2ModelContextConsentV2BudgetClass) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelContextConsentV2BudgetClass {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelContextConsentV2BudgetClass {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ModelContextConsentV2BudgetClass
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ModelContextConsentV2BudgetClass
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ModelContextConsentV2BudgetClass {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelContextConsentV2ModelRole`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ModelContextConsentV2ModelRole(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ModelContextConsentV2ModelRole {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ModelContextConsentV2ModelRole>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessRequestV2ModelContextConsentV2ModelRole) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelContextConsentV2ModelRole {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelContextConsentV2ModelRole {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ModelContextConsentV2ModelRole
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ModelContextConsentV2ModelRole
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ModelContextConsentV2ModelRole {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelContextConsentV2Purpose`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ModelContextConsentV2Purpose(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ModelContextConsentV2Purpose {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ModelContextConsentV2Purpose>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessRequestV2ModelContextConsentV2Purpose) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelContextConsentV2Purpose {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelContextConsentV2Purpose {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ModelContextConsentV2Purpose
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ModelContextConsentV2Purpose
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ModelContextConsentV2Purpose {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "One approved context item. Identical in shape to the version one context item, so the version one adapter can lift an existing item without reshaping it."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"One approved context item. Identical in shape to the version one context item, so the version one adapter can lift an existing item without reshaping it.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"byteCount\","]
+#[doc = "    \"classification\","]
+#[doc = "    \"clientItemId\","]
+#[doc = "    \"content\","]
+#[doc = "    \"contentHash\","]
+#[doc = "    \"language\","]
+#[doc = "    \"relativeLabel\","]
+#[doc = "    \"semanticRole\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"byteCount\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4194304.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"classification\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"public\","]
+#[doc = "        \"internal\","]
+#[doc = "        \"confidential\","]
+#[doc = "        \"restricted\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"clientItemId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"content\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 4194304"]
+#[doc = "    },"]
+#[doc = "    \"contentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"language\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"relativeLabel\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonRelativeWorkspacePath\""]
+#[doc = "    },"]
+#[doc = "    \"semanticRole\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessRequestV2ModelContextItem {
+    #[serde(rename = "byteCount")]
+    pub byte_count: i64,
+    pub classification: ModelAccessRequestV2ModelContextItemClassification,
+    #[serde(rename = "clientItemId")]
+    pub client_item_id: CommonContractId,
+    pub content: ModelAccessRequestV2ModelContextItemContent,
+    #[serde(rename = "contentHash")]
+    pub content_hash: CommonSha256,
+    pub language: ModelAccessRequestV2ModelContextItemLanguage,
+    #[serde(rename = "relativeLabel")]
+    pub relative_label: CommonRelativeWorkspacePath,
+    #[serde(rename = "semanticRole")]
+    pub semantic_role: ModelAccessRequestV2ModelContextItemSemanticRole,
+}
+impl ModelAccessRequestV2ModelContextItem {
+    pub fn builder() -> builder::ModelAccessRequestV2ModelContextItem {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelContextItemClassification`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"public\","]
+#[doc = "    \"internal\","]
+#[doc = "    \"confidential\","]
+#[doc = "    \"restricted\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelAccessRequestV2ModelContextItemClassification {
+    #[serde(rename = "public")]
+    Public,
+    #[serde(rename = "internal")]
+    Internal,
+    #[serde(rename = "confidential")]
+    Confidential,
+    #[serde(rename = "restricted")]
+    Restricted,
+}
+impl ::std::fmt::Display for ModelAccessRequestV2ModelContextItemClassification {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Public => f.write_str("public"),
+            Self::Internal => f.write_str("internal"),
+            Self::Confidential => f.write_str("confidential"),
+            Self::Restricted => f.write_str("restricted"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelContextItemClassification {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "public" => Ok(Self::Public),
+            "internal" => Ok(Self::Internal),
+            "confidential" => Ok(Self::Confidential),
+            "restricted" => Ok(Self::Restricted),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelContextItemClassification {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ModelContextItemClassification
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ModelContextItemClassification
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelContextItemContent`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 4194304"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ModelContextItemContent(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ModelContextItemContent {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ModelContextItemContent> for ::std::string::String {
+    fn from(value: ModelAccessRequestV2ModelContextItemContent) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelContextItemContent {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 4194304usize {
+            return Err("longer than 4194304 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelContextItemContent {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ModelContextItemContent
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ModelContextItemContent
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ModelContextItemContent {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelContextItemLanguage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ModelContextItemLanguage(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ModelContextItemLanguage {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ModelContextItemLanguage> for ::std::string::String {
+    fn from(value: ModelAccessRequestV2ModelContextItemLanguage) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelContextItemLanguage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelContextItemLanguage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ModelContextItemLanguage
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ModelContextItemLanguage
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ModelContextItemLanguage {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelContextItemSemanticRole`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ModelContextItemSemanticRole(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ModelContextItemSemanticRole {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ModelContextItemSemanticRole>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessRequestV2ModelContextItemSemanticRole) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelContextItemSemanticRole {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelContextItemSemanticRole {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ModelContextItemSemanticRole
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ModelContextItemSemanticRole
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ModelContextItemSemanticRole {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelRole`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ModelRole(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ModelRole {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ModelRole> for ::std::string::String {
+    fn from(value: ModelAccessRequestV2ModelRole) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelRole {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelRole {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestV2ModelRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestV2ModelRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ModelRole {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelToolDefinition`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"description\","]
+#[doc = "    \"parametersSchemaHash\","]
+#[doc = "    \"parametersSchemaId\","]
+#[doc = "    \"toolName\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"description\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 256,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"parametersSchemaHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"parametersSchemaId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessRequestV2CanonicalSchemaId\""]
+#[doc = "    },"]
+#[doc = "    \"toolName\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessRequestV2ModelToolName\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessRequestV2ModelToolDefinition {
+    pub description: ModelAccessRequestV2ModelToolDefinitionDescription,
+    #[serde(rename = "parametersSchemaHash")]
+    pub parameters_schema_hash: CommonSha256,
+    #[serde(rename = "parametersSchemaId")]
+    pub parameters_schema_id: ModelAccessRequestV2CanonicalSchemaId,
+    #[serde(rename = "toolName")]
+    pub tool_name: ModelAccessRequestV2ModelToolName,
+}
+impl ModelAccessRequestV2ModelToolDefinition {
+    pub fn builder() -> builder::ModelAccessRequestV2ModelToolDefinition {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelToolDefinitionDescription`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ModelToolDefinitionDescription(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ModelToolDefinitionDescription {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ModelToolDefinitionDescription>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessRequestV2ModelToolDefinitionDescription) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelToolDefinitionDescription {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelToolDefinitionDescription {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessRequestV2ModelToolDefinitionDescription
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessRequestV2ModelToolDefinitionDescription
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ModelToolDefinitionDescription {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2ModelToolName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]{0,63}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2ModelToolName(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2ModelToolName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2ModelToolName> for ::std::string::String {
+    fn from(value: ModelAccessRequestV2ModelToolName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2ModelToolName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]{0,63}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]{0,63}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2ModelToolName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestV2ModelToolName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestV2ModelToolName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2ModelToolName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2Purpose`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2Purpose(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2Purpose {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2Purpose> for ::std::string::String {
+    fn from(value: ModelAccessRequestV2Purpose) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2Purpose {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2Purpose {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestV2Purpose {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestV2Purpose {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2Purpose {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelAccessRequestV2Region`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z0-9-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessRequestV2Region(::std::string::String);
+impl ::std::ops::Deref for ModelAccessRequestV2Region {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessRequestV2Region> for ::std::string::String {
+    fn from(value: ModelAccessRequestV2Region) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessRequestV2Region {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z0-9-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z0-9-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessRequestV2Region {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessRequestV2Region {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessRequestV2Region {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessRequestV2Region {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`ModelAccessResult`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -37401,6 +51354,414 @@ impl ::std::convert::TryFrom<::std::string::String> for ModelAccessResultPayload
     }
 }
 impl<'de> ::serde::Deserialize<'de> for ModelAccessResultPayloadJson {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "The second version of the terminal model access result. It is split into two closed variants by request mode, so a structured response that satisfied no canonical output schema and a streaming chat answer that claims one are both unrepresentable. The receipt is always the version two receipt, which carries the resolved profile, variant, catalog epoch, and deployment behind the answer."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.model-access-result-v2.v1\","]
+#[doc = "  \"description\": \"The second version of the terminal model access result. It is split into two closed variants by request mode, so a structured response that satisfied no canonical output schema and a streaming chat answer that claims one are both unrepresentable. The receipt is always the version two receipt, which carries the resolved profile, variant, catalog epoch, and deployment behind the answer.\","]
+#[doc = "  \"oneOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessResultV2StructuredResponseResult\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessResultV2StreamingChatResult\""]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum ModelAccessResultV2 {
+    StructuredResponseResult(ModelAccessResultV2StructuredResponseResult),
+    StreamingChatResult(ModelAccessResultV2StreamingChatResult),
+}
+impl ::std::convert::From<ModelAccessResultV2StructuredResponseResult> for ModelAccessResultV2 {
+    fn from(value: ModelAccessResultV2StructuredResponseResult) -> Self {
+        Self::StructuredResponseResult(value)
+    }
+}
+impl ::std::convert::From<ModelAccessResultV2StreamingChatResult> for ModelAccessResultV2 {
+    fn from(value: ModelAccessResultV2StreamingChatResult) -> Self {
+        Self::StreamingChatResult(value)
+    }
+}
+#[doc = "`ModelAccessResultV2CanonicalSchemaId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 5,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9.-]*\\\\.v[1-9][0-9]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessResultV2CanonicalSchemaId(::std::string::String);
+impl ::std::ops::Deref for ModelAccessResultV2CanonicalSchemaId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessResultV2CanonicalSchemaId> for ::std::string::String {
+    fn from(value: ModelAccessResultV2CanonicalSchemaId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessResultV2CanonicalSchemaId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 5usize {
+            return Err("shorter than 5 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessResultV2CanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelAccessResultV2CanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelAccessResultV2CanonicalSchemaId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessResultV2CanonicalSchemaId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "The terminal record of a streaming chat answer. It carries the assembled visible text and its hash so the desktop can verify that what it rendered from the event stream is what the support plane signed. There is no canonical output schema, and no provider body, reasoning text, or markup is representable."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"The terminal record of a streaming chat answer. It carries the assembled visible text and its hash so the desktop can verify that what it rendered from the event stream is what the support plane signed. There is no canonical output schema, and no provider body, reasoning text, or markup is representable.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"outputText\","]
+#[doc = "    \"payloadHash\","]
+#[doc = "    \"receipt\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"requestMode\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"schemaVersion\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"outputText\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1048576"]
+#[doc = "    },"]
+#[doc = "    \"payloadHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"receipt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"requestMode\": {"]
+#[doc = "      \"const\": \"streaming_chat\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"desktop-model-access-result.v2\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessResultV2StreamingChatResult {
+    #[serde(rename = "outputText")]
+    pub output_text: ModelAccessResultV2StreamingChatResultOutputText,
+    #[serde(rename = "payloadHash")]
+    pub payload_hash: CommonSha256,
+    pub receipt: ModelAccessReceiptV2,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "requestMode")]
+    pub request_mode: ::serde_json::Value,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+}
+impl ModelAccessResultV2StreamingChatResult {
+    pub fn builder() -> builder::ModelAccessResultV2StreamingChatResult {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessResultV2StreamingChatResultOutputText`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1048576"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessResultV2StreamingChatResultOutputText(::std::string::String);
+impl ::std::ops::Deref for ModelAccessResultV2StreamingChatResultOutputText {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessResultV2StreamingChatResultOutputText>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessResultV2StreamingChatResultOutputText) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessResultV2StreamingChatResultOutputText {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1048576usize {
+            return Err("longer than 1048576 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessResultV2StreamingChatResultOutputText {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessResultV2StreamingChatResultOutputText
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessResultV2StreamingChatResultOutputText
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessResultV2StreamingChatResultOutputText {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "A structured answer produced on the model access route. The canonical payload and the schema it satisfied are both mandatory."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"A structured answer produced on the model access route. The canonical payload and the schema it satisfied are both mandatory.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"outputSchemaId\","]
+#[doc = "    \"payloadHash\","]
+#[doc = "    \"payloadJson\","]
+#[doc = "    \"receipt\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"requestMode\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"schemaVersion\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"outputSchemaId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessResultV2CanonicalSchemaId\""]
+#[doc = "    },"]
+#[doc = "    \"payloadHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"payloadJson\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1048576,"]
+#[doc = "      \"minLength\": 2"]
+#[doc = "    },"]
+#[doc = "    \"receipt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"requestMode\": {"]
+#[doc = "      \"const\": \"structured_response\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"desktop-model-access-result.v2\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelAccessResultV2StructuredResponseResult {
+    #[serde(rename = "outputSchemaId")]
+    pub output_schema_id: ModelAccessResultV2CanonicalSchemaId,
+    #[serde(rename = "payloadHash")]
+    pub payload_hash: CommonSha256,
+    #[serde(rename = "payloadJson")]
+    pub payload_json: ModelAccessResultV2StructuredResponseResultPayloadJson,
+    pub receipt: ModelAccessReceiptV2,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "requestMode")]
+    pub request_mode: ::serde_json::Value,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+}
+impl ModelAccessResultV2StructuredResponseResult {
+    pub fn builder() -> builder::ModelAccessResultV2StructuredResponseResult {
+        Default::default()
+    }
+}
+#[doc = "`ModelAccessResultV2StructuredResponseResultPayloadJson`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1048576,"]
+#[doc = "  \"minLength\": 2"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelAccessResultV2StructuredResponseResultPayloadJson(::std::string::String);
+impl ::std::ops::Deref for ModelAccessResultV2StructuredResponseResultPayloadJson {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelAccessResultV2StructuredResponseResultPayloadJson>
+    for ::std::string::String
+{
+    fn from(value: ModelAccessResultV2StructuredResponseResultPayloadJson) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelAccessResultV2StructuredResponseResultPayloadJson {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1048576usize {
+            return Err("longer than 1048576 characters".into());
+        }
+        if value.chars().count() < 2usize {
+            return Err("shorter than 2 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelAccessResultV2StructuredResponseResultPayloadJson {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelAccessResultV2StructuredResponseResultPayloadJson
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelAccessResultV2StructuredResponseResultPayloadJson
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelAccessResultV2StructuredResponseResultPayloadJson {
     fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
     where
         D: ::serde::Deserializer<'de>,
@@ -41415,6 +55776,1436 @@ impl<'de> ::serde::Deserialize<'de> for ModelProfileRegionName {
             })
     }
 }
+#[doc = "One normalized model stream event as published to the desktop. The support plane parses the provider stream and emits only these ten closed variants; the desktop never parses a provider stream itself. Every variant carries the request identifier, the run identifier, and a monotonic sequence, and every variant is closed, so a bearer token, a project endpoint, a deployment name, a raw provider body, private reasoning text, or a markup fragment has no property it could arrive in."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.model-stream-event.v1\","]
+#[doc = "  \"description\": \"One normalized model stream event as published to the desktop. The support plane parses the provider stream and emits only these ten closed variants; the desktop never parses a provider stream itself. Every variant carries the request identifier, the run identifier, and a monotonic sequence, and every variant is closed, so a bearer token, a project endpoint, a deployment name, a raw provider body, private reasoning text, or a markup fragment has no property it could arrive in.\","]
+#[doc = "  \"oneOf\": ["]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventResponseStartedEvent\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventOutputTextDeltaEvent\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventToolCallStartedEvent\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventToolCallArgumentsDeltaEvent\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventToolCallCompletedEvent\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventUsageEvent\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventCompletedEvent\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventRefusedEvent\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventFailedEvent\""]
+#[doc = "    },"]
+#[doc = "    {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventCancelledEvent\""]
+#[doc = "    }"]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum ModelStreamEvent {
+    ResponseStartedEvent(ModelStreamEventResponseStartedEvent),
+    OutputTextDeltaEvent(ModelStreamEventOutputTextDeltaEvent),
+    ToolCallStartedEvent(ModelStreamEventToolCallStartedEvent),
+    ToolCallArgumentsDeltaEvent(ModelStreamEventToolCallArgumentsDeltaEvent),
+    ToolCallCompletedEvent(ModelStreamEventToolCallCompletedEvent),
+    UsageEvent(ModelStreamEventUsageEvent),
+    CompletedEvent(ModelStreamEventCompletedEvent),
+    RefusedEvent(ModelStreamEventRefusedEvent),
+    FailedEvent(ModelStreamEventFailedEvent),
+    CancelledEvent(ModelStreamEventCancelledEvent),
+}
+impl ::std::convert::From<ModelStreamEventResponseStartedEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventResponseStartedEvent) -> Self {
+        Self::ResponseStartedEvent(value)
+    }
+}
+impl ::std::convert::From<ModelStreamEventOutputTextDeltaEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventOutputTextDeltaEvent) -> Self {
+        Self::OutputTextDeltaEvent(value)
+    }
+}
+impl ::std::convert::From<ModelStreamEventToolCallStartedEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventToolCallStartedEvent) -> Self {
+        Self::ToolCallStartedEvent(value)
+    }
+}
+impl ::std::convert::From<ModelStreamEventToolCallArgumentsDeltaEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventToolCallArgumentsDeltaEvent) -> Self {
+        Self::ToolCallArgumentsDeltaEvent(value)
+    }
+}
+impl ::std::convert::From<ModelStreamEventToolCallCompletedEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventToolCallCompletedEvent) -> Self {
+        Self::ToolCallCompletedEvent(value)
+    }
+}
+impl ::std::convert::From<ModelStreamEventUsageEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventUsageEvent) -> Self {
+        Self::UsageEvent(value)
+    }
+}
+impl ::std::convert::From<ModelStreamEventCompletedEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventCompletedEvent) -> Self {
+        Self::CompletedEvent(value)
+    }
+}
+impl ::std::convert::From<ModelStreamEventRefusedEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventRefusedEvent) -> Self {
+        Self::RefusedEvent(value)
+    }
+}
+impl ::std::convert::From<ModelStreamEventFailedEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventFailedEvent) -> Self {
+        Self::FailedEvent(value)
+    }
+}
+impl ::std::convert::From<ModelStreamEventCancelledEvent> for ModelStreamEvent {
+    fn from(value: ModelStreamEventCancelledEvent) -> Self {
+        Self::CancelledEvent(value)
+    }
+}
+#[doc = "`ModelStreamEventCancelledEvent`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"cancellationSource\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"type\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"cancellationSource\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamCancellationSource\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"cancelled\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventCancelledEvent {
+    #[serde(rename = "cancellationSource")]
+    pub cancellation_source: ModelStreamEventStreamCancellationSource,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+}
+impl ModelStreamEventCancelledEvent {
+    pub fn builder() -> builder::ModelStreamEventCancelledEvent {
+        Default::default()
+    }
+}
+#[doc = "`ModelStreamEventCompletedEvent`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"receiptSummary\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"type\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"receiptSummary\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamReceiptSummary\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"completed\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventCompletedEvent {
+    #[serde(rename = "receiptSummary")]
+    pub receipt_summary: ModelStreamEventStreamReceiptSummary,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+}
+impl ModelStreamEventCompletedEvent {
+    pub fn builder() -> builder::ModelStreamEventCompletedEvent {
+        Default::default()
+    }
+}
+#[doc = "The run ended without an answer. The code is stable and the retryable flag is decided by the support plane, so the desktop never has to infer retry behaviour from prose."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"The run ended without an answer. The code is stable and the retryable flag is decided by the support plane, so the desktop never has to infer retry behaviour from prose.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"failureCode\","]
+#[doc = "    \"failureDetail\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"retryable\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"type\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"failureCode\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamFailureCode\""]
+#[doc = "    },"]
+#[doc = "    \"failureDetail\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelStreamEventSafeDetail\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"retryable\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"failed\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventFailedEvent {
+    #[serde(rename = "failureCode")]
+    pub failure_code: ModelStreamEventStreamFailureCode,
+    #[serde(rename = "failureDetail")]
+    pub failure_detail: ::std::option::Option<ModelStreamEventSafeDetail>,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    pub retryable: bool,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+}
+impl ModelStreamEventFailedEvent {
+    pub fn builder() -> builder::ModelStreamEventFailedEvent {
+        Default::default()
+    }
+}
+#[doc = "A fragment of the visible answer. It is plain text destined for a text node, never markup, and never private reasoning."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"A fragment of the visible answer. It is plain text destined for a text node, never markup, and never private reasoning.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"outputIndex\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"textDelta\","]
+#[doc = "    \"type\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"outputIndex\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 255.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"textDelta\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 65536,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"output_text_delta\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventOutputTextDeltaEvent {
+    #[serde(rename = "outputIndex")]
+    pub output_index: u8,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "textDelta")]
+    pub text_delta: ModelStreamEventOutputTextDeltaEventTextDelta,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+}
+impl ModelStreamEventOutputTextDeltaEvent {
+    pub fn builder() -> builder::ModelStreamEventOutputTextDeltaEvent {
+        Default::default()
+    }
+}
+#[doc = "`ModelStreamEventOutputTextDeltaEventTextDelta`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 65536,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelStreamEventOutputTextDeltaEventTextDelta(::std::string::String);
+impl ::std::ops::Deref for ModelStreamEventOutputTextDeltaEventTextDelta {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelStreamEventOutputTextDeltaEventTextDelta> for ::std::string::String {
+    fn from(value: ModelStreamEventOutputTextDeltaEventTextDelta) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelStreamEventOutputTextDeltaEventTextDelta {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 65536usize {
+            return Err("longer than 65536 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelStreamEventOutputTextDeltaEventTextDelta {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelStreamEventOutputTextDeltaEventTextDelta
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelStreamEventOutputTextDeltaEventTextDelta
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelStreamEventOutputTextDeltaEventTextDelta {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelStreamEventRefusedEvent`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"refusalCode\","]
+#[doc = "    \"refusalDetail\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"type\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"refusalCode\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamRefusalCode\""]
+#[doc = "    },"]
+#[doc = "    \"refusalDetail\": {"]
+#[doc = "      \"oneOf\": ["]
+#[doc = "        {"]
+#[doc = "          \"$ref\": \"#/$defs/ModelStreamEventSafeDetail\""]
+#[doc = "        },"]
+#[doc = "        {"]
+#[doc = "          \"type\": \"null\""]
+#[doc = "        }"]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"refused\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventRefusedEvent {
+    #[serde(rename = "refusalCode")]
+    pub refusal_code: ModelStreamEventStreamRefusalCode,
+    #[serde(rename = "refusalDetail")]
+    pub refusal_detail: ::std::option::Option<ModelStreamEventSafeDetail>,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+}
+impl ModelStreamEventRefusedEvent {
+    pub fn builder() -> builder::ModelStreamEventRefusedEvent {
+        Default::default()
+    }
+}
+#[doc = "The support plane has resolved the profile and the provider has accepted the call. The resolved profile and variant are published here so the desktop can show which model is answering before the first token of visible text arrives."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"The support plane has resolved the profile and the provider has accepted the call. The resolved profile and variant are published here so the desktop can show which model is answering before the first token of visible text arrives.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"requestId\","]
+#[doc = "    \"resolvedProfileId\","]
+#[doc = "    \"resolvedVariantId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"startedAt\","]
+#[doc = "    \"type\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedProfileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedVariantId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelVariantId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"startedAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"response_started\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventResponseStartedEvent {
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "resolvedProfileId")]
+    pub resolved_profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "resolvedVariantId")]
+    pub resolved_variant_id: ModelProfileModelVariantId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "startedAt")]
+    pub started_at: CommonUtcInstant,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+}
+impl ModelStreamEventResponseStartedEvent {
+    pub fn builder() -> builder::ModelStreamEventResponseStartedEvent {
+        Default::default()
+    }
+}
+#[doc = "Short reviewed prose for a human. It is emitted by the support plane from a fixed vocabulary of explanations, never copied from a provider response body."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Short reviewed prose for a human. It is emitted by the support plane from a fixed vocabulary of explanations, never copied from a provider response body.\","]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 240,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelStreamEventSafeDetail(::std::string::String);
+impl ::std::ops::Deref for ModelStreamEventSafeDetail {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelStreamEventSafeDetail> for ::std::string::String {
+    fn from(value: ModelStreamEventSafeDetail) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelStreamEventSafeDetail {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 240usize {
+            return Err("longer than 240 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelStreamEventSafeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelStreamEventSafeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelStreamEventSafeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelStreamEventSafeDetail {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelStreamEventStreamCancellationSource`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"user\","]
+#[doc = "    \"host\","]
+#[doc = "    \"support_plane\","]
+#[doc = "    \"deadline_exceeded\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelStreamEventStreamCancellationSource {
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "host")]
+    Host,
+    #[serde(rename = "support_plane")]
+    SupportPlane,
+    #[serde(rename = "deadline_exceeded")]
+    DeadlineExceeded,
+}
+impl ::std::fmt::Display for ModelStreamEventStreamCancellationSource {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::User => f.write_str("user"),
+            Self::Host => f.write_str("host"),
+            Self::SupportPlane => f.write_str("support_plane"),
+            Self::DeadlineExceeded => f.write_str("deadline_exceeded"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelStreamEventStreamCancellationSource {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "user" => Ok(Self::User),
+            "host" => Ok(Self::Host),
+            "support_plane" => Ok(Self::SupportPlane),
+            "deadline_exceeded" => Ok(Self::DeadlineExceeded),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelStreamEventStreamCancellationSource {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelStreamEventStreamCancellationSource {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelStreamEventStreamCancellationSource {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Stable failure vocabulary. The desktop branches on these codes, so they are part of the contract and never carry provider wording."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Stable failure vocabulary. The desktop branches on these codes, so they are part of the contract and never carry provider wording.\","]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"provider_unavailable\","]
+#[doc = "    \"provider_timeout\","]
+#[doc = "    \"rate_limited\","]
+#[doc = "    \"profile_unavailable\","]
+#[doc = "    \"catalog_stale\","]
+#[doc = "    \"consent_expired\","]
+#[doc = "    \"budget_exhausted\","]
+#[doc = "    \"output_limit_exceeded\","]
+#[doc = "    \"output_schema_violation\","]
+#[doc = "    \"internal_error\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelStreamEventStreamFailureCode {
+    #[serde(rename = "provider_unavailable")]
+    ProviderUnavailable,
+    #[serde(rename = "provider_timeout")]
+    ProviderTimeout,
+    #[serde(rename = "rate_limited")]
+    RateLimited,
+    #[serde(rename = "profile_unavailable")]
+    ProfileUnavailable,
+    #[serde(rename = "catalog_stale")]
+    CatalogStale,
+    #[serde(rename = "consent_expired")]
+    ConsentExpired,
+    #[serde(rename = "budget_exhausted")]
+    BudgetExhausted,
+    #[serde(rename = "output_limit_exceeded")]
+    OutputLimitExceeded,
+    #[serde(rename = "output_schema_violation")]
+    OutputSchemaViolation,
+    #[serde(rename = "internal_error")]
+    InternalError,
+}
+impl ::std::fmt::Display for ModelStreamEventStreamFailureCode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::ProviderUnavailable => f.write_str("provider_unavailable"),
+            Self::ProviderTimeout => f.write_str("provider_timeout"),
+            Self::RateLimited => f.write_str("rate_limited"),
+            Self::ProfileUnavailable => f.write_str("profile_unavailable"),
+            Self::CatalogStale => f.write_str("catalog_stale"),
+            Self::ConsentExpired => f.write_str("consent_expired"),
+            Self::BudgetExhausted => f.write_str("budget_exhausted"),
+            Self::OutputLimitExceeded => f.write_str("output_limit_exceeded"),
+            Self::OutputSchemaViolation => f.write_str("output_schema_violation"),
+            Self::InternalError => f.write_str("internal_error"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelStreamEventStreamFailureCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "provider_unavailable" => Ok(Self::ProviderUnavailable),
+            "provider_timeout" => Ok(Self::ProviderTimeout),
+            "rate_limited" => Ok(Self::RateLimited),
+            "profile_unavailable" => Ok(Self::ProfileUnavailable),
+            "catalog_stale" => Ok(Self::CatalogStale),
+            "consent_expired" => Ok(Self::ConsentExpired),
+            "budget_exhausted" => Ok(Self::BudgetExhausted),
+            "output_limit_exceeded" => Ok(Self::OutputLimitExceeded),
+            "output_schema_violation" => Ok(Self::OutputSchemaViolation),
+            "internal_error" => Ok(Self::InternalError),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelStreamEventStreamFailureCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelStreamEventStreamFailureCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelStreamEventStreamFailureCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The parts of the version two receipt that are safe to publish on the event stream. The signed receipt itself is fetched over the reviewed request and response route; this summary lets the desktop close the run and name the model that answered without holding a signature."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"The parts of the version two receipt that are safe to publish on the event stream. The signed receipt itself is fetched over the reviewed request and response route; this summary lets the desktop close the run and name the model that answered without holding a signature.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"completedAt\","]
+#[doc = "    \"outputBytes\","]
+#[doc = "    \"receiptHash\","]
+#[doc = "    \"receiptId\","]
+#[doc = "    \"resolvedProfileId\","]
+#[doc = "    \"resolvedVariantId\","]
+#[doc = "    \"terminalStatus\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"completedAt\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonUtcInstant\""]
+#[doc = "    },"]
+#[doc = "    \"outputBytes\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2SafeSize\""]
+#[doc = "    },"]
+#[doc = "    \"receiptHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"receiptId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedProfileId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelProfileId\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedVariantId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelProfileModelVariantId\""]
+#[doc = "    },"]
+#[doc = "    \"terminalStatus\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2ModelTerminalStatus\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventStreamReceiptSummary {
+    #[serde(rename = "completedAt")]
+    pub completed_at: CommonUtcInstant,
+    #[serde(rename = "outputBytes")]
+    pub output_bytes: ModelAccessReceiptV2SafeSize,
+    #[serde(rename = "receiptHash")]
+    pub receipt_hash: CommonSha256,
+    #[serde(rename = "receiptId")]
+    pub receipt_id: CommonContractId,
+    #[serde(rename = "resolvedProfileId")]
+    pub resolved_profile_id: ModelProfileModelProfileId,
+    #[serde(rename = "resolvedVariantId")]
+    pub resolved_variant_id: ModelProfileModelVariantId,
+    #[serde(rename = "terminalStatus")]
+    pub terminal_status: ModelAccessReceiptV2ModelTerminalStatus,
+}
+impl ModelStreamEventStreamReceiptSummary {
+    pub fn builder() -> builder::ModelStreamEventStreamReceiptSummary {
+        Default::default()
+    }
+}
+#[doc = "`ModelStreamEventStreamRefusalCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"policy_blocked\","]
+#[doc = "    \"content_filtered\","]
+#[doc = "    \"not_entitled\","]
+#[doc = "    \"tool_not_permitted\","]
+#[doc = "    \"context_rejected\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelStreamEventStreamRefusalCode {
+    #[serde(rename = "policy_blocked")]
+    PolicyBlocked,
+    #[serde(rename = "content_filtered")]
+    ContentFiltered,
+    #[serde(rename = "not_entitled")]
+    NotEntitled,
+    #[serde(rename = "tool_not_permitted")]
+    ToolNotPermitted,
+    #[serde(rename = "context_rejected")]
+    ContextRejected,
+}
+impl ::std::fmt::Display for ModelStreamEventStreamRefusalCode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::PolicyBlocked => f.write_str("policy_blocked"),
+            Self::ContentFiltered => f.write_str("content_filtered"),
+            Self::NotEntitled => f.write_str("not_entitled"),
+            Self::ToolNotPermitted => f.write_str("tool_not_permitted"),
+            Self::ContextRejected => f.write_str("context_rejected"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelStreamEventStreamRefusalCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "policy_blocked" => Ok(Self::PolicyBlocked),
+            "content_filtered" => Ok(Self::ContentFiltered),
+            "not_entitled" => Ok(Self::NotEntitled),
+            "tool_not_permitted" => Ok(Self::ToolNotPermitted),
+            "context_rejected" => Ok(Self::ContextRejected),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelStreamEventStreamRefusalCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelStreamEventStreamRefusalCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelStreamEventStreamRefusalCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Position of this event in its run. The support plane emits a strictly increasing sequence starting at one; a consumer that observes a gap or a repeat must abandon the run rather than reorder it."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Position of this event in its run. The support plane emits a strictly increasing sequence starting at one; a consumer that observes a gap or a repeat must abandon the run rather than reorder it.\","]
+#[doc = "  \"type\": \"integer\","]
+#[doc = "  \"maximum\": 1000000.0,"]
+#[doc = "  \"minimum\": 1.0"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct ModelStreamEventStreamSequence(pub ::std::num::NonZeroU64);
+impl ::std::ops::Deref for ModelStreamEventStreamSequence {
+    type Target = ::std::num::NonZeroU64;
+    fn deref(&self) -> &::std::num::NonZeroU64 {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelStreamEventStreamSequence> for ::std::num::NonZeroU64 {
+    fn from(value: ModelStreamEventStreamSequence) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<::std::num::NonZeroU64> for ModelStreamEventStreamSequence {
+    fn from(value: ::std::num::NonZeroU64) -> Self {
+        Self(value)
+    }
+}
+impl ::std::str::FromStr for ModelStreamEventStreamSequence {
+    type Err = <::std::num::NonZeroU64 as ::std::str::FromStr>::Err;
+    fn from_str(value: &str) -> ::std::result::Result<Self, Self::Err> {
+        Ok(Self(value.parse()?))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelStreamEventStreamSequence {
+    type Error = <::std::num::NonZeroU64 as ::std::str::FromStr>::Err;
+    fn try_from(value: &str) -> ::std::result::Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<String> for ModelStreamEventStreamSequence {
+    type Error = <::std::num::NonZeroU64 as ::std::str::FromStr>::Err;
+    fn try_from(value: String) -> ::std::result::Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+impl ::std::fmt::Display for ModelStreamEventStreamSequence {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[doc = "A fragment of the arguments the model is assembling for a tool call. It is accumulated by the desktop for display only; the support plane validates the completed arguments against the declared canonical parameter schema before the call is allowed to run."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"A fragment of the arguments the model is assembling for a tool call. It is accumulated by the desktop for display only; the support plane validates the completed arguments against the declared canonical parameter schema before the call is allowed to run.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"argumentsDelta\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"toolCallId\","]
+#[doc = "    \"type\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"argumentsDelta\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 65536,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"toolCallId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventToolCallId\""]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"tool_call_arguments_delta\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventToolCallArgumentsDeltaEvent {
+    #[serde(rename = "argumentsDelta")]
+    pub arguments_delta: ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "toolCallId")]
+    pub tool_call_id: ModelStreamEventToolCallId,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+}
+impl ModelStreamEventToolCallArgumentsDeltaEvent {
+    pub fn builder() -> builder::ModelStreamEventToolCallArgumentsDeltaEvent {
+        Default::default()
+    }
+}
+#[doc = "`ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 65536,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta(::std::string::String);
+impl ::std::ops::Deref for ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta>
+    for ::std::string::String
+{
+    fn from(value: ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 65536usize {
+            return Err("longer than 65536 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelStreamEventToolCallCompletedEvent`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"argumentsByteCount\","]
+#[doc = "    \"argumentsHash\","]
+#[doc = "    \"requestId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"toolCallId\","]
+#[doc = "    \"type\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"argumentsByteCount\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1048576.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"argumentsHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"toolCallId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventToolCallId\""]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"tool_call_completed\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventToolCallCompletedEvent {
+    #[serde(rename = "argumentsByteCount")]
+    pub arguments_byte_count: i64,
+    #[serde(rename = "argumentsHash")]
+    pub arguments_hash: CommonSha256,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "toolCallId")]
+    pub tool_call_id: ModelStreamEventToolCallId,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+}
+impl ModelStreamEventToolCallCompletedEvent {
+    pub fn builder() -> builder::ModelStreamEventToolCallCompletedEvent {
+        Default::default()
+    }
+}
+#[doc = "`ModelStreamEventToolCallId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ModelStreamEventToolCallId(::std::string::String);
+impl ::std::ops::Deref for ModelStreamEventToolCallId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ModelStreamEventToolCallId> for ::std::string::String {
+    fn from(value: ModelStreamEventToolCallId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ModelStreamEventToolCallId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelStreamEventToolCallId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelStreamEventToolCallId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelStreamEventToolCallId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ModelStreamEventToolCallId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`ModelStreamEventToolCallStartedEvent`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"requestId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"toolCallId\","]
+#[doc = "    \"toolName\","]
+#[doc = "    \"type\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"toolCallId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventToolCallId\""]
+#[doc = "    },"]
+#[doc = "    \"toolName\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessRequestV2ModelToolName\""]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"tool_call_started\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventToolCallStartedEvent {
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "toolCallId")]
+    pub tool_call_id: ModelStreamEventToolCallId,
+    #[serde(rename = "toolName")]
+    pub tool_name: ModelAccessRequestV2ModelToolName,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+}
+impl ModelStreamEventToolCallStartedEvent {
+    pub fn builder() -> builder::ModelStreamEventToolCallStartedEvent {
+        Default::default()
+    }
+}
+#[doc = "Usage as known at this point in the run. It reuses the version two receipt usage record, so a category the provider did not report stays null on the stream exactly as it does on the receipt."]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"description\": \"Usage as known at this point in the run. It reuses the version two receipt usage record, so a category the provider did not report stays null on the stream exactly as it does on the receipt.\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"requestId\","]
+#[doc = "    \"runId\","]
+#[doc = "    \"sequence\","]
+#[doc = "    \"type\","]
+#[doc = "    \"usage\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"runId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sequence\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEventStreamSequence\""]
+#[doc = "    },"]
+#[doc = "    \"type\": {"]
+#[doc = "      \"const\": \"usage\""]
+#[doc = "    },"]
+#[doc = "    \"usage\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2ModelUsageV2\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ModelStreamEventUsageEvent {
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+    #[serde(rename = "runId")]
+    pub run_id: CommonContractId,
+    pub sequence: ModelStreamEventStreamSequence,
+    #[serde(rename = "type")]
+    pub type_: ::serde_json::Value,
+    pub usage: ModelAccessReceiptV2ModelUsageV2,
+}
+impl ModelStreamEventUsageEvent {
+    pub fn builder() -> builder::ModelStreamEventUsageEvent {
+        Default::default()
+    }
+}
 #[doc = "`PackageCompatibility`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -44603,6 +60394,12 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"authorityRef\": {"]
 #[doc = "      \"$ref\": \"#/$defs/AuthorityRef\""]
 #[doc = "    },"]
+#[doc = "    \"bmadArtifact\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadArtifact\""]
+#[doc = "    },"]
+#[doc = "    \"bmadBuilderPromotion\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadBuilderPromotion\""]
+#[doc = "    },"]
 #[doc = "    \"bmadCapabilityCatalog\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadCapabilityCatalog\""]
 #[doc = "    },"]
@@ -44612,8 +60409,38 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"bmadCapabilityRun\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadCapabilityRun\""]
 #[doc = "    },"]
+#[doc = "    \"bmadConfig\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadConfig\""]
+#[doc = "    },"]
+#[doc = "    \"bmadEval\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadEval\""]
+#[doc = "    },"]
+#[doc = "    \"bmadMemory\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadMemory\""]
+#[doc = "    },"]
+#[doc = "    \"bmadModule\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadModule\""]
+#[doc = "    },"]
 #[doc = "    \"bmadPackageDescriptor\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadPackageDescriptor\""]
+#[doc = "    },"]
+#[doc = "    \"bmadScriptPlan\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadScriptPlan\""]
+#[doc = "    },"]
+#[doc = "    \"bmadSession\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSession\""]
+#[doc = "    },"]
+#[doc = "    \"bmadSkillPackage\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSkillPackage\""]
+#[doc = "    },"]
+#[doc = "    \"bmadSourceAccounting\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSourceAccounting\""]
+#[doc = "    },"]
+#[doc = "    \"bmadSourceIdentity\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSourceIdentity\""]
+#[doc = "    },"]
+#[doc = "    \"bmadUpgrade\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadUpgrade\""]
 #[doc = "    },"]
 #[doc = "    \"bmadValidationReport\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadValidationReport\""]
@@ -44663,14 +60490,26 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"methodSession\": {"]
 #[doc = "      \"$ref\": \"#/$defs/MethodSession\""]
 #[doc = "    },"]
+#[doc = "    \"modelAccessCompatibility\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessCompatibility\""]
+#[doc = "    },"]
 #[doc = "    \"modelAccessReceipt\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ModelAccessReceipt\""]
+#[doc = "    },"]
+#[doc = "    \"modelAccessReceiptV2\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessReceiptV2\""]
 #[doc = "    },"]
 #[doc = "    \"modelAccessRequest\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ModelAccessRequest\""]
 #[doc = "    },"]
+#[doc = "    \"modelAccessRequestV2\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessRequestV2\""]
+#[doc = "    },"]
 #[doc = "    \"modelAccessResult\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ModelAccessResult\""]
+#[doc = "    },"]
+#[doc = "    \"modelAccessResultV2\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelAccessResultV2\""]
 #[doc = "    },"]
 #[doc = "    \"modelCatalog\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ModelCatalog\""]
@@ -44680,6 +60519,9 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    },"]
 #[doc = "    \"modelProfile\": {"]
 #[doc = "      \"$ref\": \"#/$defs/ModelProfile\""]
+#[doc = "    },"]
+#[doc = "    \"modelStreamEvent\": {"]
+#[doc = "      \"$ref\": \"#/$defs/ModelStreamEvent\""]
 #[doc = "    },"]
 #[doc = "    \"packageCompatibility\": {"]
 #[doc = "      \"$ref\": \"#/$defs/PackageCompatibility\""]
@@ -44711,6 +60553,18 @@ pub struct SapphirusContractsCatalog {
     )]
     pub authority_ref: ::std::option::Option<AuthorityRef>,
     #[serde(
+        rename = "bmadArtifact",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_artifact: ::std::option::Option<BmadArtifact>,
+    #[serde(
+        rename = "bmadBuilderPromotion",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_builder_promotion: ::std::option::Option<BmadBuilderPromotion>,
+    #[serde(
         rename = "bmadCapabilityCatalog",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
@@ -44729,11 +60583,71 @@ pub struct SapphirusContractsCatalog {
     )]
     pub bmad_capability_run: ::std::option::Option<BmadCapabilityRun>,
     #[serde(
+        rename = "bmadConfig",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_config: ::std::option::Option<BmadConfig>,
+    #[serde(
+        rename = "bmadEval",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_eval: ::std::option::Option<BmadEval>,
+    #[serde(
+        rename = "bmadMemory",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_memory: ::std::option::Option<BmadMemory>,
+    #[serde(
+        rename = "bmadModule",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_module: ::std::option::Option<BmadModule>,
+    #[serde(
         rename = "bmadPackageDescriptor",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub bmad_package_descriptor: ::std::option::Option<BmadPackageDescriptor>,
+    #[serde(
+        rename = "bmadScriptPlan",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_script_plan: ::std::option::Option<BmadScriptPlan>,
+    #[serde(
+        rename = "bmadSession",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_session: ::std::option::Option<BmadSession>,
+    #[serde(
+        rename = "bmadSkillPackage",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_skill_package: ::std::option::Option<BmadSkillPackage>,
+    #[serde(
+        rename = "bmadSourceAccounting",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_source_accounting: ::std::option::Option<BmadSourceAccounting>,
+    #[serde(
+        rename = "bmadSourceIdentity",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_source_identity: ::std::option::Option<BmadSourceIdentity>,
+    #[serde(
+        rename = "bmadUpgrade",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_upgrade: ::std::option::Option<BmadUpgrade>,
     #[serde(
         rename = "bmadValidationReport",
         default,
@@ -44831,11 +60745,23 @@ pub struct SapphirusContractsCatalog {
     )]
     pub method_session: ::std::option::Option<MethodSession>,
     #[serde(
+        rename = "modelAccessCompatibility",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub model_access_compatibility: ::std::option::Option<ModelAccessCompatibility>,
+    #[serde(
         rename = "modelAccessReceipt",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub model_access_receipt: ::std::option::Option<ModelAccessReceipt>,
+    #[serde(
+        rename = "modelAccessReceiptV2",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub model_access_receipt_v2: ::std::option::Option<ModelAccessReceiptV2>,
     #[serde(
         rename = "modelAccessRequest",
         default,
@@ -44843,11 +60769,23 @@ pub struct SapphirusContractsCatalog {
     )]
     pub model_access_request: ::std::option::Option<ModelAccessRequest>,
     #[serde(
+        rename = "modelAccessRequestV2",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub model_access_request_v2: ::std::option::Option<ModelAccessRequestV2>,
+    #[serde(
         rename = "modelAccessResult",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub model_access_result: ::std::option::Option<ModelAccessResult>,
+    #[serde(
+        rename = "modelAccessResultV2",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub model_access_result_v2: ::std::option::Option<ModelAccessResultV2>,
     #[serde(
         rename = "modelCatalog",
         default,
@@ -44866,6 +60804,12 @@ pub struct SapphirusContractsCatalog {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub model_profile: ::std::option::Option<ModelProfile>,
+    #[serde(
+        rename = "modelStreamEvent",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub model_stream_event: ::std::option::Option<ModelStreamEvent>,
     #[serde(
         rename = "packageCompatibility",
         default,
@@ -44890,10 +60834,22 @@ impl ::std::default::Default for SapphirusContractsCatalog {
         Self {
             approved_execution_spec: Default::default(),
             authority_ref: Default::default(),
+            bmad_artifact: Default::default(),
+            bmad_builder_promotion: Default::default(),
             bmad_capability_catalog: Default::default(),
             bmad_capability_result: Default::default(),
             bmad_capability_run: Default::default(),
+            bmad_config: Default::default(),
+            bmad_eval: Default::default(),
+            bmad_memory: Default::default(),
+            bmad_module: Default::default(),
             bmad_package_descriptor: Default::default(),
+            bmad_script_plan: Default::default(),
+            bmad_session: Default::default(),
+            bmad_skill_package: Default::default(),
+            bmad_source_accounting: Default::default(),
+            bmad_source_identity: Default::default(),
+            bmad_upgrade: Default::default(),
             bmad_validation_report: Default::default(),
             builder_authoring_object: Default::default(),
             candidate_action: Default::default(),
@@ -44910,12 +60866,17 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             method_help_proposal: Default::default(),
             method_help_recommendation: Default::default(),
             method_session: Default::default(),
+            model_access_compatibility: Default::default(),
             model_access_receipt: Default::default(),
+            model_access_receipt_v2: Default::default(),
             model_access_request: Default::default(),
+            model_access_request_v2: Default::default(),
             model_access_result: Default::default(),
+            model_access_result_v2: Default::default(),
             model_catalog: Default::default(),
             model_context_consent: Default::default(),
             model_profile: Default::default(),
+            model_stream_event: Default::default(),
             package_compatibility: Default::default(),
             remote_job_handoff: Default::default(),
             spec_consumption_record: Default::default(),
@@ -45378,6 +61339,312 @@ pub mod builder {
                 spec_hash: Ok(value.spec_hash),
                 spec_id: Ok(value.spec_id),
                 workspace_target_hash: Ok(value.workspace_target_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadArtifact {
+        artifact_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        evidence_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        kind: ::std::result::Result<super::BmadArtifactKind, ::std::string::String>,
+        media_type: ::std::result::Result<
+            ::std::option::Option<super::BmadArtifactMediaType>,
+            ::std::string::String,
+        >,
+        relative_path: ::std::result::Result<
+            ::std::option::Option<super::BmadArtifactRelativePath>,
+            ::std::string::String,
+        >,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        session_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        state: ::std::result::Result<super::BmadArtifactState, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadArtifact {
+        fn default() -> Self {
+            Self {
+                artifact_id: Err("no value supplied for artifact_id".to_string()),
+                content_hash: Err("no value supplied for content_hash".to_string()),
+                evidence_hash: Err("no value supplied for evidence_hash".to_string()),
+                kind: Err("no value supplied for kind".to_string()),
+                media_type: Ok(Default::default()),
+                relative_path: Ok(Default::default()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                session_id: Err("no value supplied for session_id".to_string()),
+                state: Err("no value supplied for state".to_string()),
+            }
+        }
+    }
+    impl BmadArtifact {
+        pub fn artifact_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.artifact_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for artifact_id: {e}"));
+            self
+        }
+        pub fn content_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content_hash: {e}"));
+            self
+        }
+        pub fn evidence_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.evidence_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for evidence_hash: {e}"));
+            self
+        }
+        pub fn kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadArtifactKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kind: {e}"));
+            self
+        }
+        pub fn media_type<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadArtifactMediaType>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.media_type = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for media_type: {e}"));
+            self
+        }
+        pub fn relative_path<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadArtifactRelativePath>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.relative_path = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for relative_path: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn session_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.session_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for session_id: {e}"));
+            self
+        }
+        pub fn state<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadArtifactState>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.state = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for state: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadArtifact> for super::BmadArtifact {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadArtifact,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                artifact_id: value.artifact_id?,
+                content_hash: value.content_hash?,
+                evidence_hash: value.evidence_hash?,
+                kind: value.kind?,
+                media_type: value.media_type?,
+                relative_path: value.relative_path?,
+                schema_version: value.schema_version?,
+                session_id: value.session_id?,
+                state: value.state?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadArtifact> for BmadArtifact {
+        fn from(value: super::BmadArtifact) -> Self {
+            Self {
+                artifact_id: Ok(value.artifact_id),
+                content_hash: Ok(value.content_hash),
+                evidence_hash: Ok(value.evidence_hash),
+                kind: Ok(value.kind),
+                media_type: Ok(value.media_type),
+                relative_path: Ok(value.relative_path),
+                schema_version: Ok(value.schema_version),
+                session_id: Ok(value.session_id),
+                state: Ok(value.state),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadBuilderPromotionApproval {
+        approval_id: ::std::result::Result<
+            ::std::option::Option<super::CommonContractId>,
+            ::std::string::String,
+        >,
+        decision: ::std::result::Result<
+            super::BmadBuilderPromotionApprovalDecision,
+            ::std::string::String,
+        >,
+        required: ::std::result::Result<bool, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadBuilderPromotionApproval {
+        fn default() -> Self {
+            Self {
+                approval_id: Ok(Default::default()),
+                decision: Err("no value supplied for decision".to_string()),
+                required: Err("no value supplied for required".to_string()),
+            }
+        }
+    }
+    impl BmadBuilderPromotionApproval {
+        pub fn approval_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonContractId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.approval_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for approval_id: {e}"));
+            self
+        }
+        pub fn decision<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadBuilderPromotionApprovalDecision>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.decision = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for decision: {e}"));
+            self
+        }
+        pub fn required<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.required = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for required: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadBuilderPromotionApproval> for super::BmadBuilderPromotionApproval {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadBuilderPromotionApproval,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                approval_id: value.approval_id?,
+                decision: value.decision?,
+                required: value.required?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadBuilderPromotionApproval> for BmadBuilderPromotionApproval {
+        fn from(value: super::BmadBuilderPromotionApproval) -> Self {
+            Self {
+                approval_id: Ok(value.approval_id),
+                decision: Ok(value.decision),
+                required: Ok(value.required),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadBuilderPromotionInstallation {
+        atomic: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        catalog_generation: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        live_conformance_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadBuilderPromotionInstallation {
+        fn default() -> Self {
+            Self {
+                atomic: Err("no value supplied for atomic".to_string()),
+                catalog_generation: Err("no value supplied for catalog_generation".to_string()),
+                live_conformance_hash: Err(
+                    "no value supplied for live_conformance_hash".to_string()
+                ),
+            }
+        }
+    }
+    impl BmadBuilderPromotionInstallation {
+        pub fn atomic<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.atomic = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for atomic: {e}"));
+            self
+        }
+        pub fn catalog_generation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.catalog_generation = value.try_into().map_err(|e| {
+                format!("error converting supplied value for catalog_generation: {e}")
+            });
+            self
+        }
+        pub fn live_conformance_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.live_conformance_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for live_conformance_hash: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadBuilderPromotionInstallation>
+        for super::BmadBuilderPromotionInstallation
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadBuilderPromotionInstallation,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                atomic: value.atomic?,
+                catalog_generation: value.catalog_generation?,
+                live_conformance_hash: value.live_conformance_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadBuilderPromotionInstallation>
+        for BmadBuilderPromotionInstallation
+    {
+        fn from(value: super::BmadBuilderPromotionInstallation) -> Self {
+            Self {
+                atomic: Ok(value.atomic),
+                catalog_generation: Ok(value.catalog_generation),
+                live_conformance_hash: Ok(value.live_conformance_hash),
             }
         }
     }
@@ -48001,6 +64268,869 @@ pub mod builder {
                 run_id: Ok(value.run_id),
                 schema_version: Ok(value.schema_version),
                 workspace_id: Ok(value.workspace_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadConfig {
+        config_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        layers: ::std::result::Result<
+            ::std::vec::Vec<super::BmadConfigConfigLayer>,
+            ::std::string::String,
+        >,
+        provenance_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        resolved_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadConfig {
+        fn default() -> Self {
+            Self {
+                config_id: Err("no value supplied for config_id".to_string()),
+                layers: Err("no value supplied for layers".to_string()),
+                provenance_hash: Err("no value supplied for provenance_hash".to_string()),
+                resolved_hash: Err("no value supplied for resolved_hash".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+            }
+        }
+    }
+    impl BmadConfig {
+        pub fn config_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.config_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for config_id: {e}"));
+            self
+        }
+        pub fn layers<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadConfigConfigLayer>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.layers = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for layers: {e}"));
+            self
+        }
+        pub fn provenance_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provenance_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for provenance_hash: {e}"));
+            self
+        }
+        pub fn resolved_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for resolved_hash: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadConfig> for super::BmadConfig {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadConfig,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                config_id: value.config_id?,
+                layers: value.layers?,
+                provenance_hash: value.provenance_hash?,
+                resolved_hash: value.resolved_hash?,
+                schema_version: value.schema_version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadConfig> for BmadConfig {
+        fn from(value: super::BmadConfig) -> Self {
+            Self {
+                config_id: Ok(value.config_id),
+                layers: Ok(value.layers),
+                provenance_hash: Ok(value.provenance_hash),
+                resolved_hash: Ok(value.resolved_hash),
+                schema_version: Ok(value.schema_version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadConfigConfigLayer {
+        content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        kind: ::std::result::Result<super::BmadConfigConfigLayerKind, ::std::string::String>,
+        ordinal: ::std::result::Result<i64, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadConfigConfigLayer {
+        fn default() -> Self {
+            Self {
+                content_hash: Err("no value supplied for content_hash".to_string()),
+                kind: Err("no value supplied for kind".to_string()),
+                ordinal: Err("no value supplied for ordinal".to_string()),
+            }
+        }
+    }
+    impl BmadConfigConfigLayer {
+        pub fn content_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content_hash: {e}"));
+            self
+        }
+        pub fn kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigConfigLayerKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kind: {e}"));
+            self
+        }
+        pub fn ordinal<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.ordinal = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for ordinal: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadConfigConfigLayer> for super::BmadConfigConfigLayer {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadConfigConfigLayer,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                content_hash: value.content_hash?,
+                kind: value.kind?,
+                ordinal: value.ordinal?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadConfigConfigLayer> for BmadConfigConfigLayer {
+        fn from(value: super::BmadConfigConfigLayer) -> Self {
+            Self {
+                content_hash: Ok(value.content_hash),
+                kind: Ok(value.kind),
+                ordinal: Ok(value.ordinal),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadEval {
+        criteria:
+            ::std::result::Result<::std::vec::Vec<super::BmadEvalCriterion>, ::std::string::String>,
+        evaluation_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        evidence_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        outcome: ::std::result::Result<super::BmadEvalOutcome, ::std::string::String>,
+        runner: ::std::result::Result<super::BmadEvalRunner, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        state: ::std::result::Result<super::BmadEvalState, ::std::string::String>,
+        subject_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadEval {
+        fn default() -> Self {
+            Self {
+                criteria: Err("no value supplied for criteria".to_string()),
+                evaluation_id: Err("no value supplied for evaluation_id".to_string()),
+                evidence_hash: Err("no value supplied for evidence_hash".to_string()),
+                outcome: Err("no value supplied for outcome".to_string()),
+                runner: Err("no value supplied for runner".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                state: Err("no value supplied for state".to_string()),
+                subject_hash: Err("no value supplied for subject_hash".to_string()),
+            }
+        }
+    }
+    impl BmadEval {
+        pub fn criteria<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadEvalCriterion>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.criteria = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for criteria: {e}"));
+            self
+        }
+        pub fn evaluation_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.evaluation_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for evaluation_id: {e}"));
+            self
+        }
+        pub fn evidence_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.evidence_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for evidence_hash: {e}"));
+            self
+        }
+        pub fn outcome<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadEvalOutcome>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.outcome = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for outcome: {e}"));
+            self
+        }
+        pub fn runner<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadEvalRunner>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.runner = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for runner: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn state<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadEvalState>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.state = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for state: {e}"));
+            self
+        }
+        pub fn subject_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.subject_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for subject_hash: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadEval> for super::BmadEval {
+        type Error = super::error::ConversionError;
+        fn try_from(value: BmadEval) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                criteria: value.criteria?,
+                evaluation_id: value.evaluation_id?,
+                evidence_hash: value.evidence_hash?,
+                outcome: value.outcome?,
+                runner: value.runner?,
+                schema_version: value.schema_version?,
+                state: value.state?,
+                subject_hash: value.subject_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadEval> for BmadEval {
+        fn from(value: super::BmadEval) -> Self {
+            Self {
+                criteria: Ok(value.criteria),
+                evaluation_id: Ok(value.evaluation_id),
+                evidence_hash: Ok(value.evidence_hash),
+                outcome: Ok(value.outcome),
+                runner: Ok(value.runner),
+                schema_version: Ok(value.schema_version),
+                state: Ok(value.state),
+                subject_hash: Ok(value.subject_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadEvalCriterion {
+        criterion_id:
+            ::std::result::Result<super::BmadEvalCriterionCriterionId, ::std::string::String>,
+        evidence_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
+            ::std::string::String,
+        >,
+        result: ::std::result::Result<super::BmadEvalCriterionResult, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadEvalCriterion {
+        fn default() -> Self {
+            Self {
+                criterion_id: Err("no value supplied for criterion_id".to_string()),
+                evidence_hash: Ok(Default::default()),
+                result: Err("no value supplied for result".to_string()),
+            }
+        }
+    }
+    impl BmadEvalCriterion {
+        pub fn criterion_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadEvalCriterionCriterionId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.criterion_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for criterion_id: {e}"));
+            self
+        }
+        pub fn evidence_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.evidence_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for evidence_hash: {e}"));
+            self
+        }
+        pub fn result<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadEvalCriterionResult>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.result = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for result: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadEvalCriterion> for super::BmadEvalCriterion {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadEvalCriterion,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                criterion_id: value.criterion_id?,
+                evidence_hash: value.evidence_hash?,
+                result: value.result?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadEvalCriterion> for BmadEvalCriterion {
+        fn from(value: super::BmadEvalCriterion) -> Self {
+            Self {
+                criterion_id: Ok(value.criterion_id),
+                evidence_hash: Ok(value.evidence_hash),
+                result: Ok(value.result),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadMemory {
+        bounds: ::std::result::Result<super::BmadMemoryBounds, ::std::string::String>,
+        consent: ::std::result::Result<super::BmadMemoryConsent, ::std::string::String>,
+        content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        memory_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        mode: ::std::result::Result<super::BmadMemoryMode, ::std::string::String>,
+        owner_scope_ref: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        state: ::std::result::Result<super::BmadMemoryState, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadMemory {
+        fn default() -> Self {
+            Self {
+                bounds: Err("no value supplied for bounds".to_string()),
+                consent: Err("no value supplied for consent".to_string()),
+                content_hash: Err("no value supplied for content_hash".to_string()),
+                memory_id: Err("no value supplied for memory_id".to_string()),
+                mode: Err("no value supplied for mode".to_string()),
+                owner_scope_ref: Err("no value supplied for owner_scope_ref".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                state: Err("no value supplied for state".to_string()),
+            }
+        }
+    }
+    impl BmadMemory {
+        pub fn bounds<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadMemoryBounds>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bounds = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bounds: {e}"));
+            self
+        }
+        pub fn consent<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadMemoryConsent>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consent = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for consent: {e}"));
+            self
+        }
+        pub fn content_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content_hash: {e}"));
+            self
+        }
+        pub fn memory_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.memory_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for memory_id: {e}"));
+            self
+        }
+        pub fn mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadMemoryMode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for mode: {e}"));
+            self
+        }
+        pub fn owner_scope_ref<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.owner_scope_ref = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for owner_scope_ref: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn state<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadMemoryState>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.state = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for state: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadMemory> for super::BmadMemory {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadMemory,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                bounds: value.bounds?,
+                consent: value.consent?,
+                content_hash: value.content_hash?,
+                memory_id: value.memory_id?,
+                mode: value.mode?,
+                owner_scope_ref: value.owner_scope_ref?,
+                schema_version: value.schema_version?,
+                state: value.state?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadMemory> for BmadMemory {
+        fn from(value: super::BmadMemory) -> Self {
+            Self {
+                bounds: Ok(value.bounds),
+                consent: Ok(value.consent),
+                content_hash: Ok(value.content_hash),
+                memory_id: Ok(value.memory_id),
+                mode: Ok(value.mode),
+                owner_scope_ref: Ok(value.owner_scope_ref),
+                schema_version: Ok(value.schema_version),
+                state: Ok(value.state),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadMemoryBounds {
+        kill_switch: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        max_bytes: ::std::result::Result<i64, ::std::string::String>,
+        max_entries: ::std::result::Result<i64, ::std::string::String>,
+        ttl_seconds: ::std::result::Result<i64, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadMemoryBounds {
+        fn default() -> Self {
+            Self {
+                kill_switch: Err("no value supplied for kill_switch".to_string()),
+                max_bytes: Err("no value supplied for max_bytes".to_string()),
+                max_entries: Err("no value supplied for max_entries".to_string()),
+                ttl_seconds: Err("no value supplied for ttl_seconds".to_string()),
+            }
+        }
+    }
+    impl BmadMemoryBounds {
+        pub fn kill_switch<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kill_switch = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kill_switch: {e}"));
+            self
+        }
+        pub fn max_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_bytes = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_bytes: {e}"));
+            self
+        }
+        pub fn max_entries<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_entries = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_entries: {e}"));
+            self
+        }
+        pub fn ttl_seconds<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.ttl_seconds = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for ttl_seconds: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadMemoryBounds> for super::BmadMemoryBounds {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadMemoryBounds,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                kill_switch: value.kill_switch?,
+                max_bytes: value.max_bytes?,
+                max_entries: value.max_entries?,
+                ttl_seconds: value.ttl_seconds?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadMemoryBounds> for BmadMemoryBounds {
+        fn from(value: super::BmadMemoryBounds) -> Self {
+            Self {
+                kill_switch: Ok(value.kill_switch),
+                max_bytes: Ok(value.max_bytes),
+                max_entries: Ok(value.max_entries),
+                ttl_seconds: Ok(value.ttl_seconds),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadMemoryConsent {
+        granted_at: ::std::result::Result<
+            ::std::option::Option<super::CommonUtcInstant>,
+            ::std::string::String,
+        >,
+        opted_in: ::std::result::Result<bool, ::std::string::String>,
+        revocable: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadMemoryConsent {
+        fn default() -> Self {
+            Self {
+                granted_at: Err("no value supplied for granted_at".to_string()),
+                opted_in: Err("no value supplied for opted_in".to_string()),
+                revocable: Err("no value supplied for revocable".to_string()),
+            }
+        }
+    }
+    impl BmadMemoryConsent {
+        pub fn granted_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonUtcInstant>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.granted_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for granted_at: {e}"));
+            self
+        }
+        pub fn opted_in<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.opted_in = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for opted_in: {e}"));
+            self
+        }
+        pub fn revocable<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.revocable = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for revocable: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadMemoryConsent> for super::BmadMemoryConsent {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadMemoryConsent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                granted_at: value.granted_at?,
+                opted_in: value.opted_in?,
+                revocable: value.revocable?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadMemoryConsent> for BmadMemoryConsent {
+        fn from(value: super::BmadMemoryConsent) -> Self {
+            Self {
+                granted_at: Ok(value.granted_at),
+                opted_in: Ok(value.opted_in),
+                revocable: Ok(value.revocable),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadModule {
+        kind: ::std::result::Result<super::BmadModuleKind, ::std::string::String>,
+        module_code: ::std::result::Result<super::BmadModuleModuleCode, ::std::string::String>,
+        module_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        module_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        setup: ::std::result::Result<
+            ::std::vec::Vec<super::BmadModuleSetupStep>,
+            ::std::string::String,
+        >,
+        skills:
+            ::std::result::Result<::std::vec::Vec<super::CommonContractId>, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadModule {
+        fn default() -> Self {
+            Self {
+                kind: Err("no value supplied for kind".to_string()),
+                module_code: Err("no value supplied for module_code".to_string()),
+                module_hash: Err("no value supplied for module_hash".to_string()),
+                module_id: Err("no value supplied for module_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                setup: Err("no value supplied for setup".to_string()),
+                skills: Err("no value supplied for skills".to_string()),
+            }
+        }
+    }
+    impl BmadModule {
+        pub fn kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadModuleKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kind: {e}"));
+            self
+        }
+        pub fn module_code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadModuleModuleCode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.module_code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for module_code: {e}"));
+            self
+        }
+        pub fn module_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.module_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for module_hash: {e}"));
+            self
+        }
+        pub fn module_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.module_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for module_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn setup<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadModuleSetupStep>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.setup = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for setup: {e}"));
+            self
+        }
+        pub fn skills<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::CommonContractId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.skills = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for skills: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadModule> for super::BmadModule {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadModule,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                kind: value.kind?,
+                module_code: value.module_code?,
+                module_hash: value.module_hash?,
+                module_id: value.module_id?,
+                schema_version: value.schema_version?,
+                setup: value.setup?,
+                skills: value.skills?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadModule> for BmadModule {
+        fn from(value: super::BmadModule) -> Self {
+            Self {
+                kind: Ok(value.kind),
+                module_code: Ok(value.module_code),
+                module_hash: Ok(value.module_hash),
+                module_id: Ok(value.module_id),
+                schema_version: Ok(value.schema_version),
+                setup: Ok(value.setup),
+                skills: Ok(value.skills),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadModuleSetupStep {
+        action: ::std::result::Result<super::BmadModuleSetupStepAction, ::std::string::String>,
+        required: ::std::result::Result<bool, ::std::string::String>,
+        step_id: ::std::result::Result<super::BmadModuleSetupStepStepId, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadModuleSetupStep {
+        fn default() -> Self {
+            Self {
+                action: Err("no value supplied for action".to_string()),
+                required: Err("no value supplied for required".to_string()),
+                step_id: Err("no value supplied for step_id".to_string()),
+            }
+        }
+    }
+    impl BmadModuleSetupStep {
+        pub fn action<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadModuleSetupStepAction>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.action = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for action: {e}"));
+            self
+        }
+        pub fn required<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.required = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for required: {e}"));
+            self
+        }
+        pub fn step_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadModuleSetupStepStepId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.step_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for step_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadModuleSetupStep> for super::BmadModuleSetupStep {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadModuleSetupStep,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                action: value.action?,
+                required: value.required?,
+                step_id: value.step_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadModuleSetupStep> for BmadModuleSetupStep {
+        fn from(value: super::BmadModuleSetupStep) -> Self {
+            Self {
+                action: Ok(value.action),
+                required: Ok(value.required),
+                step_id: Ok(value.step_id),
             }
         }
     }
@@ -51073,6 +68203,1596 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
+    pub struct BmadScriptPlan {
+        authority_decision_id:
+            ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        plan_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        plan_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        source_script_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        steps: ::std::result::Result<
+            ::std::vec::Vec<super::BmadScriptPlanPlanStep>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadScriptPlan {
+        fn default() -> Self {
+            Self {
+                authority_decision_id: Err(
+                    "no value supplied for authority_decision_id".to_string()
+                ),
+                plan_hash: Err("no value supplied for plan_hash".to_string()),
+                plan_id: Err("no value supplied for plan_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                source_script_hash: Err("no value supplied for source_script_hash".to_string()),
+                steps: Err("no value supplied for steps".to_string()),
+            }
+        }
+    }
+    impl BmadScriptPlan {
+        pub fn authority_decision_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.authority_decision_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for authority_decision_id: {e}")
+            });
+            self
+        }
+        pub fn plan_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.plan_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for plan_hash: {e}"));
+            self
+        }
+        pub fn plan_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.plan_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for plan_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn source_script_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_script_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for source_script_hash: {e}")
+            });
+            self
+        }
+        pub fn steps<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadScriptPlanPlanStep>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.steps = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for steps: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptPlan> for super::BmadScriptPlan {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptPlan,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                authority_decision_id: value.authority_decision_id?,
+                plan_hash: value.plan_hash?,
+                plan_id: value.plan_id?,
+                schema_version: value.schema_version?,
+                source_script_hash: value.source_script_hash?,
+                steps: value.steps?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptPlan> for BmadScriptPlan {
+        fn from(value: super::BmadScriptPlan) -> Self {
+            Self {
+                authority_decision_id: Ok(value.authority_decision_id),
+                plan_hash: Ok(value.plan_hash),
+                plan_id: Ok(value.plan_id),
+                schema_version: Ok(value.schema_version),
+                source_script_hash: Ok(value.source_script_hash),
+                steps: Ok(value.steps),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadScriptPlanPlanStep {
+        approval:
+            ::std::result::Result<super::BmadScriptPlanPlanStepApproval, ::std::string::String>,
+        arguments_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        operation:
+            ::std::result::Result<super::BmadScriptPlanPlanStepOperation, ::std::string::String>,
+        step_id: ::std::result::Result<super::BmadScriptPlanPlanStepStepId, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadScriptPlanPlanStep {
+        fn default() -> Self {
+            Self {
+                approval: Err("no value supplied for approval".to_string()),
+                arguments_hash: Err("no value supplied for arguments_hash".to_string()),
+                operation: Err("no value supplied for operation".to_string()),
+                step_id: Err("no value supplied for step_id".to_string()),
+            }
+        }
+    }
+    impl BmadScriptPlanPlanStep {
+        pub fn approval<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptPlanPlanStepApproval>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.approval = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for approval: {e}"));
+            self
+        }
+        pub fn arguments_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.arguments_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for arguments_hash: {e}"));
+            self
+        }
+        pub fn operation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptPlanPlanStepOperation>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.operation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for operation: {e}"));
+            self
+        }
+        pub fn step_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptPlanPlanStepStepId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.step_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for step_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptPlanPlanStep> for super::BmadScriptPlanPlanStep {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptPlanPlanStep,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                approval: value.approval?,
+                arguments_hash: value.arguments_hash?,
+                operation: value.operation?,
+                step_id: value.step_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptPlanPlanStep> for BmadScriptPlanPlanStep {
+        fn from(value: super::BmadScriptPlanPlanStep) -> Self {
+            Self {
+                approval: Ok(value.approval),
+                arguments_hash: Ok(value.arguments_hash),
+                operation: Ok(value.operation),
+                step_id: Ok(value.step_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSession {
+        agent_profile: ::std::result::Result<super::BmadSessionAgentProfile, ::std::string::String>,
+        artifacts:
+            ::std::result::Result<::std::vec::Vec<super::CommonContractId>, ::std::string::String>,
+        capability_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        completion_hooks: ::std::result::Result<
+            ::std::vec::Vec<super::BmadSessionCompletionHook>,
+            ::std::string::String,
+        >,
+        control: ::std::result::Result<super::BmadSessionSessionControl, ::std::string::String>,
+        evidence:
+            ::std::result::Result<::std::vec::Vec<super::CommonSha256>, ::std::string::String>,
+        input_request: ::std::result::Result<
+            ::std::option::Option<super::BmadSessionInputRequest>,
+            ::std::string::String,
+        >,
+        mode: ::std::result::Result<super::BmadSessionMode, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        session_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        state: ::std::result::Result<super::BmadSessionState, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSession {
+        fn default() -> Self {
+            Self {
+                agent_profile: Err("no value supplied for agent_profile".to_string()),
+                artifacts: Err("no value supplied for artifacts".to_string()),
+                capability_id: Err("no value supplied for capability_id".to_string()),
+                completion_hooks: Ok(Default::default()),
+                control: Err("no value supplied for control".to_string()),
+                evidence: Err("no value supplied for evidence".to_string()),
+                input_request: Ok(Default::default()),
+                mode: Err("no value supplied for mode".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                session_id: Err("no value supplied for session_id".to_string()),
+                state: Err("no value supplied for state".to_string()),
+            }
+        }
+    }
+    impl BmadSession {
+        pub fn agent_profile<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionAgentProfile>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.agent_profile = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for agent_profile: {e}"));
+            self
+        }
+        pub fn artifacts<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::CommonContractId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.artifacts = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for artifacts: {e}"));
+            self
+        }
+        pub fn capability_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.capability_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for capability_id: {e}"));
+            self
+        }
+        pub fn completion_hooks<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadSessionCompletionHook>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.completion_hooks = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for completion_hooks: {e}"));
+            self
+        }
+        pub fn control<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionSessionControl>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.control = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for control: {e}"));
+            self
+        }
+        pub fn evidence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.evidence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for evidence: {e}"));
+            self
+        }
+        pub fn input_request<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSessionInputRequest>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.input_request = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for input_request: {e}"));
+            self
+        }
+        pub fn mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionMode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for mode: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn session_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.session_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for session_id: {e}"));
+            self
+        }
+        pub fn state<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionState>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.state = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for state: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSession> for super::BmadSession {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSession,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                agent_profile: value.agent_profile?,
+                artifacts: value.artifacts?,
+                capability_id: value.capability_id?,
+                completion_hooks: value.completion_hooks?,
+                control: value.control?,
+                evidence: value.evidence?,
+                input_request: value.input_request?,
+                mode: value.mode?,
+                schema_version: value.schema_version?,
+                session_id: value.session_id?,
+                state: value.state?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSession> for BmadSession {
+        fn from(value: super::BmadSession) -> Self {
+            Self {
+                agent_profile: Ok(value.agent_profile),
+                artifacts: Ok(value.artifacts),
+                capability_id: Ok(value.capability_id),
+                completion_hooks: Ok(value.completion_hooks),
+                control: Ok(value.control),
+                evidence: Ok(value.evidence),
+                input_request: Ok(value.input_request),
+                mode: Ok(value.mode),
+                schema_version: Ok(value.schema_version),
+                session_id: Ok(value.session_id),
+                state: Ok(value.state),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSessionCompletionHook {
+        enabled: ::std::result::Result<bool, ::std::string::String>,
+        hook: ::std::result::Result<super::BmadSessionCompletionHookHook, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSessionCompletionHook {
+        fn default() -> Self {
+            Self {
+                enabled: Err("no value supplied for enabled".to_string()),
+                hook: Err("no value supplied for hook".to_string()),
+            }
+        }
+    }
+    impl BmadSessionCompletionHook {
+        pub fn enabled<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.enabled = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for enabled: {e}"));
+            self
+        }
+        pub fn hook<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionCompletionHookHook>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.hook = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for hook: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSessionCompletionHook> for super::BmadSessionCompletionHook {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSessionCompletionHook,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                enabled: value.enabled?,
+                hook: value.hook?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSessionCompletionHook> for BmadSessionCompletionHook {
+        fn from(value: super::BmadSessionCompletionHook) -> Self {
+            Self {
+                enabled: Ok(value.enabled),
+                hook: Ok(value.hook),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSessionInputRequest {
+        prompt: ::std::result::Result<super::BmadSessionInputRequestPrompt, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        response_schema_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSessionInputRequest {
+        fn default() -> Self {
+            Self {
+                prompt: Err("no value supplied for prompt".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                response_schema_hash: Err("no value supplied for response_schema_hash".to_string()),
+            }
+        }
+    }
+    impl BmadSessionInputRequest {
+        pub fn prompt<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionInputRequestPrompt>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.prompt = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for prompt: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn response_schema_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.response_schema_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for response_schema_hash: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSessionInputRequest> for super::BmadSessionInputRequest {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSessionInputRequest,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                prompt: value.prompt?,
+                request_id: value.request_id?,
+                response_schema_hash: value.response_schema_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSessionInputRequest> for BmadSessionInputRequest {
+        fn from(value: super::BmadSessionInputRequest) -> Self {
+            Self {
+                prompt: Ok(value.prompt),
+                request_id: Ok(value.request_id),
+                response_schema_hash: Ok(value.response_schema_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSessionSessionControl {
+        cancel_allowed: ::std::result::Result<bool, ::std::string::String>,
+        pause_allowed: ::std::result::Result<bool, ::std::string::String>,
+        resume_allowed: ::std::result::Result<bool, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSessionSessionControl {
+        fn default() -> Self {
+            Self {
+                cancel_allowed: Err("no value supplied for cancel_allowed".to_string()),
+                pause_allowed: Err("no value supplied for pause_allowed".to_string()),
+                resume_allowed: Err("no value supplied for resume_allowed".to_string()),
+            }
+        }
+    }
+    impl BmadSessionSessionControl {
+        pub fn cancel_allowed<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cancel_allowed = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for cancel_allowed: {e}"));
+            self
+        }
+        pub fn pause_allowed<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.pause_allowed = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for pause_allowed: {e}"));
+            self
+        }
+        pub fn resume_allowed<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resume_allowed = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for resume_allowed: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSessionSessionControl> for super::BmadSessionSessionControl {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSessionSessionControl,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                cancel_allowed: value.cancel_allowed?,
+                pause_allowed: value.pause_allowed?,
+                resume_allowed: value.resume_allowed?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSessionSessionControl> for BmadSessionSessionControl {
+        fn from(value: super::BmadSessionSessionControl) -> Self {
+            Self {
+                cancel_allowed: Ok(value.cancel_allowed),
+                pause_allowed: Ok(value.pause_allowed),
+                resume_allowed: Ok(value.resume_allowed),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSkillPackage {
+        actions: ::std::result::Result<
+            ::std::vec::Vec<super::BmadSkillPackageAction>,
+            ::std::string::String,
+        >,
+        package_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        package_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        skills: ::std::result::Result<
+            ::std::vec::Vec<super::BmadSkillPackageSkill>,
+            ::std::string::String,
+        >,
+        source_identity_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSkillPackage {
+        fn default() -> Self {
+            Self {
+                actions: Err("no value supplied for actions".to_string()),
+                package_hash: Err("no value supplied for package_hash".to_string()),
+                package_id: Err("no value supplied for package_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                skills: Err("no value supplied for skills".to_string()),
+                source_identity_hash: Err("no value supplied for source_identity_hash".to_string()),
+            }
+        }
+    }
+    impl BmadSkillPackage {
+        pub fn actions<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadSkillPackageAction>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.actions = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for actions: {e}"));
+            self
+        }
+        pub fn package_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.package_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for package_hash: {e}"));
+            self
+        }
+        pub fn package_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.package_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for package_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn skills<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadSkillPackageSkill>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.skills = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for skills: {e}"));
+            self
+        }
+        pub fn source_identity_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_identity_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for source_identity_hash: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSkillPackage> for super::BmadSkillPackage {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSkillPackage,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                actions: value.actions?,
+                package_hash: value.package_hash?,
+                package_id: value.package_id?,
+                schema_version: value.schema_version?,
+                skills: value.skills?,
+                source_identity_hash: value.source_identity_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSkillPackage> for BmadSkillPackage {
+        fn from(value: super::BmadSkillPackage) -> Self {
+            Self {
+                actions: Ok(value.actions),
+                package_hash: Ok(value.package_hash),
+                package_id: Ok(value.package_id),
+                schema_version: Ok(value.schema_version),
+                skills: Ok(value.skills),
+                source_identity_hash: Ok(value.source_identity_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSkillPackageAction {
+        action_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        aliases: ::std::result::Result<
+            ::std::option::Option<Vec<super::BmadSkillPackageActionAliasesItem>>,
+            ::std::string::String,
+        >,
+        mode: ::std::result::Result<super::BmadSkillPackageActionMode, ::std::string::String>,
+        skill_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        visibility:
+            ::std::result::Result<super::BmadSkillPackageActionVisibility, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSkillPackageAction {
+        fn default() -> Self {
+            Self {
+                action_id: Err("no value supplied for action_id".to_string()),
+                aliases: Ok(Default::default()),
+                mode: Err("no value supplied for mode".to_string()),
+                skill_id: Err("no value supplied for skill_id".to_string()),
+                visibility: Err("no value supplied for visibility".to_string()),
+            }
+        }
+    }
+    impl BmadSkillPackageAction {
+        pub fn action_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.action_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for action_id: {e}"));
+            self
+        }
+        pub fn aliases<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<Vec<super::BmadSkillPackageActionAliasesItem>>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.aliases = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for aliases: {e}"));
+            self
+        }
+        pub fn mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSkillPackageActionMode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for mode: {e}"));
+            self
+        }
+        pub fn skill_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.skill_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for skill_id: {e}"));
+            self
+        }
+        pub fn visibility<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSkillPackageActionVisibility>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.visibility = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for visibility: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSkillPackageAction> for super::BmadSkillPackageAction {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSkillPackageAction,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                action_id: value.action_id?,
+                aliases: value.aliases?,
+                mode: value.mode?,
+                skill_id: value.skill_id?,
+                visibility: value.visibility?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSkillPackageAction> for BmadSkillPackageAction {
+        fn from(value: super::BmadSkillPackageAction) -> Self {
+            Self {
+                action_id: Ok(value.action_id),
+                aliases: Ok(value.aliases),
+                mode: Ok(value.mode),
+                skill_id: Ok(value.skill_id),
+                visibility: Ok(value.visibility),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSkillPackageSkill {
+        entrypoint:
+            ::std::result::Result<super::BmadSkillPackageSkillEntrypoint, ::std::string::String>,
+        instruction_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        name: ::std::result::Result<super::BmadSkillPackageSkillName, ::std::string::String>,
+        profile: ::std::result::Result<super::BmadSkillPackageSkillProfile, ::std::string::String>,
+        skill_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSkillPackageSkill {
+        fn default() -> Self {
+            Self {
+                entrypoint: Err("no value supplied for entrypoint".to_string()),
+                instruction_hash: Err("no value supplied for instruction_hash".to_string()),
+                name: Err("no value supplied for name".to_string()),
+                profile: Err("no value supplied for profile".to_string()),
+                skill_id: Err("no value supplied for skill_id".to_string()),
+            }
+        }
+    }
+    impl BmadSkillPackageSkill {
+        pub fn entrypoint<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSkillPackageSkillEntrypoint>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.entrypoint = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for entrypoint: {e}"));
+            self
+        }
+        pub fn instruction_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.instruction_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for instruction_hash: {e}"));
+            self
+        }
+        pub fn name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSkillPackageSkillName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for name: {e}"));
+            self
+        }
+        pub fn profile<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSkillPackageSkillProfile>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.profile = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for profile: {e}"));
+            self
+        }
+        pub fn skill_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.skill_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for skill_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSkillPackageSkill> for super::BmadSkillPackageSkill {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSkillPackageSkill,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                entrypoint: value.entrypoint?,
+                instruction_hash: value.instruction_hash?,
+                name: value.name?,
+                profile: value.profile?,
+                skill_id: value.skill_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSkillPackageSkill> for BmadSkillPackageSkill {
+        fn from(value: super::BmadSkillPackageSkill) -> Self {
+            Self {
+                entrypoint: Ok(value.entrypoint),
+                instruction_hash: Ok(value.instruction_hash),
+                name: Ok(value.name),
+                profile: Ok(value.profile),
+                skill_id: Ok(value.skill_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSourceAccounting {
+        accounting_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        rows: ::std::result::Result<
+            ::std::vec::Vec<super::BmadSourceAccountingAccountingRow>,
+            ::std::string::String,
+        >,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        source_identity_hashes:
+            ::std::result::Result<Vec<super::CommonSha256>, ::std::string::String>,
+        summary: ::std::result::Result<
+            super::BmadSourceAccountingAccountingSummary,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadSourceAccounting {
+        fn default() -> Self {
+            Self {
+                accounting_hash: Err("no value supplied for accounting_hash".to_string()),
+                rows: Err("no value supplied for rows".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                source_identity_hashes: Err(
+                    "no value supplied for source_identity_hashes".to_string()
+                ),
+                summary: Err("no value supplied for summary".to_string()),
+            }
+        }
+    }
+    impl BmadSourceAccounting {
+        pub fn accounting_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.accounting_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for accounting_hash: {e}"));
+            self
+        }
+        pub fn rows<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadSourceAccountingAccountingRow>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.rows = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for rows: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn source_identity_hashes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<Vec<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_identity_hashes = value.try_into().map_err(|e| {
+                format!("error converting supplied value for source_identity_hashes: {e}")
+            });
+            self
+        }
+        pub fn summary<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSourceAccountingAccountingSummary>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.summary = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for summary: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSourceAccounting> for super::BmadSourceAccounting {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSourceAccounting,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                accounting_hash: value.accounting_hash?,
+                rows: value.rows?,
+                schema_version: value.schema_version?,
+                source_identity_hashes: value.source_identity_hashes?,
+                summary: value.summary?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSourceAccounting> for BmadSourceAccounting {
+        fn from(value: super::BmadSourceAccounting) -> Self {
+            Self {
+                accounting_hash: Ok(value.accounting_hash),
+                rows: Ok(value.rows),
+                schema_version: Ok(value.schema_version),
+                source_identity_hashes: Ok(value.source_identity_hashes),
+                summary: Ok(value.summary),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSourceAccountingAccountingRow {
+        classification: ::std::result::Result<
+            super::BmadSourceAccountingAccountingRowClassification,
+            ::std::string::String,
+        >,
+        disposition: ::std::result::Result<
+            super::BmadSourceAccountingAccountingRowDisposition,
+            ::std::string::String,
+        >,
+        member_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        member_path: ::std::result::Result<
+            super::BmadSourceAccountingAccountingRowMemberPath,
+            ::std::string::String,
+        >,
+        reason: ::std::result::Result<
+            ::std::option::Option<super::BmadSourceAccountingAccountingRowReason>,
+            ::std::string::String,
+        >,
+        source: ::std::result::Result<
+            super::BmadSourceAccountingAccountingRowSource,
+            ::std::string::String,
+        >,
+        target_task: ::std::result::Result<
+            super::BmadSourceAccountingAccountingRowTargetTask,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadSourceAccountingAccountingRow {
+        fn default() -> Self {
+            Self {
+                classification: Err("no value supplied for classification".to_string()),
+                disposition: Err("no value supplied for disposition".to_string()),
+                member_hash: Err("no value supplied for member_hash".to_string()),
+                member_path: Err("no value supplied for member_path".to_string()),
+                reason: Ok(Default::default()),
+                source: Err("no value supplied for source".to_string()),
+                target_task: Err("no value supplied for target_task".to_string()),
+            }
+        }
+    }
+    impl BmadSourceAccountingAccountingRow {
+        pub fn classification<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSourceAccountingAccountingRowClassification>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.classification = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for classification: {e}"));
+            self
+        }
+        pub fn disposition<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSourceAccountingAccountingRowDisposition>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.disposition = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for disposition: {e}"));
+            self
+        }
+        pub fn member_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.member_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for member_hash: {e}"));
+            self
+        }
+        pub fn member_path<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSourceAccountingAccountingRowMemberPath>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.member_path = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for member_path: {e}"));
+            self
+        }
+        pub fn reason<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadSourceAccountingAccountingRowReason>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reason = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reason: {e}"));
+            self
+        }
+        pub fn source<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSourceAccountingAccountingRowSource>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source: {e}"));
+            self
+        }
+        pub fn target_task<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSourceAccountingAccountingRowTargetTask>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.target_task = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for target_task: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSourceAccountingAccountingRow>
+        for super::BmadSourceAccountingAccountingRow
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSourceAccountingAccountingRow,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                classification: value.classification?,
+                disposition: value.disposition?,
+                member_hash: value.member_hash?,
+                member_path: value.member_path?,
+                reason: value.reason?,
+                source: value.source?,
+                target_task: value.target_task?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSourceAccountingAccountingRow>
+        for BmadSourceAccountingAccountingRow
+    {
+        fn from(value: super::BmadSourceAccountingAccountingRow) -> Self {
+            Self {
+                classification: Ok(value.classification),
+                disposition: Ok(value.disposition),
+                member_hash: Ok(value.member_hash),
+                member_path: Ok(value.member_path),
+                reason: Ok(value.reason),
+                source: Ok(value.source),
+                target_task: Ok(value.target_task),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSourceAccountingAccountingSummary {
+        builder_actions: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        builder_skills: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        member_count: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        primary_method_skills: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSourceAccountingAccountingSummary {
+        fn default() -> Self {
+            Self {
+                builder_actions: Err("no value supplied for builder_actions".to_string()),
+                builder_skills: Err("no value supplied for builder_skills".to_string()),
+                member_count: Err("no value supplied for member_count".to_string()),
+                primary_method_skills: Err(
+                    "no value supplied for primary_method_skills".to_string()
+                ),
+            }
+        }
+    }
+    impl BmadSourceAccountingAccountingSummary {
+        pub fn builder_actions<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.builder_actions = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for builder_actions: {e}"));
+            self
+        }
+        pub fn builder_skills<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.builder_skills = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for builder_skills: {e}"));
+            self
+        }
+        pub fn member_count<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.member_count = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for member_count: {e}"));
+            self
+        }
+        pub fn primary_method_skills<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.primary_method_skills = value.try_into().map_err(|e| {
+                format!("error converting supplied value for primary_method_skills: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSourceAccountingAccountingSummary>
+        for super::BmadSourceAccountingAccountingSummary
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSourceAccountingAccountingSummary,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                builder_actions: value.builder_actions?,
+                builder_skills: value.builder_skills?,
+                member_count: value.member_count?,
+                primary_method_skills: value.primary_method_skills?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSourceAccountingAccountingSummary>
+        for BmadSourceAccountingAccountingSummary
+    {
+        fn from(value: super::BmadSourceAccountingAccountingSummary) -> Self {
+            Self {
+                builder_actions: Ok(value.builder_actions),
+                builder_skills: Ok(value.builder_skills),
+                member_count: Ok(value.member_count),
+                primary_method_skills: Ok(value.primary_method_skills),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSourceIdentity {
+        archive_member_count: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        archive_sha256: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        extensions: ::std::result::Result<
+            ::std::option::Option<super::BmadSourceIdentityExtensionMapV1>,
+            ::std::string::String,
+        >,
+        identity_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        source: ::std::result::Result<super::BmadSourceIdentitySource, ::std::string::String>,
+        version: ::std::result::Result<super::BmadSourceIdentityVersion, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSourceIdentity {
+        fn default() -> Self {
+            Self {
+                archive_member_count: Err("no value supplied for archive_member_count".to_string()),
+                archive_sha256: Err("no value supplied for archive_sha256".to_string()),
+                extensions: Ok(Default::default()),
+                identity_hash: Err("no value supplied for identity_hash".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                source: Err("no value supplied for source".to_string()),
+                version: Err("no value supplied for version".to_string()),
+            }
+        }
+    }
+    impl BmadSourceIdentity {
+        pub fn archive_member_count<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.archive_member_count = value.try_into().map_err(|e| {
+                format!("error converting supplied value for archive_member_count: {e}")
+            });
+            self
+        }
+        pub fn archive_sha256<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.archive_sha256 = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for archive_sha256: {e}"));
+            self
+        }
+        pub fn extensions<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadSourceIdentityExtensionMapV1>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.extensions = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for extensions: {e}"));
+            self
+        }
+        pub fn identity_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.identity_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for identity_hash: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn source<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSourceIdentitySource>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source: {e}"));
+            self
+        }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSourceIdentityVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSourceIdentity> for super::BmadSourceIdentity {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSourceIdentity,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                archive_member_count: value.archive_member_count?,
+                archive_sha256: value.archive_sha256?,
+                extensions: value.extensions?,
+                identity_hash: value.identity_hash?,
+                schema_version: value.schema_version?,
+                source: value.source?,
+                version: value.version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSourceIdentity> for BmadSourceIdentity {
+        fn from(value: super::BmadSourceIdentity) -> Self {
+            Self {
+                archive_member_count: Ok(value.archive_member_count),
+                archive_sha256: Ok(value.archive_sha256),
+                extensions: Ok(value.extensions),
+                identity_hash: Ok(value.identity_hash),
+                schema_version: Ok(value.schema_version),
+                source: Ok(value.source),
+                version: Ok(value.version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadUpgrade {
+        contract: ::std::result::Result<super::BmadUpgradeContract, ::std::string::String>,
+        fixture_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        from_version: ::std::result::Result<super::BmadUpgradeFromVersion, ::std::string::String>,
+        migration_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        steps: ::std::result::Result<
+            ::std::vec::Vec<super::BmadUpgradeMigrationStep>,
+            ::std::string::String,
+        >,
+        strategy: ::std::result::Result<super::BmadUpgradeStrategy, ::std::string::String>,
+        to_version: ::std::result::Result<super::BmadUpgradeToVersion, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadUpgrade {
+        fn default() -> Self {
+            Self {
+                contract: Err("no value supplied for contract".to_string()),
+                fixture_hash: Err("no value supplied for fixture_hash".to_string()),
+                from_version: Err("no value supplied for from_version".to_string()),
+                migration_id: Err("no value supplied for migration_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                steps: Err("no value supplied for steps".to_string()),
+                strategy: Err("no value supplied for strategy".to_string()),
+                to_version: Err("no value supplied for to_version".to_string()),
+            }
+        }
+    }
+    impl BmadUpgrade {
+        pub fn contract<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadUpgradeContract>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.contract = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for contract: {e}"));
+            self
+        }
+        pub fn fixture_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.fixture_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for fixture_hash: {e}"));
+            self
+        }
+        pub fn from_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadUpgradeFromVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.from_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for from_version: {e}"));
+            self
+        }
+        pub fn migration_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.migration_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for migration_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn steps<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadUpgradeMigrationStep>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.steps = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for steps: {e}"));
+            self
+        }
+        pub fn strategy<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadUpgradeStrategy>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.strategy = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for strategy: {e}"));
+            self
+        }
+        pub fn to_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadUpgradeToVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.to_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for to_version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadUpgrade> for super::BmadUpgrade {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadUpgrade,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                contract: value.contract?,
+                fixture_hash: value.fixture_hash?,
+                from_version: value.from_version?,
+                migration_id: value.migration_id?,
+                schema_version: value.schema_version?,
+                steps: value.steps?,
+                strategy: value.strategy?,
+                to_version: value.to_version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadUpgrade> for BmadUpgrade {
+        fn from(value: super::BmadUpgrade) -> Self {
+            Self {
+                contract: Ok(value.contract),
+                fixture_hash: Ok(value.fixture_hash),
+                from_version: Ok(value.from_version),
+                migration_id: Ok(value.migration_id),
+                schema_version: Ok(value.schema_version),
+                steps: Ok(value.steps),
+                strategy: Ok(value.strategy),
+                to_version: Ok(value.to_version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadUpgradeMigrationStep {
+        operation:
+            ::std::result::Result<super::BmadUpgradeMigrationStepOperation, ::std::string::String>,
+        ordinal: ::std::result::Result<i64, ::std::string::String>,
+        path: ::std::result::Result<super::BmadUpgradeMigrationStepPath, ::std::string::String>,
+        value_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadUpgradeMigrationStep {
+        fn default() -> Self {
+            Self {
+                operation: Err("no value supplied for operation".to_string()),
+                ordinal: Err("no value supplied for ordinal".to_string()),
+                path: Err("no value supplied for path".to_string()),
+                value_hash: Err("no value supplied for value_hash".to_string()),
+            }
+        }
+    }
+    impl BmadUpgradeMigrationStep {
+        pub fn operation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadUpgradeMigrationStepOperation>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.operation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for operation: {e}"));
+            self
+        }
+        pub fn ordinal<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.ordinal = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for ordinal: {e}"));
+            self
+        }
+        pub fn path<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadUpgradeMigrationStepPath>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.path = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for path: {e}"));
+            self
+        }
+        pub fn value_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.value_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for value_hash: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadUpgradeMigrationStep> for super::BmadUpgradeMigrationStep {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadUpgradeMigrationStep,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                operation: value.operation?,
+                ordinal: value.ordinal?,
+                path: value.path?,
+                value_hash: value.value_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadUpgradeMigrationStep> for BmadUpgradeMigrationStep {
+        fn from(value: super::BmadUpgradeMigrationStep) -> Self {
+            Self {
+                operation: Ok(value.operation),
+                ordinal: Ok(value.ordinal),
+                path: Ok(value.path),
+                value_hash: Ok(value.value_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
     pub struct BmadValidationReport {
         dependencies: ::std::result::Result<
             ::std::vec::Vec<super::BmadValidationReportBmadValidationDependency>,
@@ -52295,6 +71015,206 @@ pub mod builder {
                 model_profile_hash: Ok(value.model_profile_hash),
                 result_hash: Ok(value.result_hash),
                 schema_hash: Ok(value.schema_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BuilderAuthoringObjectBuilderAuthoringV2 {
+        action: ::std::result::Result<
+            super::BuilderAuthoringObjectBuilderAuthoringV2Action,
+            ::std::string::String,
+        >,
+        agent_profile: ::std::result::Result<
+            super::BuilderAuthoringObjectBuilderAuthoringV2AgentProfile,
+            ::std::string::String,
+        >,
+        builder_kind: ::std::result::Result<
+            super::BuilderAuthoringObjectBuilderAuthoringV2BuilderKind,
+            ::std::string::String,
+        >,
+        lifecycle: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        migration:
+            ::std::result::Result<::std::option::Option<super::BmadUpgrade>, ::std::string::String>,
+        mode: ::std::result::Result<
+            super::BuilderAuthoringObjectBuilderAuthoringV2Mode,
+            ::std::string::String,
+        >,
+        object_kind: ::std::result::Result<
+            super::BuilderAuthoringObjectBuilderAuthoringV2ObjectKind,
+            ::std::string::String,
+        >,
+        payload_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        record_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        source_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for BuilderAuthoringObjectBuilderAuthoringV2 {
+        fn default() -> Self {
+            Self {
+                action: Err("no value supplied for action".to_string()),
+                agent_profile: Err("no value supplied for agent_profile".to_string()),
+                builder_kind: Err("no value supplied for builder_kind".to_string()),
+                lifecycle: Err("no value supplied for lifecycle".to_string()),
+                migration: Ok(Default::default()),
+                mode: Err("no value supplied for mode".to_string()),
+                object_kind: Err("no value supplied for object_kind".to_string()),
+                payload_hash: Err("no value supplied for payload_hash".to_string()),
+                record_id: Err("no value supplied for record_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                source_hash: Err("no value supplied for source_hash".to_string()),
+            }
+        }
+    }
+    impl BuilderAuthoringObjectBuilderAuthoringV2 {
+        pub fn action<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderAuthoringObjectBuilderAuthoringV2Action>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.action = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for action: {e}"));
+            self
+        }
+        pub fn agent_profile<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderAuthoringObjectBuilderAuthoringV2AgentProfile>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.agent_profile = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for agent_profile: {e}"));
+            self
+        }
+        pub fn builder_kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderAuthoringObjectBuilderAuthoringV2BuilderKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.builder_kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for builder_kind: {e}"));
+            self
+        }
+        pub fn lifecycle<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.lifecycle = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for lifecycle: {e}"));
+            self
+        }
+        pub fn migration<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadUpgrade>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.migration = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for migration: {e}"));
+            self
+        }
+        pub fn mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderAuthoringObjectBuilderAuthoringV2Mode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for mode: {e}"));
+            self
+        }
+        pub fn object_kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderAuthoringObjectBuilderAuthoringV2ObjectKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.object_kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for object_kind: {e}"));
+            self
+        }
+        pub fn payload_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.payload_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for payload_hash: {e}"));
+            self
+        }
+        pub fn record_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.record_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for record_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn source_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_hash: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BuilderAuthoringObjectBuilderAuthoringV2>
+        for super::BuilderAuthoringObjectBuilderAuthoringV2
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BuilderAuthoringObjectBuilderAuthoringV2,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                action: value.action?,
+                agent_profile: value.agent_profile?,
+                builder_kind: value.builder_kind?,
+                lifecycle: value.lifecycle?,
+                migration: value.migration?,
+                mode: value.mode?,
+                object_kind: value.object_kind?,
+                payload_hash: value.payload_hash?,
+                record_id: value.record_id?,
+                schema_version: value.schema_version?,
+                source_hash: value.source_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BuilderAuthoringObjectBuilderAuthoringV2>
+        for BuilderAuthoringObjectBuilderAuthoringV2
+    {
+        fn from(value: super::BuilderAuthoringObjectBuilderAuthoringV2) -> Self {
+            Self {
+                action: Ok(value.action),
+                agent_profile: Ok(value.agent_profile),
+                builder_kind: Ok(value.builder_kind),
+                lifecycle: Ok(value.lifecycle),
+                migration: Ok(value.migration),
+                mode: Ok(value.mode),
+                object_kind: Ok(value.object_kind),
+                payload_hash: Ok(value.payload_hash),
+                record_id: Ok(value.record_id),
+                schema_version: Ok(value.schema_version),
+                source_hash: Ok(value.source_hash),
             }
         }
     }
@@ -62035,6 +80955,502 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
+    pub struct ModelAccessCompatibility {
+        accepted_request_schema_versions: ::std::result::Result<
+            Vec<super::ModelAccessCompatibilityRequestSchemaVersion>,
+            ::std::string::String,
+        >,
+        adapter_direction: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        current_request_schema_version:
+            ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        historical_receipt_policy: ::std::result::Result<
+            super::ModelAccessCompatibilityHistoricalReceiptPolicy,
+            ::std::string::String,
+        >,
+        legacy_profile: ::std::result::Result<
+            super::ModelAccessCompatibilityLegacyProfileBinding,
+            ::std::string::String,
+        >,
+        minimum_desktop_contract_epoch:
+            ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        rejection_reasons: ::std::result::Result<
+            Vec<super::ModelAccessCompatibilityLegacyRejectionReason>,
+            ::std::string::String,
+        >,
+        removal_gate: ::std::result::Result<
+            super::ModelAccessCompatibilityLegacyRemovalGate,
+            ::std::string::String,
+        >,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessCompatibility {
+        fn default() -> Self {
+            Self {
+                accepted_request_schema_versions: Err(
+                    "no value supplied for accepted_request_schema_versions".to_string(),
+                ),
+                adapter_direction: Err("no value supplied for adapter_direction".to_string()),
+                current_request_schema_version: Err(
+                    "no value supplied for current_request_schema_version".to_string(),
+                ),
+                historical_receipt_policy: Err(
+                    "no value supplied for historical_receipt_policy".to_string()
+                ),
+                legacy_profile: Err("no value supplied for legacy_profile".to_string()),
+                minimum_desktop_contract_epoch: Err(
+                    "no value supplied for minimum_desktop_contract_epoch".to_string(),
+                ),
+                rejection_reasons: Err("no value supplied for rejection_reasons".to_string()),
+                removal_gate: Err("no value supplied for removal_gate".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+            }
+        }
+    }
+    impl ModelAccessCompatibility {
+        pub fn accepted_request_schema_versions<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<Vec<super::ModelAccessCompatibilityRequestSchemaVersion>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.accepted_request_schema_versions = value.try_into().map_err(|e| {
+                format!("error converting supplied value for accepted_request_schema_versions: {e}")
+            });
+            self
+        }
+        pub fn adapter_direction<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.adapter_direction = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for adapter_direction: {e}"));
+            self
+        }
+        pub fn current_request_schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.current_request_schema_version = value.try_into().map_err(|e| {
+                format!("error converting supplied value for current_request_schema_version: {e}")
+            });
+            self
+        }
+        pub fn historical_receipt_policy<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessCompatibilityHistoricalReceiptPolicy>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.historical_receipt_policy = value.try_into().map_err(|e| {
+                format!("error converting supplied value for historical_receipt_policy: {e}")
+            });
+            self
+        }
+        pub fn legacy_profile<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessCompatibilityLegacyProfileBinding>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.legacy_profile = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for legacy_profile: {e}"));
+            self
+        }
+        pub fn minimum_desktop_contract_epoch<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.minimum_desktop_contract_epoch = value.try_into().map_err(|e| {
+                format!("error converting supplied value for minimum_desktop_contract_epoch: {e}")
+            });
+            self
+        }
+        pub fn rejection_reasons<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<Vec<super::ModelAccessCompatibilityLegacyRejectionReason>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.rejection_reasons = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for rejection_reasons: {e}"));
+            self
+        }
+        pub fn removal_gate<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessCompatibilityLegacyRemovalGate>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.removal_gate = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for removal_gate: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessCompatibility> for super::ModelAccessCompatibility {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessCompatibility,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                accepted_request_schema_versions: value.accepted_request_schema_versions?,
+                adapter_direction: value.adapter_direction?,
+                current_request_schema_version: value.current_request_schema_version?,
+                historical_receipt_policy: value.historical_receipt_policy?,
+                legacy_profile: value.legacy_profile?,
+                minimum_desktop_contract_epoch: value.minimum_desktop_contract_epoch?,
+                rejection_reasons: value.rejection_reasons?,
+                removal_gate: value.removal_gate?,
+                schema_version: value.schema_version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessCompatibility> for ModelAccessCompatibility {
+        fn from(value: super::ModelAccessCompatibility) -> Self {
+            Self {
+                accepted_request_schema_versions: Ok(value.accepted_request_schema_versions),
+                adapter_direction: Ok(value.adapter_direction),
+                current_request_schema_version: Ok(value.current_request_schema_version),
+                historical_receipt_policy: Ok(value.historical_receipt_policy),
+                legacy_profile: Ok(value.legacy_profile),
+                minimum_desktop_contract_epoch: Ok(value.minimum_desktop_contract_epoch),
+                rejection_reasons: Ok(value.rejection_reasons),
+                removal_gate: Ok(value.removal_gate),
+                schema_version: Ok(value.schema_version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessCompatibilityHistoricalReceiptPolicy {
+        digest_purpose: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        reverification_required: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        verifiable_receipt_schema_versions: ::std::result::Result<
+            Vec<super::ModelAccessCompatibilityReceiptSchemaVersion>,
+            ::std::string::String,
+        >,
+        version1_digest_unchanged:
+            ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessCompatibilityHistoricalReceiptPolicy {
+        fn default() -> Self {
+            Self {
+                digest_purpose: Err("no value supplied for digest_purpose".to_string()),
+                reverification_required: Err(
+                    "no value supplied for reverification_required".to_string()
+                ),
+                verifiable_receipt_schema_versions: Err(
+                    "no value supplied for verifiable_receipt_schema_versions".to_string(),
+                ),
+                version1_digest_unchanged: Err(
+                    "no value supplied for version1_digest_unchanged".to_string()
+                ),
+            }
+        }
+    }
+    impl ModelAccessCompatibilityHistoricalReceiptPolicy {
+        pub fn digest_purpose<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.digest_purpose = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for digest_purpose: {e}"));
+            self
+        }
+        pub fn reverification_required<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reverification_required = value.try_into().map_err(|e| {
+                format!("error converting supplied value for reverification_required: {e}")
+            });
+            self
+        }
+        pub fn verifiable_receipt_schema_versions<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<Vec<super::ModelAccessCompatibilityReceiptSchemaVersion>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.verifiable_receipt_schema_versions = value.try_into().map_err(|e| {
+                format!(
+                    "error converting supplied value for verifiable_receipt_schema_versions: {e}"
+                )
+            });
+            self
+        }
+        pub fn version1_digest_unchanged<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version1_digest_unchanged = value.try_into().map_err(|e| {
+                format!("error converting supplied value for version1_digest_unchanged: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessCompatibilityHistoricalReceiptPolicy>
+        for super::ModelAccessCompatibilityHistoricalReceiptPolicy
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessCompatibilityHistoricalReceiptPolicy,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                digest_purpose: value.digest_purpose?,
+                reverification_required: value.reverification_required?,
+                verifiable_receipt_schema_versions: value.verifiable_receipt_schema_versions?,
+                version1_digest_unchanged: value.version1_digest_unchanged?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessCompatibilityHistoricalReceiptPolicy>
+        for ModelAccessCompatibilityHistoricalReceiptPolicy
+    {
+        fn from(value: super::ModelAccessCompatibilityHistoricalReceiptPolicy) -> Self {
+            Self {
+                digest_purpose: Ok(value.digest_purpose),
+                reverification_required: Ok(value.reverification_required),
+                verifiable_receipt_schema_versions: Ok(value.verifiable_receipt_schema_versions),
+                version1_digest_unchanged: Ok(value.version1_digest_unchanged),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessCompatibilityLegacyProfileBinding {
+        client_selectable: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        deployment_resolution: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        display_name: ::std::result::Result<
+            super::ModelAccessCompatibilityLegacyProfileBindingDisplayName,
+            ::std::string::String,
+        >,
+        profile_id: ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        request_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        requires_catalog_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        variant_policy: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessCompatibilityLegacyProfileBinding {
+        fn default() -> Self {
+            Self {
+                client_selectable: Err("no value supplied for client_selectable".to_string()),
+                deployment_resolution: Err(
+                    "no value supplied for deployment_resolution".to_string()
+                ),
+                display_name: Err("no value supplied for display_name".to_string()),
+                profile_id: Err("no value supplied for profile_id".to_string()),
+                request_mode: Err("no value supplied for request_mode".to_string()),
+                requires_catalog_version: Err(
+                    "no value supplied for requires_catalog_version".to_string()
+                ),
+                variant_policy: Err("no value supplied for variant_policy".to_string()),
+            }
+        }
+    }
+    impl ModelAccessCompatibilityLegacyProfileBinding {
+        pub fn client_selectable<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.client_selectable = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for client_selectable: {e}"));
+            self
+        }
+        pub fn deployment_resolution<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.deployment_resolution = value.try_into().map_err(|e| {
+                format!("error converting supplied value for deployment_resolution: {e}")
+            });
+            self
+        }
+        pub fn display_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                super::ModelAccessCompatibilityLegacyProfileBindingDisplayName,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.display_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for display_name: {e}"));
+            self
+        }
+        pub fn profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.profile_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for profile_id: {e}"));
+            self
+        }
+        pub fn request_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_mode: {e}"));
+            self
+        }
+        pub fn requires_catalog_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.requires_catalog_version = value.try_into().map_err(|e| {
+                format!("error converting supplied value for requires_catalog_version: {e}")
+            });
+            self
+        }
+        pub fn variant_policy<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.variant_policy = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for variant_policy: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessCompatibilityLegacyProfileBinding>
+        for super::ModelAccessCompatibilityLegacyProfileBinding
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessCompatibilityLegacyProfileBinding,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                client_selectable: value.client_selectable?,
+                deployment_resolution: value.deployment_resolution?,
+                display_name: value.display_name?,
+                profile_id: value.profile_id?,
+                request_mode: value.request_mode?,
+                requires_catalog_version: value.requires_catalog_version?,
+                variant_policy: value.variant_policy?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessCompatibilityLegacyProfileBinding>
+        for ModelAccessCompatibilityLegacyProfileBinding
+    {
+        fn from(value: super::ModelAccessCompatibilityLegacyProfileBinding) -> Self {
+            Self {
+                client_selectable: Ok(value.client_selectable),
+                deployment_resolution: Ok(value.deployment_resolution),
+                display_name: Ok(value.display_name),
+                profile_id: Ok(value.profile_id),
+                request_mode: Ok(value.request_mode),
+                requires_catalog_version: Ok(value.requires_catalog_version),
+                variant_policy: Ok(value.variant_policy),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessCompatibilityLegacyRemovalGate {
+        conditions: ::std::result::Result<
+            Vec<super::ModelAccessCompatibilityLegacyRemovalCondition>,
+            ::std::string::String,
+        >,
+        minimum_desktop_version: ::std::result::Result<
+            super::ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion,
+            ::std::string::String,
+        >,
+        removal_contract_epoch: ::std::result::Result<i64, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessCompatibilityLegacyRemovalGate {
+        fn default() -> Self {
+            Self {
+                conditions: Err("no value supplied for conditions".to_string()),
+                minimum_desktop_version: Err(
+                    "no value supplied for minimum_desktop_version".to_string()
+                ),
+                removal_contract_epoch: Err(
+                    "no value supplied for removal_contract_epoch".to_string()
+                ),
+            }
+        }
+    }
+    impl ModelAccessCompatibilityLegacyRemovalGate {
+        pub fn conditions<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<Vec<super::ModelAccessCompatibilityLegacyRemovalCondition>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.conditions = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for conditions: {e}"));
+            self
+        }
+        pub fn minimum_desktop_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                super::ModelAccessCompatibilityLegacyRemovalGateMinimumDesktopVersion,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.minimum_desktop_version = value.try_into().map_err(|e| {
+                format!("error converting supplied value for minimum_desktop_version: {e}")
+            });
+            self
+        }
+        pub fn removal_contract_epoch<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.removal_contract_epoch = value.try_into().map_err(|e| {
+                format!("error converting supplied value for removal_contract_epoch: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessCompatibilityLegacyRemovalGate>
+        for super::ModelAccessCompatibilityLegacyRemovalGate
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessCompatibilityLegacyRemovalGate,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                conditions: value.conditions?,
+                minimum_desktop_version: value.minimum_desktop_version?,
+                removal_contract_epoch: value.removal_contract_epoch?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessCompatibilityLegacyRemovalGate>
+        for ModelAccessCompatibilityLegacyRemovalGate
+    {
+        fn from(value: super::ModelAccessCompatibilityLegacyRemovalGate) -> Self {
+            Self {
+                conditions: Ok(value.conditions),
+                minimum_desktop_version: Ok(value.minimum_desktop_version),
+                removal_contract_epoch: Ok(value.removal_contract_epoch),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
     pub struct ModelAccessReceipt {
         canonical_output_schema_hash:
             ::std::result::Result<super::CommonSha256, ::std::string::String>,
@@ -62900,6 +82316,1601 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
+    pub struct ModelAccessReceiptV2 {
+        catalog_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        catalog_version:
+            ::std::result::Result<super::ModelCatalogCatalogVersion, ::std::string::String>,
+        completed_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        consent_disclosure_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        consent_envelope_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        consumption_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        credential_binding_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        delivery_model: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        deployment_inventory_hash:
+            ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        fallback_events: ::std::result::Result<
+            ::std::vec::Vec<super::ModelAccessReceiptV2ModelFallbackEvent>,
+            ::std::string::String,
+        >,
+        input_bytes:
+            ::std::result::Result<super::ModelAccessReceiptV2SafeSize, ::std::string::String>,
+        invocation_binding_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        manifest_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_capability_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_profile_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        output_bytes:
+            ::std::result::Result<super::ModelAccessReceiptV2SafeSize, ::std::string::String>,
+        proof: ::std::result::Result<
+            super::ModelAccessReceiptV2SupportPlaneProof,
+            ::std::string::String,
+        >,
+        provider_profile_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        provider_request_id: ::std::result::Result<
+            ::std::option::Option<super::CommonOpaqueRef>,
+            ::std::string::String,
+        >,
+        receipt_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        receipt_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        region: ::std::result::Result<super::ModelAccessReceiptV2Region, ::std::string::String>,
+        registration_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        reported_response_model: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessReceiptV2ReportedModelName>,
+            ::std::string::String,
+        >,
+        request_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        requested_profile_id:
+            ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        requested_variant_id: ::std::result::Result<
+            ::std::option::Option<super::ModelProfileModelVariantId>,
+            ::std::string::String,
+        >,
+        resolved_deployment_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        resolved_model: ::std::result::Result<
+            super::ModelAccessReceiptV2ResolvedModelIdentity,
+            ::std::string::String,
+        >,
+        resolved_profile_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        resolved_profile_id:
+            ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        resolved_variant_id:
+            ::std::result::Result<super::ModelProfileModelVariantId, ::std::string::String>,
+        response_lane: ::std::result::Result<
+            super::ModelAccessReceiptV2ModelResponseLane,
+            ::std::string::String,
+        >,
+        result_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        retention_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        retry_count: ::std::result::Result<i64, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        started_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        subject_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        tenant_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        terminal_status: ::std::result::Result<
+            super::ModelAccessReceiptV2ModelTerminalStatus,
+            ::std::string::String,
+        >,
+        usage:
+            ::std::result::Result<super::ModelAccessReceiptV2ModelUsageV2, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessReceiptV2 {
+        fn default() -> Self {
+            Self {
+                catalog_hash: Err("no value supplied for catalog_hash".to_string()),
+                catalog_version: Err("no value supplied for catalog_version".to_string()),
+                completed_at: Err("no value supplied for completed_at".to_string()),
+                consent_disclosure_hash: Err(
+                    "no value supplied for consent_disclosure_hash".to_string()
+                ),
+                consent_envelope_hash: Err(
+                    "no value supplied for consent_envelope_hash".to_string()
+                ),
+                consumption_hash: Err("no value supplied for consumption_hash".to_string()),
+                credential_binding_hash: Err(
+                    "no value supplied for credential_binding_hash".to_string()
+                ),
+                delivery_model: Err("no value supplied for delivery_model".to_string()),
+                deployment_inventory_hash: Err(
+                    "no value supplied for deployment_inventory_hash".to_string()
+                ),
+                fallback_events: Err("no value supplied for fallback_events".to_string()),
+                input_bytes: Err("no value supplied for input_bytes".to_string()),
+                invocation_binding_hash: Err(
+                    "no value supplied for invocation_binding_hash".to_string()
+                ),
+                manifest_hash: Err("no value supplied for manifest_hash".to_string()),
+                model_capability_hash: Err(
+                    "no value supplied for model_capability_hash".to_string()
+                ),
+                model_profile_hash: Err("no value supplied for model_profile_hash".to_string()),
+                output_bytes: Err("no value supplied for output_bytes".to_string()),
+                proof: Err("no value supplied for proof".to_string()),
+                provider_profile_hash: Err(
+                    "no value supplied for provider_profile_hash".to_string()
+                ),
+                provider_request_id: Err("no value supplied for provider_request_id".to_string()),
+                receipt_hash: Err("no value supplied for receipt_hash".to_string()),
+                receipt_id: Err("no value supplied for receipt_id".to_string()),
+                region: Err("no value supplied for region".to_string()),
+                registration_id: Err("no value supplied for registration_id".to_string()),
+                reported_response_model: Err(
+                    "no value supplied for reported_response_model".to_string()
+                ),
+                request_hash: Err("no value supplied for request_hash".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                requested_profile_id: Err("no value supplied for requested_profile_id".to_string()),
+                requested_variant_id: Err("no value supplied for requested_variant_id".to_string()),
+                resolved_deployment_hash: Err(
+                    "no value supplied for resolved_deployment_hash".to_string()
+                ),
+                resolved_model: Err("no value supplied for resolved_model".to_string()),
+                resolved_profile_hash: Err(
+                    "no value supplied for resolved_profile_hash".to_string()
+                ),
+                resolved_profile_id: Err("no value supplied for resolved_profile_id".to_string()),
+                resolved_variant_id: Err("no value supplied for resolved_variant_id".to_string()),
+                response_lane: Err("no value supplied for response_lane".to_string()),
+                result_hash: Err("no value supplied for result_hash".to_string()),
+                retention_mode: Err("no value supplied for retention_mode".to_string()),
+                retry_count: Err("no value supplied for retry_count".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                started_at: Err("no value supplied for started_at".to_string()),
+                subject_hash: Err("no value supplied for subject_hash".to_string()),
+                tenant_hash: Err("no value supplied for tenant_hash".to_string()),
+                terminal_status: Err("no value supplied for terminal_status".to_string()),
+                usage: Err("no value supplied for usage".to_string()),
+            }
+        }
+    }
+    impl ModelAccessReceiptV2 {
+        pub fn catalog_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.catalog_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for catalog_hash: {e}"));
+            self
+        }
+        pub fn catalog_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogCatalogVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.catalog_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for catalog_version: {e}"));
+            self
+        }
+        pub fn completed_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.completed_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for completed_at: {e}"));
+            self
+        }
+        pub fn consent_disclosure_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consent_disclosure_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for consent_disclosure_hash: {e}")
+            });
+            self
+        }
+        pub fn consent_envelope_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consent_envelope_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for consent_envelope_hash: {e}")
+            });
+            self
+        }
+        pub fn consumption_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consumption_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for consumption_hash: {e}"));
+            self
+        }
+        pub fn credential_binding_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.credential_binding_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for credential_binding_hash: {e}")
+            });
+            self
+        }
+        pub fn delivery_model<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.delivery_model = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for delivery_model: {e}"));
+            self
+        }
+        pub fn deployment_inventory_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.deployment_inventory_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for deployment_inventory_hash: {e}")
+            });
+            self
+        }
+        pub fn fallback_events<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::vec::Vec<super::ModelAccessReceiptV2ModelFallbackEvent>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.fallback_events = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for fallback_events: {e}"));
+            self
+        }
+        pub fn input_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2SafeSize>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.input_bytes = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for input_bytes: {e}"));
+            self
+        }
+        pub fn invocation_binding_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.invocation_binding_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for invocation_binding_hash: {e}")
+            });
+            self
+        }
+        pub fn manifest_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.manifest_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for manifest_hash: {e}"));
+            self
+        }
+        pub fn model_capability_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_capability_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_capability_hash: {e}")
+            });
+            self
+        }
+        pub fn model_profile_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_profile_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_profile_hash: {e}")
+            });
+            self
+        }
+        pub fn output_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2SafeSize>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_bytes = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_bytes: {e}"));
+            self
+        }
+        pub fn proof<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2SupportPlaneProof>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.proof = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for proof: {e}"));
+            self
+        }
+        pub fn provider_profile_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provider_profile_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for provider_profile_hash: {e}")
+            });
+            self
+        }
+        pub fn provider_request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonOpaqueRef>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provider_request_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for provider_request_id: {e}")
+            });
+            self
+        }
+        pub fn receipt_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.receipt_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for receipt_hash: {e}"));
+            self
+        }
+        pub fn receipt_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.receipt_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for receipt_id: {e}"));
+            self
+        }
+        pub fn region<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2Region>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.region = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for region: {e}"));
+            self
+        }
+        pub fn registration_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.registration_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for registration_id: {e}"));
+            self
+        }
+        pub fn reported_response_model<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelAccessReceiptV2ReportedModelName>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reported_response_model = value.try_into().map_err(|e| {
+                format!("error converting supplied value for reported_response_model: {e}")
+            });
+            self
+        }
+        pub fn request_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_hash: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn requested_profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.requested_profile_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for requested_profile_id: {e}")
+            });
+            self
+        }
+        pub fn requested_variant_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelProfileModelVariantId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.requested_variant_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for requested_variant_id: {e}")
+            });
+            self
+        }
+        pub fn resolved_deployment_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_deployment_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for resolved_deployment_hash: {e}")
+            });
+            self
+        }
+        pub fn resolved_model<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2ResolvedModelIdentity>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_model = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for resolved_model: {e}"));
+            self
+        }
+        pub fn resolved_profile_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_profile_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for resolved_profile_hash: {e}")
+            });
+            self
+        }
+        pub fn resolved_profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_profile_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for resolved_profile_id: {e}")
+            });
+            self
+        }
+        pub fn resolved_variant_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelVariantId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_variant_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for resolved_variant_id: {e}")
+            });
+            self
+        }
+        pub fn response_lane<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2ModelResponseLane>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.response_lane = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for response_lane: {e}"));
+            self
+        }
+        pub fn result_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.result_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for result_hash: {e}"));
+            self
+        }
+        pub fn retention_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.retention_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for retention_mode: {e}"));
+            self
+        }
+        pub fn retry_count<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.retry_count = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for retry_count: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn started_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.started_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for started_at: {e}"));
+            self
+        }
+        pub fn subject_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.subject_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for subject_hash: {e}"));
+            self
+        }
+        pub fn tenant_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tenant_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tenant_hash: {e}"));
+            self
+        }
+        pub fn terminal_status<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2ModelTerminalStatus>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.terminal_status = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for terminal_status: {e}"));
+            self
+        }
+        pub fn usage<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2ModelUsageV2>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.usage = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for usage: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessReceiptV2> for super::ModelAccessReceiptV2 {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessReceiptV2,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                catalog_hash: value.catalog_hash?,
+                catalog_version: value.catalog_version?,
+                completed_at: value.completed_at?,
+                consent_disclosure_hash: value.consent_disclosure_hash?,
+                consent_envelope_hash: value.consent_envelope_hash?,
+                consumption_hash: value.consumption_hash?,
+                credential_binding_hash: value.credential_binding_hash?,
+                delivery_model: value.delivery_model?,
+                deployment_inventory_hash: value.deployment_inventory_hash?,
+                fallback_events: value.fallback_events?,
+                input_bytes: value.input_bytes?,
+                invocation_binding_hash: value.invocation_binding_hash?,
+                manifest_hash: value.manifest_hash?,
+                model_capability_hash: value.model_capability_hash?,
+                model_profile_hash: value.model_profile_hash?,
+                output_bytes: value.output_bytes?,
+                proof: value.proof?,
+                provider_profile_hash: value.provider_profile_hash?,
+                provider_request_id: value.provider_request_id?,
+                receipt_hash: value.receipt_hash?,
+                receipt_id: value.receipt_id?,
+                region: value.region?,
+                registration_id: value.registration_id?,
+                reported_response_model: value.reported_response_model?,
+                request_hash: value.request_hash?,
+                request_id: value.request_id?,
+                requested_profile_id: value.requested_profile_id?,
+                requested_variant_id: value.requested_variant_id?,
+                resolved_deployment_hash: value.resolved_deployment_hash?,
+                resolved_model: value.resolved_model?,
+                resolved_profile_hash: value.resolved_profile_hash?,
+                resolved_profile_id: value.resolved_profile_id?,
+                resolved_variant_id: value.resolved_variant_id?,
+                response_lane: value.response_lane?,
+                result_hash: value.result_hash?,
+                retention_mode: value.retention_mode?,
+                retry_count: value.retry_count?,
+                run_id: value.run_id?,
+                schema_version: value.schema_version?,
+                started_at: value.started_at?,
+                subject_hash: value.subject_hash?,
+                tenant_hash: value.tenant_hash?,
+                terminal_status: value.terminal_status?,
+                usage: value.usage?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessReceiptV2> for ModelAccessReceiptV2 {
+        fn from(value: super::ModelAccessReceiptV2) -> Self {
+            Self {
+                catalog_hash: Ok(value.catalog_hash),
+                catalog_version: Ok(value.catalog_version),
+                completed_at: Ok(value.completed_at),
+                consent_disclosure_hash: Ok(value.consent_disclosure_hash),
+                consent_envelope_hash: Ok(value.consent_envelope_hash),
+                consumption_hash: Ok(value.consumption_hash),
+                credential_binding_hash: Ok(value.credential_binding_hash),
+                delivery_model: Ok(value.delivery_model),
+                deployment_inventory_hash: Ok(value.deployment_inventory_hash),
+                fallback_events: Ok(value.fallback_events),
+                input_bytes: Ok(value.input_bytes),
+                invocation_binding_hash: Ok(value.invocation_binding_hash),
+                manifest_hash: Ok(value.manifest_hash),
+                model_capability_hash: Ok(value.model_capability_hash),
+                model_profile_hash: Ok(value.model_profile_hash),
+                output_bytes: Ok(value.output_bytes),
+                proof: Ok(value.proof),
+                provider_profile_hash: Ok(value.provider_profile_hash),
+                provider_request_id: Ok(value.provider_request_id),
+                receipt_hash: Ok(value.receipt_hash),
+                receipt_id: Ok(value.receipt_id),
+                region: Ok(value.region),
+                registration_id: Ok(value.registration_id),
+                reported_response_model: Ok(value.reported_response_model),
+                request_hash: Ok(value.request_hash),
+                request_id: Ok(value.request_id),
+                requested_profile_id: Ok(value.requested_profile_id),
+                requested_variant_id: Ok(value.requested_variant_id),
+                resolved_deployment_hash: Ok(value.resolved_deployment_hash),
+                resolved_model: Ok(value.resolved_model),
+                resolved_profile_hash: Ok(value.resolved_profile_hash),
+                resolved_profile_id: Ok(value.resolved_profile_id),
+                resolved_variant_id: Ok(value.resolved_variant_id),
+                response_lane: Ok(value.response_lane),
+                result_hash: Ok(value.result_hash),
+                retention_mode: Ok(value.retention_mode),
+                retry_count: Ok(value.retry_count),
+                run_id: Ok(value.run_id),
+                schema_version: Ok(value.schema_version),
+                started_at: Ok(value.started_at),
+                subject_hash: Ok(value.subject_hash),
+                tenant_hash: Ok(value.tenant_hash),
+                terminal_status: Ok(value.terminal_status),
+                usage: Ok(value.usage),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessReceiptV2ModelFallbackEvent {
+        from_profile_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        from_profile_id:
+            ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        policy_transition_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        sequence: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        to_profile_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        to_profile_id:
+            ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessReceiptV2ModelFallbackEvent {
+        fn default() -> Self {
+            Self {
+                from_profile_hash: Err("no value supplied for from_profile_hash".to_string()),
+                from_profile_id: Err("no value supplied for from_profile_id".to_string()),
+                policy_transition_hash: Err(
+                    "no value supplied for policy_transition_hash".to_string()
+                ),
+                sequence: Err("no value supplied for sequence".to_string()),
+                to_profile_hash: Err("no value supplied for to_profile_hash".to_string()),
+                to_profile_id: Err("no value supplied for to_profile_id".to_string()),
+            }
+        }
+    }
+    impl ModelAccessReceiptV2ModelFallbackEvent {
+        pub fn from_profile_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.from_profile_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for from_profile_hash: {e}"));
+            self
+        }
+        pub fn from_profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.from_profile_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for from_profile_id: {e}"));
+            self
+        }
+        pub fn policy_transition_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.policy_transition_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for policy_transition_hash: {e}")
+            });
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn to_profile_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.to_profile_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for to_profile_hash: {e}"));
+            self
+        }
+        pub fn to_profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.to_profile_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for to_profile_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessReceiptV2ModelFallbackEvent>
+        for super::ModelAccessReceiptV2ModelFallbackEvent
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessReceiptV2ModelFallbackEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                from_profile_hash: value.from_profile_hash?,
+                from_profile_id: value.from_profile_id?,
+                policy_transition_hash: value.policy_transition_hash?,
+                sequence: value.sequence?,
+                to_profile_hash: value.to_profile_hash?,
+                to_profile_id: value.to_profile_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessReceiptV2ModelFallbackEvent>
+        for ModelAccessReceiptV2ModelFallbackEvent
+    {
+        fn from(value: super::ModelAccessReceiptV2ModelFallbackEvent) -> Self {
+            Self {
+                from_profile_hash: Ok(value.from_profile_hash),
+                from_profile_id: Ok(value.from_profile_id),
+                policy_transition_hash: Ok(value.policy_transition_hash),
+                sequence: Ok(value.sequence),
+                to_profile_hash: Ok(value.to_profile_hash),
+                to_profile_id: Ok(value.to_profile_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessReceiptV2ReportedUsage {
+        cache_read_tokens: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            ::std::string::String,
+        >,
+        cache_write_tokens: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            ::std::string::String,
+        >,
+        cost_microunits: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessReceiptV2SafeSize>,
+            ::std::string::String,
+        >,
+        currency: ::std::result::Result<
+            super::ModelAccessReceiptV2ReportedUsageCurrency,
+            ::std::string::String,
+        >,
+        input_tokens: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            ::std::string::String,
+        >,
+        output_tokens: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            ::std::string::String,
+        >,
+        price_profile_version: ::std::result::Result<
+            super::ModelAccessReceiptV2ReportedUsagePriceProfileVersion,
+            ::std::string::String,
+        >,
+        reasoning_tokens: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            ::std::string::String,
+        >,
+        usage_provenance: ::std::result::Result<
+            super::ModelAccessReceiptV2ReportedUsageUsageProvenance,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelAccessReceiptV2ReportedUsage {
+        fn default() -> Self {
+            Self {
+                cache_read_tokens: Err("no value supplied for cache_read_tokens".to_string()),
+                cache_write_tokens: Err("no value supplied for cache_write_tokens".to_string()),
+                cost_microunits: Err("no value supplied for cost_microunits".to_string()),
+                currency: Err("no value supplied for currency".to_string()),
+                input_tokens: Err("no value supplied for input_tokens".to_string()),
+                output_tokens: Err("no value supplied for output_tokens".to_string()),
+                price_profile_version: Err(
+                    "no value supplied for price_profile_version".to_string()
+                ),
+                reasoning_tokens: Err("no value supplied for reasoning_tokens".to_string()),
+                usage_provenance: Err("no value supplied for usage_provenance".to_string()),
+            }
+        }
+    }
+    impl ModelAccessReceiptV2ReportedUsage {
+        pub fn cache_read_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cache_read_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for cache_read_tokens: {e}"));
+            self
+        }
+        pub fn cache_write_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cache_write_tokens = value.try_into().map_err(|e| {
+                format!("error converting supplied value for cache_write_tokens: {e}")
+            });
+            self
+        }
+        pub fn cost_microunits<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelAccessReceiptV2SafeSize>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cost_microunits = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for cost_microunits: {e}"));
+            self
+        }
+        pub fn currency<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2ReportedUsageCurrency>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.currency = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for currency: {e}"));
+            self
+        }
+        pub fn input_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.input_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for input_tokens: {e}"));
+            self
+        }
+        pub fn output_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_tokens: {e}"));
+            self
+        }
+        pub fn price_profile_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2ReportedUsagePriceProfileVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.price_profile_version = value.try_into().map_err(|e| {
+                format!("error converting supplied value for price_profile_version: {e}")
+            });
+            self
+        }
+        pub fn reasoning_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelAccessReceiptV2TokenCount>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reasoning_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reasoning_tokens: {e}"));
+            self
+        }
+        pub fn usage_provenance<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2ReportedUsageUsageProvenance>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.usage_provenance = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for usage_provenance: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessReceiptV2ReportedUsage>
+        for super::ModelAccessReceiptV2ReportedUsage
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessReceiptV2ReportedUsage,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                cache_read_tokens: value.cache_read_tokens?,
+                cache_write_tokens: value.cache_write_tokens?,
+                cost_microunits: value.cost_microunits?,
+                currency: value.currency?,
+                input_tokens: value.input_tokens?,
+                output_tokens: value.output_tokens?,
+                price_profile_version: value.price_profile_version?,
+                reasoning_tokens: value.reasoning_tokens?,
+                usage_provenance: value.usage_provenance?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessReceiptV2ReportedUsage>
+        for ModelAccessReceiptV2ReportedUsage
+    {
+        fn from(value: super::ModelAccessReceiptV2ReportedUsage) -> Self {
+            Self {
+                cache_read_tokens: Ok(value.cache_read_tokens),
+                cache_write_tokens: Ok(value.cache_write_tokens),
+                cost_microunits: Ok(value.cost_microunits),
+                currency: Ok(value.currency),
+                input_tokens: Ok(value.input_tokens),
+                output_tokens: Ok(value.output_tokens),
+                price_profile_version: Ok(value.price_profile_version),
+                reasoning_tokens: Ok(value.reasoning_tokens),
+                usage_provenance: Ok(value.usage_provenance),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessReceiptV2ResolvedModelIdentity {
+        name: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+        publisher: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+        version: ::std::result::Result<
+            super::FoundryDeploymentSnapshotModelIdentityPart,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelAccessReceiptV2ResolvedModelIdentity {
+        fn default() -> Self {
+            Self {
+                name: Err("no value supplied for name".to_string()),
+                publisher: Err("no value supplied for publisher".to_string()),
+                version: Err("no value supplied for version".to_string()),
+            }
+        }
+    }
+    impl ModelAccessReceiptV2ResolvedModelIdentity {
+        pub fn name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for name: {e}"));
+            self
+        }
+        pub fn publisher<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.publisher = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for publisher: {e}"));
+            self
+        }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::FoundryDeploymentSnapshotModelIdentityPart>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessReceiptV2ResolvedModelIdentity>
+        for super::ModelAccessReceiptV2ResolvedModelIdentity
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessReceiptV2ResolvedModelIdentity,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                name: value.name?,
+                publisher: value.publisher?,
+                version: value.version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessReceiptV2ResolvedModelIdentity>
+        for ModelAccessReceiptV2ResolvedModelIdentity
+    {
+        fn from(value: super::ModelAccessReceiptV2ResolvedModelIdentity) -> Self {
+            Self {
+                name: Ok(value.name),
+                publisher: Ok(value.publisher),
+                version: Ok(value.version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessReceiptV2StreamingChatLane {
+        event_count: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        final_sequence: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        request_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        support_route: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessReceiptV2StreamingChatLane {
+        fn default() -> Self {
+            Self {
+                event_count: Err("no value supplied for event_count".to_string()),
+                final_sequence: Err("no value supplied for final_sequence".to_string()),
+                request_mode: Err("no value supplied for request_mode".to_string()),
+                support_route: Err("no value supplied for support_route".to_string()),
+            }
+        }
+    }
+    impl ModelAccessReceiptV2StreamingChatLane {
+        pub fn event_count<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.event_count = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for event_count: {e}"));
+            self
+        }
+        pub fn final_sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.final_sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for final_sequence: {e}"));
+            self
+        }
+        pub fn request_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_mode: {e}"));
+            self
+        }
+        pub fn support_route<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.support_route = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for support_route: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessReceiptV2StreamingChatLane>
+        for super::ModelAccessReceiptV2StreamingChatLane
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessReceiptV2StreamingChatLane,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                event_count: value.event_count?,
+                final_sequence: value.final_sequence?,
+                request_mode: value.request_mode?,
+                support_route: value.support_route?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessReceiptV2StreamingChatLane>
+        for ModelAccessReceiptV2StreamingChatLane
+    {
+        fn from(value: super::ModelAccessReceiptV2StreamingChatLane) -> Self {
+            Self {
+                event_count: Ok(value.event_count),
+                final_sequence: Ok(value.final_sequence),
+                request_mode: Ok(value.request_mode),
+                support_route: Ok(value.support_route),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessReceiptV2StructuredResponseLane {
+        canonical_output_schema_hash:
+            ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        canonical_output_schema_id: ::std::result::Result<
+            super::ModelAccessReceiptV2CanonicalSchemaId,
+            ::std::string::String,
+        >,
+        provider_schema_projection_hash:
+            ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        request_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        support_route: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessReceiptV2StructuredResponseLane {
+        fn default() -> Self {
+            Self {
+                canonical_output_schema_hash: Err(
+                    "no value supplied for canonical_output_schema_hash".to_string(),
+                ),
+                canonical_output_schema_id: Err(
+                    "no value supplied for canonical_output_schema_id".to_string()
+                ),
+                provider_schema_projection_hash: Err(
+                    "no value supplied for provider_schema_projection_hash".to_string(),
+                ),
+                request_mode: Err("no value supplied for request_mode".to_string()),
+                support_route: Err("no value supplied for support_route".to_string()),
+            }
+        }
+    }
+    impl ModelAccessReceiptV2StructuredResponseLane {
+        pub fn canonical_output_schema_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.canonical_output_schema_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for canonical_output_schema_hash: {e}")
+            });
+            self
+        }
+        pub fn canonical_output_schema_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2CanonicalSchemaId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.canonical_output_schema_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for canonical_output_schema_id: {e}")
+            });
+            self
+        }
+        pub fn provider_schema_projection_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provider_schema_projection_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for provider_schema_projection_hash: {e}")
+            });
+            self
+        }
+        pub fn request_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_mode: {e}"));
+            self
+        }
+        pub fn support_route<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.support_route = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for support_route: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessReceiptV2StructuredResponseLane>
+        for super::ModelAccessReceiptV2StructuredResponseLane
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessReceiptV2StructuredResponseLane,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                canonical_output_schema_hash: value.canonical_output_schema_hash?,
+                canonical_output_schema_id: value.canonical_output_schema_id?,
+                provider_schema_projection_hash: value.provider_schema_projection_hash?,
+                request_mode: value.request_mode?,
+                support_route: value.support_route?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessReceiptV2StructuredResponseLane>
+        for ModelAccessReceiptV2StructuredResponseLane
+    {
+        fn from(value: super::ModelAccessReceiptV2StructuredResponseLane) -> Self {
+            Self {
+                canonical_output_schema_hash: Ok(value.canonical_output_schema_hash),
+                canonical_output_schema_id: Ok(value.canonical_output_schema_id),
+                provider_schema_projection_hash: Ok(value.provider_schema_projection_hash),
+                request_mode: Ok(value.request_mode),
+                support_route: Ok(value.support_route),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessReceiptV2SupportPlaneProof {
+        algorithm: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        audience: ::std::result::Result<
+            super::ModelAccessReceiptV2SupportPlaneProofAudience,
+            ::std::string::String,
+        >,
+        issuer: ::std::result::Result<
+            super::ModelAccessReceiptV2SupportPlaneProofIssuer,
+            ::std::string::String,
+        >,
+        key_id: ::std::result::Result<
+            super::ModelAccessReceiptV2SupportPlaneProofKeyId,
+            ::std::string::String,
+        >,
+        proof_type: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        signature: ::std::result::Result<
+            super::ModelAccessReceiptV2SupportPlaneProofSignature,
+            ::std::string::String,
+        >,
+        signed_payload_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessReceiptV2SupportPlaneProof {
+        fn default() -> Self {
+            Self {
+                algorithm: Err("no value supplied for algorithm".to_string()),
+                audience: Err("no value supplied for audience".to_string()),
+                issuer: Err("no value supplied for issuer".to_string()),
+                key_id: Err("no value supplied for key_id".to_string()),
+                proof_type: Err("no value supplied for proof_type".to_string()),
+                signature: Err("no value supplied for signature".to_string()),
+                signed_payload_hash: Err("no value supplied for signed_payload_hash".to_string()),
+            }
+        }
+    }
+    impl ModelAccessReceiptV2SupportPlaneProof {
+        pub fn algorithm<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.algorithm = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for algorithm: {e}"));
+            self
+        }
+        pub fn audience<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2SupportPlaneProofAudience>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.audience = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for audience: {e}"));
+            self
+        }
+        pub fn issuer<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2SupportPlaneProofIssuer>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.issuer = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for issuer: {e}"));
+            self
+        }
+        pub fn key_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2SupportPlaneProofKeyId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key_id: {e}"));
+            self
+        }
+        pub fn proof_type<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.proof_type = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for proof_type: {e}"));
+            self
+        }
+        pub fn signature<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2SupportPlaneProofSignature>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.signature = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for signature: {e}"));
+            self
+        }
+        pub fn signed_payload_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.signed_payload_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for signed_payload_hash: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessReceiptV2SupportPlaneProof>
+        for super::ModelAccessReceiptV2SupportPlaneProof
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessReceiptV2SupportPlaneProof,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                algorithm: value.algorithm?,
+                audience: value.audience?,
+                issuer: value.issuer?,
+                key_id: value.key_id?,
+                proof_type: value.proof_type?,
+                signature: value.signature?,
+                signed_payload_hash: value.signed_payload_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessReceiptV2SupportPlaneProof>
+        for ModelAccessReceiptV2SupportPlaneProof
+    {
+        fn from(value: super::ModelAccessReceiptV2SupportPlaneProof) -> Self {
+            Self {
+                algorithm: Ok(value.algorithm),
+                audience: Ok(value.audience),
+                issuer: Ok(value.issuer),
+                key_id: Ok(value.key_id),
+                proof_type: Ok(value.proof_type),
+                signature: Ok(value.signature),
+                signed_payload_hash: Ok(value.signed_payload_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessReceiptV2UnavailableUsage {
+        cache_read_tokens: ::std::result::Result<(), ::std::string::String>,
+        cache_write_tokens: ::std::result::Result<(), ::std::string::String>,
+        cost_microunits: ::std::result::Result<(), ::std::string::String>,
+        currency: ::std::result::Result<
+            super::ModelAccessReceiptV2UnavailableUsageCurrency,
+            ::std::string::String,
+        >,
+        input_tokens: ::std::result::Result<(), ::std::string::String>,
+        output_tokens: ::std::result::Result<(), ::std::string::String>,
+        price_profile_version: ::std::result::Result<
+            super::ModelAccessReceiptV2UnavailableUsagePriceProfileVersion,
+            ::std::string::String,
+        >,
+        reasoning_tokens: ::std::result::Result<(), ::std::string::String>,
+        usage_provenance: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessReceiptV2UnavailableUsage {
+        fn default() -> Self {
+            Self {
+                cache_read_tokens: Err("no value supplied for cache_read_tokens".to_string()),
+                cache_write_tokens: Err("no value supplied for cache_write_tokens".to_string()),
+                cost_microunits: Err("no value supplied for cost_microunits".to_string()),
+                currency: Err("no value supplied for currency".to_string()),
+                input_tokens: Err("no value supplied for input_tokens".to_string()),
+                output_tokens: Err("no value supplied for output_tokens".to_string()),
+                price_profile_version: Err(
+                    "no value supplied for price_profile_version".to_string()
+                ),
+                reasoning_tokens: Err("no value supplied for reasoning_tokens".to_string()),
+                usage_provenance: Err("no value supplied for usage_provenance".to_string()),
+            }
+        }
+    }
+    impl ModelAccessReceiptV2UnavailableUsage {
+        pub fn cache_read_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<()>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cache_read_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for cache_read_tokens: {e}"));
+            self
+        }
+        pub fn cache_write_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<()>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cache_write_tokens = value.try_into().map_err(|e| {
+                format!("error converting supplied value for cache_write_tokens: {e}")
+            });
+            self
+        }
+        pub fn cost_microunits<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<()>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cost_microunits = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for cost_microunits: {e}"));
+            self
+        }
+        pub fn currency<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2UnavailableUsageCurrency>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.currency = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for currency: {e}"));
+            self
+        }
+        pub fn input_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<()>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.input_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for input_tokens: {e}"));
+            self
+        }
+        pub fn output_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<()>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_tokens: {e}"));
+            self
+        }
+        pub fn price_profile_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                super::ModelAccessReceiptV2UnavailableUsagePriceProfileVersion,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.price_profile_version = value.try_into().map_err(|e| {
+                format!("error converting supplied value for price_profile_version: {e}")
+            });
+            self
+        }
+        pub fn reasoning_tokens<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<()>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reasoning_tokens = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reasoning_tokens: {e}"));
+            self
+        }
+        pub fn usage_provenance<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.usage_provenance = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for usage_provenance: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessReceiptV2UnavailableUsage>
+        for super::ModelAccessReceiptV2UnavailableUsage
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessReceiptV2UnavailableUsage,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                cache_read_tokens: value.cache_read_tokens?,
+                cache_write_tokens: value.cache_write_tokens?,
+                cost_microunits: value.cost_microunits?,
+                currency: value.currency?,
+                input_tokens: value.input_tokens?,
+                output_tokens: value.output_tokens?,
+                price_profile_version: value.price_profile_version?,
+                reasoning_tokens: value.reasoning_tokens?,
+                usage_provenance: value.usage_provenance?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessReceiptV2UnavailableUsage>
+        for ModelAccessReceiptV2UnavailableUsage
+    {
+        fn from(value: super::ModelAccessReceiptV2UnavailableUsage) -> Self {
+            Self {
+                cache_read_tokens: Ok(value.cache_read_tokens),
+                cache_write_tokens: Ok(value.cache_write_tokens),
+                cost_microunits: Ok(value.cost_microunits),
+                currency: Ok(value.currency),
+                input_tokens: Ok(value.input_tokens),
+                output_tokens: Ok(value.output_tokens),
+                price_profile_version: Ok(value.price_profile_version),
+                reasoning_tokens: Ok(value.reasoning_tokens),
+                usage_provenance: Ok(value.usage_provenance),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
     pub struct ModelAccessRequest {
         budget_class:
             ::std::result::Result<super::ModelAccessRequestBudgetClass, ::std::string::String>,
@@ -63277,6 +84288,1345 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
+    pub struct ModelAccessRequestV2 {
+        budget_class:
+            ::std::result::Result<super::ModelAccessRequestV2BudgetClass, ::std::string::String>,
+        canonical_output_schema_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
+            ::std::string::String,
+        >,
+        canonical_output_schema_id: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessRequestV2CanonicalSchemaId>,
+            ::std::string::String,
+        >,
+        catalog_version:
+            ::std::result::Result<super::ModelCatalogCatalogVersion, ::std::string::String>,
+        consent: ::std::result::Result<
+            super::ModelAccessRequestV2ModelContextConsentV2,
+            ::std::string::String,
+        >,
+        context_snapshot_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        delivery_model: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        items: ::std::result::Result<
+            ::std::vec::Vec<super::ModelAccessRequestV2ModelContextItem>,
+            ::std::string::String,
+        >,
+        local_egress_manifest_hash:
+            ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_capability_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_profile_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_profile_id:
+            ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        model_role:
+            ::std::result::Result<super::ModelAccessRequestV2ModelRole, ::std::string::String>,
+        purpose: ::std::result::Result<super::ModelAccessRequestV2Purpose, ::std::string::String>,
+        registration_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        request_mode:
+            ::std::result::Result<super::ModelProfileModelRequestMode, ::std::string::String>,
+        requested_variant_id: ::std::result::Result<
+            ::std::option::Option<super::ModelProfileModelVariantId>,
+            ::std::string::String,
+        >,
+        retention_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        tools: ::std::result::Result<
+            ::std::vec::Vec<super::ModelAccessRequestV2ModelToolDefinition>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelAccessRequestV2 {
+        fn default() -> Self {
+            Self {
+                budget_class: Err("no value supplied for budget_class".to_string()),
+                canonical_output_schema_hash: Err(
+                    "no value supplied for canonical_output_schema_hash".to_string(),
+                ),
+                canonical_output_schema_id: Err(
+                    "no value supplied for canonical_output_schema_id".to_string()
+                ),
+                catalog_version: Err("no value supplied for catalog_version".to_string()),
+                consent: Err("no value supplied for consent".to_string()),
+                context_snapshot_id: Err("no value supplied for context_snapshot_id".to_string()),
+                delivery_model: Err("no value supplied for delivery_model".to_string()),
+                items: Err("no value supplied for items".to_string()),
+                local_egress_manifest_hash: Err(
+                    "no value supplied for local_egress_manifest_hash".to_string()
+                ),
+                model_capability_hash: Err(
+                    "no value supplied for model_capability_hash".to_string()
+                ),
+                model_profile_hash: Err("no value supplied for model_profile_hash".to_string()),
+                model_profile_id: Err("no value supplied for model_profile_id".to_string()),
+                model_role: Err("no value supplied for model_role".to_string()),
+                purpose: Err("no value supplied for purpose".to_string()),
+                registration_id: Err("no value supplied for registration_id".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                request_mode: Err("no value supplied for request_mode".to_string()),
+                requested_variant_id: Err("no value supplied for requested_variant_id".to_string()),
+                retention_mode: Err("no value supplied for retention_mode".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                tools: Err("no value supplied for tools".to_string()),
+            }
+        }
+    }
+    impl ModelAccessRequestV2 {
+        pub fn budget_class<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2BudgetClass>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.budget_class = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for budget_class: {e}"));
+            self
+        }
+        pub fn canonical_output_schema_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.canonical_output_schema_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for canonical_output_schema_hash: {e}")
+            });
+            self
+        }
+        pub fn canonical_output_schema_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelAccessRequestV2CanonicalSchemaId>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.canonical_output_schema_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for canonical_output_schema_id: {e}")
+            });
+            self
+        }
+        pub fn catalog_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogCatalogVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.catalog_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for catalog_version: {e}"));
+            self
+        }
+        pub fn consent<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelContextConsentV2>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consent = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for consent: {e}"));
+            self
+        }
+        pub fn context_snapshot_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.context_snapshot_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for context_snapshot_id: {e}")
+            });
+            self
+        }
+        pub fn delivery_model<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.delivery_model = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for delivery_model: {e}"));
+            self
+        }
+        pub fn items<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::vec::Vec<super::ModelAccessRequestV2ModelContextItem>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.items = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for items: {e}"));
+            self
+        }
+        pub fn local_egress_manifest_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.local_egress_manifest_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for local_egress_manifest_hash: {e}")
+            });
+            self
+        }
+        pub fn model_capability_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_capability_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_capability_hash: {e}")
+            });
+            self
+        }
+        pub fn model_profile_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_profile_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_profile_hash: {e}")
+            });
+            self
+        }
+        pub fn model_profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_profile_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_profile_id: {e}"));
+            self
+        }
+        pub fn model_role<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelRole>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_role = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_role: {e}"));
+            self
+        }
+        pub fn purpose<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2Purpose>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.purpose = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for purpose: {e}"));
+            self
+        }
+        pub fn registration_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.registration_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for registration_id: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn request_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelRequestMode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_mode: {e}"));
+            self
+        }
+        pub fn requested_variant_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelProfileModelVariantId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.requested_variant_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for requested_variant_id: {e}")
+            });
+            self
+        }
+        pub fn retention_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.retention_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for retention_mode: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn tools<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::vec::Vec<super::ModelAccessRequestV2ModelToolDefinition>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tools = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tools: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessRequestV2> for super::ModelAccessRequestV2 {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessRequestV2,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                budget_class: value.budget_class?,
+                canonical_output_schema_hash: value.canonical_output_schema_hash?,
+                canonical_output_schema_id: value.canonical_output_schema_id?,
+                catalog_version: value.catalog_version?,
+                consent: value.consent?,
+                context_snapshot_id: value.context_snapshot_id?,
+                delivery_model: value.delivery_model?,
+                items: value.items?,
+                local_egress_manifest_hash: value.local_egress_manifest_hash?,
+                model_capability_hash: value.model_capability_hash?,
+                model_profile_hash: value.model_profile_hash?,
+                model_profile_id: value.model_profile_id?,
+                model_role: value.model_role?,
+                purpose: value.purpose?,
+                registration_id: value.registration_id?,
+                request_id: value.request_id?,
+                request_mode: value.request_mode?,
+                requested_variant_id: value.requested_variant_id?,
+                retention_mode: value.retention_mode?,
+                schema_version: value.schema_version?,
+                tools: value.tools?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessRequestV2> for ModelAccessRequestV2 {
+        fn from(value: super::ModelAccessRequestV2) -> Self {
+            Self {
+                budget_class: Ok(value.budget_class),
+                canonical_output_schema_hash: Ok(value.canonical_output_schema_hash),
+                canonical_output_schema_id: Ok(value.canonical_output_schema_id),
+                catalog_version: Ok(value.catalog_version),
+                consent: Ok(value.consent),
+                context_snapshot_id: Ok(value.context_snapshot_id),
+                delivery_model: Ok(value.delivery_model),
+                items: Ok(value.items),
+                local_egress_manifest_hash: Ok(value.local_egress_manifest_hash),
+                model_capability_hash: Ok(value.model_capability_hash),
+                model_profile_hash: Ok(value.model_profile_hash),
+                model_profile_id: Ok(value.model_profile_id),
+                model_role: Ok(value.model_role),
+                purpose: Ok(value.purpose),
+                registration_id: Ok(value.registration_id),
+                request_id: Ok(value.request_id),
+                request_mode: Ok(value.request_mode),
+                requested_variant_id: Ok(value.requested_variant_id),
+                retention_mode: Ok(value.retention_mode),
+                schema_version: Ok(value.schema_version),
+                tools: Ok(value.tools),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessRequestV2ConsentInstallationProof {
+        algorithm: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        key_id: ::std::result::Result<
+            super::ModelAccessRequestV2ConsentInstallationProofKeyId,
+            ::std::string::String,
+        >,
+        proof_type: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        signature: ::std::result::Result<
+            super::ModelAccessRequestV2ConsentInstallationProofSignature,
+            ::std::string::String,
+        >,
+        signed_payload_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessRequestV2ConsentInstallationProof {
+        fn default() -> Self {
+            Self {
+                algorithm: Err("no value supplied for algorithm".to_string()),
+                key_id: Err("no value supplied for key_id".to_string()),
+                proof_type: Err("no value supplied for proof_type".to_string()),
+                signature: Err("no value supplied for signature".to_string()),
+                signed_payload_hash: Err("no value supplied for signed_payload_hash".to_string()),
+            }
+        }
+    }
+    impl ModelAccessRequestV2ConsentInstallationProof {
+        pub fn algorithm<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.algorithm = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for algorithm: {e}"));
+            self
+        }
+        pub fn key_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ConsentInstallationProofKeyId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key_id: {e}"));
+            self
+        }
+        pub fn proof_type<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.proof_type = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for proof_type: {e}"));
+            self
+        }
+        pub fn signature<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                super::ModelAccessRequestV2ConsentInstallationProofSignature,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.signature = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for signature: {e}"));
+            self
+        }
+        pub fn signed_payload_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.signed_payload_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for signed_payload_hash: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessRequestV2ConsentInstallationProof>
+        for super::ModelAccessRequestV2ConsentInstallationProof
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessRequestV2ConsentInstallationProof,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                algorithm: value.algorithm?,
+                key_id: value.key_id?,
+                proof_type: value.proof_type?,
+                signature: value.signature?,
+                signed_payload_hash: value.signed_payload_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessRequestV2ConsentInstallationProof>
+        for ModelAccessRequestV2ConsentInstallationProof
+    {
+        fn from(value: super::ModelAccessRequestV2ConsentInstallationProof) -> Self {
+            Self {
+                algorithm: Ok(value.algorithm),
+                key_id: Ok(value.key_id),
+                proof_type: Ok(value.proof_type),
+                signature: Ok(value.signature),
+                signed_payload_hash: Ok(value.signed_payload_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessRequestV2ModelContextConsentV2 {
+        budget_class: ::std::result::Result<
+            super::ModelAccessRequestV2ModelContextConsentV2BudgetClass,
+            ::std::string::String,
+        >,
+        canonical_output_schema_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
+            ::std::string::String,
+        >,
+        canonical_output_schema_id: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessRequestV2CanonicalSchemaId>,
+            ::std::string::String,
+        >,
+        catalog_version:
+            ::std::result::Result<super::ModelCatalogCatalogVersion, ::std::string::String>,
+        consent_disclosure_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        consent_envelope_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        consumption_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        context_snapshot_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        decision_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        delivery_model: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        entitlement_lease_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        entitlement_lease_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        expires_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        installation_public_key_hash:
+            ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        invocation_binding_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        invocation_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        issued_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        manifest_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_capability_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_profile_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_profile_id:
+            ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        model_role: ::std::result::Result<
+            super::ModelAccessRequestV2ModelContextConsentV2ModelRole,
+            ::std::string::String,
+        >,
+        nonce_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        not_before: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        proof: ::std::result::Result<
+            super::ModelAccessRequestV2ConsentInstallationProof,
+            ::std::string::String,
+        >,
+        provider_profile_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        purpose: ::std::result::Result<
+            super::ModelAccessRequestV2ModelContextConsentV2Purpose,
+            ::std::string::String,
+        >,
+        region: ::std::result::Result<super::ModelAccessRequestV2Region, ::std::string::String>,
+        registration_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        request_mode:
+            ::std::result::Result<super::ModelProfileModelRequestMode, ::std::string::String>,
+        requested_variant_id: ::std::result::Result<
+            ::std::option::Option<super::ModelProfileModelVariantId>,
+            ::std::string::String,
+        >,
+        retention_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        subject_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        tenant_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        tenant_policy_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        tenant_policy_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        tenant_policy_version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessRequestV2ModelContextConsentV2 {
+        fn default() -> Self {
+            Self {
+                budget_class: Err("no value supplied for budget_class".to_string()),
+                canonical_output_schema_hash: Err(
+                    "no value supplied for canonical_output_schema_hash".to_string(),
+                ),
+                canonical_output_schema_id: Err(
+                    "no value supplied for canonical_output_schema_id".to_string()
+                ),
+                catalog_version: Err("no value supplied for catalog_version".to_string()),
+                consent_disclosure_hash: Err(
+                    "no value supplied for consent_disclosure_hash".to_string()
+                ),
+                consent_envelope_hash: Err(
+                    "no value supplied for consent_envelope_hash".to_string()
+                ),
+                consumption_hash: Err("no value supplied for consumption_hash".to_string()),
+                context_snapshot_id: Err("no value supplied for context_snapshot_id".to_string()),
+                decision_id: Err("no value supplied for decision_id".to_string()),
+                delivery_model: Err("no value supplied for delivery_model".to_string()),
+                entitlement_lease_hash: Err(
+                    "no value supplied for entitlement_lease_hash".to_string()
+                ),
+                entitlement_lease_id: Err("no value supplied for entitlement_lease_id".to_string()),
+                expires_at: Err("no value supplied for expires_at".to_string()),
+                installation_public_key_hash: Err(
+                    "no value supplied for installation_public_key_hash".to_string(),
+                ),
+                invocation_binding_hash: Err(
+                    "no value supplied for invocation_binding_hash".to_string()
+                ),
+                invocation_id: Err("no value supplied for invocation_id".to_string()),
+                issued_at: Err("no value supplied for issued_at".to_string()),
+                manifest_hash: Err("no value supplied for manifest_hash".to_string()),
+                model_capability_hash: Err(
+                    "no value supplied for model_capability_hash".to_string()
+                ),
+                model_profile_hash: Err("no value supplied for model_profile_hash".to_string()),
+                model_profile_id: Err("no value supplied for model_profile_id".to_string()),
+                model_role: Err("no value supplied for model_role".to_string()),
+                nonce_hash: Err("no value supplied for nonce_hash".to_string()),
+                not_before: Err("no value supplied for not_before".to_string()),
+                proof: Err("no value supplied for proof".to_string()),
+                provider_profile_hash: Err(
+                    "no value supplied for provider_profile_hash".to_string()
+                ),
+                purpose: Err("no value supplied for purpose".to_string()),
+                region: Err("no value supplied for region".to_string()),
+                registration_id: Err("no value supplied for registration_id".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                request_mode: Err("no value supplied for request_mode".to_string()),
+                requested_variant_id: Err("no value supplied for requested_variant_id".to_string()),
+                retention_mode: Err("no value supplied for retention_mode".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                subject_hash: Err("no value supplied for subject_hash".to_string()),
+                tenant_hash: Err("no value supplied for tenant_hash".to_string()),
+                tenant_policy_hash: Err("no value supplied for tenant_policy_hash".to_string()),
+                tenant_policy_id: Err("no value supplied for tenant_policy_id".to_string()),
+                tenant_policy_version: Err(
+                    "no value supplied for tenant_policy_version".to_string()
+                ),
+            }
+        }
+    }
+    impl ModelAccessRequestV2ModelContextConsentV2 {
+        pub fn budget_class<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelContextConsentV2BudgetClass>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.budget_class = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for budget_class: {e}"));
+            self
+        }
+        pub fn canonical_output_schema_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.canonical_output_schema_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for canonical_output_schema_hash: {e}")
+            });
+            self
+        }
+        pub fn canonical_output_schema_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::ModelAccessRequestV2CanonicalSchemaId>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.canonical_output_schema_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for canonical_output_schema_id: {e}")
+            });
+            self
+        }
+        pub fn catalog_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelCatalogCatalogVersion>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.catalog_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for catalog_version: {e}"));
+            self
+        }
+        pub fn consent_disclosure_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consent_disclosure_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for consent_disclosure_hash: {e}")
+            });
+            self
+        }
+        pub fn consent_envelope_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consent_envelope_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for consent_envelope_hash: {e}")
+            });
+            self
+        }
+        pub fn consumption_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consumption_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for consumption_hash: {e}"));
+            self
+        }
+        pub fn context_snapshot_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.context_snapshot_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for context_snapshot_id: {e}")
+            });
+            self
+        }
+        pub fn decision_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.decision_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for decision_id: {e}"));
+            self
+        }
+        pub fn delivery_model<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.delivery_model = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for delivery_model: {e}"));
+            self
+        }
+        pub fn entitlement_lease_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.entitlement_lease_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for entitlement_lease_hash: {e}")
+            });
+            self
+        }
+        pub fn entitlement_lease_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.entitlement_lease_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for entitlement_lease_id: {e}")
+            });
+            self
+        }
+        pub fn expires_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.expires_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for expires_at: {e}"));
+            self
+        }
+        pub fn installation_public_key_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.installation_public_key_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for installation_public_key_hash: {e}")
+            });
+            self
+        }
+        pub fn invocation_binding_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.invocation_binding_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for invocation_binding_hash: {e}")
+            });
+            self
+        }
+        pub fn invocation_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.invocation_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for invocation_id: {e}"));
+            self
+        }
+        pub fn issued_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.issued_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for issued_at: {e}"));
+            self
+        }
+        pub fn manifest_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.manifest_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for manifest_hash: {e}"));
+            self
+        }
+        pub fn model_capability_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_capability_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_capability_hash: {e}")
+            });
+            self
+        }
+        pub fn model_profile_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_profile_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_profile_hash: {e}")
+            });
+            self
+        }
+        pub fn model_profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_profile_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_profile_id: {e}"));
+            self
+        }
+        pub fn model_role<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelContextConsentV2ModelRole>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_role = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_role: {e}"));
+            self
+        }
+        pub fn nonce_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.nonce_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for nonce_hash: {e}"));
+            self
+        }
+        pub fn not_before<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.not_before = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for not_before: {e}"));
+            self
+        }
+        pub fn proof<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ConsentInstallationProof>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.proof = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for proof: {e}"));
+            self
+        }
+        pub fn provider_profile_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provider_profile_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for provider_profile_hash: {e}")
+            });
+            self
+        }
+        pub fn purpose<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelContextConsentV2Purpose>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.purpose = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for purpose: {e}"));
+            self
+        }
+        pub fn region<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2Region>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.region = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for region: {e}"));
+            self
+        }
+        pub fn registration_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.registration_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for registration_id: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn request_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelRequestMode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_mode: {e}"));
+            self
+        }
+        pub fn requested_variant_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelProfileModelVariantId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.requested_variant_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for requested_variant_id: {e}")
+            });
+            self
+        }
+        pub fn retention_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.retention_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for retention_mode: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn subject_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.subject_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for subject_hash: {e}"));
+            self
+        }
+        pub fn tenant_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tenant_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tenant_hash: {e}"));
+            self
+        }
+        pub fn tenant_policy_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tenant_policy_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for tenant_policy_hash: {e}")
+            });
+            self
+        }
+        pub fn tenant_policy_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tenant_policy_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tenant_policy_id: {e}"));
+            self
+        }
+        pub fn tenant_policy_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tenant_policy_version = value.try_into().map_err(|e| {
+                format!("error converting supplied value for tenant_policy_version: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessRequestV2ModelContextConsentV2>
+        for super::ModelAccessRequestV2ModelContextConsentV2
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessRequestV2ModelContextConsentV2,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                budget_class: value.budget_class?,
+                canonical_output_schema_hash: value.canonical_output_schema_hash?,
+                canonical_output_schema_id: value.canonical_output_schema_id?,
+                catalog_version: value.catalog_version?,
+                consent_disclosure_hash: value.consent_disclosure_hash?,
+                consent_envelope_hash: value.consent_envelope_hash?,
+                consumption_hash: value.consumption_hash?,
+                context_snapshot_id: value.context_snapshot_id?,
+                decision_id: value.decision_id?,
+                delivery_model: value.delivery_model?,
+                entitlement_lease_hash: value.entitlement_lease_hash?,
+                entitlement_lease_id: value.entitlement_lease_id?,
+                expires_at: value.expires_at?,
+                installation_public_key_hash: value.installation_public_key_hash?,
+                invocation_binding_hash: value.invocation_binding_hash?,
+                invocation_id: value.invocation_id?,
+                issued_at: value.issued_at?,
+                manifest_hash: value.manifest_hash?,
+                model_capability_hash: value.model_capability_hash?,
+                model_profile_hash: value.model_profile_hash?,
+                model_profile_id: value.model_profile_id?,
+                model_role: value.model_role?,
+                nonce_hash: value.nonce_hash?,
+                not_before: value.not_before?,
+                proof: value.proof?,
+                provider_profile_hash: value.provider_profile_hash?,
+                purpose: value.purpose?,
+                region: value.region?,
+                registration_id: value.registration_id?,
+                request_id: value.request_id?,
+                request_mode: value.request_mode?,
+                requested_variant_id: value.requested_variant_id?,
+                retention_mode: value.retention_mode?,
+                schema_version: value.schema_version?,
+                subject_hash: value.subject_hash?,
+                tenant_hash: value.tenant_hash?,
+                tenant_policy_hash: value.tenant_policy_hash?,
+                tenant_policy_id: value.tenant_policy_id?,
+                tenant_policy_version: value.tenant_policy_version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessRequestV2ModelContextConsentV2>
+        for ModelAccessRequestV2ModelContextConsentV2
+    {
+        fn from(value: super::ModelAccessRequestV2ModelContextConsentV2) -> Self {
+            Self {
+                budget_class: Ok(value.budget_class),
+                canonical_output_schema_hash: Ok(value.canonical_output_schema_hash),
+                canonical_output_schema_id: Ok(value.canonical_output_schema_id),
+                catalog_version: Ok(value.catalog_version),
+                consent_disclosure_hash: Ok(value.consent_disclosure_hash),
+                consent_envelope_hash: Ok(value.consent_envelope_hash),
+                consumption_hash: Ok(value.consumption_hash),
+                context_snapshot_id: Ok(value.context_snapshot_id),
+                decision_id: Ok(value.decision_id),
+                delivery_model: Ok(value.delivery_model),
+                entitlement_lease_hash: Ok(value.entitlement_lease_hash),
+                entitlement_lease_id: Ok(value.entitlement_lease_id),
+                expires_at: Ok(value.expires_at),
+                installation_public_key_hash: Ok(value.installation_public_key_hash),
+                invocation_binding_hash: Ok(value.invocation_binding_hash),
+                invocation_id: Ok(value.invocation_id),
+                issued_at: Ok(value.issued_at),
+                manifest_hash: Ok(value.manifest_hash),
+                model_capability_hash: Ok(value.model_capability_hash),
+                model_profile_hash: Ok(value.model_profile_hash),
+                model_profile_id: Ok(value.model_profile_id),
+                model_role: Ok(value.model_role),
+                nonce_hash: Ok(value.nonce_hash),
+                not_before: Ok(value.not_before),
+                proof: Ok(value.proof),
+                provider_profile_hash: Ok(value.provider_profile_hash),
+                purpose: Ok(value.purpose),
+                region: Ok(value.region),
+                registration_id: Ok(value.registration_id),
+                request_id: Ok(value.request_id),
+                request_mode: Ok(value.request_mode),
+                requested_variant_id: Ok(value.requested_variant_id),
+                retention_mode: Ok(value.retention_mode),
+                schema_version: Ok(value.schema_version),
+                subject_hash: Ok(value.subject_hash),
+                tenant_hash: Ok(value.tenant_hash),
+                tenant_policy_hash: Ok(value.tenant_policy_hash),
+                tenant_policy_id: Ok(value.tenant_policy_id),
+                tenant_policy_version: Ok(value.tenant_policy_version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessRequestV2ModelContextItem {
+        byte_count: ::std::result::Result<i64, ::std::string::String>,
+        classification: ::std::result::Result<
+            super::ModelAccessRequestV2ModelContextItemClassification,
+            ::std::string::String,
+        >,
+        client_item_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        content: ::std::result::Result<
+            super::ModelAccessRequestV2ModelContextItemContent,
+            ::std::string::String,
+        >,
+        content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        language: ::std::result::Result<
+            super::ModelAccessRequestV2ModelContextItemLanguage,
+            ::std::string::String,
+        >,
+        relative_label:
+            ::std::result::Result<super::CommonRelativeWorkspacePath, ::std::string::String>,
+        semantic_role: ::std::result::Result<
+            super::ModelAccessRequestV2ModelContextItemSemanticRole,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelAccessRequestV2ModelContextItem {
+        fn default() -> Self {
+            Self {
+                byte_count: Err("no value supplied for byte_count".to_string()),
+                classification: Err("no value supplied for classification".to_string()),
+                client_item_id: Err("no value supplied for client_item_id".to_string()),
+                content: Err("no value supplied for content".to_string()),
+                content_hash: Err("no value supplied for content_hash".to_string()),
+                language: Err("no value supplied for language".to_string()),
+                relative_label: Err("no value supplied for relative_label".to_string()),
+                semantic_role: Err("no value supplied for semantic_role".to_string()),
+            }
+        }
+    }
+    impl ModelAccessRequestV2ModelContextItem {
+        pub fn byte_count<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.byte_count = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for byte_count: {e}"));
+            self
+        }
+        pub fn classification<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelContextItemClassification>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.classification = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for classification: {e}"));
+            self
+        }
+        pub fn client_item_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.client_item_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for client_item_id: {e}"));
+            self
+        }
+        pub fn content<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelContextItemContent>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content: {e}"));
+            self
+        }
+        pub fn content_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content_hash: {e}"));
+            self
+        }
+        pub fn language<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelContextItemLanguage>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.language = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for language: {e}"));
+            self
+        }
+        pub fn relative_label<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonRelativeWorkspacePath>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.relative_label = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for relative_label: {e}"));
+            self
+        }
+        pub fn semantic_role<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelContextItemSemanticRole>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.semantic_role = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for semantic_role: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessRequestV2ModelContextItem>
+        for super::ModelAccessRequestV2ModelContextItem
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessRequestV2ModelContextItem,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                byte_count: value.byte_count?,
+                classification: value.classification?,
+                client_item_id: value.client_item_id?,
+                content: value.content?,
+                content_hash: value.content_hash?,
+                language: value.language?,
+                relative_label: value.relative_label?,
+                semantic_role: value.semantic_role?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessRequestV2ModelContextItem>
+        for ModelAccessRequestV2ModelContextItem
+    {
+        fn from(value: super::ModelAccessRequestV2ModelContextItem) -> Self {
+            Self {
+                byte_count: Ok(value.byte_count),
+                classification: Ok(value.classification),
+                client_item_id: Ok(value.client_item_id),
+                content: Ok(value.content),
+                content_hash: Ok(value.content_hash),
+                language: Ok(value.language),
+                relative_label: Ok(value.relative_label),
+                semantic_role: Ok(value.semantic_role),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessRequestV2ModelToolDefinition {
+        description: ::std::result::Result<
+            super::ModelAccessRequestV2ModelToolDefinitionDescription,
+            ::std::string::String,
+        >,
+        parameters_schema_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        parameters_schema_id: ::std::result::Result<
+            super::ModelAccessRequestV2CanonicalSchemaId,
+            ::std::string::String,
+        >,
+        tool_name:
+            ::std::result::Result<super::ModelAccessRequestV2ModelToolName, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessRequestV2ModelToolDefinition {
+        fn default() -> Self {
+            Self {
+                description: Err("no value supplied for description".to_string()),
+                parameters_schema_hash: Err(
+                    "no value supplied for parameters_schema_hash".to_string()
+                ),
+                parameters_schema_id: Err("no value supplied for parameters_schema_id".to_string()),
+                tool_name: Err("no value supplied for tool_name".to_string()),
+            }
+        }
+    }
+    impl ModelAccessRequestV2ModelToolDefinition {
+        pub fn description<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelToolDefinitionDescription>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.description = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for description: {e}"));
+            self
+        }
+        pub fn parameters_schema_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.parameters_schema_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for parameters_schema_hash: {e}")
+            });
+            self
+        }
+        pub fn parameters_schema_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2CanonicalSchemaId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.parameters_schema_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for parameters_schema_id: {e}")
+            });
+            self
+        }
+        pub fn tool_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelToolName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_name: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessRequestV2ModelToolDefinition>
+        for super::ModelAccessRequestV2ModelToolDefinition
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessRequestV2ModelToolDefinition,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                description: value.description?,
+                parameters_schema_hash: value.parameters_schema_hash?,
+                parameters_schema_id: value.parameters_schema_id?,
+                tool_name: value.tool_name?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessRequestV2ModelToolDefinition>
+        for ModelAccessRequestV2ModelToolDefinition
+    {
+        fn from(value: super::ModelAccessRequestV2ModelToolDefinition) -> Self {
+            Self {
+                description: Ok(value.description),
+                parameters_schema_hash: Ok(value.parameters_schema_hash),
+                parameters_schema_id: Ok(value.parameters_schema_id),
+                tool_name: Ok(value.tool_name),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
     pub struct ModelAccessResult {
         output_schema_id:
             ::std::result::Result<super::ModelAccessResultOutputSchemaId, ::std::string::String>,
@@ -63384,6 +85734,287 @@ pub mod builder {
                 payload_json: Ok(value.payload_json),
                 receipt: Ok(value.receipt),
                 request_id: Ok(value.request_id),
+                schema_version: Ok(value.schema_version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessResultV2StreamingChatResult {
+        output_text: ::std::result::Result<
+            super::ModelAccessResultV2StreamingChatResultOutputText,
+            ::std::string::String,
+        >,
+        payload_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        receipt: ::std::result::Result<super::ModelAccessReceiptV2, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        request_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessResultV2StreamingChatResult {
+        fn default() -> Self {
+            Self {
+                output_text: Err("no value supplied for output_text".to_string()),
+                payload_hash: Err("no value supplied for payload_hash".to_string()),
+                receipt: Err("no value supplied for receipt".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                request_mode: Err("no value supplied for request_mode".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+            }
+        }
+    }
+    impl ModelAccessResultV2StreamingChatResult {
+        pub fn output_text<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessResultV2StreamingChatResultOutputText>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_text = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_text: {e}"));
+            self
+        }
+        pub fn payload_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.payload_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for payload_hash: {e}"));
+            self
+        }
+        pub fn receipt<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.receipt = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for receipt: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn request_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_mode: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessResultV2StreamingChatResult>
+        for super::ModelAccessResultV2StreamingChatResult
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessResultV2StreamingChatResult,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                output_text: value.output_text?,
+                payload_hash: value.payload_hash?,
+                receipt: value.receipt?,
+                request_id: value.request_id?,
+                request_mode: value.request_mode?,
+                run_id: value.run_id?,
+                schema_version: value.schema_version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessResultV2StreamingChatResult>
+        for ModelAccessResultV2StreamingChatResult
+    {
+        fn from(value: super::ModelAccessResultV2StreamingChatResult) -> Self {
+            Self {
+                output_text: Ok(value.output_text),
+                payload_hash: Ok(value.payload_hash),
+                receipt: Ok(value.receipt),
+                request_id: Ok(value.request_id),
+                request_mode: Ok(value.request_mode),
+                run_id: Ok(value.run_id),
+                schema_version: Ok(value.schema_version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelAccessResultV2StructuredResponseResult {
+        output_schema_id: ::std::result::Result<
+            super::ModelAccessResultV2CanonicalSchemaId,
+            ::std::string::String,
+        >,
+        payload_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        payload_json: ::std::result::Result<
+            super::ModelAccessResultV2StructuredResponseResultPayloadJson,
+            ::std::string::String,
+        >,
+        receipt: ::std::result::Result<super::ModelAccessReceiptV2, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        request_mode: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelAccessResultV2StructuredResponseResult {
+        fn default() -> Self {
+            Self {
+                output_schema_id: Err("no value supplied for output_schema_id".to_string()),
+                payload_hash: Err("no value supplied for payload_hash".to_string()),
+                payload_json: Err("no value supplied for payload_json".to_string()),
+                receipt: Err("no value supplied for receipt".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                request_mode: Err("no value supplied for request_mode".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+            }
+        }
+    }
+    impl ModelAccessResultV2StructuredResponseResult {
+        pub fn output_schema_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessResultV2CanonicalSchemaId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_schema_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_schema_id: {e}"));
+            self
+        }
+        pub fn payload_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.payload_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for payload_hash: {e}"));
+            self
+        }
+        pub fn payload_json<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                super::ModelAccessResultV2StructuredResponseResultPayloadJson,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.payload_json = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for payload_json: {e}"));
+            self
+        }
+        pub fn receipt<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.receipt = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for receipt: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn request_mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_mode: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelAccessResultV2StructuredResponseResult>
+        for super::ModelAccessResultV2StructuredResponseResult
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelAccessResultV2StructuredResponseResult,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                output_schema_id: value.output_schema_id?,
+                payload_hash: value.payload_hash?,
+                payload_json: value.payload_json?,
+                receipt: value.receipt?,
+                request_id: value.request_id?,
+                request_mode: value.request_mode?,
+                run_id: value.run_id?,
+                schema_version: value.schema_version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelAccessResultV2StructuredResponseResult>
+        for ModelAccessResultV2StructuredResponseResult
+    {
+        fn from(value: super::ModelAccessResultV2StructuredResponseResult) -> Self {
+            Self {
+                output_schema_id: Ok(value.output_schema_id),
+                payload_hash: Ok(value.payload_hash),
+                payload_json: Ok(value.payload_json),
+                receipt: Ok(value.receipt),
+                request_id: Ok(value.request_id),
+                request_mode: Ok(value.request_mode),
+                run_id: Ok(value.run_id),
                 schema_version: Ok(value.schema_version),
             }
         }
@@ -65971,6 +88602,1307 @@ pub mod builder {
                 reasoning_effort: Ok(value.reasoning_effort),
                 variant_id: Ok(value.variant_id),
                 verbosity: Ok(value.verbosity),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventCancelledEvent {
+        cancellation_source: ::std::result::Result<
+            super::ModelStreamEventStreamCancellationSource,
+            ::std::string::String,
+        >,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventCancelledEvent {
+        fn default() -> Self {
+            Self {
+                cancellation_source: Err("no value supplied for cancellation_source".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventCancelledEvent {
+        pub fn cancellation_source<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamCancellationSource>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cancellation_source = value.try_into().map_err(|e| {
+                format!("error converting supplied value for cancellation_source: {e}")
+            });
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventCancelledEvent>
+        for super::ModelStreamEventCancelledEvent
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventCancelledEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                cancellation_source: value.cancellation_source?,
+                request_id: value.request_id?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                type_: value.type_?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventCancelledEvent>
+        for ModelStreamEventCancelledEvent
+    {
+        fn from(value: super::ModelStreamEventCancelledEvent) -> Self {
+            Self {
+                cancellation_source: Ok(value.cancellation_source),
+                request_id: Ok(value.request_id),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                type_: Ok(value.type_),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventCompletedEvent {
+        receipt_summary: ::std::result::Result<
+            super::ModelStreamEventStreamReceiptSummary,
+            ::std::string::String,
+        >,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventCompletedEvent {
+        fn default() -> Self {
+            Self {
+                receipt_summary: Err("no value supplied for receipt_summary".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventCompletedEvent {
+        pub fn receipt_summary<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamReceiptSummary>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.receipt_summary = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for receipt_summary: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventCompletedEvent>
+        for super::ModelStreamEventCompletedEvent
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventCompletedEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                receipt_summary: value.receipt_summary?,
+                request_id: value.request_id?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                type_: value.type_?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventCompletedEvent>
+        for ModelStreamEventCompletedEvent
+    {
+        fn from(value: super::ModelStreamEventCompletedEvent) -> Self {
+            Self {
+                receipt_summary: Ok(value.receipt_summary),
+                request_id: Ok(value.request_id),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                type_: Ok(value.type_),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventFailedEvent {
+        failure_code:
+            ::std::result::Result<super::ModelStreamEventStreamFailureCode, ::std::string::String>,
+        failure_detail: ::std::result::Result<
+            ::std::option::Option<super::ModelStreamEventSafeDetail>,
+            ::std::string::String,
+        >,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        retryable: ::std::result::Result<bool, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventFailedEvent {
+        fn default() -> Self {
+            Self {
+                failure_code: Err("no value supplied for failure_code".to_string()),
+                failure_detail: Err("no value supplied for failure_detail".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                retryable: Err("no value supplied for retryable".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventFailedEvent {
+        pub fn failure_code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamFailureCode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.failure_code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for failure_code: {e}"));
+            self
+        }
+        pub fn failure_detail<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelStreamEventSafeDetail>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.failure_detail = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for failure_detail: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn retryable<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.retryable = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for retryable: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventFailedEvent> for super::ModelStreamEventFailedEvent {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventFailedEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                failure_code: value.failure_code?,
+                failure_detail: value.failure_detail?,
+                request_id: value.request_id?,
+                retryable: value.retryable?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                type_: value.type_?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventFailedEvent> for ModelStreamEventFailedEvent {
+        fn from(value: super::ModelStreamEventFailedEvent) -> Self {
+            Self {
+                failure_code: Ok(value.failure_code),
+                failure_detail: Ok(value.failure_detail),
+                request_id: Ok(value.request_id),
+                retryable: Ok(value.retryable),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                type_: Ok(value.type_),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventOutputTextDeltaEvent {
+        output_index: ::std::result::Result<u8, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        text_delta: ::std::result::Result<
+            super::ModelStreamEventOutputTextDeltaEventTextDelta,
+            ::std::string::String,
+        >,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventOutputTextDeltaEvent {
+        fn default() -> Self {
+            Self {
+                output_index: Err("no value supplied for output_index".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                text_delta: Err("no value supplied for text_delta".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventOutputTextDeltaEvent {
+        pub fn output_index<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<u8>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_index = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_index: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn text_delta<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventOutputTextDeltaEventTextDelta>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.text_delta = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for text_delta: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventOutputTextDeltaEvent>
+        for super::ModelStreamEventOutputTextDeltaEvent
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventOutputTextDeltaEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                output_index: value.output_index?,
+                request_id: value.request_id?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                text_delta: value.text_delta?,
+                type_: value.type_?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventOutputTextDeltaEvent>
+        for ModelStreamEventOutputTextDeltaEvent
+    {
+        fn from(value: super::ModelStreamEventOutputTextDeltaEvent) -> Self {
+            Self {
+                output_index: Ok(value.output_index),
+                request_id: Ok(value.request_id),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                text_delta: Ok(value.text_delta),
+                type_: Ok(value.type_),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventRefusedEvent {
+        refusal_code:
+            ::std::result::Result<super::ModelStreamEventStreamRefusalCode, ::std::string::String>,
+        refusal_detail: ::std::result::Result<
+            ::std::option::Option<super::ModelStreamEventSafeDetail>,
+            ::std::string::String,
+        >,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventRefusedEvent {
+        fn default() -> Self {
+            Self {
+                refusal_code: Err("no value supplied for refusal_code".to_string()),
+                refusal_detail: Err("no value supplied for refusal_detail".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventRefusedEvent {
+        pub fn refusal_code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamRefusalCode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.refusal_code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for refusal_code: {e}"));
+            self
+        }
+        pub fn refusal_detail<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelStreamEventSafeDetail>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.refusal_detail = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for refusal_detail: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventRefusedEvent> for super::ModelStreamEventRefusedEvent {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventRefusedEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                refusal_code: value.refusal_code?,
+                refusal_detail: value.refusal_detail?,
+                request_id: value.request_id?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                type_: value.type_?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventRefusedEvent> for ModelStreamEventRefusedEvent {
+        fn from(value: super::ModelStreamEventRefusedEvent) -> Self {
+            Self {
+                refusal_code: Ok(value.refusal_code),
+                refusal_detail: Ok(value.refusal_detail),
+                request_id: Ok(value.request_id),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                type_: Ok(value.type_),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventResponseStartedEvent {
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        resolved_profile_id:
+            ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        resolved_variant_id:
+            ::std::result::Result<super::ModelProfileModelVariantId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        started_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventResponseStartedEvent {
+        fn default() -> Self {
+            Self {
+                request_id: Err("no value supplied for request_id".to_string()),
+                resolved_profile_id: Err("no value supplied for resolved_profile_id".to_string()),
+                resolved_variant_id: Err("no value supplied for resolved_variant_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                started_at: Err("no value supplied for started_at".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventResponseStartedEvent {
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn resolved_profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_profile_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for resolved_profile_id: {e}")
+            });
+            self
+        }
+        pub fn resolved_variant_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelVariantId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_variant_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for resolved_variant_id: {e}")
+            });
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn started_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.started_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for started_at: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventResponseStartedEvent>
+        for super::ModelStreamEventResponseStartedEvent
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventResponseStartedEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                request_id: value.request_id?,
+                resolved_profile_id: value.resolved_profile_id?,
+                resolved_variant_id: value.resolved_variant_id?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                started_at: value.started_at?,
+                type_: value.type_?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventResponseStartedEvent>
+        for ModelStreamEventResponseStartedEvent
+    {
+        fn from(value: super::ModelStreamEventResponseStartedEvent) -> Self {
+            Self {
+                request_id: Ok(value.request_id),
+                resolved_profile_id: Ok(value.resolved_profile_id),
+                resolved_variant_id: Ok(value.resolved_variant_id),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                started_at: Ok(value.started_at),
+                type_: Ok(value.type_),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventStreamReceiptSummary {
+        completed_at: ::std::result::Result<super::CommonUtcInstant, ::std::string::String>,
+        output_bytes:
+            ::std::result::Result<super::ModelAccessReceiptV2SafeSize, ::std::string::String>,
+        receipt_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        receipt_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        resolved_profile_id:
+            ::std::result::Result<super::ModelProfileModelProfileId, ::std::string::String>,
+        resolved_variant_id:
+            ::std::result::Result<super::ModelProfileModelVariantId, ::std::string::String>,
+        terminal_status: ::std::result::Result<
+            super::ModelAccessReceiptV2ModelTerminalStatus,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for ModelStreamEventStreamReceiptSummary {
+        fn default() -> Self {
+            Self {
+                completed_at: Err("no value supplied for completed_at".to_string()),
+                output_bytes: Err("no value supplied for output_bytes".to_string()),
+                receipt_hash: Err("no value supplied for receipt_hash".to_string()),
+                receipt_id: Err("no value supplied for receipt_id".to_string()),
+                resolved_profile_id: Err("no value supplied for resolved_profile_id".to_string()),
+                resolved_variant_id: Err("no value supplied for resolved_variant_id".to_string()),
+                terminal_status: Err("no value supplied for terminal_status".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventStreamReceiptSummary {
+        pub fn completed_at<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonUtcInstant>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.completed_at = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for completed_at: {e}"));
+            self
+        }
+        pub fn output_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2SafeSize>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_bytes = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_bytes: {e}"));
+            self
+        }
+        pub fn receipt_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.receipt_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for receipt_hash: {e}"));
+            self
+        }
+        pub fn receipt_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.receipt_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for receipt_id: {e}"));
+            self
+        }
+        pub fn resolved_profile_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelProfileId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_profile_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for resolved_profile_id: {e}")
+            });
+            self
+        }
+        pub fn resolved_variant_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelProfileModelVariantId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_variant_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for resolved_variant_id: {e}")
+            });
+            self
+        }
+        pub fn terminal_status<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2ModelTerminalStatus>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.terminal_status = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for terminal_status: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventStreamReceiptSummary>
+        for super::ModelStreamEventStreamReceiptSummary
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventStreamReceiptSummary,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                completed_at: value.completed_at?,
+                output_bytes: value.output_bytes?,
+                receipt_hash: value.receipt_hash?,
+                receipt_id: value.receipt_id?,
+                resolved_profile_id: value.resolved_profile_id?,
+                resolved_variant_id: value.resolved_variant_id?,
+                terminal_status: value.terminal_status?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventStreamReceiptSummary>
+        for ModelStreamEventStreamReceiptSummary
+    {
+        fn from(value: super::ModelStreamEventStreamReceiptSummary) -> Self {
+            Self {
+                completed_at: Ok(value.completed_at),
+                output_bytes: Ok(value.output_bytes),
+                receipt_hash: Ok(value.receipt_hash),
+                receipt_id: Ok(value.receipt_id),
+                resolved_profile_id: Ok(value.resolved_profile_id),
+                resolved_variant_id: Ok(value.resolved_variant_id),
+                terminal_status: Ok(value.terminal_status),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventToolCallArgumentsDeltaEvent {
+        arguments_delta: ::std::result::Result<
+            super::ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta,
+            ::std::string::String,
+        >,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        tool_call_id:
+            ::std::result::Result<super::ModelStreamEventToolCallId, ::std::string::String>,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventToolCallArgumentsDeltaEvent {
+        fn default() -> Self {
+            Self {
+                arguments_delta: Err("no value supplied for arguments_delta".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                tool_call_id: Err("no value supplied for tool_call_id".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventToolCallArgumentsDeltaEvent {
+        pub fn arguments_delta<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                super::ModelStreamEventToolCallArgumentsDeltaEventArgumentsDelta,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.arguments_delta = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for arguments_delta: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn tool_call_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventToolCallId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_call_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_call_id: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventToolCallArgumentsDeltaEvent>
+        for super::ModelStreamEventToolCallArgumentsDeltaEvent
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventToolCallArgumentsDeltaEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                arguments_delta: value.arguments_delta?,
+                request_id: value.request_id?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                tool_call_id: value.tool_call_id?,
+                type_: value.type_?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventToolCallArgumentsDeltaEvent>
+        for ModelStreamEventToolCallArgumentsDeltaEvent
+    {
+        fn from(value: super::ModelStreamEventToolCallArgumentsDeltaEvent) -> Self {
+            Self {
+                arguments_delta: Ok(value.arguments_delta),
+                request_id: Ok(value.request_id),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                tool_call_id: Ok(value.tool_call_id),
+                type_: Ok(value.type_),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventToolCallCompletedEvent {
+        arguments_byte_count: ::std::result::Result<i64, ::std::string::String>,
+        arguments_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        tool_call_id:
+            ::std::result::Result<super::ModelStreamEventToolCallId, ::std::string::String>,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventToolCallCompletedEvent {
+        fn default() -> Self {
+            Self {
+                arguments_byte_count: Err("no value supplied for arguments_byte_count".to_string()),
+                arguments_hash: Err("no value supplied for arguments_hash".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                tool_call_id: Err("no value supplied for tool_call_id".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventToolCallCompletedEvent {
+        pub fn arguments_byte_count<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.arguments_byte_count = value.try_into().map_err(|e| {
+                format!("error converting supplied value for arguments_byte_count: {e}")
+            });
+            self
+        }
+        pub fn arguments_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.arguments_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for arguments_hash: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn tool_call_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventToolCallId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_call_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_call_id: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventToolCallCompletedEvent>
+        for super::ModelStreamEventToolCallCompletedEvent
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventToolCallCompletedEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                arguments_byte_count: value.arguments_byte_count?,
+                arguments_hash: value.arguments_hash?,
+                request_id: value.request_id?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                tool_call_id: value.tool_call_id?,
+                type_: value.type_?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventToolCallCompletedEvent>
+        for ModelStreamEventToolCallCompletedEvent
+    {
+        fn from(value: super::ModelStreamEventToolCallCompletedEvent) -> Self {
+            Self {
+                arguments_byte_count: Ok(value.arguments_byte_count),
+                arguments_hash: Ok(value.arguments_hash),
+                request_id: Ok(value.request_id),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                tool_call_id: Ok(value.tool_call_id),
+                type_: Ok(value.type_),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventToolCallStartedEvent {
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        tool_call_id:
+            ::std::result::Result<super::ModelStreamEventToolCallId, ::std::string::String>,
+        tool_name:
+            ::std::result::Result<super::ModelAccessRequestV2ModelToolName, ::std::string::String>,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventToolCallStartedEvent {
+        fn default() -> Self {
+            Self {
+                request_id: Err("no value supplied for request_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                tool_call_id: Err("no value supplied for tool_call_id".to_string()),
+                tool_name: Err("no value supplied for tool_name".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventToolCallStartedEvent {
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn tool_call_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventToolCallId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_call_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_call_id: {e}"));
+            self
+        }
+        pub fn tool_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessRequestV2ModelToolName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_name: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventToolCallStartedEvent>
+        for super::ModelStreamEventToolCallStartedEvent
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventToolCallStartedEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                request_id: value.request_id?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                tool_call_id: value.tool_call_id?,
+                tool_name: value.tool_name?,
+                type_: value.type_?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventToolCallStartedEvent>
+        for ModelStreamEventToolCallStartedEvent
+    {
+        fn from(value: super::ModelStreamEventToolCallStartedEvent) -> Self {
+            Self {
+                request_id: Ok(value.request_id),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                tool_call_id: Ok(value.tool_call_id),
+                tool_name: Ok(value.tool_name),
+                type_: Ok(value.type_),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct ModelStreamEventUsageEvent {
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        run_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        sequence:
+            ::std::result::Result<super::ModelStreamEventStreamSequence, ::std::string::String>,
+        type_: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        usage:
+            ::std::result::Result<super::ModelAccessReceiptV2ModelUsageV2, ::std::string::String>,
+    }
+    impl ::std::default::Default for ModelStreamEventUsageEvent {
+        fn default() -> Self {
+            Self {
+                request_id: Err("no value supplied for request_id".to_string()),
+                run_id: Err("no value supplied for run_id".to_string()),
+                sequence: Err("no value supplied for sequence".to_string()),
+                type_: Err("no value supplied for type_".to_string()),
+                usage: Err("no value supplied for usage".to_string()),
+            }
+        }
+    }
+    impl ModelStreamEventUsageEvent {
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+        pub fn run_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.run_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for run_id: {e}"));
+            self
+        }
+        pub fn sequence<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelStreamEventStreamSequence>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.sequence = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for sequence: {e}"));
+            self
+        }
+        pub fn type_<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.type_ = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for type_: {e}"));
+            self
+        }
+        pub fn usage<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::ModelAccessReceiptV2ModelUsageV2>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.usage = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for usage: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<ModelStreamEventUsageEvent> for super::ModelStreamEventUsageEvent {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: ModelStreamEventUsageEvent,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                request_id: value.request_id?,
+                run_id: value.run_id?,
+                sequence: value.sequence?,
+                type_: value.type_?,
+                usage: value.usage?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::ModelStreamEventUsageEvent> for ModelStreamEventUsageEvent {
+        fn from(value: super::ModelStreamEventUsageEvent) -> Self {
+            Self {
+                request_id: Ok(value.request_id),
+                run_id: Ok(value.run_id),
+                sequence: Ok(value.sequence),
+                type_: Ok(value.type_),
+                usage: Ok(value.usage),
             }
         }
     }
@@ -68796,6 +92728,14 @@ pub mod builder {
             ::std::option::Option<super::AuthorityRef>,
             ::std::string::String,
         >,
+        bmad_artifact: ::std::result::Result<
+            ::std::option::Option<super::BmadArtifact>,
+            ::std::string::String,
+        >,
+        bmad_builder_promotion: ::std::result::Result<
+            ::std::option::Option<super::BmadBuilderPromotion>,
+            ::std::string::String,
+        >,
         bmad_capability_catalog: ::std::result::Result<
             ::std::option::Option<super::BmadCapabilityCatalog>,
             ::std::string::String,
@@ -68808,10 +92748,38 @@ pub mod builder {
             ::std::option::Option<super::BmadCapabilityRun>,
             ::std::string::String,
         >,
+        bmad_config:
+            ::std::result::Result<::std::option::Option<super::BmadConfig>, ::std::string::String>,
+        bmad_eval:
+            ::std::result::Result<::std::option::Option<super::BmadEval>, ::std::string::String>,
+        bmad_memory:
+            ::std::result::Result<::std::option::Option<super::BmadMemory>, ::std::string::String>,
+        bmad_module:
+            ::std::result::Result<::std::option::Option<super::BmadModule>, ::std::string::String>,
         bmad_package_descriptor: ::std::result::Result<
             ::std::option::Option<super::BmadPackageDescriptor>,
             ::std::string::String,
         >,
+        bmad_script_plan: ::std::result::Result<
+            ::std::option::Option<super::BmadScriptPlan>,
+            ::std::string::String,
+        >,
+        bmad_session:
+            ::std::result::Result<::std::option::Option<super::BmadSession>, ::std::string::String>,
+        bmad_skill_package: ::std::result::Result<
+            ::std::option::Option<super::BmadSkillPackage>,
+            ::std::string::String,
+        >,
+        bmad_source_accounting: ::std::result::Result<
+            ::std::option::Option<super::BmadSourceAccounting>,
+            ::std::string::String,
+        >,
+        bmad_source_identity: ::std::result::Result<
+            ::std::option::Option<super::BmadSourceIdentity>,
+            ::std::string::String,
+        >,
+        bmad_upgrade:
+            ::std::result::Result<::std::option::Option<super::BmadUpgrade>, ::std::string::String>,
         bmad_validation_report: ::std::result::Result<
             ::std::option::Option<super::BmadValidationReport>,
             ::std::string::String,
@@ -68876,16 +92844,32 @@ pub mod builder {
             ::std::option::Option<super::MethodSession>,
             ::std::string::String,
         >,
+        model_access_compatibility: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessCompatibility>,
+            ::std::string::String,
+        >,
         model_access_receipt: ::std::result::Result<
             ::std::option::Option<super::ModelAccessReceipt>,
+            ::std::string::String,
+        >,
+        model_access_receipt_v2: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessReceiptV2>,
             ::std::string::String,
         >,
         model_access_request: ::std::result::Result<
             ::std::option::Option<super::ModelAccessRequest>,
             ::std::string::String,
         >,
+        model_access_request_v2: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessRequestV2>,
+            ::std::string::String,
+        >,
         model_access_result: ::std::result::Result<
             ::std::option::Option<super::ModelAccessResult>,
+            ::std::string::String,
+        >,
+        model_access_result_v2: ::std::result::Result<
+            ::std::option::Option<super::ModelAccessResultV2>,
             ::std::string::String,
         >,
         model_catalog: ::std::result::Result<
@@ -68898,6 +92882,10 @@ pub mod builder {
         >,
         model_profile: ::std::result::Result<
             ::std::option::Option<super::ModelProfile>,
+            ::std::string::String,
+        >,
+        model_stream_event: ::std::result::Result<
+            ::std::option::Option<super::ModelStreamEvent>,
             ::std::string::String,
         >,
         package_compatibility: ::std::result::Result<
@@ -68918,10 +92906,22 @@ pub mod builder {
             Self {
                 approved_execution_spec: Ok(Default::default()),
                 authority_ref: Ok(Default::default()),
+                bmad_artifact: Ok(Default::default()),
+                bmad_builder_promotion: Ok(Default::default()),
                 bmad_capability_catalog: Ok(Default::default()),
                 bmad_capability_result: Ok(Default::default()),
                 bmad_capability_run: Ok(Default::default()),
+                bmad_config: Ok(Default::default()),
+                bmad_eval: Ok(Default::default()),
+                bmad_memory: Ok(Default::default()),
+                bmad_module: Ok(Default::default()),
                 bmad_package_descriptor: Ok(Default::default()),
+                bmad_script_plan: Ok(Default::default()),
+                bmad_session: Ok(Default::default()),
+                bmad_skill_package: Ok(Default::default()),
+                bmad_source_accounting: Ok(Default::default()),
+                bmad_source_identity: Ok(Default::default()),
+                bmad_upgrade: Ok(Default::default()),
                 bmad_validation_report: Ok(Default::default()),
                 builder_authoring_object: Ok(Default::default()),
                 candidate_action: Ok(Default::default()),
@@ -68938,12 +92938,17 @@ pub mod builder {
                 method_help_proposal: Ok(Default::default()),
                 method_help_recommendation: Ok(Default::default()),
                 method_session: Ok(Default::default()),
+                model_access_compatibility: Ok(Default::default()),
                 model_access_receipt: Ok(Default::default()),
+                model_access_receipt_v2: Ok(Default::default()),
                 model_access_request: Ok(Default::default()),
+                model_access_request_v2: Ok(Default::default()),
                 model_access_result: Ok(Default::default()),
+                model_access_result_v2: Ok(Default::default()),
                 model_catalog: Ok(Default::default()),
                 model_context_consent: Ok(Default::default()),
                 model_profile: Ok(Default::default()),
+                model_stream_event: Ok(Default::default()),
                 package_compatibility: Ok(Default::default()),
                 remote_job_handoff: Ok(Default::default()),
                 spec_consumption_record: Ok(Default::default()),
@@ -68969,6 +92974,26 @@ pub mod builder {
             self.authority_ref = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for authority_ref: {e}"));
+            self
+        }
+        pub fn bmad_artifact<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadArtifact>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_artifact = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_artifact: {e}"));
+            self
+        }
+        pub fn bmad_builder_promotion<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadBuilderPromotion>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_builder_promotion = value.try_into().map_err(|e| {
+                format!("error converting supplied value for bmad_builder_promotion: {e}")
+            });
             self
         }
         pub fn bmad_capability_catalog<T>(mut self, value: T) -> Self
@@ -69001,6 +93026,46 @@ pub mod builder {
             });
             self
         }
+        pub fn bmad_config<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadConfig>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_config = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_config: {e}"));
+            self
+        }
+        pub fn bmad_eval<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadEval>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_eval = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_eval: {e}"));
+            self
+        }
+        pub fn bmad_memory<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadMemory>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_memory = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_memory: {e}"));
+            self
+        }
+        pub fn bmad_module<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadModule>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_module = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_module: {e}"));
+            self
+        }
         pub fn bmad_package_descriptor<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::BmadPackageDescriptor>>,
@@ -69009,6 +93074,66 @@ pub mod builder {
             self.bmad_package_descriptor = value.try_into().map_err(|e| {
                 format!("error converting supplied value for bmad_package_descriptor: {e}")
             });
+            self
+        }
+        pub fn bmad_script_plan<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadScriptPlan>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_script_plan = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_script_plan: {e}"));
+            self
+        }
+        pub fn bmad_session<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSession>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_session = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_session: {e}"));
+            self
+        }
+        pub fn bmad_skill_package<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSkillPackage>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_skill_package = value.try_into().map_err(|e| {
+                format!("error converting supplied value for bmad_skill_package: {e}")
+            });
+            self
+        }
+        pub fn bmad_source_accounting<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSourceAccounting>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_source_accounting = value.try_into().map_err(|e| {
+                format!("error converting supplied value for bmad_source_accounting: {e}")
+            });
+            self
+        }
+        pub fn bmad_source_identity<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSourceIdentity>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_source_identity = value.try_into().map_err(|e| {
+                format!("error converting supplied value for bmad_source_identity: {e}")
+            });
+            self
+        }
+        pub fn bmad_upgrade<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadUpgrade>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_upgrade = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_upgrade: {e}"));
             self
         }
         pub fn bmad_validation_report<T>(mut self, value: T) -> Self
@@ -69171,6 +93296,16 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for method_session: {e}"));
             self
         }
+        pub fn model_access_compatibility<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelAccessCompatibility>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_access_compatibility = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_access_compatibility: {e}")
+            });
+            self
+        }
         pub fn model_access_receipt<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::ModelAccessReceipt>>,
@@ -69178,6 +93313,16 @@ pub mod builder {
         {
             self.model_access_receipt = value.try_into().map_err(|e| {
                 format!("error converting supplied value for model_access_receipt: {e}")
+            });
+            self
+        }
+        pub fn model_access_receipt_v2<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelAccessReceiptV2>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_access_receipt_v2 = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_access_receipt_v2: {e}")
             });
             self
         }
@@ -69191,6 +93336,16 @@ pub mod builder {
             });
             self
         }
+        pub fn model_access_request_v2<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelAccessRequestV2>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_access_request_v2 = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_access_request_v2: {e}")
+            });
+            self
+        }
         pub fn model_access_result<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::ModelAccessResult>>,
@@ -69198,6 +93353,16 @@ pub mod builder {
         {
             self.model_access_result = value.try_into().map_err(|e| {
                 format!("error converting supplied value for model_access_result: {e}")
+            });
+            self
+        }
+        pub fn model_access_result_v2<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelAccessResultV2>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_access_result_v2 = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_access_result_v2: {e}")
             });
             self
         }
@@ -69229,6 +93394,16 @@ pub mod builder {
             self.model_profile = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for model_profile: {e}"));
+            self
+        }
+        pub fn model_stream_event<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::ModelStreamEvent>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_stream_event = value.try_into().map_err(|e| {
+                format!("error converting supplied value for model_stream_event: {e}")
+            });
             self
         }
         pub fn package_compatibility<T>(mut self, value: T) -> Self
@@ -69270,10 +93445,22 @@ pub mod builder {
             Ok(Self {
                 approved_execution_spec: value.approved_execution_spec?,
                 authority_ref: value.authority_ref?,
+                bmad_artifact: value.bmad_artifact?,
+                bmad_builder_promotion: value.bmad_builder_promotion?,
                 bmad_capability_catalog: value.bmad_capability_catalog?,
                 bmad_capability_result: value.bmad_capability_result?,
                 bmad_capability_run: value.bmad_capability_run?,
+                bmad_config: value.bmad_config?,
+                bmad_eval: value.bmad_eval?,
+                bmad_memory: value.bmad_memory?,
+                bmad_module: value.bmad_module?,
                 bmad_package_descriptor: value.bmad_package_descriptor?,
+                bmad_script_plan: value.bmad_script_plan?,
+                bmad_session: value.bmad_session?,
+                bmad_skill_package: value.bmad_skill_package?,
+                bmad_source_accounting: value.bmad_source_accounting?,
+                bmad_source_identity: value.bmad_source_identity?,
+                bmad_upgrade: value.bmad_upgrade?,
                 bmad_validation_report: value.bmad_validation_report?,
                 builder_authoring_object: value.builder_authoring_object?,
                 candidate_action: value.candidate_action?,
@@ -69290,12 +93477,17 @@ pub mod builder {
                 method_help_proposal: value.method_help_proposal?,
                 method_help_recommendation: value.method_help_recommendation?,
                 method_session: value.method_session?,
+                model_access_compatibility: value.model_access_compatibility?,
                 model_access_receipt: value.model_access_receipt?,
+                model_access_receipt_v2: value.model_access_receipt_v2?,
                 model_access_request: value.model_access_request?,
+                model_access_request_v2: value.model_access_request_v2?,
                 model_access_result: value.model_access_result?,
+                model_access_result_v2: value.model_access_result_v2?,
                 model_catalog: value.model_catalog?,
                 model_context_consent: value.model_context_consent?,
                 model_profile: value.model_profile?,
+                model_stream_event: value.model_stream_event?,
                 package_compatibility: value.package_compatibility?,
                 remote_job_handoff: value.remote_job_handoff?,
                 spec_consumption_record: value.spec_consumption_record?,
@@ -69307,10 +93499,22 @@ pub mod builder {
             Self {
                 approved_execution_spec: Ok(value.approved_execution_spec),
                 authority_ref: Ok(value.authority_ref),
+                bmad_artifact: Ok(value.bmad_artifact),
+                bmad_builder_promotion: Ok(value.bmad_builder_promotion),
                 bmad_capability_catalog: Ok(value.bmad_capability_catalog),
                 bmad_capability_result: Ok(value.bmad_capability_result),
                 bmad_capability_run: Ok(value.bmad_capability_run),
+                bmad_config: Ok(value.bmad_config),
+                bmad_eval: Ok(value.bmad_eval),
+                bmad_memory: Ok(value.bmad_memory),
+                bmad_module: Ok(value.bmad_module),
                 bmad_package_descriptor: Ok(value.bmad_package_descriptor),
+                bmad_script_plan: Ok(value.bmad_script_plan),
+                bmad_session: Ok(value.bmad_session),
+                bmad_skill_package: Ok(value.bmad_skill_package),
+                bmad_source_accounting: Ok(value.bmad_source_accounting),
+                bmad_source_identity: Ok(value.bmad_source_identity),
+                bmad_upgrade: Ok(value.bmad_upgrade),
                 bmad_validation_report: Ok(value.bmad_validation_report),
                 builder_authoring_object: Ok(value.builder_authoring_object),
                 candidate_action: Ok(value.candidate_action),
@@ -69327,12 +93531,17 @@ pub mod builder {
                 method_help_proposal: Ok(value.method_help_proposal),
                 method_help_recommendation: Ok(value.method_help_recommendation),
                 method_session: Ok(value.method_session),
+                model_access_compatibility: Ok(value.model_access_compatibility),
                 model_access_receipt: Ok(value.model_access_receipt),
+                model_access_receipt_v2: Ok(value.model_access_receipt_v2),
                 model_access_request: Ok(value.model_access_request),
+                model_access_request_v2: Ok(value.model_access_request_v2),
                 model_access_result: Ok(value.model_access_result),
+                model_access_result_v2: Ok(value.model_access_result_v2),
                 model_catalog: Ok(value.model_catalog),
                 model_context_consent: Ok(value.model_context_consent),
                 model_profile: Ok(value.model_profile),
+                model_stream_event: Ok(value.model_stream_event),
                 package_compatibility: Ok(value.package_compatibility),
                 remote_job_handoff: Ok(value.remote_job_handoff),
                 spec_consumption_record: Ok(value.spec_consumption_record),

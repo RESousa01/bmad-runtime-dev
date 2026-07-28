@@ -271,6 +271,33 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2"/>.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static explicit operator Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2(BuilderAuthoringObject value)
+        {
+            return Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.From(value);
+        }
+
+        /// <summary>
+        /// Conversion from <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2"/>.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator BuilderAuthoringObject(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2 value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
+        /// Conversion from the <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2"/> mutable view.
+        /// </summary>
+        /// <param name="value">The value from which to convert.</param>
+        public static implicit operator BuilderAuthoringObject(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Mutable value)
+        {
+            return From(value);
+        }
+
+        /// <summary>
         /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity"/>.
         /// </summary>
         /// <param name="value">The value from which to convert.</param>
@@ -943,6 +970,23 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the value as a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2" />.
+        /// </summary>
+        /// <param name="result">The result of the conversions.</param>
+        /// <returns><see langword="true" /> if the conversion was valid.</returns>
+        public bool TryGetAsBuilderAuthoringObjectBuilderAuthoringV2(out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2 result)
+        {
+            if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.JsonSchema.Evaluate(_parent, _idx))
+            {
+                result = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.From(this);
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+        /// <summary>
         /// Gets the value as a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft" />.
         /// </summary>
         /// <param name="result">The result of the conversions.</param>
@@ -985,6 +1029,7 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="matchBuilderAuthoringObjectBuilderDraft">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft"/>.</param>
         /// <param name="matchBuilderAuthoringObjectBuilderDraftRevision">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision"/>.</param>
         /// <param name="matchBuilderAuthoringObjectBuilderAnalysisRun">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun"/>.</param>
+        /// <param name="matchBuilderAuthoringObjectBuilderAuthoringV2">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2"/>.</param>
         /// <param name="defaultMatch">Match any other value.</param>
         /// <returns>An instance of the value returned by the match function.</returns>
         public TResult Match<TContext, TResult>(
@@ -992,6 +1037,7 @@ public readonly partial struct SapphirusContractsCatalog
             Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft, TContext, TResult> matchBuilderAuthoringObjectBuilderDraft,
             Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision, TContext, TResult> matchBuilderAuthoringObjectBuilderDraftRevision,
             Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun, TContext, TResult> matchBuilderAuthoringObjectBuilderAnalysisRun,
+            Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2, TContext, TResult> matchBuilderAuthoringObjectBuilderAuthoringV2,
             Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject, TContext, TResult> defaultMatch)
 #if NET9_0_OR_GREATER
         where TContext : allows ref struct
@@ -1012,6 +1058,11 @@ public readonly partial struct SapphirusContractsCatalog
                 return matchBuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.From(this), context);
             }
 
+            if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.JsonSchema.Evaluate(_parent, _idx))
+            {
+                return matchBuilderAuthoringObjectBuilderAuthoringV2(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.From(this), context);
+            }
+
             return defaultMatch(this, context);
         }
 
@@ -1022,12 +1073,14 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="matchBuilderAuthoringObjectBuilderDraft">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft"/>.</param>
         /// <param name="matchBuilderAuthoringObjectBuilderDraftRevision">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision"/>.</param>
         /// <param name="matchBuilderAuthoringObjectBuilderAnalysisRun">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun"/>.</param>
+        /// <param name="matchBuilderAuthoringObjectBuilderAuthoringV2">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2"/>.</param>
         /// <param name="defaultMatch">Match any other value.</param>
         /// <returns>An instance of the value returned by the match function.</returns>
         public TResult Match<TResult>(
             Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft, TResult> matchBuilderAuthoringObjectBuilderDraft,
             Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision, TResult> matchBuilderAuthoringObjectBuilderDraftRevision,
             Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun, TResult> matchBuilderAuthoringObjectBuilderAnalysisRun,
+            Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2, TResult> matchBuilderAuthoringObjectBuilderAuthoringV2,
             Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject, TResult> defaultMatch)
         {
             if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.JsonSchema.Evaluate(_parent, _idx))
@@ -1043,6 +1096,11 @@ public readonly partial struct SapphirusContractsCatalog
             if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.JsonSchema.Evaluate(_parent, _idx))
             {
                 return matchBuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.From(this));
+            }
+
+            if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.JsonSchema.Evaluate(_parent, _idx))
+            {
+                return matchBuilderAuthoringObjectBuilderAuthoringV2(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.From(this));
             }
 
             return defaultMatch(this);

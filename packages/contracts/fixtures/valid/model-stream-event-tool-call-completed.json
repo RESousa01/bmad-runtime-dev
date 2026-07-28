@@ -1,0 +1,9 @@
+{
+  "type": "tool_call_completed",
+  "requestId": "request_01J00000000000000000000000",
+  "runId": "run_01J00000000000000000000000",
+  "sequence": 3,
+  "toolCallId": "toolcall-0001",
+  "argumentsHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "argumentsByteCount": 42
+}

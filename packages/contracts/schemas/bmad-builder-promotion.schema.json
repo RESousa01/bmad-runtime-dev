@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-builder-promotion.schema.json",
+  "title": "sapphirus.bmad-builder-promotion.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "promotionId", "subjectHash", "fromState", "toState", "approval", "stage", "receiptHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-builder-promotion.v1" },
+    "promotionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "subjectHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "fromState": { "$ref": "#/$defs/LifecycleState" },
+    "toState": { "$ref": "#/$defs/LifecycleState" },
+    "approval": { "$ref": "#/$defs/Approval" },
+    "stage": { "enum": ["validation", "analysis", "evaluation", "review", "approval", "staging", "installation", "activation", "rollback", "uninstallation"] },
+    "installation": { "$ref": "#/$defs/Installation" },
+    "receiptHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "allOf": [
+    {
+      "oneOf": [
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "const": "draft" }, "toState": { "const": "validated" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "const": "validated" }, "toState": { "const": "analysed" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "const": "analysed" }, "toState": { "const": "evaluated" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "const": "evaluated" }, "toState": { "const": "reviewed" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "const": "reviewed" }, "toState": { "const": "approved" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "const": "approved" }, "toState": { "const": "staged" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "const": "staged" }, "toState": { "const": "installed" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "const": "installed" }, "toState": { "const": "active" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "const": "active" }, "toState": { "const": "superseded" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "enum": ["active", "superseded"] }, "toState": { "const": "rolled_back" } } },
+        { "required": ["fromState", "toState"], "properties": { "fromState": { "enum": ["installed", "active", "superseded", "rolled_back"] }, "toState": { "const": "uninstalled" } } }
+      ]
+    }
+  ],
+  "$defs": {
+    "LifecycleState": {
+      "enum": ["draft", "validated", "analysed", "evaluated", "reviewed", "approved", "staged", "installed", "active", "superseded", "rolled_back", "uninstalled"]
+    },
+    "Approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "decision"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "decision": { "enum": ["not_required", "pending", "approved", "denied"] },
+        "approvalId": { "$ref": "./common.schema.json#/$defs/ContractId" }
+      }
+    },
+    "Installation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalogGeneration", "atomic", "liveConformanceHash"],
+      "properties": {
+        "catalogGeneration": { "type": "integer", "minimum": 1 },
+        "atomic": { "const": true },
+        "liveConformanceHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    }
+  }
+}

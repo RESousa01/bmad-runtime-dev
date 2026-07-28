@@ -7,6 +7,7 @@ import standaloneCode from "ajv/dist/standalone/index.js";
 import { compile as generateTypescript } from "json-schema-to-typescript";
 import { canonicalHash, canonicalize } from "./lib/canonical-json.mjs";
 import { buildBmadFixtureSet } from "./lib/bmad-fixtures.mjs";
+import { buildBmadCrossLanguageOutputs } from "./lib/bmad-cross-language.mjs";
 import {
   assertContainedPhysicalDirectory,
   listContainedDirectRegularFiles,
@@ -1120,6 +1121,344 @@ const modelCatalogFixture = {
 };
 add("fixtures/valid/model-catalog.json", stableJson(modelCatalogFixture));
 
+const modelContextConsentV2Fixture = {
+  schemaVersion: "sapphirus.model-context-consent.v2",
+  decisionId: modelContextConsentFixture.decisionId,
+  requestId: modelContextConsentFixture.requestId,
+  invocationId: modelContextConsentFixture.invocationId,
+  deliveryModel: "windows_local",
+  tenantHash: modelContextConsentFixture.tenantHash,
+  subjectHash: modelContextConsentFixture.subjectHash,
+  registrationId: modelContextConsentFixture.registrationId,
+  installationPublicKeyHash: modelContextConsentFixture.installationPublicKeyHash,
+  entitlementLeaseId: modelContextConsentFixture.entitlementLeaseId,
+  entitlementLeaseHash: modelContextConsentFixture.entitlementLeaseHash,
+  tenantPolicyId: modelContextConsentFixture.tenantPolicyId,
+  tenantPolicyVersion: modelContextConsentFixture.tenantPolicyVersion,
+  tenantPolicyHash: modelContextConsentFixture.tenantPolicyHash,
+  purpose: modelContextConsentFixture.purpose,
+  modelRole: modelContextConsentFixture.modelRole,
+  requestMode: "structured_response",
+  modelProfileId: modelProfileFixture.profileId,
+  requestedVariantId: "balanced",
+  catalogVersion: modelCatalogFixture.catalogVersion,
+  contextSnapshotId: id("snapshot"),
+  canonicalOutputSchemaId: modelContextConsentFixture.canonicalOutputSchemaId,
+  canonicalOutputSchemaHash: modelContextConsentFixture.canonicalOutputSchemaHash,
+  manifestHash: modelContextConsentFixture.manifestHash,
+  invocationBindingHash: modelContextConsentFixture.invocationBindingHash,
+  consumptionHash: modelContextConsentFixture.consumptionHash,
+  consentDisclosureHash: modelContextConsentFixture.consentDisclosureHash,
+  providerProfileHash: modelContextConsentFixture.providerProfileHash,
+  modelProfileHash: modelContextConsentFixture.modelProfileHash,
+  modelCapabilityHash: modelContextConsentFixture.modelCapabilityHash,
+  region: modelContextConsentFixture.region,
+  retentionMode: "transient_no_store",
+  budgetClass: modelContextConsentFixture.budgetClass,
+  issuedAt: modelContextConsentFixture.issuedAt,
+  notBefore: modelContextConsentFixture.notBefore,
+  expiresAt: modelContextConsentFixture.expiresAt,
+  nonceHash: modelContextConsentFixture.nonceHash,
+  consentEnvelopeHash: modelContextConsentFixture.consentEnvelopeHash,
+  proof: structuredClone(modelContextConsentFixture.proof),
+};
+
+const modelAccessRequestV2Fixture = {
+  schemaVersion: "desktop-model-access-request.v2",
+  requestId: modelContextConsentV2Fixture.requestId,
+  deliveryModel: "windows_local",
+  registrationId: modelContextConsentV2Fixture.registrationId,
+  purpose: modelContextConsentV2Fixture.purpose,
+  modelRole: modelContextConsentV2Fixture.modelRole,
+  requestMode: modelContextConsentV2Fixture.requestMode,
+  modelProfileId: modelContextConsentV2Fixture.modelProfileId,
+  requestedVariantId: modelContextConsentV2Fixture.requestedVariantId,
+  catalogVersion: modelContextConsentV2Fixture.catalogVersion,
+  modelProfileHash: modelContextConsentV2Fixture.modelProfileHash,
+  modelCapabilityHash: modelContextConsentV2Fixture.modelCapabilityHash,
+  contextSnapshotId: modelContextConsentV2Fixture.contextSnapshotId,
+  canonicalOutputSchemaId: modelContextConsentV2Fixture.canonicalOutputSchemaId,
+  canonicalOutputSchemaHash: modelContextConsentV2Fixture.canonicalOutputSchemaHash,
+  localEgressManifestHash: modelContextConsentV2Fixture.manifestHash,
+  consent: modelContextConsentV2Fixture,
+  items: structuredClone(modelAccessRequestFixture.items),
+  tools: [
+    {
+      toolName: "read_workspace_file",
+      description: "Read one approved workspace file the user already shared.",
+      parametersSchemaId: "sapphirus.model-tool-read-file.v1",
+      parametersSchemaHash: hash("2"),
+    },
+  ],
+  retentionMode: "transient_no_store",
+  budgetClass: modelContextConsentV2Fixture.budgetClass,
+};
+add("fixtures/valid/model-access-request-v2.json", stableJson(modelAccessRequestV2Fixture));
+
+const modelAccessReceiptV2Fixture = {
+  schemaVersion: "sapphirus.model-access-receipt.v2",
+  receiptId: id("receipt"),
+  requestId: modelAccessRequestV2Fixture.requestId,
+  runId: id("run"),
+  requestHash: modelContextConsentFixture.tenantHash,
+  resultHash: modelContextConsentFixture.subjectHash,
+  deliveryModel: "windows_local",
+  tenantHash: modelContextConsentFixture.tenantHash,
+  subjectHash: modelContextConsentFixture.subjectHash,
+  registrationId: modelContextConsentFixture.registrationId,
+  manifestHash: modelContextConsentFixture.manifestHash,
+  invocationBindingHash: modelContextConsentFixture.invocationBindingHash,
+  consumptionHash: modelContextConsentFixture.consumptionHash,
+  consentEnvelopeHash: modelContextConsentFixture.consentEnvelopeHash,
+  consentDisclosureHash: modelContextConsentFixture.consentDisclosureHash,
+  providerProfileHash: modelContextConsentFixture.providerProfileHash,
+  modelProfileHash: modelContextConsentFixture.modelProfileHash,
+  modelCapabilityHash: modelContextConsentFixture.modelCapabilityHash,
+  responseLane: {
+    requestMode: "structured_response",
+    supportRoute: "model_access",
+    canonicalOutputSchemaId: modelContextConsentFixture.canonicalOutputSchemaId,
+    canonicalOutputSchemaHash: modelContextConsentFixture.canonicalOutputSchemaHash,
+    providerSchemaProjectionHash: modelContextConsentFixture.installationPublicKeyHash,
+  },
+  requestedProfileId: modelProfileFixture.profileId,
+  resolvedProfileId: modelProfileFixture.profileId,
+  resolvedProfileHash: modelContextConsentFixture.modelProfileHash,
+  requestedVariantId: "balanced",
+  resolvedVariantId: "balanced",
+  catalogVersion: modelCatalogFixture.catalogVersion,
+  catalogHash: modelCatalogFixture.catalogHash,
+  deploymentInventoryHash: foundryDeploymentFixture.snapshotHash,
+  resolvedDeploymentHash: foundryDeploymentFixture.deployments[0].deploymentHash,
+  resolvedModel: {
+    publisher: foundryDeploymentFixture.deployments[0].modelPublisher,
+    name: foundryDeploymentFixture.deployments[0].modelName,
+    version: foundryDeploymentFixture.deployments[0].modelVersion,
+  },
+  reportedResponseModel: "fixture-model-2026-06-01",
+  credentialBindingHash: modelContextConsentFixture.entitlementLeaseHash,
+  retentionMode: "transient_no_store",
+  region: "westeurope",
+  inputBytes: 8421,
+  outputBytes: 1200,
+  usage: {
+    usageProvenance: "reported",
+    inputTokens: 2100,
+    outputTokens: 300,
+    reasoningTokens: 180,
+    cacheReadTokens: null,
+    cacheWriteTokens: null,
+    costMicrounits: 7200,
+    currency: "EUR",
+    priceProfileVersion: modelProfileFixture.priceProfile.version,
+  },
+  retryCount: 0,
+  fallbackEvents: [],
+  providerRequestId: "provider-request-opaque",
+  startedAt: "2026-07-28T10:00:01.000Z",
+  completedAt: "2026-07-28T10:00:02.000Z",
+  terminalStatus: "succeeded",
+  receiptHash: modelContextConsentFixture.tenantPolicyHash,
+  proof: structuredClone(modelAccessReceiptFixture.proof),
+};
+add("fixtures/valid/model-access-receipt-v2.json", stableJson(modelAccessReceiptV2Fixture));
+
+const modelAccessResultV2Fixture = {
+  schemaVersion: "desktop-model-access-result.v2",
+  requestMode: "structured_response",
+  requestId: modelAccessRequestV2Fixture.requestId,
+  runId: modelAccessReceiptV2Fixture.runId,
+  outputSchemaId: modelContextConsentFixture.canonicalOutputSchemaId,
+  payloadJson: "{\"summary\":\"Review the selected context.\"}",
+  payloadHash: modelAccessReceiptV2Fixture.resultHash,
+  receipt: modelAccessReceiptV2Fixture,
+};
+add("fixtures/valid/model-access-result-v2.json", stableJson(modelAccessResultV2Fixture));
+
+const streamingChatReceiptV2Fixture = structuredClone(modelAccessReceiptV2Fixture);
+streamingChatReceiptV2Fixture.responseLane = {
+  requestMode: "streaming_chat",
+  supportRoute: "model_stream",
+  eventCount: 6,
+  finalSequence: 6,
+};
+streamingChatReceiptV2Fixture.usage = {
+  usageProvenance: "estimated",
+  inputTokens: 2100,
+  outputTokens: 300,
+  reasoningTokens: null,
+  cacheReadTokens: null,
+  cacheWriteTokens: null,
+  costMicrounits: 7200,
+  currency: "EUR",
+  priceProfileVersion: modelProfileFixture.priceProfile.version,
+};
+
+const modelAccessResultV2StreamingFixture = {
+  schemaVersion: "desktop-model-access-result.v2",
+  requestMode: "streaming_chat",
+  requestId: modelAccessRequestV2Fixture.requestId,
+  runId: modelAccessReceiptV2Fixture.runId,
+  outputText: "Review the selected context.",
+  payloadHash: modelAccessReceiptV2Fixture.resultHash,
+  receipt: streamingChatReceiptV2Fixture,
+};
+add(
+  "fixtures/valid/model-access-result-v2-streaming.json",
+  stableJson(modelAccessResultV2StreamingFixture),
+);
+
+const streamEventCommon = {
+  requestId: modelAccessRequestV2Fixture.requestId,
+  runId: modelAccessReceiptV2Fixture.runId,
+};
+
+const modelStreamResponseStartedFixture = {
+  type: "response_started",
+  ...streamEventCommon,
+  sequence: 1,
+  resolvedProfileId: modelProfileFixture.profileId,
+  resolvedVariantId: "balanced",
+  startedAt: "2026-07-28T10:00:01.000Z",
+};
+add(
+  "fixtures/valid/model-stream-event-response-started.json",
+  stableJson(modelStreamResponseStartedFixture),
+);
+
+const modelStreamOutputTextDeltaFixture = {
+  type: "output_text_delta",
+  ...streamEventCommon,
+  sequence: 2,
+  outputIndex: 0,
+  textDelta: "Review the selected ",
+};
+add(
+  "fixtures/valid/model-stream-event-output-text-delta.json",
+  stableJson(modelStreamOutputTextDeltaFixture),
+);
+
+const modelStreamToolCallCompletedFixture = {
+  type: "tool_call_completed",
+  ...streamEventCommon,
+  sequence: 3,
+  toolCallId: "toolcall-0001",
+  argumentsHash: hash("3"),
+  argumentsByteCount: 42,
+};
+add(
+  "fixtures/valid/model-stream-event-tool-call-completed.json",
+  stableJson(modelStreamToolCallCompletedFixture),
+);
+
+const modelStreamUsageFixture = {
+  type: "usage",
+  ...streamEventCommon,
+  sequence: 4,
+  usage: structuredClone(streamingChatReceiptV2Fixture.usage),
+};
+add("fixtures/valid/model-stream-event-usage.json", stableJson(modelStreamUsageFixture));
+
+const modelStreamCompletedFixture = {
+  type: "completed",
+  ...streamEventCommon,
+  sequence: 5,
+  receiptSummary: {
+    receiptId: modelAccessReceiptV2Fixture.receiptId,
+    receiptHash: modelAccessReceiptV2Fixture.receiptHash,
+    terminalStatus: "succeeded",
+    resolvedProfileId: modelProfileFixture.profileId,
+    resolvedVariantId: "balanced",
+    outputBytes: 1200,
+    completedAt: "2026-07-28T10:00:02.000Z",
+  },
+};
+add("fixtures/valid/model-stream-event-completed.json", stableJson(modelStreamCompletedFixture));
+
+const modelStreamFailedFixture = {
+  type: "failed",
+  ...streamEventCommon,
+  sequence: 5,
+  failureCode: "provider_timeout",
+  retryable: true,
+  failureDetail: "The model did not respond within the reviewed deadline.",
+};
+add("fixtures/valid/model-stream-event-failed.json", stableJson(modelStreamFailedFixture));
+
+const modelAccessCompatibilityFixture = {
+  schemaVersion: "sapphirus.model-access-compatibility.v1",
+  adapterDirection: "v1_to_v2_only",
+  currentRequestSchemaVersion: "desktop-model-access-request.v2",
+  acceptedRequestSchemaVersions: [
+    "desktop-model-access-request.v1",
+    "desktop-model-access-request.v2",
+  ],
+  legacyProfile: {
+    profileId: "legacy-fixed-deployment",
+    displayName: "Legacy",
+    deploymentResolution: "server_side_only",
+    clientSelectable: false,
+    requiresCatalogVersion: false,
+    requestMode: "structured_response",
+    variantPolicy: "profile_default_only",
+  },
+  rejectionReasons: [
+    "model_selection_attempted",
+    "streaming_requested",
+    "variant_requested",
+    "attachment_requested",
+    "catalog_version_supplied",
+    "tool_definition_supplied",
+    "unknown_member_present",
+    "contract_epoch_too_low",
+  ],
+  minimumDesktopContractEpoch: 1,
+  historicalReceiptPolicy: {
+    verifiableReceiptSchemaVersions: [
+      "sapphirus.model-access-receipt.v1",
+      "sapphirus.model-access-receipt.v2",
+    ],
+    digestPurpose: "model-access-receipt",
+    version1DigestUnchanged: true,
+    reverificationRequired: false,
+  },
+  removalGate: {
+    removalContractEpoch: 2,
+    minimumDesktopVersion: "0.2.0",
+    conditions: [
+      "catalog_published_for_every_tenant",
+      "every_installation_at_removal_epoch",
+      "legacy_profile_retired_from_catalog",
+      "historical_receipt_replay_verified",
+    ],
+  },
+};
+add(
+  "fixtures/valid/model-access-compatibility.json",
+  stableJson(modelAccessCompatibilityFixture),
+);
+
+const compatibilityLoweringAdapter = structuredClone(modelAccessCompatibilityFixture);
+compatibilityLoweringAdapter.adapterDirection = "v2_to_v1";
+add(
+  "fixtures/invalid/model-access-compatibility-lowering-adapter.json",
+  stableJson(compatibilityLoweringAdapter),
+);
+
+const compatibilityClientSelectableLegacy = structuredClone(modelAccessCompatibilityFixture);
+compatibilityClientSelectableLegacy.legacyProfile.clientSelectable = true;
+add(
+  "fixtures/invalid/model-access-compatibility-client-selectable-legacy.json",
+  stableJson(compatibilityClientSelectableLegacy),
+);
+
+const compatibilityLegacyDeploymentName = structuredClone(modelAccessCompatibilityFixture);
+compatibilityLegacyDeploymentName.legacyProfile.deploymentName = "fixture-deployment-a";
+add(
+  "fixtures/invalid/model-access-compatibility-legacy-deployment-name.json",
+  stableJson(compatibilityLegacyDeploymentName),
+);
+
 const foundryDeploymentUnknownCapability = structuredClone(foundryDeploymentFixture);
 foundryDeploymentUnknownCapability.deployments[0].capabilities.jsonSchema = true;
 add(
@@ -1162,6 +1501,102 @@ modelCatalogBlockedAvailability.profiles[0].availability = "not_entitled";
 add(
   "fixtures/invalid/model-catalog-blocked-availability.json",
   stableJson(modelCatalogBlockedAvailability),
+);
+
+const requestV2DeploymentTransplant = structuredClone(modelAccessRequestV2Fixture);
+requestV2DeploymentTransplant.deploymentName = "fixture-deployment-a";
+add(
+  "fixtures/invalid/model-access-request-v2-deployment-transplant.json",
+  stableJson(requestV2DeploymentTransplant),
+);
+
+const requestV2ProviderAuthority = structuredClone(modelAccessRequestV2Fixture);
+requestV2ProviderAuthority.projectEndpoint =
+  "https://fixture.services.ai.azure.com/api/projects/fixture";
+requestV2ProviderAuthority.apiVersion = "2026-06-01";
+add(
+  "fixtures/invalid/model-access-request-v2-provider-authority.json",
+  stableJson(requestV2ProviderAuthority),
+);
+
+const requestV2ConsentDeploymentHash = structuredClone(modelAccessRequestV2Fixture);
+requestV2ConsentDeploymentHash.consent.deploymentHash = hash("e");
+add(
+  "fixtures/invalid/model-access-request-v2-consent-deployment-hash.json",
+  stableJson(requestV2ConsentDeploymentHash),
+);
+
+const requestV2MissingCatalogVersion = structuredClone(modelAccessRequestV2Fixture);
+delete requestV2MissingCatalogVersion.catalogVersion;
+add(
+  "fixtures/invalid/model-access-request-v2-missing-catalog-version.json",
+  stableJson(requestV2MissingCatalogVersion),
+);
+
+const receiptV2RouteMismatch = structuredClone(modelAccessReceiptV2Fixture);
+receiptV2RouteMismatch.responseLane = {
+  requestMode: "streaming_chat",
+  supportRoute: "model_access",
+  eventCount: 6,
+  finalSequence: 6,
+};
+add(
+  "fixtures/invalid/model-access-receipt-v2-route-mismatch.json",
+  stableJson(receiptV2RouteMismatch),
+);
+
+const receiptV2UnavailableUsageTokens = structuredClone(modelAccessReceiptV2Fixture);
+receiptV2UnavailableUsageTokens.usage = {
+  usageProvenance: "unavailable",
+  inputTokens: 0,
+  outputTokens: 0,
+  reasoningTokens: 0,
+  cacheReadTokens: 0,
+  cacheWriteTokens: 0,
+  costMicrounits: 0,
+  currency: "EUR",
+  priceProfileVersion: modelProfileFixture.priceProfile.version,
+};
+add(
+  "fixtures/invalid/model-access-receipt-v2-unavailable-usage-tokens.json",
+  stableJson(receiptV2UnavailableUsageTokens),
+);
+
+const receiptV2MissingResolvedProfile = structuredClone(modelAccessReceiptV2Fixture);
+delete receiptV2MissingResolvedProfile.resolvedProfileId;
+delete receiptV2MissingResolvedProfile.resolvedVariantId;
+add(
+  "fixtures/invalid/model-access-receipt-v2-missing-resolved-profile.json",
+  stableJson(receiptV2MissingResolvedProfile),
+);
+
+const resultV2ChatOutputSchema = structuredClone(modelAccessResultV2StreamingFixture);
+resultV2ChatOutputSchema.outputSchemaId = modelContextConsentFixture.canonicalOutputSchemaId;
+add(
+  "fixtures/invalid/model-access-result-v2-chat-output-schema.json",
+  stableJson(resultV2ChatOutputSchema),
+);
+
+const streamEventBearerToken = structuredClone(modelStreamOutputTextDeltaFixture);
+streamEventBearerToken.accessToken = "fixture-bearer-token-value";
+add(
+  "fixtures/invalid/model-stream-event-bearer-token.json",
+  stableJson(streamEventBearerToken),
+);
+
+const streamEventProviderBody = structuredClone(modelStreamCompletedFixture);
+streamEventProviderBody.deploymentName = "fixture-deployment-a";
+streamEventProviderBody.rawProviderBody = "{\"choices\":[]}";
+add(
+  "fixtures/invalid/model-stream-event-provider-body.json",
+  stableJson(streamEventProviderBody),
+);
+
+const streamEventNonPositiveSequence = structuredClone(modelStreamOutputTextDeltaFixture);
+streamEventNonPositiveSequence.sequence = 0;
+add(
+  "fixtures/invalid/model-stream-event-nonpositive-sequence.json",
+  stableJson(streamEventNonPositiveSequence),
 );
 
 const registrationUnknownProperty = structuredClone(desktopDeviceRegistrationFixture);
@@ -1213,6 +1648,17 @@ const catalog = [
   ["valid/foundry-deployment.json", "foundry-deployment.schema.json", true, null],
   ["valid/model-profile.json", "model-profile.schema.json", true, null],
   ["valid/model-catalog.json", "model-catalog.schema.json", true, null],
+  ["valid/model-access-compatibility.json", "model-access-compatibility.schema.json", true, null],
+  ["valid/model-access-request-v2.json", "model-access-request-v2.schema.json", true, null],
+  ["valid/model-access-receipt-v2.json", "model-access-receipt-v2.schema.json", true, null],
+  ["valid/model-access-result-v2.json", "model-access-result-v2.schema.json", true, null],
+  ["valid/model-access-result-v2-streaming.json", "model-access-result-v2.schema.json", true, null],
+  ["valid/model-stream-event-response-started.json", "model-stream-event.schema.json", true, null],
+  ["valid/model-stream-event-output-text-delta.json", "model-stream-event.schema.json", true, null],
+  ["valid/model-stream-event-tool-call-completed.json", "model-stream-event.schema.json", true, null],
+  ["valid/model-stream-event-usage.json", "model-stream-event.schema.json", true, null],
+  ["valid/model-stream-event-completed.json", "model-stream-event.schema.json", true, null],
+  ["valid/model-stream-event-failed.json", "model-stream-event.schema.json", true, null],
   ["valid/bmad-capability-run.json", "bmad-capability-run.schema.json", true, null],
   ["valid/bmad-capability-result-document.json", "bmad-capability-result.schema.json", true, null],
   ["valid/bmad-capability-result-changes.json", "bmad-capability-result.schema.json", true, null],
@@ -1227,6 +1673,20 @@ const catalog = [
   ["invalid/model-catalog-project-endpoint.json", "model-catalog.schema.json", false, "UNKNOWN_PROPERTY"],
   ["invalid/model-catalog-azure-identity.json", "model-catalog.schema.json", false, "UNKNOWN_PROPERTY"],
   ["invalid/model-catalog-blocked-availability.json", "model-catalog.schema.json", false, "ENUM_MISMATCH"],
+  ["invalid/model-access-compatibility-lowering-adapter.json", "model-access-compatibility.schema.json", false, "CONST_MISMATCH"],
+  ["invalid/model-access-compatibility-client-selectable-legacy.json", "model-access-compatibility.schema.json", false, "CONST_MISMATCH"],
+  ["invalid/model-access-compatibility-legacy-deployment-name.json", "model-access-compatibility.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/model-access-request-v2-deployment-transplant.json", "model-access-request-v2.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/model-access-request-v2-provider-authority.json", "model-access-request-v2.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/model-access-request-v2-consent-deployment-hash.json", "model-access-request-v2.schema.json", false, "UNKNOWN_PROPERTY"],
+  ["invalid/model-access-request-v2-missing-catalog-version.json", "model-access-request-v2.schema.json", false, "REQUIRED_PROPERTY_MISSING"],
+  ["invalid/model-access-receipt-v2-route-mismatch.json", "model-access-receipt-v2.schema.json", false, "ONE_OF_MISMATCH"],
+  ["invalid/model-access-receipt-v2-unavailable-usage-tokens.json", "model-access-receipt-v2.schema.json", false, "ONE_OF_MISMATCH"],
+  ["invalid/model-access-receipt-v2-missing-resolved-profile.json", "model-access-receipt-v2.schema.json", false, "REQUIRED_PROPERTY_MISSING"],
+  ["invalid/model-access-result-v2-chat-output-schema.json", "model-access-result-v2.schema.json", false, "ONE_OF_MISMATCH"],
+  ["invalid/model-stream-event-bearer-token.json", "model-stream-event.schema.json", false, "ONE_OF_MISMATCH"],
+  ["invalid/model-stream-event-provider-body.json", "model-stream-event.schema.json", false, "ONE_OF_MISMATCH"],
+  ["invalid/model-stream-event-nonpositive-sequence.json", "model-stream-event.schema.json", false, "ONE_OF_MISMATCH"],
   ["invalid/bmad-capability-run-unknown-property.json", "bmad-capability-run.schema.json", false, "UNKNOWN_PROPERTY"],
   ["invalid/bmad-capability-run-forged-capability-id.json", "bmad-capability-run.schema.json", false, "PATTERN_MISMATCH"],
   ["invalid/bmad-capability-result-absolute-path.json", "bmad-capability-result.schema.json", false, "ONE_OF_MISMATCH"],
@@ -1309,6 +1769,55 @@ const supplementalGoldenValues = [
     purpose: "contract-object",
     schemaMajor: "v1",
     value: { maximum: 9007199254740991, minimum: -9007199254740991 },
+  },
+  {
+    name: "model-catalog-hash",
+    purpose: "contract-object",
+    schemaMajor: "v1",
+    value: (() => {
+      const projection = structuredClone(modelCatalogFixture);
+      delete projection.catalogHash;
+      return projection;
+    })(),
+  },
+  {
+    name: "model-access-request-v2-hash",
+    purpose: "contract-object",
+    schemaMajor: "v1",
+    value: structuredClone(modelAccessRequestV2Fixture),
+  },
+  {
+    name: "model-context-consent-v2-binding",
+    purpose: "contract-object",
+    schemaMajor: "v1",
+    value: {
+      canonicalOutputSchemaHash: modelContextConsentV2Fixture.canonicalOutputSchemaHash,
+      canonicalOutputSchemaId: modelContextConsentV2Fixture.canonicalOutputSchemaId,
+      catalogVersion: modelContextConsentV2Fixture.catalogVersion,
+      contextSnapshotId: modelContextConsentV2Fixture.contextSnapshotId,
+      decisionId: modelContextConsentV2Fixture.decisionId,
+      modelProfileId: modelContextConsentV2Fixture.modelProfileId,
+      requestId: modelContextConsentV2Fixture.requestId,
+      requestMode: modelContextConsentV2Fixture.requestMode,
+      requestedVariantId: modelContextConsentV2Fixture.requestedVariantId,
+    },
+  },
+  {
+    name: "model-stream-event-decoding",
+    purpose: "contract-object",
+    schemaMajor: "v1",
+    value: structuredClone(modelStreamCompletedFixture),
+  },
+  {
+    name: "model-access-receipt-v2-hash",
+    purpose: "contract-object",
+    schemaMajor: "v1",
+    value: (() => {
+      const projection = structuredClone(modelAccessReceiptV2Fixture);
+      delete projection.receiptHash;
+      delete projection.proof;
+      return projection;
+    })(),
   },
 ].map((vector) => {
   const computed = canonicalHash(vector);
@@ -1514,15 +2023,27 @@ function rewriteGeneratorReferences(value, sourceFile) {
 const typescriptSchemaTargets = [
   "approved-execution-spec",
   "authority-ref",
+  "bmad-artifact",
   "bmad-builder-authoring",
+  "bmad-builder-promotion",
   "bmad-capability-catalog",
   "bmad-capability-result",
   "bmad-capability-run",
+  "bmad-config",
+  "bmad-eval",
+  "bmad-memory",
   "bmad-method-advance-result",
   "bmad-method-help-proposal",
   "bmad-method-help-recommendation",
   "bmad-method-session",
+  "bmad-module",
   "bmad-package-descriptor",
+  "bmad-script-plan",
+  "bmad-session",
+  "bmad-skill-package",
+  "bmad-source-accounting",
+  "bmad-source-identity",
+  "bmad-upgrade",
   "bmad-validation-report",
   "candidate-action",
   "contract-error",
@@ -1534,12 +2055,17 @@ const typescriptSchemaTargets = [
   "execution-result-manifest",
   "filesystem-capability",
   "foundry-deployment",
+  "model-access-compatibility",
+  "model-access-receipt-v2",
   "model-access-receipt",
+  "model-access-request-v2",
   "model-access-request",
+  "model-access-result-v2",
   "model-access-result",
   "model-catalog",
   "model-context-consent",
   "model-profile",
+  "model-stream-event",
   "package-compatibility",
   "remote-job-handoff",
   "spec-consumption",
@@ -1713,6 +2239,45 @@ export type {
   SapphirusModelCatalogV1 as ModelCatalog,
 } from "./schema/model-catalog.js";
 export type {
+  SapphirusModelAccessCompatibilityV1 as ModelAccessCompatibility,
+  LegacyRejectionReason,
+  LegacyProfileBinding,
+  LegacyRemovalGate,
+} from "./schema/model-access-compatibility.js";
+export type {
+  SapphirusModelAccessRequestV2V1 as ModelAccessRequestV2,
+  ModelContextConsentV2,
+  ModelToolDefinition,
+  ModelContextItem as ModelContextItemV2,
+} from "./schema/model-access-request-v2.js";
+export type {
+  SapphirusModelAccessReceiptV2V1 as ModelAccessReceiptV2,
+  ModelResponseLane,
+  ModelUsageV2,
+  ModelTerminalStatus,
+  ResolvedModelIdentity,
+} from "./schema/model-access-receipt-v2.js";
+export type {
+  SapphirusModelAccessResultV2V1 as ModelAccessResultV2,
+} from "./schema/model-access-result-v2.js";
+export type {
+  SapphirusModelStreamEventV1 as ModelStreamEvent,
+  ResponseStartedEvent as ModelStreamResponseStarted,
+  OutputTextDeltaEvent as ModelStreamOutputTextDelta,
+  ToolCallStartedEvent as ModelStreamToolCallStarted,
+  ToolCallArgumentsDeltaEvent as ModelStreamToolCallArgumentsDelta,
+  ToolCallCompletedEvent as ModelStreamToolCallCompleted,
+  UsageEvent as ModelStreamUsageEvent,
+  CompletedEvent as ModelStreamCompleted,
+  RefusedEvent as ModelStreamRefused,
+  FailedEvent as ModelStreamFailed,
+  CancelledEvent as ModelStreamCancelled,
+  StreamFailureCode as ModelStreamFailureCode,
+  StreamRefusalCode as ModelStreamRefusalCode,
+  StreamCancellationSource as ModelStreamCancellationSource,
+  StreamReceiptSummary as ModelStreamReceiptSummary,
+} from "./schema/model-stream-event.js";
+export type {
   SapphirusContractErrorV1 as ContractError,
 } from "./schema/contract-error.js";
 export type {
@@ -1773,6 +2338,16 @@ const validatorIds = {
     "https://schemas.sapphirus.dev/v1/model-access-receipt.schema.json",
   validateModelAccessResult:
     "https://schemas.sapphirus.dev/v1/model-access-result.schema.json",
+  validateModelAccessRequestV2:
+    "https://schemas.sapphirus.dev/v1/model-access-request-v2.schema.json",
+  validateModelAccessReceiptV2:
+    "https://schemas.sapphirus.dev/v1/model-access-receipt-v2.schema.json",
+  validateModelAccessResultV2:
+    "https://schemas.sapphirus.dev/v1/model-access-result-v2.schema.json",
+  validateModelStreamEvent:
+    "https://schemas.sapphirus.dev/v1/model-stream-event.schema.json",
+  validateModelAccessCompatibility:
+    "https://schemas.sapphirus.dev/v1/model-access-compatibility.schema.json",
   validateModelContextConsent:
     "https://schemas.sapphirus.dev/v1/model-context-consent.schema.json",
   validateFoundryDeployment:
@@ -1987,6 +2562,11 @@ import {
   validateModelAccessRequest,
   validateModelAccessReceipt,
   validateModelAccessResult,
+  validateModelAccessRequestV2,
+  validateModelAccessReceiptV2,
+  validateModelAccessResultV2,
+  validateModelStreamEvent,
+  validateModelAccessCompatibility,
   validateModelContextConsent,
   validateFoundryDeployment,
   validateModelProfile,
@@ -2019,6 +2599,11 @@ export const CONTRACT_VALIDATORS = Object.freeze({
   "model-access-request": validateModelAccessRequest,
   "model-access-receipt": validateModelAccessReceipt,
   "model-access-result": validateModelAccessResult,
+  "model-access-request-v2": validateModelAccessRequestV2,
+  "model-access-receipt-v2": validateModelAccessReceiptV2,
+  "model-access-result-v2": validateModelAccessResultV2,
+  "model-stream-event": validateModelStreamEvent,
+  "model-access-compatibility": validateModelAccessCompatibility,
   "model-context-consent": validateModelContextConsent,
   "foundry-deployment": validateFoundryDeployment,
   "model-profile": validateModelProfile,
@@ -2225,6 +2810,17 @@ add("generated/typescript/validation.mjs", validationRuntime);
 add("generated/typescript/validation.d.mts", validationDeclarations);
 add("generated/typescript/semantic-validation.mjs", semanticValidationRuntime);
 add("generated/typescript/semantic-validation.d.mts", semanticValidationDeclarations);
+
+const bmadCrossLanguageOutputs = await buildBmadCrossLanguageOutputs({
+  packageRoot,
+  schemas,
+  expectedFiles,
+  generateTypescript,
+  rustSource: typescriptOnly ? null : expectedFiles.get("generated/rust/contracts.rs"),
+});
+for (const [relativePath, source] of bmadCrossLanguageOutputs) {
+  add(relativePath, source);
+}
 
 const productionTypescriptRunA = new Map(
   [...expectedFiles.entries()].filter(([file]) => file.startsWith("generated/typescript/")),

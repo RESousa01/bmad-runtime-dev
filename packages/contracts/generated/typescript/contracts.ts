@@ -141,6 +141,45 @@ export type {
   SapphirusModelCatalogV1 as ModelCatalog,
 } from "./schema/model-catalog.js";
 export type {
+  SapphirusModelAccessCompatibilityV1 as ModelAccessCompatibility,
+  LegacyRejectionReason,
+  LegacyProfileBinding,
+  LegacyRemovalGate,
+} from "./schema/model-access-compatibility.js";
+export type {
+  SapphirusModelAccessRequestV2V1 as ModelAccessRequestV2,
+  ModelContextConsentV2,
+  ModelToolDefinition,
+  ModelContextItem as ModelContextItemV2,
+} from "./schema/model-access-request-v2.js";
+export type {
+  SapphirusModelAccessReceiptV2V1 as ModelAccessReceiptV2,
+  ModelResponseLane,
+  ModelUsageV2,
+  ModelTerminalStatus,
+  ResolvedModelIdentity,
+} from "./schema/model-access-receipt-v2.js";
+export type {
+  SapphirusModelAccessResultV2V1 as ModelAccessResultV2,
+} from "./schema/model-access-result-v2.js";
+export type {
+  SapphirusModelStreamEventV1 as ModelStreamEvent,
+  ResponseStartedEvent as ModelStreamResponseStarted,
+  OutputTextDeltaEvent as ModelStreamOutputTextDelta,
+  ToolCallStartedEvent as ModelStreamToolCallStarted,
+  ToolCallArgumentsDeltaEvent as ModelStreamToolCallArgumentsDelta,
+  ToolCallCompletedEvent as ModelStreamToolCallCompleted,
+  UsageEvent as ModelStreamUsageEvent,
+  CompletedEvent as ModelStreamCompleted,
+  RefusedEvent as ModelStreamRefused,
+  FailedEvent as ModelStreamFailed,
+  CancelledEvent as ModelStreamCancelled,
+  StreamFailureCode as ModelStreamFailureCode,
+  StreamRefusalCode as ModelStreamRefusalCode,
+  StreamCancellationSource as ModelStreamCancellationSource,
+  StreamReceiptSummary as ModelStreamReceiptSummary,
+} from "./schema/model-stream-event.js";
+export type {
   SapphirusContractErrorV1 as ContractError,
 } from "./schema/contract-error.js";
 export type {

@@ -3,7 +3,8 @@
 /**
  * Inactive early BMAD Builder draft, revision, and analysis records.
  */
-export type SapphirusBmadBuilderAuthoringV1 = BuilderDraft | BuilderDraftRevision | BuilderAnalysisRun;
+export type SapphirusBmadBuilderAuthoringV1 =
+  BuilderDraft | BuilderDraftRevision | BuilderAnalysisRun | BuilderAuthoringV2;
 export type BuilderDraft =
   | {
       objectKind: "draft";
@@ -197,4 +198,48 @@ export interface BuilderProposedFileSet {
 export interface BuilderProposedFile {
   path: string;
   content: string;
+}
+export interface BuilderAuthoringV2 {
+  objectKind: "draft" | "revision" | "analysis" | "conversion" | "setup";
+  schemaVersion: "sapphirus.bmad-builder-authoring.v2";
+  recordId: string;
+  builderKind:
+    "agent" | "workflow" | "module" | "setup" | "conversion" | "evaluation" | "promotion" | "installation" | "rollback";
+  action:
+    | "create_rebuild"
+    | "build"
+    | "edit"
+    | "analyze"
+    | "convert"
+    | "evaluate"
+    | "promote"
+    | "install"
+    | "rollback"
+    | "configure";
+  agentProfile: "stateless" | "memory" | "autonomous_pulse" | "not_applicable";
+  mode: "interactive" | "headless";
+  lifecycle: "draft";
+  sourceHash: string;
+  payloadHash: string;
+  migration?: SapphirusBmadUpgradeV1;
+}
+export interface SapphirusBmadUpgradeV1 {
+  schemaVersion: "sapphirus.bmad-upgrade.v1";
+  migrationId: string;
+  contract: "bmad_builder_authoring" | "bmad_session" | "bmad_config" | "bmad_memory";
+  fromVersion: string;
+  toVersion: string;
+  strategy: "deterministic_lossless" | "deterministic_with_defaults" | "reject";
+  /**
+   * @minItems 1
+   * @maxItems 128
+   */
+  steps: MigrationStep[];
+  fixtureHash: string;
+}
+export interface MigrationStep {
+  ordinal: number;
+  operation: "copy" | "rename" | "set_default" | "map_enum" | "remove_redundant" | "validate";
+  path: string;
+  valueHash: string | null;
 }

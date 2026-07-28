@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-module.schema.json",
+  "branch": "sapphirus.bmad-module.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-module.v1",
+    "moduleId": "module_01J00000000000000000000000",
+    "moduleCode": "bmm",
+    "kind": "method",
+    "skills": [],
+    "setup": [],
+    "moduleHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "canonicalJson": "{\"kind\":\"method\",\"moduleCode\":\"bmm\",\"moduleHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"moduleId\":\"module_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-module.v1\",\"setup\":[],\"skills\":[]}",
+  "expectedHash": "sha256:ef332fcf083672ed3c6aea5f3c5559bcbe7ece6cf45aa3585ed760ac8fed444d"
+}

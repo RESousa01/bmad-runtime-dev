@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-source-accounting.schema.json",
+  "title": "sapphirus.bmad-source-accounting.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sourceIdentityHashes", "rows", "summary", "accountingHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-source-accounting.v1" },
+    "sourceIdentityHashes": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "./common.schema.json#/$defs/Sha256" }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": { "$ref": "#/$defs/AccountingRow" }
+    },
+    "summary": { "$ref": "#/$defs/AccountingSummary" },
+    "accountingHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "AccountingRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "memberPath", "memberHash", "classification", "disposition", "targetTask"],
+      "properties": {
+        "source": { "enum": ["bmad_method", "bmad_builder"] },
+        "memberPath": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "memberHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "classification": { "enum": ["primary_skill", "builder_action", "runtime_support", "documentation", "test", "asset", "package_metadata"] },
+        "disposition": { "enum": ["adapt", "shim", "retain_as_data", "reject_nonruntime"] },
+        "targetTask": { "type": "string", "pattern": "^[A-Z]+-[0-9]{2,3}$" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 4096 }
+      }
+    },
+    "AccountingSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["memberCount", "primaryMethodSkills", "builderSkills", "builderActions"],
+      "properties": {
+        "memberCount": { "type": "integer", "minimum": 1 },
+        "primaryMethodSkills": { "const": 48 },
+        "builderSkills": { "const": 5 },
+        "builderActions": { "const": 10 }
+      }
+    }
+  }
+}

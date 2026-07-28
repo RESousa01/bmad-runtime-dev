@@ -12,6 +12,9 @@
     },
     {
       "$ref": "#/$defs/BuilderAnalysisRun"
+    },
+    {
+      "$ref": "#/$defs/BuilderAuthoringV2"
     }
   ],
   "$defs": {
@@ -1283,6 +1286,57 @@
               }
             }
           }
+        }
+      }
+    },
+    "BuilderAuthoringV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objectKind",
+        "schemaVersion",
+        "recordId",
+        "builderKind",
+        "action",
+        "agentProfile",
+        "mode",
+        "lifecycle",
+        "sourceHash",
+        "payloadHash"
+      ],
+      "properties": {
+        "objectKind": {
+          "enum": ["draft", "revision", "analysis", "conversion", "setup"]
+        },
+        "schemaVersion": {
+          "const": "sapphirus.bmad-builder-authoring.v2"
+        },
+        "recordId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "builderKind": {
+          "enum": ["agent", "workflow", "module", "setup", "conversion", "evaluation", "promotion", "installation", "rollback"]
+        },
+        "action": {
+          "enum": ["create_rebuild", "build", "edit", "analyze", "convert", "evaluate", "promote", "install", "rollback", "configure"]
+        },
+        "agentProfile": {
+          "enum": ["stateless", "memory", "autonomous_pulse", "not_applicable"]
+        },
+        "mode": {
+          "enum": ["interactive", "headless"]
+        },
+        "lifecycle": {
+          "const": "draft"
+        },
+        "sourceHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "payloadHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "migration": {
+          "$ref": "./bmad-upgrade.schema.json"
         }
       }
     }

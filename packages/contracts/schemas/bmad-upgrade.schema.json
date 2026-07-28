@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-upgrade.schema.json",
+  "title": "sapphirus.bmad-upgrade.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "migrationId", "contract", "fromVersion", "toVersion", "strategy", "steps", "fixtureHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-upgrade.v1" },
+    "migrationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "contract": { "enum": ["bmad_builder_authoring", "bmad_session", "bmad_config", "bmad_memory"] },
+    "fromVersion": { "type": "string", "pattern": "^sapphirus\\.[a-z0-9-]+\\.v[1-9][0-9]*$" },
+    "toVersion": { "type": "string", "pattern": "^sapphirus\\.[a-z0-9-]+\\.v[1-9][0-9]*$" },
+    "strategy": { "enum": ["deterministic_lossless", "deterministic_with_defaults", "reject"] },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/MigrationStep" }
+    },
+    "fixtureHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "MigrationStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ordinal", "operation", "path", "valueHash"],
+      "properties": {
+        "ordinal": { "type": "integer", "minimum": 0, "maximum": 127 },
+        "operation": { "enum": ["copy", "rename", "set_default", "map_enum", "remove_redundant", "validate"] },
+        "path": { "type": "string", "pattern": "^/(?:[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*)?$" },
+        "valueHash": {
+          "oneOf": [
+            { "$ref": "./common.schema.json#/$defs/Sha256" },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}

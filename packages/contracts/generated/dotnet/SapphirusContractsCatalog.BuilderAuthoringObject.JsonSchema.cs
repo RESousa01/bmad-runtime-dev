@@ -54,6 +54,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static readonly JsonSchemaPathProvider OneOf0SchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/oneOf/0/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider OneOf1SchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/oneOf/1/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider OneOf2SchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/oneOf/2/$ref"u8, buffer, out written);
+            private static readonly JsonSchemaPathProvider OneOf3SchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/oneOf/3/$ref"u8, buffer, out written);
 
             /// <summary>
             /// Applies the JSON schema semantics defined by this type to the instance determined by the given document and index.
@@ -127,6 +128,27 @@ public readonly partial struct SapphirusContractsCatalog
                     context.ApplyEvaluated(ref oneOfContext2);
                 }
 
+                if (!context.HasCollector && !context.IsMatch)
+                {
+                    return;
+                }
+
+                JsonSchemaContext oneOfContext3 =
+                    Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.JsonSchema.PushChildContext(parentDocument, parentIndex, ref context, schemaEvaluationPath: OneOf3SchemaEvaluationPath);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.JsonSchema.Evaluate(parentDocument, parentIndex, ref oneOfContext3);
+                if (oneOfContext3.IsMatch)
+                {
+                    oneOfMatchedCount++;
+                    if (oneOfMatchedCount > 1 && !context.HasCollector)
+                    {
+                        context.EvaluatedKeyword(false, JsonSchemaEvaluation.MatchedMoreThanOneSchema, "oneOf"u8);
+                        return;
+                    }
+
+                    context.ApplyEvaluated(ref oneOfContext3);
+                }
+
+                context.CommitChildContext(oneOfMatchedCount == 1, ref oneOfContext3);
                 context.CommitChildContext(oneOfMatchedCount == 1, ref oneOfContext2);
                 context.CommitChildContext(oneOfMatchedCount == 1, ref oneOfContext1);
                 context.CommitChildContext(oneOfMatchedCount == 1, ref oneOfContext0);

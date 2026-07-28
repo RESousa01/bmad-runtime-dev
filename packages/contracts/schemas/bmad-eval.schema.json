@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-eval.schema.json",
+  "title": "sapphirus.bmad-eval.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "evaluationId", "subjectHash", "runner", "state", "criteria", "outcome", "evidenceHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-eval.v1" },
+    "evaluationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "subjectHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "runner": { "enum": ["internal_eval_runner", "deterministic_contract", "human_review"] },
+    "state": { "enum": ["queued", "running", "passed", "failed", "cancelled"] },
+    "criteria": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": { "$ref": "#/$defs/Criterion" }
+    },
+    "outcome": { "enum": ["pass", "fail", "incomplete"] },
+    "evidenceHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "Criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["criterionId", "result"],
+      "properties": {
+        "criterionId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,127}$" },
+        "result": { "enum": ["pass", "fail", "not_run"] },
+        "evidenceHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    }
+  }
+}

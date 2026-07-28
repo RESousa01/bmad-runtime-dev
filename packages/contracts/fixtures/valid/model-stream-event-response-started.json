@@ -1,0 +1,9 @@
+{
+  "type": "response_started",
+  "requestId": "request_01J00000000000000000000000",
+  "runId": "run_01J00000000000000000000000",
+  "sequence": 1,
+  "resolvedProfileId": "coding-balanced",
+  "resolvedVariantId": "balanced",
+  "startedAt": "2026-07-28T10:00:01.000Z"
+}

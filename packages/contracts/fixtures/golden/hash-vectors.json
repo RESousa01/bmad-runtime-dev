@@ -56,6 +56,273 @@
       },
       "canonicalJson": "{\"maximum\":9007199254740991,\"minimum\":-9007199254740991}",
       "expectedHash": "sha256:85317bb0b884abe579795130ca6a3dbcfad1882814555d30a1a6ca1d5fcfac28"
+    },
+    {
+      "name": "model-catalog-hash",
+      "purpose": "contract-object",
+      "schemaMajor": "v1",
+      "value": {
+        "schemaVersion": "sapphirus.model-catalog.v1",
+        "catalogVersion": "v1.0123456789abcdef",
+        "catalogState": "fresh",
+        "policyVersion": 1,
+        "policyHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "deploymentSnapshotHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "generatedAt": "2026-07-28T00:00:00.000Z",
+        "expiresAt": "2026-07-28T00:05:00.000Z",
+        "defaultProfileId": "coding-balanced",
+        "profiles": [
+          {
+            "profileId": "coding-balanced",
+            "displayName": "Coding Balanced",
+            "description": "General coding and reviewed change proposals.",
+            "family": "fixture-model",
+            "provider": "microsoft_foundry",
+            "availability": "available",
+            "statusDetail": null,
+            "capabilities": {
+              "textInput": true,
+              "imageInput": false,
+              "pdfInput": false,
+              "attachments": false,
+              "toolCalling": true,
+              "structuredOutput": true,
+              "reasoning": true
+            },
+            "limits": {
+              "contextTokens": 256000,
+              "maxInputTokens": 220000,
+              "maxOutputTokens": 16000,
+              "maxAttachmentBytes": null
+            },
+            "variants": [
+              {
+                "variantId": "balanced",
+                "displayName": "Balanced",
+                "reasoningEffort": "medium",
+                "maxOutputTokens": 16000
+              }
+            ],
+            "defaultVariantId": "balanced",
+            "qualifiedAt": "2026-07-28T00:00:00.000Z"
+          }
+        ],
+        "unavailableProfiles": [
+          {
+            "profileId": "research-deep",
+            "displayName": "Research Deep",
+            "availability": "not_entitled",
+            "recoveryAction": "request_entitlement"
+          }
+        ]
+      },
+      "canonicalJson": "{\"catalogState\":\"fresh\",\"catalogVersion\":\"v1.0123456789abcdef\",\"defaultProfileId\":\"coding-balanced\",\"deploymentSnapshotHash\":\"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"expiresAt\":\"2026-07-28T00:05:00.000Z\",\"generatedAt\":\"2026-07-28T00:00:00.000Z\",\"policyHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"policyVersion\":1,\"profiles\":[{\"availability\":\"available\",\"capabilities\":{\"attachments\":false,\"imageInput\":false,\"pdfInput\":false,\"reasoning\":true,\"structuredOutput\":true,\"textInput\":true,\"toolCalling\":true},\"defaultVariantId\":\"balanced\",\"description\":\"General coding and reviewed change proposals.\",\"displayName\":\"Coding Balanced\",\"family\":\"fixture-model\",\"limits\":{\"contextTokens\":256000,\"maxAttachmentBytes\":null,\"maxInputTokens\":220000,\"maxOutputTokens\":16000},\"profileId\":\"coding-balanced\",\"provider\":\"microsoft_foundry\",\"qualifiedAt\":\"2026-07-28T00:00:00.000Z\",\"statusDetail\":null,\"variants\":[{\"displayName\":\"Balanced\",\"maxOutputTokens\":16000,\"reasoningEffort\":\"medium\",\"variantId\":\"balanced\"}]}],\"schemaVersion\":\"sapphirus.model-catalog.v1\",\"unavailableProfiles\":[{\"availability\":\"not_entitled\",\"displayName\":\"Research Deep\",\"profileId\":\"research-deep\",\"recoveryAction\":\"request_entitlement\"}]}",
+      "expectedHash": "sha256:4e8be02bd48ee851408aafd71ad7d2d11f07d4ddf61d55c9474f064584eb3f60"
+    },
+    {
+      "name": "model-access-request-v2-hash",
+      "purpose": "contract-object",
+      "schemaMajor": "v1",
+      "value": {
+        "schemaVersion": "desktop-model-access-request.v2",
+        "requestId": "request_01J00000000000000000000000",
+        "deliveryModel": "windows_local",
+        "registrationId": "dreg_01J00000000000000000000000",
+        "purpose": "bmad_help",
+        "modelRole": "planner",
+        "requestMode": "structured_response",
+        "modelProfileId": "coding-balanced",
+        "requestedVariantId": "balanced",
+        "catalogVersion": "v1.0123456789abcdef",
+        "modelProfileHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "modelCapabilityHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "contextSnapshotId": "snapshot_01J00000000000000000000000",
+        "canonicalOutputSchemaId": "sapphirus.bmad-method-help-proposal.v1",
+        "canonicalOutputSchemaHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "localEgressManifestHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "consent": {
+          "schemaVersion": "sapphirus.model-context-consent.v2",
+          "decisionId": "decision_01J00000000000000000000000",
+          "requestId": "request_01J00000000000000000000000",
+          "invocationId": "invoke_01J00000000000000000000000",
+          "deliveryModel": "windows_local",
+          "tenantHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "subjectHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "registrationId": "dreg_01J00000000000000000000000",
+          "installationPublicKeyHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "entitlementLeaseId": "lease_01J00000000000000000000000",
+          "entitlementLeaseHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "tenantPolicyId": "policy_01J00000000000000000000000",
+          "tenantPolicyVersion": 7,
+          "tenantPolicyHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "purpose": "bmad_help",
+          "modelRole": "planner",
+          "requestMode": "structured_response",
+          "modelProfileId": "coding-balanced",
+          "requestedVariantId": "balanced",
+          "catalogVersion": "v1.0123456789abcdef",
+          "contextSnapshotId": "snapshot_01J00000000000000000000000",
+          "canonicalOutputSchemaId": "sapphirus.bmad-method-help-proposal.v1",
+          "canonicalOutputSchemaHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "manifestHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+          "invocationBindingHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+          "consumptionHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+          "consentDisclosureHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "providerProfileHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "modelProfileHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "modelCapabilityHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "region": "westeurope",
+          "retentionMode": "transient_no_store",
+          "budgetClass": "interactive-standard",
+          "issuedAt": "2026-07-16T10:00:00.000Z",
+          "notBefore": "2026-07-16T10:00:00.000Z",
+          "expiresAt": "2026-07-16T10:05:00.000Z",
+          "nonceHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "consentEnvelopeHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": {
+            "proofType": "installation_signature",
+            "algorithm": "ES256",
+            "keyId": "installation-key-2026-07",
+            "signedPayloadHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "signature": "ZXhhbXBsZS1kZXZpY2Utc2lnbmF0dXJl"
+          }
+        },
+        "items": [
+          {
+            "clientItemId": "ctx_01J00000000000000000000000",
+            "relativeLabel": "src/lib.rs",
+            "semanticRole": "source",
+            "language": "rust",
+            "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "byteCount": 13,
+            "classification": "confidential",
+            "content": "fn main() {}\n"
+          }
+        ],
+        "tools": [
+          {
+            "toolName": "read_workspace_file",
+            "description": "Read one approved workspace file the user already shared.",
+            "parametersSchemaId": "sapphirus.model-tool-read-file.v1",
+            "parametersSchemaHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          }
+        ],
+        "retentionMode": "transient_no_store",
+        "budgetClass": "interactive-standard"
+      },
+      "canonicalJson": "{\"budgetClass\":\"interactive-standard\",\"canonicalOutputSchemaHash\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"canonicalOutputSchemaId\":\"sapphirus.bmad-method-help-proposal.v1\",\"catalogVersion\":\"v1.0123456789abcdef\",\"consent\":{\"budgetClass\":\"interactive-standard\",\"canonicalOutputSchemaHash\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"canonicalOutputSchemaId\":\"sapphirus.bmad-method-help-proposal.v1\",\"catalogVersion\":\"v1.0123456789abcdef\",\"consentDisclosureHash\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"consentEnvelopeHash\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"consumptionHash\":\"sha256:9999999999999999999999999999999999999999999999999999999999999999\",\"contextSnapshotId\":\"snapshot_01J00000000000000000000000\",\"decisionId\":\"decision_01J00000000000000000000000\",\"deliveryModel\":\"windows_local\",\"entitlementLeaseHash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"entitlementLeaseId\":\"lease_01J00000000000000000000000\",\"expiresAt\":\"2026-07-16T10:05:00.000Z\",\"installationPublicKeyHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"invocationBindingHash\":\"sha256:8888888888888888888888888888888888888888888888888888888888888888\",\"invocationId\":\"invoke_01J00000000000000000000000\",\"issuedAt\":\"2026-07-16T10:00:00.000Z\",\"manifestHash\":\"sha256:7777777777777777777777777777777777777777777777777777777777777777\",\"modelCapabilityHash\":\"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"modelProfileHash\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"modelProfileId\":\"coding-balanced\",\"modelRole\":\"planner\",\"nonceHash\":\"sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"notBefore\":\"2026-07-16T10:00:00.000Z\",\"proof\":{\"algorithm\":\"ES256\",\"keyId\":\"installation-key-2026-07\",\"proofType\":\"installation_signature\",\"signature\":\"ZXhhbXBsZS1kZXZpY2Utc2lnbmF0dXJl\",\"signedPayloadHash\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\"},\"providerProfileHash\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"purpose\":\"bmad_help\",\"region\":\"westeurope\",\"registrationId\":\"dreg_01J00000000000000000000000\",\"requestId\":\"request_01J00000000000000000000000\",\"requestMode\":\"structured_response\",\"requestedVariantId\":\"balanced\",\"retentionMode\":\"transient_no_store\",\"schemaVersion\":\"sapphirus.model-context-consent.v2\",\"subjectHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"tenantHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"tenantPolicyHash\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\",\"tenantPolicyId\":\"policy_01J00000000000000000000000\",\"tenantPolicyVersion\":7},\"contextSnapshotId\":\"snapshot_01J00000000000000000000000\",\"deliveryModel\":\"windows_local\",\"items\":[{\"byteCount\":13,\"classification\":\"confidential\",\"clientItemId\":\"ctx_01J00000000000000000000000\",\"content\":\"fn main() {}\\n\",\"contentHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"language\":\"rust\",\"relativeLabel\":\"src/lib.rs\",\"semanticRole\":\"source\"}],\"localEgressManifestHash\":\"sha256:7777777777777777777777777777777777777777777777777777777777777777\",\"modelCapabilityHash\":\"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"modelProfileHash\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"modelProfileId\":\"coding-balanced\",\"modelRole\":\"planner\",\"purpose\":\"bmad_help\",\"registrationId\":\"dreg_01J00000000000000000000000\",\"requestId\":\"request_01J00000000000000000000000\",\"requestMode\":\"structured_response\",\"requestedVariantId\":\"balanced\",\"retentionMode\":\"transient_no_store\",\"schemaVersion\":\"desktop-model-access-request.v2\",\"tools\":[{\"description\":\"Read one approved workspace file the user already shared.\",\"parametersSchemaHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"parametersSchemaId\":\"sapphirus.model-tool-read-file.v1\",\"toolName\":\"read_workspace_file\"}]}",
+      "expectedHash": "sha256:fd9452baa17c6d67795bd4c77cd11e9f3f6f574023fafbc81087a122872bf2bb"
+    },
+    {
+      "name": "model-context-consent-v2-binding",
+      "purpose": "contract-object",
+      "schemaMajor": "v1",
+      "value": {
+        "canonicalOutputSchemaHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "canonicalOutputSchemaId": "sapphirus.bmad-method-help-proposal.v1",
+        "catalogVersion": "v1.0123456789abcdef",
+        "contextSnapshotId": "snapshot_01J00000000000000000000000",
+        "decisionId": "decision_01J00000000000000000000000",
+        "modelProfileId": "coding-balanced",
+        "requestId": "request_01J00000000000000000000000",
+        "requestMode": "structured_response",
+        "requestedVariantId": "balanced"
+      },
+      "canonicalJson": "{\"canonicalOutputSchemaHash\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"canonicalOutputSchemaId\":\"sapphirus.bmad-method-help-proposal.v1\",\"catalogVersion\":\"v1.0123456789abcdef\",\"contextSnapshotId\":\"snapshot_01J00000000000000000000000\",\"decisionId\":\"decision_01J00000000000000000000000\",\"modelProfileId\":\"coding-balanced\",\"requestId\":\"request_01J00000000000000000000000\",\"requestMode\":\"structured_response\",\"requestedVariantId\":\"balanced\"}",
+      "expectedHash": "sha256:4d0d73998768582717f70482aedfd339af9e537b03dade5d937d0f15f5332a65"
+    },
+    {
+      "name": "model-stream-event-decoding",
+      "purpose": "contract-object",
+      "schemaMajor": "v1",
+      "value": {
+        "type": "completed",
+        "requestId": "request_01J00000000000000000000000",
+        "runId": "run_01J00000000000000000000000",
+        "sequence": 5,
+        "receiptSummary": {
+          "receiptId": "receipt_01J00000000000000000000000",
+          "receiptHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "terminalStatus": "succeeded",
+          "resolvedProfileId": "coding-balanced",
+          "resolvedVariantId": "balanced",
+          "outputBytes": 1200,
+          "completedAt": "2026-07-28T10:00:02.000Z"
+        }
+      },
+      "canonicalJson": "{\"receiptSummary\":{\"completedAt\":\"2026-07-28T10:00:02.000Z\",\"outputBytes\":1200,\"receiptHash\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\",\"receiptId\":\"receipt_01J00000000000000000000000\",\"resolvedProfileId\":\"coding-balanced\",\"resolvedVariantId\":\"balanced\",\"terminalStatus\":\"succeeded\"},\"requestId\":\"request_01J00000000000000000000000\",\"runId\":\"run_01J00000000000000000000000\",\"sequence\":5,\"type\":\"completed\"}",
+      "expectedHash": "sha256:de127176d243a2549994b46070136a9f6aa65819e2fd2d099b835301c4f174f6"
+    },
+    {
+      "name": "model-access-receipt-v2-hash",
+      "purpose": "contract-object",
+      "schemaMajor": "v1",
+      "value": {
+        "schemaVersion": "sapphirus.model-access-receipt.v2",
+        "receiptId": "receipt_01J00000000000000000000000",
+        "requestId": "request_01J00000000000000000000000",
+        "runId": "run_01J00000000000000000000000",
+        "requestHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "resultHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "deliveryModel": "windows_local",
+        "tenantHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "subjectHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "registrationId": "dreg_01J00000000000000000000000",
+        "manifestHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "invocationBindingHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "consumptionHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+        "consentEnvelopeHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "consentDisclosureHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "providerProfileHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "modelProfileHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "modelCapabilityHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "responseLane": {
+          "requestMode": "structured_response",
+          "supportRoute": "model_access",
+          "canonicalOutputSchemaId": "sapphirus.bmad-method-help-proposal.v1",
+          "canonicalOutputSchemaHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "providerSchemaProjectionHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "requestedProfileId": "coding-balanced",
+        "resolvedProfileId": "coding-balanced",
+        "resolvedProfileHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "requestedVariantId": "balanced",
+        "resolvedVariantId": "balanced",
+        "catalogVersion": "v1.0123456789abcdef",
+        "catalogHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "deploymentInventoryHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "resolvedDeploymentHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "resolvedModel": {
+          "publisher": "FixturePublisher",
+          "name": "fixture-model",
+          "version": "2026-06-01"
+        },
+        "reportedResponseModel": "fixture-model-2026-06-01",
+        "credentialBindingHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "retentionMode": "transient_no_store",
+        "region": "westeurope",
+        "inputBytes": 8421,
+        "outputBytes": 1200,
+        "usage": {
+          "usageProvenance": "reported",
+          "inputTokens": 2100,
+          "outputTokens": 300,
+          "reasoningTokens": 180,
+          "cacheReadTokens": null,
+          "cacheWriteTokens": null,
+          "costMicrounits": 7200,
+          "currency": "EUR",
+          "priceProfileVersion": "foundry-price-2026-07"
+        },
+        "retryCount": 0,
+        "fallbackEvents": [],
+        "providerRequestId": "provider-request-opaque",
+        "startedAt": "2026-07-28T10:00:01.000Z",
+        "completedAt": "2026-07-28T10:00:02.000Z",
+        "terminalStatus": "succeeded"
+      },
+      "canonicalJson": "{\"catalogHash\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"catalogVersion\":\"v1.0123456789abcdef\",\"completedAt\":\"2026-07-28T10:00:02.000Z\",\"consentDisclosureHash\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"consentEnvelopeHash\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"consumptionHash\":\"sha256:9999999999999999999999999999999999999999999999999999999999999999\",\"credentialBindingHash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"deliveryModel\":\"windows_local\",\"deploymentInventoryHash\":\"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"fallbackEvents\":[],\"inputBytes\":8421,\"invocationBindingHash\":\"sha256:8888888888888888888888888888888888888888888888888888888888888888\",\"manifestHash\":\"sha256:7777777777777777777777777777777777777777777777777777777777777777\",\"modelCapabilityHash\":\"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"modelProfileHash\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"outputBytes\":1200,\"providerProfileHash\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"providerRequestId\":\"provider-request-opaque\",\"receiptId\":\"receipt_01J00000000000000000000000\",\"region\":\"westeurope\",\"registrationId\":\"dreg_01J00000000000000000000000\",\"reportedResponseModel\":\"fixture-model-2026-06-01\",\"requestHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"requestId\":\"request_01J00000000000000000000000\",\"requestedProfileId\":\"coding-balanced\",\"requestedVariantId\":\"balanced\",\"resolvedDeploymentHash\":\"sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"resolvedModel\":{\"name\":\"fixture-model\",\"publisher\":\"FixturePublisher\",\"version\":\"2026-06-01\"},\"resolvedProfileHash\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"resolvedProfileId\":\"coding-balanced\",\"resolvedVariantId\":\"balanced\",\"responseLane\":{\"canonicalOutputSchemaHash\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"canonicalOutputSchemaId\":\"sapphirus.bmad-method-help-proposal.v1\",\"providerSchemaProjectionHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"requestMode\":\"structured_response\",\"supportRoute\":\"model_access\"},\"resultHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"retentionMode\":\"transient_no_store\",\"retryCount\":0,\"runId\":\"run_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.model-access-receipt.v2\",\"startedAt\":\"2026-07-28T10:00:01.000Z\",\"subjectHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"tenantHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"terminalStatus\":\"succeeded\",\"usage\":{\"cacheReadTokens\":null,\"cacheWriteTokens\":null,\"costMicrounits\":7200,\"currency\":\"EUR\",\"inputTokens\":2100,\"outputTokens\":300,\"priceProfileVersion\":\"foundry-price-2026-07\",\"reasoningTokens\":180,\"usageProvenance\":\"reported\"}}",
+      "expectedHash": "sha256:036879de1e8ae67304813e66af5a938405e8bd193fc5bb557890214eebd1f4cf"
     }
   ]
 }

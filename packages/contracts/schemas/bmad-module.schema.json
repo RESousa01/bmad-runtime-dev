@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-module.schema.json",
+  "title": "sapphirus.bmad-module.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "moduleId", "moduleCode", "kind", "skills", "setup", "moduleHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-module.v1" },
+    "moduleId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "moduleCode": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "kind": { "enum": ["method", "builder", "custom"] },
+    "skills": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "$ref": "./common.schema.json#/$defs/ContractId" }
+    },
+    "setup": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/SetupStep" }
+    },
+    "moduleHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "SetupStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stepId", "action", "required"],
+      "properties": {
+        "stepId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,127}$" },
+        "action": { "enum": ["create_directory", "write_config", "validate_runtime", "register_module"] },
+        "required": { "type": "boolean" }
+      }
+    }
+  }
+}

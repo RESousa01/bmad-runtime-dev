@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/model-access-result-v2.schema.json",
+  "title": "sapphirus.model-access-result-v2.v1",
+  "description": "The second version of the terminal model access result. It is split into two closed variants by request mode, so a structured response that satisfied no canonical output schema and a streaming chat answer that claims one are both unrepresentable. The receipt is always the version two receipt, which carries the resolved profile, variant, catalog epoch, and deployment behind the answer.",
+  "oneOf": [
+    { "$ref": "#/$defs/StructuredResponseResult" },
+    { "$ref": "#/$defs/StreamingChatResult" }
+  ],
+  "$defs": {
+    "CanonicalSchemaId": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$"
+    },
+    "StructuredResponseResult": {
+      "description": "A structured answer produced on the model access route. The canonical payload and the schema it satisfied are both mandatory.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestMode",
+        "requestId",
+        "runId",
+        "outputSchemaId",
+        "payloadJson",
+        "payloadHash",
+        "receipt"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "desktop-model-access-result.v2" },
+        "requestMode": { "const": "structured_response" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "outputSchemaId": { "$ref": "#/$defs/CanonicalSchemaId" },
+        "payloadJson": { "type": "string", "minLength": 2, "maxLength": 1048576 },
+        "payloadHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "receipt": { "$ref": "./model-access-receipt-v2.schema.json" }
+      }
+    },
+    "StreamingChatResult": {
+      "description": "The terminal record of a streaming chat answer. It carries the assembled visible text and its hash so the desktop can verify that what it rendered from the event stream is what the support plane signed. There is no canonical output schema, and no provider body, reasoning text, or markup is representable.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestMode",
+        "requestId",
+        "runId",
+        "outputText",
+        "payloadHash",
+        "receipt"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "desktop-model-access-result.v2" },
+        "requestMode": { "const": "streaming_chat" },
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "runId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "outputText": { "type": "string", "maxLength": 1048576 },
+        "payloadHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "receipt": { "$ref": "./model-access-receipt-v2.schema.json" }
+      }
+    }
+  }
+}

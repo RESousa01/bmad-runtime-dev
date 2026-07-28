@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-source-accounting.schema.json",
+  "branch": "sapphirus.bmad-source-accounting.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-source-accounting.v1",
+    "sourceIdentityHashes": [
+      "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    ],
+    "rows": [
+      {
+        "source": "bmad_method",
+        "memberPath": "src/example.md",
+        "memberHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "classification": "primary_skill",
+        "disposition": "adapt",
+        "targetTask": "ENG-01"
+      }
+    ],
+    "summary": {
+      "memberCount": 896,
+      "primaryMethodSkills": 48,
+      "builderSkills": 5,
+      "builderActions": 10
+    },
+    "accountingHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "canonicalJson": "{\"accountingHash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"rows\":[{\"classification\":\"primary_skill\",\"disposition\":\"adapt\",\"memberHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"memberPath\":\"src/example.md\",\"source\":\"bmad_method\",\"targetTask\":\"ENG-01\"}],\"schemaVersion\":\"sapphirus.bmad-source-accounting.v1\",\"sourceIdentityHashes\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"],\"summary\":{\"builderActions\":10,\"builderSkills\":5,\"memberCount\":896,\"primaryMethodSkills\":48}}",
+  "expectedHash": "sha256:2dc0075e465a0b90675f315e80cf0fa0de6817137a8865a28fdfc7eb4d17eec9"
+}

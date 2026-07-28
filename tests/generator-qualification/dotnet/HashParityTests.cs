@@ -31,7 +31,7 @@ public sealed class HashParityTests
             Assert.Equal(vector.GetProperty("expectedHash"u8).GetString(), hash);
         }
 
-        Assert.Equal(5, count);
+        Assert.Equal(10, count);
     }
 
     [Fact]

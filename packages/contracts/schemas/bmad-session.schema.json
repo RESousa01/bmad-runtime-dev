@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-session.schema.json",
+  "title": "sapphirus.bmad-session.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sessionId", "capabilityId", "mode", "agentProfile", "state", "control", "artifacts", "evidence"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-session.v1" },
+    "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "capabilityId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "mode": { "enum": ["interactive", "headless"] },
+    "agentProfile": { "enum": ["stateless", "memory", "autonomous_pulse"] },
+    "state": { "enum": ["created", "running", "input_required", "paused", "completed", "failed", "cancelled"] },
+    "control": { "$ref": "#/$defs/SessionControl" },
+    "inputRequest": { "$ref": "#/$defs/InputRequest" },
+    "artifacts": {
+      "type": "array",
+      "maxItems": 1024,
+      "items": { "$ref": "./common.schema.json#/$defs/ContractId" }
+    },
+    "completionHooks": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/CompletionHook" }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": { "$ref": "./common.schema.json#/$defs/Sha256" }
+    }
+  },
+  "$defs": {
+    "SessionControl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pauseAllowed", "resumeAllowed", "cancelAllowed"],
+      "properties": {
+        "pauseAllowed": { "type": "boolean" },
+        "resumeAllowed": { "type": "boolean" },
+        "cancelAllowed": { "type": "boolean" }
+      }
+    },
+    "InputRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestId", "prompt", "responseSchemaHash"],
+      "properties": {
+        "requestId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "responseSchemaHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "CompletionHook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hook", "enabled"],
+      "properties": {
+        "hook": { "enum": ["persist_artifacts", "emit_receipt", "notify_local", "schedule_followup"] },
+        "enabled": { "type": "boolean" }
+      }
+    }
+  }
+}

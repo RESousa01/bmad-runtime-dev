@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-source-identity.schema.json",
+  "title": "sapphirus.bmad-source-identity.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "version", "archiveSha256", "archiveMemberCount", "identityHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-source-identity.v1" },
+    "source": { "enum": ["bmad_method", "bmad_builder"] },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "archiveSha256": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "archiveMemberCount": { "type": "integer", "minimum": 1, "maximum": 100000 },
+    "identityHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "extensions": { "$ref": "#/$defs/ExtensionMapV1" }
+  },
+  "$defs": {
+    "ExtensionMapV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-v1-[a-z][a-z0-9-]{0,63}$": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}

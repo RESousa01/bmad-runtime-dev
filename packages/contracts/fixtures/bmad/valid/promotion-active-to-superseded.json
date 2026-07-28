@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-builder-promotion.schema.json",
+  "branch": "active->superseded",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-builder-promotion.v1",
+    "promotionId": "promotion_01J00000000000000000000000",
+    "subjectHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "fromState": "active",
+    "toState": "superseded",
+    "approval": {
+      "required": true,
+      "decision": "approved",
+      "approvalId": "approval_01J00000000000000000000000"
+    },
+    "stage": "activation",
+    "installation": {
+      "catalogGeneration": 1,
+      "atomic": true,
+      "liveConformanceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "receiptHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "canonicalJson": "{\"approval\":{\"approvalId\":\"approval_01J00000000000000000000000\",\"decision\":\"approved\",\"required\":true},\"fromState\":\"active\",\"installation\":{\"atomic\":true,\"catalogGeneration\":1,\"liveConformanceHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"promotionId\":\"promotion_01J00000000000000000000000\",\"receiptHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"schemaVersion\":\"sapphirus.bmad-builder-promotion.v1\",\"stage\":\"activation\",\"subjectHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"toState\":\"superseded\"}",
+  "expectedHash": "sha256:33691ee9b6fe1349c892f49e624ac81e1c49d7c468376fca72eae63cc8001df4"
+}

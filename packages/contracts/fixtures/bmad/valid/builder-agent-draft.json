@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-builder-authoring.schema.json",
+  "branch": "builder-agent-draft",
+  "document": {
+    "objectKind": "draft",
+    "schemaVersion": "sapphirus.bmad-builder-authoring.v1",
+    "draftId": "agentdraft_01J00000000000000000000000",
+    "ownerScopeRef": "ownerscope_01J00000000000000000000000",
+    "projectId": "project_01J00000000000000000000000",
+    "authoringSessionId": "authorsession_01J00000000000000000000000",
+    "builderKind": "agent",
+    "validationProfile": "BuilderAgentV2Stateless",
+    "authoringAction": {
+      "builderKind": "agent",
+      "action": "create_rebuild"
+    },
+    "sourceIdentityHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "instructionProjectionSetHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "createdAt": "2026-07-14T10:00:00.000Z",
+    "draftEffect": "none"
+  },
+  "canonicalJson": "{\"authoringAction\":{\"action\":\"create_rebuild\",\"builderKind\":\"agent\"},\"authoringSessionId\":\"authorsession_01J00000000000000000000000\",\"builderKind\":\"agent\",\"createdAt\":\"2026-07-14T10:00:00.000Z\",\"draftEffect\":\"none\",\"draftId\":\"agentdraft_01J00000000000000000000000\",\"instructionProjectionSetHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"objectKind\":\"draft\",\"ownerScopeRef\":\"ownerscope_01J00000000000000000000000\",\"projectId\":\"project_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-builder-authoring.v1\",\"sourceIdentityHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"validationProfile\":\"BuilderAgentV2Stateless\"}",
+  "expectedHash": "sha256:5365cb8d7086c7108387fdf3601e765f86c4550b9f30487b3ef7e4c349fc4324"
+}

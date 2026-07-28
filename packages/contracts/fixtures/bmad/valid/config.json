@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-config.schema.json",
+  "branch": "sapphirus.bmad-config.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-config.v1",
+    "configId": "config_01J00000000000000000000000",
+    "layers": [
+      {
+        "kind": "central",
+        "ordinal": 0,
+        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ],
+    "resolvedHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "canonicalJson": "{\"configId\":\"config_01J00000000000000000000000\",\"layers\":[{\"contentHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"kind\":\"central\",\"ordinal\":0}],\"provenanceHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"resolvedHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"schemaVersion\":\"sapphirus.bmad-config.v1\"}",
+  "expectedHash": "sha256:5809e46973b5bdd937468e3d687a0ee447f0750c3f1480701f7abd9143f58560"
+}

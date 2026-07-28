@@ -123,6 +123,24 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2"/>.
+            /// </summary>
+            /// <param name="value">The value from which to convert.</param>
+            public static explicit operator Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Mutable(Mutable value)
+            {
+                return Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Mutable.From(value);
+            }
+
+            /// <summary>
+            /// Conversion from <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2"/>.
+            /// </summary>
+            /// <param name="value">The value from which to convert.</param>
+            public static implicit operator Mutable(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Mutable value)
+            {
+                return From(value);
+            }
+
+            /// <summary>
             /// Conversion to <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity"/>.
             /// </summary>
             /// <param name="value">The value from which to convert.</param>
@@ -904,6 +922,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="matchBuilderAuthoringObjectBuilderDraft">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft"/>.</param>
             /// <param name="matchBuilderAuthoringObjectBuilderDraftRevision">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision"/>.</param>
             /// <param name="matchBuilderAuthoringObjectBuilderAnalysisRun">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun"/>.</param>
+            /// <param name="matchBuilderAuthoringObjectBuilderAuthoringV2">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2"/>.</param>
             /// <param name="defaultMatch">Match any other value.</param>
             /// <returns>An instance of the value returned by the match function.</returns>
             public TResult Match<TContext, TResult>(
@@ -911,6 +930,7 @@ public readonly partial struct SapphirusContractsCatalog
                 Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft, TContext, TResult> matchBuilderAuthoringObjectBuilderDraft,
                 Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision, TContext, TResult> matchBuilderAuthoringObjectBuilderDraftRevision,
                 Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun, TContext, TResult> matchBuilderAuthoringObjectBuilderAnalysisRun,
+                Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2, TContext, TResult> matchBuilderAuthoringObjectBuilderAuthoringV2,
                 Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Mutable, TContext, TResult> defaultMatch)
 #if NET9_0_OR_GREATER
             where TContext : allows ref struct
@@ -931,6 +951,11 @@ public readonly partial struct SapphirusContractsCatalog
                     return matchBuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.Mutable.From(this), context);
                 }
 
+                if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.JsonSchema.Evaluate(_parent, _idx))
+                {
+                    return matchBuilderAuthoringObjectBuilderAuthoringV2(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Mutable.From(this), context);
+                }
+
                 return defaultMatch(this, context);
             }
 
@@ -941,12 +966,14 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="matchBuilderAuthoringObjectBuilderDraft">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft"/>.</param>
             /// <param name="matchBuilderAuthoringObjectBuilderDraftRevision">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision"/>.</param>
             /// <param name="matchBuilderAuthoringObjectBuilderAnalysisRun">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun"/>.</param>
+            /// <param name="matchBuilderAuthoringObjectBuilderAuthoringV2">Match a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2"/>.</param>
             /// <param name="defaultMatch">Match any other value.</param>
             /// <returns>An instance of the value returned by the match function.</returns>
             public TResult Match<TResult>(
                 Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft, TResult> matchBuilderAuthoringObjectBuilderDraft,
                 Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision, TResult> matchBuilderAuthoringObjectBuilderDraftRevision,
                 Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun, TResult> matchBuilderAuthoringObjectBuilderAnalysisRun,
+                Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2, TResult> matchBuilderAuthoringObjectBuilderAuthoringV2,
                 Matcher<Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Mutable, TResult> defaultMatch)
             {
                 if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.JsonSchema.Evaluate(_parent, _idx))
@@ -964,6 +991,11 @@ public readonly partial struct SapphirusContractsCatalog
                     return matchBuilderAuthoringObjectBuilderAnalysisRun(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.Mutable.From(this));
                 }
 
+                if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.JsonSchema.Evaluate(_parent, _idx))
+                {
+                    return matchBuilderAuthoringObjectBuilderAuthoringV2(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Mutable.From(this));
+                }
+
                 return defaultMatch(this);
             }
 
@@ -977,6 +1009,23 @@ public readonly partial struct SapphirusContractsCatalog
                 if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.JsonSchema.Evaluate(_parent, _idx))
                 {
                     result = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.Mutable.From(this);
+                    return true;
+                }
+
+                result = default;
+                return false;
+            }
+
+            /// <summary>
+            /// Gets the value as a <see cref="Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Mutable" />.
+            /// </summary>
+            /// <param name="result">The result of the conversions.</param>
+            /// <returns><see langword="true" /> if the conversion was valid.</returns>
+            public bool TryGetAsBuilderAuthoringObjectBuilderAuthoringV2(out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Mutable result)
+            {
+                if (Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.JsonSchema.Evaluate(_parent, _idx))
+                {
+                    result = Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Mutable.From(this);
                     return true;
                 }
 
@@ -1035,6 +1084,8 @@ public readonly partial struct SapphirusContractsCatalog
                 OneOf1EntitySource1,
                 OneOf2EntityBuilder,
                 OneOf2EntitySource,
+                BuilderAuthoringObjectBuilderAuthoringV2Builder,
+                BuilderAuthoringObjectBuilderAuthoringV2Source,
                 OneOf0EntityBuilder1,
                 OneOf0EntitySource1,
                 OneOf1EntityBuilder2,
@@ -1057,6 +1108,8 @@ public readonly partial struct SapphirusContractsCatalog
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.Source _oneOf1EntitySource1Instance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Builder.Build? _oneOf2EntityBuilderInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Source _oneOf2EntitySourceInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build? _builderAuthoringObjectBuilderAuthoringV2BuilderInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source _builderAuthoringObjectBuilderAuthoringV2SourceInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.Build? _oneOf0EntityBuilder1Instance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Source _oneOf0EntitySource1Instance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf1Entity.Builder.Build? _oneOf1EntityBuilder2Instance;
@@ -1096,6 +1149,10 @@ public readonly partial struct SapphirusContractsCatalog
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Builder.Build value) {_oneOf2EntityBuilderInstance = value; _kind = Kind.OneOf2EntityBuilder; }
 
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Source value) { _oneOf2EntitySourceInstance = value; _kind = Kind.OneOf2EntitySource; }
+
+            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build value) {_builderAuthoringObjectBuilderAuthoringV2BuilderInstance = value; _kind = Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder; }
+
+            public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source value) { _builderAuthoringObjectBuilderAuthoringV2SourceInstance = value; _kind = Kind.BuilderAuthoringObjectBuilderAuthoringV2Source; }
 
             public Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.Build value) {_oneOf0EntityBuilder1Instance = value; _kind = Kind.OneOf0EntityBuilder1; }
 
@@ -1144,6 +1201,12 @@ public readonly partial struct SapphirusContractsCatalog
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Source value) => new(value);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2 instance) => new(JsonElement.From(instance));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source value) => new(value);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity instance) => new(JsonElement.From(instance));
@@ -1207,6 +1270,12 @@ public readonly partial struct SapphirusContractsCatalog
                         break;
                     case Kind.OneOf2EntitySource:
                         _oneOf2EntitySourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddProperty(utf8Name, _builderAuthoringObjectBuilderAuthoringV2BuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Source:
+                        _builderAuthoringObjectBuilderAuthoringV2SourceInstance.AddAsProperty(utf8Name, ref valueBuilder, escapeName, nameRequiresUnescaping);
                         break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddProperty(utf8Name, _oneOf0EntityBuilder1Instance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b, ref o), escapeName, nameRequiresUnescaping);
@@ -1277,6 +1346,12 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.OneOf2EntitySource:
                         _oneOf2EntitySourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
                         break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddPrebakedProperty(prebakedPropertyName, _builderAuthoringObjectBuilderAuthoringV2BuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Source:
+                        _builderAuthoringObjectBuilderAuthoringV2SourceInstance.AddAsPrebakedProperty(prebakedPropertyName, ref valueBuilder);
+                        break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, _oneOf0EntityBuilder1Instance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b, ref o));
                         break;
@@ -1346,6 +1421,12 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.OneOf2EntitySource:
                         _oneOf2EntitySourceInstance.AddAsProperty(name, ref valueBuilder);
                         break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddProperty(name, _builderAuthoringObjectBuilderAuthoringV2BuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Source:
+                        _builderAuthoringObjectBuilderAuthoringV2SourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddProperty(name, _oneOf0EntityBuilder1Instance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b, ref o));
                         break;
@@ -1414,6 +1495,12 @@ public readonly partial struct SapphirusContractsCatalog
                         break;
                     case Kind.OneOf2EntitySource:
                         _oneOf2EntitySourceInstance.AddAsProperty(name, ref valueBuilder);
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddProperty(name, _builderAuthoringObjectBuilderAuthoringV2BuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Source:
+                        _builderAuthoringObjectBuilderAuthoringV2SourceInstance.AddAsProperty(name, ref valueBuilder);
                         break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddProperty(name, _oneOf0EntityBuilder1Instance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b, ref o));
@@ -1484,6 +1571,12 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.OneOf2EntitySource:
                         _oneOf2EntitySourceInstance.AddAsItem(ref valueBuilder);
                         break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddItem(_builderAuthoringObjectBuilderAuthoringV2BuilderInstance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b, ref o));
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Source:
+                        _builderAuthoringObjectBuilderAuthoringV2SourceInstance.AddAsItem(ref valueBuilder);
+                        break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddItem(_oneOf0EntityBuilder1Instance!, static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b, ref o));
                         break;
@@ -1529,6 +1622,7 @@ public readonly partial struct SapphirusContractsCatalog
                 OneOf1EntityBuilder,
                 OneOf1EntityBuilder1,
                 OneOf2EntityBuilder,
+                BuilderAuthoringObjectBuilderAuthoringV2Builder,
                 OneOf0EntityBuilder1,
                 OneOf1EntityBuilder2,
                 OneOf0EntityBuilder2,
@@ -1543,6 +1637,7 @@ public readonly partial struct SapphirusContractsCatalog
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf0Entity.OneOf1Entity.Builder.Build<TContext>? _oneOf1EntityBuilderInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.Builder.Build<TContext>? _oneOf1EntityBuilder1Instance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Builder.Build<TContext>? _oneOf2EntityBuilderInstance;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build<TContext>? _builderAuthoringObjectBuilderAuthoringV2BuilderInstance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.Build<TContext>? _oneOf0EntityBuilder1Instance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf1Entity.Builder.Build<TContext>? _oneOf1EntityBuilder2Instance;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraftRevision.OneOf0Entity.Builder.Build<TContext>? _oneOf0EntityBuilder2Instance;
@@ -1566,6 +1661,8 @@ public readonly partial struct SapphirusContractsCatalog
             public Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf1Entity.Builder.Build<TContext> value) {_context = context; _oneOf1EntityBuilder1Instance = value; _kind = Kind.OneOf1EntityBuilder1; }
 
             public Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Builder.Build<TContext> value) {_context = context; _oneOf2EntityBuilderInstance = value; _kind = Kind.OneOf2EntityBuilder; }
+
+            public Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build<TContext> value) {_context = context; _builderAuthoringObjectBuilderAuthoringV2BuilderInstance = value; _kind = Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder; }
 
             public Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.Build<TContext> value) {_context = context; _oneOf0EntityBuilder1Instance = value; _kind = Kind.OneOf0EntityBuilder1; }
 
@@ -1598,6 +1695,9 @@ public readonly partial struct SapphirusContractsCatalog
                         break;
                     case Kind.OneOf2EntityBuilder:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _oneOf2EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _builderAuthoringObjectBuilderAuthoringV2BuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _oneOf0EntityBuilder1Instance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
@@ -1641,6 +1741,9 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.OneOf2EntityBuilder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _oneOf2EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _builderAuthoringObjectBuilderAuthoringV2BuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b.Context, b.Build, ref o));
+                        break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _oneOf0EntityBuilder1Instance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
@@ -1682,6 +1785,9 @@ public readonly partial struct SapphirusContractsCatalog
                         break;
                     case Kind.OneOf2EntityBuilder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _oneOf2EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Builder.BuildValue(b.Context, b.Build, ref o));
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _builderAuthoringObjectBuilderAuthoringV2BuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _oneOf0EntityBuilder1Instance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o));
@@ -1725,6 +1831,9 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.OneOf2EntityBuilder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _oneOf2EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _builderAuthoringObjectBuilderAuthoringV2BuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b.Context, b.Build, ref o));
+                        break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _oneOf0EntityBuilder1Instance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
@@ -1766,6 +1875,9 @@ public readonly partial struct SapphirusContractsCatalog
                         break;
                     case Kind.OneOf2EntityBuilder:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _oneOf2EntityBuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Builder.BuildValue(b.Context, b.Build, ref o));
+                        break;
+                    case Kind.BuilderAuthoringObjectBuilderAuthoringV2Builder:
+                        valueBuilder.AddItem(BuildWithContext.Create(_context, _builderAuthoringObjectBuilderAuthoringV2BuilderInstance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
                     case Kind.OneOf0EntityBuilder1:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _oneOf0EntityBuilder1Instance!), static (in b, ref o) => Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderDraft.OneOf0Entity.Builder.BuildValue(b.Context, b.Build, ref o));
@@ -1929,6 +2041,35 @@ public readonly partial struct SapphirusContractsCatalog
             #endif
         {
             return new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Source<TContext>(context, buildValue);
+        }
+
+        /// <summary>
+        /// Build an instance of the value.
+        /// </summary>
+        /// <param name="buildValue">The callback that builds the value.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source Build(
+            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build buildValue, int initialCapacity = 1)
+        {
+            return new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source(buildValue);
+        }
+
+        /// <summary>
+        /// Build an instance of the value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="buildValue">The callback that builds the value.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source<TContext> Build<TContext>(
+            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build<TContext> buildValue, int initialCapacity = 1)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            return new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source<TContext>(context, buildValue);
         }
 
         /// <summary>
@@ -2313,6 +2454,53 @@ public readonly partial struct SapphirusContractsCatalog
             JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Source<TContext>(context, value);
+            source.AddAsItem(ref cvb);
+            Debug.Assert(cvb.MemberCount == 1);
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder;
+        }
+
+        /// <summary>
+        /// Creates and initializes a mutable document from a value.
+        /// </summary>
+        /// <param name="workspace">The JSON workspace.</param>
+        /// <param name="value">The value with which to initialize the builder.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>An instance of a mutable document initialized with the given value.</returns>
+        public static JsonDocumentBuilder<Mutable> CreateBuilder(
+            JsonWorkspace workspace, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            // Create the document builder without a MetadataDb
+            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source(value);
+            source.AddAsItem(ref cvb);
+            Debug.Assert(cvb.MemberCount == 1);
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder;
+        }
+
+        /// <summary>
+        /// Creates and initializes a mutable document from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="workspace">The JSON workspace.</param>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the builder.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>An instance of a mutable document initialized with the given value.</returns>
+        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(
+            JsonWorkspace workspace, scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            // Create the document builder without a MetadataDb
+            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1, initialValueBufferSize);
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source<TContext>(context, value);
             source.AddAsItem(ref cvb);
             Debug.Assert(cvb.MemberCount == 1);
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -2839,6 +3027,63 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
                 var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAnalysisRun.OneOf2Entity.Source<TContext>(context, value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BuilderAuthoringObject>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BuilderAuthoringObject> Create(
+            scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source(value);
+                source.AddAsItem(ref cvb);
+                Debug.Assert(cvb.MemberCount == 1);
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BuilderAuthoringObject>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from a value.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="value">The value with which to initialize the document.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <param name="initialValueBufferSize">The initial size in bytes of the value buffer.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given value. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BuilderAuthoringObject> Create<TContext>(
+            scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Builder.Build<TContext> value, int initialCapacity = 30, int initialValueBufferSize = 8192)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent(initialValueBufferSize);
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                var source = new Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObjectBuilderAuthoringV2.Source<TContext>(context, value);
                 source.AddAsItem(ref cvb);
                 Debug.Assert(cvb.MemberCount == 1);
                 ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
