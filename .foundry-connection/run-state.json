@@ -1,8 +1,8 @@
 {
   "schemaVersion": "forge.foundry-run-state.v1",
   "planHash": "sha256:07ef06a719a5ecd9a4b044b00bd58d7ace43ea9d7407973c88456461391e5348",
-  "repositoryCommit": "7956da370b0f9f16c5aea3b21f6e39383fa3171d",
-  "currentTask": "FND-002",
+  "repositoryCommit": "839f898da23b17a6cb247812efac4bb7e52bfb2a",
+  "currentTask": "FND-010",
   "taskStates": {
     "FND-001": {
       "state": "complete",
@@ -219,6 +219,73 @@
         ]
       },
       "nextAction": "FND-003 may proceed independently; FND-010 and all other FND-002 dependents remain blocked until a fresh prerequisite report says ready=true."
+    },
+    "FND-003": {
+      "state": "complete",
+      "attemptCount": 1,
+      "startedAt": "2026-07-28T17:13:47.9139829+00:00",
+      "redGate": {
+        "mode": "test_first",
+        "reason": "The offline Foundry surface, failure queue, redaction, clock, and production guard must be specified before the fake implementation exists.",
+        "proofPlan": [
+          "Add .NET and Rust contract tests that fail while the fake server and fixture manifest are absent.",
+          "Create deterministic deployment and Responses scenarios for every failure and streaming case named by FND-003.",
+          "Require the synthetic bearer marker, hash request bodies, retain header names only, and enforce bounded content.",
+          "Prove a scripted clock/queue and cancellation behavior.",
+          "Prove Production and non-test environments cannot activate the fake."
+        ]
+      },
+      "changedFiles": [
+        ".foundry-connection/run-state.json",
+        "tools/foundry-fake/**",
+        "services/desktop-support-api.Tests/Foundry/FakeFoundryServer.cs",
+        "crates/desktop-cloud/tests/fixtures/foundry/**",
+        "crates/desktop-cloud/tests/foundry_fixture_contract.rs",
+        "artifacts/foundry/fake-server-tests.json",
+        "artifacts/foundry/tasks/FND-003.json"
+      ],
+      "commands": [
+        {
+          "command": "node --test tools/foundry-fake/server.test.mjs",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "9 passed, 0 failed, 0 skipped; production guard, marker, evidence redaction, bounds, clock, queue, route guard, and cancellation all proved."
+        },
+        {
+          "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release --filter FakeFoundry",
+          "exitCode": 1,
+          "classification": "not_run",
+          "failureFingerprint": "xunit-v3-microsoft-testing-platform-rejects-legacy-filter",
+          "nextAction": "Use the recorded --filter-class runner equivalent; the FND-001-DOTNET-FILTER workaround applies to every .NET command in this plan."
+        },
+        {
+          "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*FakeFoundry*\"",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "13 passed, 0 failed, 0 skipped."
+        },
+        {
+          "command": "cargo test -p desktop-cloud --test foundry_fixture_contract --locked",
+          "exitCode": 0,
+          "classification": "passed",
+          "result": "1 passed, 0 failed, 0 skipped; the Rust fixture mirror is byte-identical to the canonical catalog."
+        }
+      ],
+      "evidencePaths": [
+        "artifacts/foundry/tasks/FND-003.json",
+        "artifacts/foundry/fake-server-tests.json"
+      ],
+      "reviewerVerdict": {
+        "verdict": "looks_good",
+        "reviewer": "Claude change review",
+        "runId": "FND-003-review-20260728T180500Z",
+        "completedAt": "2026-07-28T18:05:00Z",
+        "blockers": [],
+        "nonBlockers": [
+          "The fake exposes only the two project routes; every other target normalizes to 'unrecognized' and returns 404 without consuming the scripted queue."
+        ]
+      },
+      "nextAction": "Checkpoint A is closed. FND-010 is active."
     }
   },
   "blockers": [
@@ -233,7 +300,14 @@
       ],
       "summary": "No Foundry project endpoint, model-broker managed-identity client ID, Container App resource ID, Foundry role scope, intended deployment list, or authenticated Azure CLI session is available.",
       "nextAction": "Authenticate Azure CLI and supply FOUNDRY_PROJECT_ENDPOINT, FOUNDRY_MODEL_IDENTITY_CLIENT_ID, FOUNDRY_CONTAINER_APP_RESOURCE_ID, FOUNDRY_PROJECT_RESOURCE_ID, and FOUNDRY_PROFILE_DEPLOYMENTS, then rerun the checker.",
-      "evidencePath": "artifacts/foundry/prerequisites.json"
+      "evidencePath": "artifacts/foundry/prerequisites.json",
+      "policyApplied": {
+        "policy": "04-one-shot-execution-runbook.md external blocker policy",
+        "decidedAt": "2026-07-28T18:05:00Z",
+        "decision": "Tasks FND-010 through FND-063 proceed as local implementation verified against the deterministic fake server. They may reach state 'complete' only for their local gates; none of them may claim that the real project endpoint, deployment inventory, identity, or role was proved.",
+        "consequence": "FND-002 stays blocked, FND-064 and FND-065 stay blocked, and no scorecard may emit complete=true until a fresh prerequisite report says ready=true and the deployed smoke runs.",
+        "prohibited": "Substituting fake-server evidence for real deployment proof, or seeding a guessed deployment name into any profile, fixture, or configuration default."
+      }
     },
     {
       "id": "FND-001-DOTNET-FILTER",
@@ -281,7 +355,23 @@
       "acquiredAt": "2026-07-28T16:48:33.222Z",
       "state": "released",
       "releasedAt": "2026-07-28T17:10:11.5893985+00:00"
+    },
+    {
+      "owner": "codex",
+      "task": "FND-003",
+      "paths": [
+        ".foundry-connection/run-state.json",
+        "tools/foundry-fake/**",
+        "services/desktop-support-api.Tests/Foundry/FakeFoundryServer.cs",
+        "crates/desktop-cloud/tests/fixtures/foundry/**",
+        "crates/desktop-cloud/tests/foundry_fixture_contract.rs",
+        "artifacts/foundry/fake-server-tests.json",
+        "artifacts/foundry/tasks/FND-003.json"
+      ],
+      "acquiredAt": "2026-07-28T17:13:47.9139829+00:00",
+      "state": "released",
+      "releasedAt": "2026-07-28T18:05:00Z"
     }
   ],
-  "lastUpdatedAt": "2026-07-28T17:10:11.5893985+00:00"
+  "lastUpdatedAt": "2026-07-28T18:05:00Z"
 }

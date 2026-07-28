@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-003",
+  "state": "complete",
+  "attemptCount": 1,
+  "repositoryCommit": "839f898da23b17a6cb247812efac4bb7e52bfb2a",
+  "startedAt": "2026-07-28T17:13:47.9139829+00:00",
+  "completedAt": "2026-07-28T18:05:00Z",
+  "changedFiles": [
+    ".foundry-connection/run-state.json",
+    "tools/foundry-fake/README.md",
+    "tools/foundry-fake/server.mjs",
+    "tools/foundry-fake/server.test.mjs",
+    "tools/foundry-fake/fixtures/foundry-fixtures.v1.json",
+    "services/desktop-support-api.Tests/Foundry/FakeFoundryServer.cs",
+    "crates/desktop-cloud/tests/foundry_fixture_contract.rs",
+    "crates/desktop-cloud/tests/fixtures/foundry/foundry-fixtures.v1.json",
+    "artifacts/foundry/fake-server-tests.json",
+    "artifacts/foundry/tasks/FND-003.json"
+  ],
+  "commands": [
+    {
+      "command": "node --test tools/foundry-fake/server.test.mjs",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "9 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release --filter FakeFoundry",
+      "exitCode": 1,
+      "classification": "not_run",
+      "failureFingerprint": "xunit-v3-microsoft-testing-platform-rejects-legacy-filter",
+      "result": "Preserved from FND-001: the plan's legacy --filter spelling is rejected before discovery by this repository's runner."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*FakeFoundry*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "13 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "cargo test -p desktop-cloud --test foundry_fixture_contract --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "1 passed, 0 failed, 0 skipped."
+    }
+  ],
+  "acceptance": {
+    "fixturesDeterministicAndContentBounded": "passed",
+    "crossOriginPaginationFailsClosed": "passed",
+    "secretAndHeaderLeakageFailsClosed": "passed",
+    "fakeServerImpossibleToActivateInProduction": "passed"
+  },
+  "blockers": [],
+  "evidence": [
+    "artifacts/foundry/fake-server-tests.json",
+    "tools/foundry-fake/README.md"
+  ],
+  "review": {
+    "verdict": "looks_good",
+    "reviewer": "Claude change review",
+    "completedAt": "2026-07-28T18:05:00Z",
+    "notes": [
+      "The fake surface implements only the two project routes FND-003 names; every other request target normalizes to 'unrecognized' and returns 404 without consuming the scripted queue.",
+      "Both the node and .NET implementations carry independent production guards, so an accidental reference cannot activate the fake outside Development/Test.",
+      "The Rust fixture mirror is asserted byte-identical to the canonical catalog, so a single-sided fixture edit fails the contract test."
+    ]
+  },
+  "nextAction": "Checkpoint A is closed. FND-010 is next in topological order but inherits the FND-002-AZURE-INPUTS blocker; per the plan's external blocker policy it proceeds as local implementation against the fake server and does not claim prerequisite proof."
+}

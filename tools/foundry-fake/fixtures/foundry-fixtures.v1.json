@@ -1,0 +1,480 @@
+{
+  "schemaVersion": "forge.foundry-fake-fixtures.v1",
+  "syntheticBearerMarker": "forge-foundry-fake-marker-v1",
+  "baseOrigin": "https://forge-fake.test",
+  "limits": {
+    "maximumFixtureBodyBytes": 1048577,
+    "maximumRequestBodyBytes": 65536,
+    "maximumQueueDepth": 64
+  },
+  "deploymentScenarios": [
+    {
+      "name": "one_page",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "value": [
+              {
+                "name": "desktop-planning",
+                "type": "ModelDeployment",
+                "modelPublisher": "OpenAI",
+                "modelName": "gpt-5-mini",
+                "modelVersion": "2026-06-01",
+                "sku": {
+                  "name": "GlobalStandard",
+                  "tier": "Global",
+                  "size": "S",
+                  "family": "OpenAI",
+                  "capacity": 10
+                },
+                "capabilities": {
+                  "json_schema": true,
+                  "tool_calling": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "multiple_pages",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "value": [
+              {
+                "name": "desktop-planning",
+                "type": "ModelDeployment",
+                "modelPublisher": "OpenAI",
+                "modelName": "gpt-5-mini",
+                "modelVersion": "2026-06-01",
+                "sku": {
+                  "name": "GlobalStandard",
+                  "tier": "Global",
+                  "size": "S",
+                  "family": "OpenAI",
+                  "capacity": 10
+                },
+                "capabilities": {
+                  "json_schema": true,
+                  "tool_calling": true
+                }
+              }
+            ],
+            "nextLink": "https://forge-fake.test/api/projects/forge-test/deployments?api-version=v1&deploymentType=ModelDeployment&continuationToken=page-2"
+          }
+        },
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "value": [
+              {
+                "name": "desktop-coding",
+                "type": "ModelDeployment",
+                "modelPublisher": "OpenAI",
+                "modelName": "gpt-5.1-codex",
+                "modelVersion": "2026-06-15",
+                "sku": {
+                  "name": "GlobalStandard",
+                  "tier": "Global",
+                  "size": "S",
+                  "family": "OpenAI",
+                  "capacity": 5
+                },
+                "capabilities": {
+                  "json_schema": true,
+                  "tool_calling": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "duplicate_deployments",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "value": [
+              {
+                "name": "desktop-planning",
+                "type": "ModelDeployment",
+                "modelPublisher": "OpenAI",
+                "modelName": "gpt-5-mini",
+                "modelVersion": "2026-06-01",
+                "sku": {
+                  "name": "GlobalStandard",
+                  "tier": "Global",
+                  "size": "S",
+                  "family": "OpenAI",
+                  "capacity": 10
+                },
+                "capabilities": {
+                  "json_schema": true
+                }
+              },
+              {
+                "name": "desktop-planning",
+                "type": "ModelDeployment",
+                "modelPublisher": "OpenAI",
+                "modelName": "gpt-5-mini",
+                "modelVersion": "2026-06-01",
+                "sku": {
+                  "name": "GlobalStandard",
+                  "tier": "Global",
+                  "size": "S",
+                  "family": "OpenAI",
+                  "capacity": 10
+                },
+                "capabilities": {
+                  "json_schema": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "unknown_fields",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "value": [
+              {
+                "name": "desktop-planning",
+                "type": "ModelDeployment",
+                "modelPublisher": "OpenAI",
+                "modelName": "gpt-5-mini",
+                "modelVersion": "2026-06-01",
+                "connectionName": "unknown-field-must-not-be-projected",
+                "futureMetadata": {
+                  "shape": "ignored"
+                },
+                "sku": {
+                  "name": "GlobalStandard",
+                  "tier": "Global",
+                  "size": "S",
+                  "family": "OpenAI",
+                  "capacity": 10,
+                  "futureSkuField": "ignored"
+                },
+                "capabilities": {
+                  "json_schema": true,
+                  "future_capability": {
+                    "value": "ignored"
+                  }
+                }
+              }
+            ],
+            "futurePageField": "ignored"
+          }
+        }
+      ]
+    },
+    {
+      "name": "malformed_json",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "body": "{\"value\":["
+        }
+      ]
+    },
+    {
+      "name": "oversized_body",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "repeatBody": {
+            "value": "x",
+            "count": 1048577
+          }
+        }
+      ]
+    },
+    {
+      "name": "wrong_next_link_origin",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "value": [],
+            "nextLink": "https://attacker.invalid/api/projects/forge-test/deployments?api-version=v1&deploymentType=ModelDeployment&continuationToken=stolen"
+          }
+        }
+      ]
+    },
+    {
+      "name": "empty_inventory",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "value": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "deployment_removal",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "value": [
+              {
+                "name": "desktop-planning",
+                "type": "ModelDeployment",
+                "modelPublisher": "OpenAI",
+                "modelName": "gpt-5-mini",
+                "modelVersion": "2026-06-01",
+                "sku": {
+                  "name": "GlobalStandard",
+                  "tier": "Global",
+                  "size": "S",
+                  "family": "OpenAI",
+                  "capacity": 10
+                },
+                "capabilities": {
+                  "json_schema": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "value": []
+          }
+        }
+      ]
+    }
+  ],
+  "responseScenarios": [
+    {
+      "name": "structured_output",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "id": "resp_fixture_001",
+            "object": "response",
+            "status": "completed",
+            "model": "desktop-planning",
+            "output": [
+              {
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"summary\":\"bounded plan\"}"
+                  }
+                ]
+              }
+            ],
+            "usage": {
+              "input_tokens": 12,
+              "output_tokens": 5,
+              "total_tokens": 17
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "streaming_text_deltas",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "text/event-stream",
+          "body": "event: response.created\ndata: {\"type\":\"response.created\",\"response\":{\"id\":\"resp_stream_text\",\"status\":\"in_progress\"}}\n\nevent: response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"delta\":\"bounded\"}\n\nevent: response.output_text.done\ndata: {\"type\":\"response.output_text.done\",\"text\":\"bounded\"}\n\nevent: response.completed\ndata: {\"type\":\"response.completed\",\"response\":{\"id\":\"resp_stream_text\",\"status\":\"completed\"}}\n\n"
+        }
+      ]
+    },
+    {
+      "name": "streaming_tool_call_deltas",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "text/event-stream",
+          "body": "event: response.output_item.added\ndata: {\"type\":\"response.output_item.added\",\"item\":{\"id\":\"call_fixture\",\"type\":\"function_call\",\"name\":\"lookup\"}}\n\nevent: response.function_call_arguments.delta\ndata: {\"type\":\"response.function_call_arguments.delta\",\"item_id\":\"call_fixture\",\"delta\":\"{\\\"query\\\":\"}\n\nevent: response.function_call_arguments.delta\ndata: {\"type\":\"response.function_call_arguments.delta\",\"item_id\":\"call_fixture\",\"delta\":\"\\\"safe\\\"}\"}\n\nevent: response.function_call_arguments.done\ndata: {\"type\":\"response.function_call_arguments.done\",\"item_id\":\"call_fixture\",\"arguments\":\"{\\\"query\\\":\\\"safe\\\"}\"}\n\n"
+        }
+      ]
+    },
+    {
+      "name": "streaming_usage",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "text/event-stream",
+          "body": "event: response.completed\ndata: {\"type\":\"response.completed\",\"response\":{\"id\":\"resp_stream_usage\",\"status\":\"completed\",\"usage\":{\"input_tokens\":9,\"output_tokens\":3,\"total_tokens\":12}}}\n\n"
+        }
+      ]
+    },
+    {
+      "name": "refusal",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "jsonBody": {
+            "id": "resp_refusal",
+            "object": "response",
+            "status": "completed",
+            "output": [
+              {
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "refusal",
+                    "refusal": "fixture refusal"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "content_filter",
+      "responses": [
+        {
+          "status": 400,
+          "contentType": "application/json",
+          "jsonBody": {
+            "error": {
+              "code": "content_filter",
+              "message": "fixture content filter"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "timeout",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "mode": "wait_for_cancellation"
+        }
+      ]
+    },
+    {
+      "name": "rate_limited_429",
+      "responses": [
+        {
+          "status": 429,
+          "contentType": "application/json",
+          "headers": {
+            "retry-after": "2"
+          },
+          "jsonBody": {
+            "error": {
+              "code": "rate_limit_exceeded",
+              "message": "fixture retry"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "forbidden_403",
+      "responses": [
+        {
+          "status": 403,
+          "contentType": "application/json",
+          "jsonBody": {
+            "error": {
+              "code": "forbidden",
+              "message": "fixture authorization failure"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "deployment_missing_404",
+      "responses": [
+        {
+          "status": 404,
+          "contentType": "application/json",
+          "jsonBody": {
+            "error": {
+              "code": "deployment_not_found",
+              "message": "fixture deployment missing"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "server_error_500",
+      "responses": [
+        {
+          "status": 500,
+          "contentType": "application/json",
+          "jsonBody": {
+            "error": {
+              "code": "internal_error",
+              "message": "fixture server error"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "malformed_sse",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "text/event-stream",
+          "body": "event response.output_text.delta\ndata {not-json}\n\n"
+        }
+      ]
+    },
+    {
+      "name": "truncated_stream",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "text/event-stream",
+          "body": "event: response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"delta\":\"partial\"}\n\nevent: response.completed\ndata: {\"type\":\"response.completed\""
+        }
+      ]
+    },
+    {
+      "name": "client_cancellation",
+      "responses": [
+        {
+          "status": 200,
+          "contentType": "application/json",
+          "mode": "wait_for_cancellation"
+        }
+      ]
+    }
+  ]
+}

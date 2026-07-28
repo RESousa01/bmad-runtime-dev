@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "forge.foundry-fake-server-evidence.v1",
+  "taskId": "FND-003",
+  "repositoryCommit": "839f898da23b17a6cb247812efac4bb7e52bfb2a",
+  "capturedAt": "2026-07-28T18:05:00Z",
+  "syntheticBearerMarker": "forge-foundry-fake-marker-v1",
+  "productionGuard": {
+    "node": "server.mjs refuses every environment except Development/Test and refuses when NODE_ENV, ASPNETCORE_ENVIRONMENT, DOTNET_ENVIRONMENT, or FORGE_ENVIRONMENT names production, even when the caller claims Test.",
+    "dotnet": "FakeFoundryServer lives only in the test assembly and throws fake_foundry_environment_forbidden for every environment except Development/Test.",
+    "verdict": "cannot_activate_in_production"
+  },
+  "surfaces": [
+    "GET /api/projects/<project>/deployments?api-version=v1&deploymentType=ModelDeployment",
+    "POST /api/projects/<project>/openai/v1/responses"
+  ],
+  "fixtureCatalog": {
+    "path": "tools/foundry-fake/fixtures/foundry-fixtures.v1.json",
+    "sha256": "sha256:0e70b6218fecf195fe2b6b95959299bde757edd6acec4b96d573f6ba50c579bc",
+    "rustMirror": "crates/desktop-cloud/tests/fixtures/foundry/foundry-fixtures.v1.json",
+    "rustMirrorSha256": "sha256:0e70b6218fecf195fe2b6b95959299bde757edd6acec4b96d573f6ba50c579bc",
+    "mirrorIsByteIdentical": true,
+    "maximumFixtureBodyBytes": 1048577,
+    "deploymentScenarios": [
+      "deployment_removal",
+      "duplicate_deployments",
+      "empty_inventory",
+      "malformed_json",
+      "multiple_pages",
+      "one_page",
+      "oversized_body",
+      "unknown_fields",
+      "wrong_next_link_origin"
+    ],
+    "responseScenarios": [
+      "client_cancellation",
+      "content_filter",
+      "deployment_missing_404",
+      "forbidden_403",
+      "malformed_sse",
+      "rate_limited_429",
+      "refusal",
+      "server_error_500",
+      "streaming_text_deltas",
+      "streaming_tool_call_deltas",
+      "streaming_usage",
+      "structured_output",
+      "timeout",
+      "truncated_stream"
+    ]
+  },
+  "requestEvidencePolicy": {
+    "retained": [
+      "sequence",
+      "testClockReceivedAt",
+      "method",
+      "normalizedRoute",
+      "requestTargetSha256",
+      "bodySha256",
+      "bodyTruncated",
+      "sortedHeaderNames"
+    ],
+    "neverRetained": [
+      "rawPath",
+      "queryValues",
+      "headerValues",
+      "requestContent",
+      "bearerMarkerValue"
+    ]
+  },
+  "determinism": {
+    "testClock": "FakeFoundryTestClock (.NET) and an injected clock (node) advance only by explicit test action.",
+    "responseQueue": "Scripted FIFO queue bounded at 64 entries; unauthorized, oversized, and unrecognized-route requests do not consume the queue."
+  },
+  "sourceHashes": {
+    "tools/foundry-fake/server.mjs": "sha256:a3c949af007e790966df95f76940d76e1ef632b52fd06cfbb0f52d9d4d2c7eaa",
+    "tools/foundry-fake/server.test.mjs": "sha256:f2eef2fa849384062c679607ff5740764cf87e0c8b28de57629be39476c81691",
+    "services/desktop-support-api.Tests/Foundry/FakeFoundryServer.cs": "sha256:ceafabdebaa096eaa4f51b59efc34a5f1f66acd37b5a0eb2f2635441a09a5085",
+    "crates/desktop-cloud/tests/foundry_fixture_contract.rs": "sha256:c0b2d96c628d0a4580e804368b3da72a7086bbbe7f0245897d3c90cb8a9cabb8"
+  },
+  "gates": [
+    {
+      "command": "node --test tools/foundry-fake/server.test.mjs",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*FakeFoundry*\"",
+      "exitCode": 0,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "cargo test -p desktop-cloud --test foundry_fixture_contract --locked",
+      "exitCode": 0,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    }
+  ]
+}
