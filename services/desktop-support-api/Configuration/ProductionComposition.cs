@@ -92,6 +92,44 @@ public static class ProductionComposition
             new FoundryCatalogHealthCheck(
                 provider.GetRequiredService<FoundryDeploymentCatalogCache>()));
 
+        // Signed organization profile registry and effective catalog
+        // (FND-024..FND-026). The registry reads only the configured profile
+        // key prefix plus the registry-version key that deliberately sits
+        // outside it, and it recomputes the publisher's registry and capability
+        // hashes from the values it actually read.
+        builder.Services.AddSingleton<IModelProfileSettingsSource>(provider =>
+            new AppConfigurationModelProfileSettingsSource(
+                provider.GetRequiredService<ProductionAzureClients>().AppConfiguration,
+                production.ModelProfileConfigurationPrefix,
+                AppConfigurationModelProfileSettingsSource.DefaultLabel));
+        builder.Services.AddSingleton<AppConfigurationModelProfileRegistry>(provider =>
+            new AppConfigurationModelProfileRegistry(
+                provider.GetRequiredService<IModelProfileSettingsSource>(),
+                TimeProvider.System));
+        builder.Services.AddSingleton<IModelProfileRegistry>(provider =>
+            provider.GetRequiredService<AppConfigurationModelProfileRegistry>());
+        builder.Services.AddSingleton<IModelCatalogDeploymentSource>(provider =>
+            new FoundryCatalogDeploymentSource(
+                provider.GetRequiredService<FoundryDeploymentCatalogCache>()));
+        builder.Services.AddSingleton<IModelCatalogPolicySource>(provider =>
+            new AppConfigurationCatalogPolicySource(
+                provider.GetRequiredService<AppConfigurationPolicyProvider>()));
+        builder.Services.AddSingleton<IModelEntitlementSource>(provider =>
+            new RegistryModelEntitlementSource(
+                provider.GetRequiredService<IModelProfileRegistry>()));
+        builder.Services.AddSingleton(provider =>
+            new EffectiveModelCatalogService(
+                provider.GetRequiredService<IModelProfileRegistry>(),
+                provider.GetRequiredService<IModelCatalogDeploymentSource>(),
+                provider.GetRequiredService<IModelCatalogPolicySource>(),
+                provider.GetRequiredService<IModelEntitlementSource>(),
+                TimeProvider.System,
+                supportPlane.Region,
+                // An untrusted fixture registry can never be composed here.
+                // This is the structural refusal; the fixture registry's own
+                // constructor is the first one.
+                untrustedRegistryPermitted: false));
+
         // Durable SQL authority stores (Task 7): the transactional
         // active/epoch checks in these adapters are the cross-replica
         // authority for revocation, consent single-use, and idempotency.

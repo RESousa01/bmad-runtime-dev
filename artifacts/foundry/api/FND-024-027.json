@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "tasks": ["FND-024", "FND-025", "FND-026", "FND-027"],
+  "owner": "claude-agent-catalog",
+  "completedAt": "2026-07-28T23:40:00Z",
+  "testBaseline": {
+    "before": { "passed": 387, "failed": 0, "skipped": 0 },
+    "after": { "passed": 519, "failed": 0, "skipped": 0 },
+    "added": 132
+  },
+  "commands": [
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Baseline before any change: 387 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet build services/desktop-support-api/Sapphirus.DesktopSupportApi.csproj -c Release",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Build succeeded with TreatWarningsAsErrors and Nullable=enable; no new PackageReference."
+    },
+    {
+      "command": "node artifacts/foundry/api/generate-parity.mjs",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Canonical profile values and the profile, registry, and capability digests were produced by packages/contracts/scripts/lib/canonical-json.mjs and tools/foundry-profiles/validate-profiles.mjs, then pinned into the .NET tests. Output is byte-identical to artifacts/foundry/api/model-profile-parity.json on a second run, so the pinned digests are reproducible rather than transcribed."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*ModelProfileRegistry*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "49 passed, 0 failed, 0 skipped. Includes the three cross-language digest parity assertions."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*EffectiveModelCatalog*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "31 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*ModelCatalogEndpoint*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "23 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*ModelRouteResolver*\"",
+      "exitCode": 2,
+      "classification": "expected_red",
+      "failureFingerprint": "entitlement-blocked-profile-reported-as-profile_unavailable",
+      "nextAction": "The catalog dropped entitlement-blocked profiles from its server-side entries, so profile_not_entitled was unreachable. Entries now retain an entitlement-blocked profile as non-selectable with its blocked reason; the projection still omits it."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*ModelRouteResolver*\" --filter-class \"*EffectiveModelCatalog*\" --filter-class \"*ModelCatalogEndpoint*\" --filter-class \"*ModelProfileRegistry*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "132 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "519 passed, 0 failed, 0 skipped. No regression against the 387 baseline."
+    },
+    {
+      "command": "node tools/check-secrets.mjs",
+      "exitCode": 1,
+      "classification": "blocked_external",
+      "result": "One finding, entirely outside this lease: packages/bmad-foundation/source/method/6.10.0/test/test-installer-channels.js:26 carries a C0 control byte. No finding in services/, docs/, or artifacts/.",
+      "nextAction": "The bmad-foundation lane owns that file."
+    }
+  ],
+  "changedFiles": [
+    "services/desktop-support-api/Model/IModelProfileRegistry.cs",
+    "services/desktop-support-api/Model/AppConfigurationModelProfileRegistry.cs",
+    "services/desktop-support-api/Model/ModelProfileValidator.cs",
+    "services/desktop-support-api/Model/EffectiveModelCatalogService.cs",
+    "services/desktop-support-api/Model/ModelCatalogProjection.cs",
+    "services/desktop-support-api/Model/ModelDefaultSelector.cs",
+    "services/desktop-support-api/Model/ModelCatalogEndpoint.cs",
+    "services/desktop-support-api/Model/ModelRouteResolver.cs",
+    "services/desktop-support-api/Model/ResolvedModelRoute.cs",
+    "services/desktop-support-api/Program.cs",
+    "services/desktop-support-api/Configuration/ProductionComposition.cs",
+    "services/desktop-support-api.Tests/Model/ModelCatalogTestFixtures.cs",
+    "services/desktop-support-api.Tests/Model/ModelProfileRegistryTests.cs",
+    "services/desktop-support-api.Tests/Model/EffectiveModelCatalogTests.cs",
+    "services/desktop-support-api.Tests/Model/ModelCatalogEndpointTests.cs",
+    "services/desktop-support-api.Tests/Model/ModelRouteResolverTests.cs",
+    "docs/operations/model-profile-format.md",
+    "artifacts/foundry/api/generate-parity.mjs",
+    "artifacts/foundry/api/model-profile-parity.json",
+    "artifacts/foundry/api/FND-024-027.json"
+  ],
+  "notModified": [
+    "services/desktop-support-api/Configuration/DevelopmentFoundryComposition.cs",
+    "services/desktop-support-api.Tests/Model/ModelBrokerTests.cs",
+    "services/desktop-support-api.Tests/Model/ModelAccessCoordinatorTests.cs",
+    "packages/contracts/**",
+    "packages/bmad-foundation/**"
+  ],
+  "unverifiable": [
+    "No real Foundry project was contacted. Every deployment inventory in these tests is a synthetic in-memory snapshot; the EXECUTION-BOUNDARY decision forbids Azure-facing runs from this environment.",
+    "The App Configuration read path (AppConfigurationModelProfileSettingsSource) is proved only by its key-layout constants and by the fact that the validator consumes the publisher's exact canonical bytes. No live App Configuration store was read, so the SettingSelector label and prefix behaviour is asserted by construction rather than observed.",
+    "The desktop-side derivation of modelProfileHash and modelCapabilityHash is specified and implemented server side, but no desktop client computes it yet, so the two sides have not been observed to agree."
+  ],
+  "planConflicts": [
+    {
+      "id": "PROFILE-PREFIX-DEFAULT-MISMATCH",
+      "severity": "blocking-for-deployment",
+      "planSays": "ProductionOptions.ModelProfileConfigurationPrefix, default desktop-support:model-profiles:",
+      "repositoryIs": "tools/foundry-profiles/publish-profiles.ps1 writes desktop-support:model-profile: (singular).",
+      "consequence": "With the default prefix a production host reads zero profile keys and the catalog fails closed with model_catalog_unavailable.",
+      "resolution": "The registry consumes the configured prefix rather than hardcoding one, and AppConfigurationModelProfileSettingsSource.PublisherKeyPrefix records the publisher's actual value. ProductionOptions.cs is outside this lease; the Configuration owner must change the default or the deployment must set it explicitly."
+    },
+    {
+      "id": "PROFILE-LABEL-NOT-IN-PLAN",
+      "planSays": "Read only the configured App Configuration prefix plus a registry-version key.",
+      "repositoryIs": "The publisher writes the live set under a label (default 'production') and archives superseded sets under '<label>-v<registryVersion>'.",
+      "resolution": "The reader pins the label. A reader that did not would merge a live profile with an archived one."
+    },
+    {
+      "id": "CATALOG-PROBLEM-VOCABULARY-SHORT",
+      "planSays": "Stable problems for catalog unavailable, stale beyond limit, no entitled models, and client epoch too old, using model_catalog_unavailable, model_catalog_stale, model_contract_upgrade_required.",
+      "repositoryIs": "Three codes for four conditions.",
+      "resolution": "Added model_catalog_no_entitled_profiles (403) for the fourth. Folding it into model_catalog_unavailable would conflate a fixable entitlement gap with an infrastructure outage. Note also that zero selectable profiles with a populated unavailableProfiles list is a 200, not a problem: that is the case the catalog exists for."
+    },
+    {
+      "id": "NO-BINDING-HASHES-IN-CATALOG-PROJECTION",
+      "planSays": "Request V2 carries modelProfileHash and modelCapabilityHash.",
+      "repositoryIs": "model-catalog.schema.json has no member that could carry either, so the desktop cannot read them from the catalog it was served.",
+      "resolution": "Both are derived from projection values over a closed ASCII alphabet; the exact preimages are in docs/operations/model-profile-format.md section 7. A contracts change adding two optional members would remove a class of drift. packages/contracts is another agent's lane."
+    },
+    {
+      "id": "NO-EXPLICIT-ORGANIZATION-DEFAULT",
+      "planSays": "Default selection order: explicit organization default if available, then a last-valid-user-selection hint, then priority then profile-ID order.",
+      "repositoryIs": "model-profile.schema.json has no is-default member and no configuration key binds one.",
+      "resolution": "ModelDefaultSelector takes the organization default as a parameter and ModelEntitlementSnapshot carries it, so the ordering is implemented and tested. In production it is always null today, so selection falls through to the hint and then to deterministic order."
+    },
+    {
+      "id": "QUALIFICATION-SPLIT",
+      "planSays": "FND-024 rejects any profile lacking qualification evidence; FND-025 intersects with qualification status.",
+      "repositoryIs": "Rejecting every non-qualified status at the registry would make the catalog's unqualified blocked state unreachable.",
+      "resolution": "The registry rejects structurally missing evidence (placeholder digest, qualified with a null instant). A valid unqualified or expired status is accepted into the registry and blocked at catalog time, which is what lets a de-qualified profile be explained instead of vanishing."
+    },
+    {
+      "id": "EMPTY-POLICY-DEPLOYMENT-ALLOWLIST",
+      "repositoryIs": "PolicySnapshot.ApprovedModelDeployments may legitimately be empty; ModelAccessProfile.Resolve treats empty as blocking everything.",
+      "resolution": "The catalog treats a non-empty list as an additional narrowing and an empty list as 'no deployment allowlist published'. The signed registry is itself the organization's authority over which deployments exist, so this is a narrowing that may be absent rather than a fail-open. Recorded because it differs from the legacy resolver's reading of the same field."
+    },
+    {
+      "id": "DEVELOPMENT-FOUNDRY-NOT-PREVIOUSLY-WIRED",
+      "repositoryIs": "DevelopmentFoundryComposition existed but Program.cs never called TryAddDevelopmentFoundryCatalog, so the development Foundry credential path was unreachable.",
+      "resolution": "Program.cs (in this lease) now calls it. It is opt-in: with neither the endpoint nor the key configured it registers nothing and the catalog uses an unavailable deployment source."
+    }
+  ],
+  "notes": [
+    "No new PackageReference was added, so neither packages.lock.json needed regenerating. The scripted clock is a hand-written nested TimeProvider matching FoundryDeploymentCatalogCacheTests, not Microsoft.Extensions.TimeProvider.Testing.",
+    "No mocking library is used. Every fake is a hand-written sealed class.",
+    "Observability/SupportPlaneTelemetry.cs was not touched and no new telemetry tag key is required: the catalog endpoint emits no metrics.",
+    "artifacts/ is gitignored at .gitignore:23, so these evidence files need git add -f exactly as the earlier task evidence did."
+  ]
+}

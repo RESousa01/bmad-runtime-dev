@@ -62,7 +62,7 @@ public sealed partial class ProductionOptions
     /// profiles live. Deployment names are never configured here.
     /// </summary>
     public string ModelProfileConfigurationPrefix { get; init; } =
-        "desktop-support:model-profiles:";
+        "desktop-support:model-profile:";
 
     /// <summary>
     /// True when the legacy fixed Chat Completions path is configured. It is

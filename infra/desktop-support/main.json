@@ -10,7 +10,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.45.15.27210",
-      "templateHash": "14152896953222314631"
+      "templateHash": "8093603725345332832"
     }
   },
   "parameters": {
@@ -116,7 +116,7 @@
     },
     "modelProfileConfigurationPrefix": {
       "type": "string",
-      "defaultValue": "desktop-support:model-profiles:",
+      "defaultValue": "desktop-support:model-profile:",
       "minLength": 3,
       "maxLength": 128,
       "metadata": {

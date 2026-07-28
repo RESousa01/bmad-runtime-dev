@@ -19,7 +19,7 @@ param releaseChannel = 'beta'
 // no Foundry deployment name.
 param foundryProjectEndpoint = 'https://replace-with-account.services.ai.azure.com/api/projects/replace-with-project'
 param foundryProjectResourceId = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/replace-with-foundry-resource-group/providers/Microsoft.CognitiveServices/accounts/replace-with-account/projects/replace-with-project'
-param modelProfileConfigurationPrefix = 'desktop-support:model-profiles:'
+param modelProfileConfigurationPrefix = 'desktop-support:model-profile:'
 param foundryDeploymentRefreshSeconds = 300
 param foundryCatalogMaximumStaleSeconds = 1800
 param allowSharedPilotIdentity = false

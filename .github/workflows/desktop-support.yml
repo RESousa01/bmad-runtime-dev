@@ -143,7 +143,7 @@ jobs:
             --env Sapphirus__FoundryModelIdentityClientId=55555555-5555-5555-5555-555555555555 \
             --env Sapphirus__FoundryDeploymentRefreshSeconds=300 \
             --env Sapphirus__FoundryCatalogMaximumStaleSeconds=1800 \
-            --env Sapphirus__ModelProfileConfigurationPrefix=desktop-support:model-profiles: \
+            --env Sapphirus__ModelProfileConfigurationPrefix=desktop-support:model-profile: \
             --env Sapphirus__AllowSharedPilotIdentity=false \
             desktop-support-api:ci migrate-sql
           production_identity_exit=$?

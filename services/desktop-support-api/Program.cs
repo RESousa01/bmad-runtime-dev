@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.IdentityModel.Tokens;
 using Sapphirus.DesktopSupportApi;
 using Sapphirus.DesktopSupportApi.Configuration;
+using Sapphirus.DesktopSupportApi.Model;
 using Sapphirus.DesktopSupportApi.Sql;
 
 SqlMigrationCommandSelection command = SqlMigrationCommand.Select(args);
@@ -132,6 +133,64 @@ if (builder.Environment.IsDevelopment())
         !string.IsNullOrWhiteSpace(options.DevelopmentConsentStorePath)
         ? new DevelopmentFileContextConsentConsumptionStore(options.DevelopmentConsentStorePath)
         : new UnavailableContextConsentConsumptionStore());
+
+    // Model catalog (FND-024..FND-026) in Development.
+    //
+    // The registry is the labelled untrusted fixture set: it exists so the
+    // whole catalog architecture runs on a machine with no App Configuration
+    // store, and both it and the entitlement source refuse any environment but
+    // Development and Test.
+    //
+    // The deployment inventory is real when, and only when, the operator
+    // supplied the development Foundry credential. Otherwise it reports an
+    // unavailable inventory rather than an empty one, so the catalog fails
+    // closed instead of appearing to say the organization deployed nothing.
+    bool developmentFoundryComposed = builder.Services.TryAddDevelopmentFoundryCatalog(
+        builder.Environment,
+        builder.Configuration);
+    builder.Services.AddSingleton<Sapphirus.DesktopSupportApi.Model.IModelProfileRegistry>(_ =>
+        new Sapphirus.DesktopSupportApi.Model.DevelopmentFixtureModelProfileRegistry(
+            builder.Environment.EnvironmentName,
+            Sapphirus.DesktopSupportApi.Model.DevelopmentModelProfileFixtures.Build(
+                options.Region),
+            TimeProvider.System));
+    if (developmentFoundryComposed)
+    {
+        builder.Services.AddSingleton<
+            Sapphirus.DesktopSupportApi.Model.IModelCatalogDeploymentSource>(provider =>
+            new Sapphirus.DesktopSupportApi.Model.FoundryCatalogDeploymentSource(
+                provider.GetRequiredService<
+                    Sapphirus.DesktopSupportApi.Foundry.FoundryDeploymentCatalogCache>()));
+    }
+    else
+    {
+        builder.Services.AddSingleton<
+            Sapphirus.DesktopSupportApi.Model.IModelCatalogDeploymentSource,
+            Sapphirus.DesktopSupportApi.Model.UnavailableModelCatalogDeploymentSource>();
+    }
+    builder.Services.AddSingleton<
+        Sapphirus.DesktopSupportApi.Model.IModelCatalogPolicySource>(_ =>
+        new Sapphirus.DesktopSupportApi.Model.StaticModelCatalogPolicySource(
+            Sapphirus.DesktopSupportApi.Model.StaticModelCatalogPolicySource.DevelopmentSnapshot(
+                options.Region,
+                TimeProvider.System.GetUtcNow())));
+    builder.Services.AddSingleton<
+        Sapphirus.DesktopSupportApi.Model.IModelEntitlementSource>(provider =>
+        new Sapphirus.DesktopSupportApi.Model.DevelopmentModelEntitlementSource(
+            builder.Environment.EnvironmentName,
+            provider.GetRequiredService<Sapphirus.DesktopSupportApi.Model.IModelProfileRegistry>()));
+    builder.Services.AddSingleton(provider =>
+        new Sapphirus.DesktopSupportApi.Model.EffectiveModelCatalogService(
+            provider.GetRequiredService<Sapphirus.DesktopSupportApi.Model.IModelProfileRegistry>(),
+            provider.GetRequiredService<
+                Sapphirus.DesktopSupportApi.Model.IModelCatalogDeploymentSource>(),
+            provider.GetRequiredService<
+                Sapphirus.DesktopSupportApi.Model.IModelCatalogPolicySource>(),
+            provider.GetRequiredService<
+                Sapphirus.DesktopSupportApi.Model.IModelEntitlementSource>(),
+            TimeProvider.System,
+            options.Region,
+            untrustedRegistryPermitted: true));
 }
 else
 {
@@ -153,9 +212,17 @@ desktop.MapGet("/bootstrap", (SupportPlaneOptions configuration) => Results.Ok(n
         configuration.Region,
         "1",
         "1",
-        ["windows_local", "transient_no_store"],
+        [
+            "windows_local",
+            "transient_no_store",
+            Sapphirus.DesktopSupportApi.Model.ModelCatalogEndpoint.BootstrapCapability,
+        ],
         DateTimeOffset.UtcNow)))
     .RequireAuthorization(DesktopScopes.Access);
+
+// The catalog is a read. It requires the approved desktop client and the
+// desktop read scope, and deliberately not the model-invocation scope.
+desktop.MapModelCatalog();
 
 desktop.MapPost("/devices/registrations", async (
         DeviceRegistrationRequest request,

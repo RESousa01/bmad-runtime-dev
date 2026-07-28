@@ -73,7 +73,7 @@ param modelBrokerIdentityName string = '${namePrefix}-foundry-id'
 @description('App Configuration key prefix under which reviewed model profiles are published. Lowercase, colon-separated, ending with the separator, and never a wildcard.')
 @minLength(3)
 @maxLength(128)
-param modelProfileConfigurationPrefix string = 'desktop-support:model-profiles:'
+param modelProfileConfigurationPrefix string = 'desktop-support:model-profile:'
 
 @description('Seconds between Foundry deployment-catalog refreshes.')
 @minValue(30)
