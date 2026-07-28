@@ -70,9 +70,29 @@ badge, the settings-row value pills, and six icons from the task header. The
 Context readout moved from above the input to the meta line beneath it, which
 is the order 3a reads in.
 
+The transcript followed: chat avatars are gone — a 31px circle on every turn,
+plus the 32px grid column that indented every message to hold it — replaced by
+3a's uppercase role label with the time opposite. The user's bubble is gone
+too. Tool output keeps its vertical rule, which is how 3a itemises it.
+
 Verified by walking the rendered DOM: nothing in Home has a fill or radius, and
 nothing on the task surface has a pill radius. The pills that remain are the
 ones specification 3.4 allows — status indicators and the usage meter.
+
+**Three cascade faults were found while checking the transcript, all shipping
+before this session.** Transcript prose was 14px, not 13px, because a rule
+raised it above 1024px on reasoning that stopped being true when the token
+contract made sizes absolute px. Tool labels were typeset as prose, because
+`.message p` matches a `<p>` label at (0,1,1) and outranks `.message__label` at
+(0,1,0) — every `<span>` label was fine and every `<p>` label was not.
+And `design-polish.css` was re-adding the bubble, avatar shadow and 14px prose
+that `styles.css` removed. Expect more of this shape: **the same selector
+declared in two files is the normal case here, not the exception**, which is
+why FE-03 matters beyond tidiness.
+
+To verify a surface the browser preview cannot reach — it blocks sending, so a
+transcript never populates — inject representative markup with `javascript_tool`
+and read computed styles off it. That is how the three faults above were found.
 
 ## Decisions taken, and what they cost
 
