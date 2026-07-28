@@ -45,6 +45,10 @@ import { isRecoveryFailure } from "./app/hostFailure";
 import { isAvailable, resolveCapabilities } from "./app/capabilityMatrix";
 import { createGuidanceRequest } from "./app/guidance/guidanceRequest";
 import {
+  createRecoveryActions,
+  useRecoveryReview,
+} from "./app/recovery/recoveryReview";
+import {
   explorerAvailabilityMessage as describeExplorerAvailability,
   hostStatusLabel as describeHostStatus,
   methodStatusLabel as describeMethodStatus,
@@ -108,7 +112,6 @@ import {
   type ContextPreviewProjection,
   type ChangesRecoveryPrepared,
   type HostRuntime,
-  type RecoveryApprovalChoice,
   type WorkspaceProjection,
   type WorkspaceFilePick,
   type WorkspaceSearchMatch,
@@ -397,17 +400,20 @@ export function App({
     setBusy: setChangesHistoryBusy,
     status: changesHistoryStatus,
   } = changesHistoryState;
-  const [recoveryReview, setRecoveryReview] = useState<
-    Extract<ChangesRecoveryPrepared, { status: "review_required" }> | null
-  >(null);
-  const [recoveryBusy, setRecoveryBusy] = useState(false);
-  const [recoveryReturnFocusTarget, setRecoveryReturnFocusTarget] =
-    useState<HTMLElement | null>(null);
+  /*
+   * FE-10 step 3: the journal-recovery review.
+   *
+   * Recovering a quarantined journal replays writes into the user's
+   * repository, so the decision is consent and the controller binds it to what
+   * was displayed.
+   */
   const [enableEditsBusy, setEnableEditsBusy] = useState(false);
   const changesGenerationRef = useRef(0);
-  const recoveryGenerationRef = useRef(0);
-  const recoveryDecisionRef = useRef(false);
-  const recoveryPreparationRef = useRef(false);
+  const recovery = useRecoveryReview();
+  const recoveryReview = recovery.review;
+  const recoveryBusy = recovery.busy;
+  const recoveryReturnFocusTarget = recovery.returnFocusTarget;
+  const { clear: clearRecoveryReview, decisionInFlight: recoveryDecisionInFlight } = recovery;
   const drawerIsOverlay = useMediaQuery(DRAWER_OVERLAY_QUERY);
   const workspaceReturnFocusRef = useRef<HTMLElement | null>(null);
   const utilityReturnFocusRef = useRef<HTMLElement | null>(null);
@@ -1032,12 +1038,7 @@ export function App({
     invalidateChangesHistory();
     setChangesHistoryBusy(false);
     setEnableEditsBusy(false);
-    recoveryGenerationRef.current += 1;
-    recoveryDecisionRef.current = false;
-    recoveryPreparationRef.current = false;
-    setRecoveryReview(null);
-    setRecoveryBusy(false);
-    setRecoveryReturnFocusTarget(null);
+    clearRecoveryReview();
     contextSuggestionGenerationRef.current += 1;
     contextSuggestionInFlightRef.current = false;
     setContextSuggestionBusy(false);
@@ -1047,6 +1048,7 @@ export function App({
   }, [
     clearAllChangesFlows,
     clearAllChatLanes,
+    clearRecoveryReview,
     invalidateChangesHistory,
     setChangesHistoryBusy,
   ]);
@@ -2309,24 +2311,15 @@ export function App({
     setChangesError(null);
   }
 
-  /// Stable identity: the expiry effect below has to be able to name it.
-  /// It touches only refs and state setters, so it has no dependencies.
-  const clearRecoveryReview = useCallback(() => {
-    recoveryGenerationRef.current += 1;
-    recoveryDecisionRef.current = false;
-    recoveryPreparationRef.current = false;
-    setRecoveryReview(null);
-    setRecoveryBusy(false);
-    setRecoveryReturnFocusTarget(null);
-  }, []);
-
   useEffect(() => {
     if (recoveryReview === null) return;
     let timeout: number | null = null;
     const clearAtExpiry = () => {
       const remaining = recoveryReview.expiresAt - Date.now();
       if (remaining <= 0) {
-        if (recoveryDecisionRef.current) return;
+        // A decision already in flight owns the review; expiring it under
+        // the host call would drop the response.
+        if (recoveryDecisionInFlight()) return;
         clearRecoveryReview();
         return;
       }
@@ -2342,10 +2335,10 @@ export function App({
     // whichever review was current when those two fields last changed.
     // `setRecoveryReview` is called with a fresh object per prepared recovery,
     // so this adds no extra runs.
-  }, [clearRecoveryReview, recoveryReview]);
+  }, [clearRecoveryReview, recoveryDecisionInFlight, recoveryReview]);
 
   async function refreshChangesHistory() {
-    if (recoveryDecisionRef.current) {
+    if (recoveryDecisionInFlight()) {
       return;
     }
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !editsEnabled) {
@@ -2393,109 +2386,33 @@ export function App({
     }
   }
 
-  async function prepareChangesRecovery(journalId: string, trigger: HTMLElement) {
-    if (
-      hostRuntime.kind !== "ready"
-      || !activeWorkspace
-      || !editsEnabled
-      || recoveryBusy
-      || recoveryReview !== null
-      || recoveryPreparationRef.current
-      || !changesHistory?.openJournals.some(
+  const { decide: decideChangesRecovery, prepare: prepareChangesRecovery } =
+    createRecoveryActions(recovery, {
+      authorityIsCurrent: () => workspaceAuthorityKeyRef.current === workspaceAuthorityKey,
+      host: hostRuntime.kind === "ready" && activeWorkspace !== null && editsEnabled
+        ? {
+          decide: (input) => hostRuntime.client.decideChangesRecovery(input),
+          prepare: (input) => hostRuntime.client.prepareChangesRecovery(input),
+        }
+        : null,
+      journalHasReview: (journalId) => changesHistory?.openJournals.some(
         (journal) => journal.journalId === journalId
           && journal.recoveryAvailability === "review_available",
-      )
-    ) {
-      return;
-    }
-    const client = hostRuntime.client;
-    const workspace = activeWorkspace;
-    const sequence = hostRuntime.bootstrap.projectionSequence;
-    const authorityKey = workspaceAuthorityKey;
-    const generation = ++recoveryGenerationRef.current;
-    recoveryPreparationRef.current = true;
-    recoveryDecisionRef.current = false;
-    setRecoveryReview(null);
-    setRecoveryReturnFocusTarget(trigger);
-    setRecoveryBusy(true);
-    setChangesError(null);
-    try {
-      const prepared = await client.prepareChangesRecovery({
-        workspaceId: workspace.workspaceId,
-        workspaceGrantEpoch: workspace.grantEpoch,
-        journalId,
-      });
-      if (
-        generation !== recoveryGenerationRef.current
-        || workspaceAuthorityKeyRef.current !== authorityKey
-      ) {
-        return;
-      }
-      setRecoveryBusy(false);
-      recoveryPreparationRef.current = false;
-      if (prepared.status === "review_required") {
-        setRecoveryReview(prepared);
-        return;
-      }
-      setRecoveryReview(null);
-      setRecoveryReturnFocusTarget(null);
-      if (prepared.status === "manual_review") {
-        const manualReviewMessage = recoveryManualReviewMessage(prepared.reasonCode);
-        await refreshChangesHistory();
-        if (workspaceAuthorityKeyRef.current === authorityKey) {
-          setChangesError(manualReviewMessage);
+      ) ?? false,
+      manualReviewMessage: recoveryManualReviewMessage,
+      refreshHistory: refreshChangesHistory,
+      reportFailure: (error) => {
+        if (hostRuntime.kind === "ready") {
+          handleChangesFailure(
+            hostRuntime.client,
+            error,
+            hostRuntime.bootstrap.projectionSequence,
+          );
         }
-        return;
-      }
-      await refreshChangesHistory();
-    } catch (error) {
-      if (generation === recoveryGenerationRef.current) {
-        setRecoveryReview(null);
-        setRecoveryBusy(false);
-        setRecoveryReturnFocusTarget(null);
-        recoveryPreparationRef.current = false;
-        handleChangesFailure(client, error, sequence);
-      }
-    }
-  }
-
-  async function decideChangesRecovery(choice: RecoveryApprovalChoice) {
-    if (
-      hostRuntime.kind !== "ready"
-      || recoveryReview === null
-      || recoveryBusy
-      || recoveryDecisionRef.current
-    ) {
-      return;
-    }
-    const client = hostRuntime.client;
-    const sequence = hostRuntime.bootstrap.projectionSequence;
-    const review = recoveryReview;
-    const generation = recoveryGenerationRef.current;
-    recoveryDecisionRef.current = true;
-    setRecoveryBusy(true);
-    setChangesError(null);
-    try {
-      await client.decideChangesRecovery({
-        recoveryApprovalId: review.recoveryApprovalId,
-        displayedRecoveryHash: review.displayedRecoveryHash,
-        choice,
-      });
-      if (generation !== recoveryGenerationRef.current) return;
-      setRecoveryReview(null);
-      setRecoveryBusy(false);
-      recoveryDecisionRef.current = false;
-      await refreshChangesHistory();
-    } catch (error) {
-      if (generation === recoveryGenerationRef.current) {
-        setRecoveryReview(null);
-        setRecoveryBusy(false);
-        setRecoveryReturnFocusTarget(null);
-        recoveryDecisionRef.current = false;
-        handleChangesFailure(client, error, sequence);
-      }
-    }
-  }
+      },
+      setError: setChangesError,
+      workspace: activeWorkspace,
+    });
 
   function handleChangesFailure(
     client: BoundHostClient,
