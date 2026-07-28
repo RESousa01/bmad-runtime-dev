@@ -1,0 +1,143 @@
+/*
+ * Workbench primitives: Toolbar, InlineMessage, Progress, StatusText and
+ * EmptyState. Rows and text, no cards -- design specification 3.1.
+ */
+
+.sapphirus-toolbar {
+  align-items: center;
+  display: flex;
+  gap: var(--space-1);
+  min-height: var(--control-hit-target);
+}
+
+/* Compact is a visual height. The pressable area stays at the hit target, so
+   density changes without the control becoming harder to hit. */
+.sapphirus-toolbar--compact .sapphirus-button {
+  height: var(--control-compact);
+  min-height: var(--control-hit-target);
+  padding-block: 0;
+}
+
+.sapphirus-inline-message {
+  display: flex;
+  font-size: var(--text-ui);
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+
+/* The tone word, so colour is never the only carrier -- specification 3.5. */
+.sapphirus-inline-message__tone {
+  color: var(--color-text-muted);
+  flex: 0 0 auto;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.sapphirus-inline-message--success .sapphirus-inline-message__tone { color: var(--color-success); }
+.sapphirus-inline-message--warning .sapphirus-inline-message__tone { color: var(--color-warning); }
+.sapphirus-inline-message--error .sapphirus-inline-message__tone { color: var(--color-danger); }
+
+.sapphirus-inline-message__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sapphirus-inline-message__title {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+}
+
+.sapphirus-inline-message__detail {
+  color: var(--color-text-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-prose);
+}
+
+.sapphirus-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sapphirus-progress__text {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+}
+
+.sapphirus-progress__track {
+  background: var(--color-surface-selected);
+  border-radius: var(--radius-pill);
+  height: 4px;
+  overflow: hidden;
+}
+
+.sapphirus-progress__fill {
+  background: var(--color-accent);
+  height: 100%;
+  transition: width 180ms ease;
+}
+
+.sapphirus-progress[data-indeterminate] .sapphirus-progress__fill {
+  animation: sapphirus-progress-drift 1200ms ease-in-out infinite;
+}
+
+@keyframes sapphirus-progress-drift {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+.sapphirus-status {
+  align-items: center;
+  color: var(--color-text-soft);
+  display: inline-flex;
+  font-size: var(--text-meta);
+  gap: 6px;
+}
+
+.sapphirus-status__dot {
+  background: var(--color-status-inactive);
+  border-radius: var(--radius-pill);
+  flex: 0 0 auto;
+  height: 5px;
+  width: 5px;
+}
+
+.sapphirus-status--active .sapphirus-status__dot { background: var(--color-status-active); }
+.sapphirus-status--pending .sapphirus-status__dot { background: var(--color-status-pending); }
+.sapphirus-status--failed .sapphirus-status__dot { background: var(--color-danger); }
+
+.sapphirus-empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 60ch;
+}
+
+.sapphirus-empty-state__title {
+  color: var(--color-text);
+  font-size: var(--text-display);
+  font-weight: var(--fw-semibold);
+  margin: 0;
+}
+
+.sapphirus-empty-state__description {
+  color: var(--color-text-muted);
+  font-size: var(--text-body);
+  line-height: var(--lh-prose);
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sapphirus-progress__fill { animation: none; transition: none; }
+}
+
+@media (forced-colors: active) {
+  /* A dot is a colour, and forced colours removes it, so the word beside it
+     is what remains -- which is why the word is not optional. */
+  .sapphirus-status__dot { background: CanvasText; }
+  .sapphirus-progress__fill { background: Highlight; }
+}
