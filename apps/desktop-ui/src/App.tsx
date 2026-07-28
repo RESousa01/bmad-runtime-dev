@@ -43,6 +43,14 @@ import { useChangesHistoryState } from "./app/changes/changesHistoryState";
 import { createChangesRunner } from "./app/changes/changesRunner";
 import { isRecoveryFailure } from "./app/hostFailure";
 import { isAvailable, resolveCapabilities } from "./app/capabilityMatrix";
+import {
+  explorerAvailabilityMessage as describeExplorerAvailability,
+  hostStatusLabel as describeHostStatus,
+  methodStatusLabel as describeMethodStatus,
+  modelAccess as describeModelAccess,
+  providerLabel as describeProvider,
+  workspaceDescription as describeWorkspace,
+} from "./app/statusLabels";
 import { useHostProjection } from "./app/projection/hostProjection";
 import {
   attachmentNotice,
@@ -524,22 +532,11 @@ export function App({
     [pendingDeleteTaskId, tasks],
   );
   const workspaceName = activeWorkspace?.displayName ?? "No local workspace selected";
-  const workspaceDescription = hostRuntime.kind === "browser_demo"
-    ? "Sample data · Read only"
-    : activeWorkspace
-      ? activeWorkspace.permissions === "governed_edits"
-        ? "Governed edits"
-        : "Read only"
-      : "Choose a workspace";
-  const hostStatusLabel = (() => {
-    switch (hostRuntime.kind) {
-      case "loading": return "Verifying local host";
-      case "browser_demo": return "Browser preview";
-      case "ready": return "Local host ready";
-      case "read_only_recovery": return "Read-only recovery";
-      case "unavailable": return "Host unavailable";
-    }
-  })();
+  const workspaceDescription = describeWorkspace({
+    permissions: activeWorkspace?.permissions ?? null,
+    runtimeKind: hostRuntime.kind,
+  });
+  const hostStatusLabel = describeHostStatus(hostRuntime.kind);
   const canSelectWorkspace = hostRuntime.kind === "ready"
     && hostRuntime.bootstrap.supportedCommands.includes("workspace.select_folder");
   const canActivateWorkspace = hostRuntime.kind === "ready"
@@ -662,46 +659,13 @@ export function App({
     || bmadHelpState.kind === "submitting";
   const localTaskDraftingAvailable = hostRuntime.kind === "ready"
     || hostRuntime.kind === "browser_demo";
-  const modelAccess = (() => {
-    if (hostRuntime.kind === "browser_demo") {
-      return {
-        detail: "No local folder, consent grant, or model request is active.",
-        label: "No model access",
-      };
-    }
-    if (modelAuthStatus?.status === "development_ready") {
-      const modeLabel = modelAuthStatus.mode === "deterministic_development"
-        ? "Deterministic development"
-        : modelAuthStatus.providerId === "azure"
-          ? "Azure OpenAI"
-          : modelAuthStatus.providerId === "openai"
-            ? "OpenAI"
-            : "Direct provider";
-      return {
-        detail: `${modeLabel} · ready`,
-        label: modelAuthStatus.destinationLabel || "Development model",
-      };
-    }
-    if (hostRuntime.kind === "loading") {
-      return { detail: "Waiting for the native desktop host.", label: "Checking access" };
-    }
-    if (methodGuidanceClient !== null && modelAuthStatus === null) {
-      return { detail: "The desktop host is checking the current model connection.", label: "Checking model access" };
-    }
-    return {
-      detail: methodLibraryAvailable
-        ? "Choose OpenAI or Azure OpenAI in Settings to send messages."
-        : "No model provider or skills catalog is active.",
-      label: "Connect a provider",
-    };
-  })();
-  const modelProviderLabel = modelAuthStatus?.providerId === "azure"
-    ? "Azure OpenAI"
-    : modelAuthStatus?.providerId === "openai"
-      ? "OpenAI"
-      : modelAuthStatus?.providerId === "forge-local"
-        ? "Forge local"
-        : "Forge BMAD";
+  const modelAccess = describeModelAccess({
+    libraryLoaded: methodLibraryAvailable,
+    modelAuth: modelAuthStatus,
+    modelCommandsAvailable: methodGuidanceClient !== null,
+    runtimeKind: hostRuntime.kind,
+  });
+  const modelProviderLabel = describeProvider(modelAuthStatus?.providerId);
   // Browser preview used to answer "forge-bmad-preview" here, so the session
   // panel named a model for a session that had never contacted one. There is no
   // model in browser preview; saying so is `undefined`, which renders as "—".
@@ -710,13 +674,11 @@ export function App({
     providerId: modelAuthStatus?.providerId === "azure" ? "azure" : "openai",
     modelId: modelAuthStatus?.modelId ?? "gpt-5-mini",
   };
-  const methodStatusLabel = chatSendAvailable
-    ? "Model ready"
-    : methodGuidanceAvailable
-      ? "Local only"
-    : hostRuntime.kind === "browser_demo"
-      ? "Demo only"
-      : "Not connected";
+  const methodStatusLabel = describeMethodStatus({
+    chatAvailable: chatSendAvailable,
+    guidanceCommandsAvailable: methodGuidanceAvailable,
+    runtimeKind: hostRuntime.kind,
+  });
   const workspaceAuthorityKey = hostRuntime.kind === "ready"
     || hostRuntime.kind === "read_only_recovery"
     ? `${hostRuntime.bootstrap.rendererSessionId}:${activeWorkspace?.workspaceId ?? "none"}:${activeWorkspace?.grantEpoch ?? 0}`
@@ -890,22 +852,11 @@ export function App({
     setContextSelectionMode("manual");
     setAttachNotice(null);
   }
-  const explorerAvailabilityMessage = (() => {
-    switch (hostRuntime.kind) {
-      case "loading":
-        return "Forge is still connecting to the Windows host.";
-      case "read_only_recovery":
-        return "The local authority store is in recovery. Existing workspace names remain visible, but file projections are blocked.";
-      case "unavailable":
-        return hostRuntime.message;
-      case "ready":
-        return activeWorkspace
-          ? "The host did not project the complete D1 read capability set."
-          : "Choose a local workspace before opening Explorer.";
-      case "browser_demo":
-        return "Browser demo data is unavailable.";
-    }
-  })();
+  const explorerAvailabilityMessage = describeExplorerAvailability({
+    hasWorkspace: activeWorkspace !== null,
+    runtimeKind: hostRuntime.kind,
+    unavailableMessage: hostRuntime.kind === "unavailable" ? hostRuntime.message : null,
+  });
 
   const applyBmadEvent = useCallback((event: BmadRequestEvent): BmadRequestState => {
     const next = transitionBmadRequest(bmadHelpStateRef.current, event);
