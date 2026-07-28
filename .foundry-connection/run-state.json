@@ -465,6 +465,32 @@
   ],
   "decisions": [
     {
+      "id": "DEV-FOUNDRY-CREDENTIAL",
+      "decidedAt": "2026-07-28T20:05:00Z",
+      "decidedBy": "operator",
+      "question": "The operator has neither Entra app-registration rights nor Azure RBAC role-assignment rights, so neither the desktop-to-support-API leg nor the support-API-to-Foundry managed-identity leg can be provisioned. How does anything reach the real Foundry project?",
+      "decision": "Add a development-gated Foundry credential that reads an API key from an environment variable, and run the support API locally in Development composition. Swap only the credential mechanism; keep the entire architecture. Deployment discovery, the profile registry, the effective catalog, route resolution, the Responses adapter, output validation, and signed receipts all stay exactly as designed.",
+      "planExtension": true,
+      "notInManifest": "This is an addition to the 36-task plan, made necessary by a real environment constraint. It does not replace FND-021; the managed-identity path is still built and remains the only production path.",
+      "invariantsThatMustHold": [
+        "Production composition must refuse the development credential, proved by a test, using the same fail-closed guard shape the fake Foundry server already uses for Development and Test only.",
+        "FND-065's acceptance criterion survives unchanged: there is still no production API-key path. The development credential is structurally unreachable outside Development and Test.",
+        "The API key is read from an environment variable, never committed, never logged, never placed in telemetry, a problem document, or a receipt.",
+        "The credential-binding hash must incorporate the credential mechanism, so a receipt produced under the development credential can never be mistaken for one produced under managed identity."
+      ],
+      "openRisk": {
+        "id": "DEV-CREDENTIAL-DISCOVERY-SCOPE",
+        "summary": "The Foundry project deployments API may require an Entra token and may not accept an API key at all. API-key auth is generally available on the OpenAI-compatible inference surface, not necessarily on the project management surface.",
+        "ifDiscoveryRejectsTheKey": "Fall back to an operator-declared deployment inventory file, loaded only in Development, clearly labelled untrusted, and fed into the same normalizer and catalog cache. This preserves the architecture: the catalog is still built from an inventory, it is simply a declared one rather than a discovered one.",
+        "cheapTest": "Call the deployments URL with an api-key header instead of a bearer token and record the status class."
+      },
+      "consequences": [
+        "FND-002 can never reach ready=true in this environment, because identity attachment and role assignment are unobtainable, not merely unsupplied.",
+        "FND-064 and FND-065 remain blocked. The deployed posture requires Entra and RBAC regardless of this extension.",
+        "The desktop-to-support-API leg still needs an app registration for production. Locally it uses the existing development authentication adapters."
+      ]
+    },
+    {
       "id": "EXECUTION-BOUNDARY",
       "decidedAt": "2026-07-28T19:20:00Z",
       "decidedBy": "operator",
