@@ -1,11 +1,37 @@
+/**
+ * Activity: what this app did, and the proof of each claim.
+ *
+ * FE-24. Every decision about *what is true* lives in
+ * `features/activity/activityJournal` -- which states may become an entry,
+ * what counts as a time, and which of "nothing happened", "we have not
+ * looked" and "we looked and could not read it" the journal is entitled to
+ * say. This file only lays that out.
+ *
+ * The one judgement made here is which controls to offer. Refresh is withdrawn
+ * when `presentHostError` has already ruled that re-reading cannot work, and
+ * the caveat says so in the host's own words instead. A control that cannot
+ * succeed is worse than no control: it makes the failure look like the user's
+ * to fix.
+ */
+
 import { Button } from "@sapphirus/ui";
-import { History, RefreshCw, RotateCcw, ShieldAlert } from "lucide-react";
+import { History, RefreshCw, RotateCcw } from "lucide-react";
 import type { BmadRequestState } from "../../lib/bmadModelProjection";
 import type {
   ChangesHistoryProjection,
   ChangesRecoveryPrepared,
+  LocalHostError,
   RecoveryApprovalChoice,
 } from "../../lib/hostClient";
+import {
+  buildActivityJournal,
+  describeRecovery,
+  describeTime,
+  type JournalCaveat,
+  type JournalEntry,
+  type JournalFact,
+  type JournalTime,
+} from "../../features/activity/activityJournal";
 import { RecoveryReview } from "../RecoveryReview";
 
 export interface ActivityPanelProps {
@@ -20,6 +46,14 @@ export interface ActivityPanelProps {
   /// Why the read failed, when it did. Without this a failed read renders as an
   /// empty list, which claims the opposite of what happened.
   historyError: string | null;
+  /// The failed read itself, where the shell keeps it.
+  ///
+  /// Optional so the existing wiring compiles unchanged: the shell currently
+  /// flattens host failures to `historyError` before they reach here. Supplying
+  /// it is what lets the panel print a correlation id and stop offering a
+  /// Refresh the host has already ruled out -- both of which the panel must not
+  /// guess at when it is absent.
+  historyFailure?: LocalHostError | null;
   onRefreshHistory: () => void;
   onDecideRecovery: (choice: RecoveryApprovalChoice) => void;
   onPrepareRecovery: (journalId: string, trigger: HTMLElement) => void;
@@ -29,43 +63,106 @@ export interface ActivityPanelProps {
   recoveryReview: Extract<ChangesRecoveryPrepared, { status: "review_required" }> | null;
 }
 
-function journalStateLabel(state: string): string {
-  return state.replaceAll("_", " ");
+function EntryTime({ time }: { time: JournalTime }) {
+  const text = describeTime(time);
+  if (time.kind !== "recorded") {
+    // Deliberately not a dash and not a relative phrase. The sentence says
+    // which kind of nothing this is.
+    return <span className="activity-panel__time activity-panel__time--absent">{text}</span>;
+  }
+  return (
+    <time className="activity-panel__time" dateTime={new Date(time.epochMs).toISOString()}>
+      {text}
+    </time>
+  );
 }
 
-function helpSummary(helpState: BmadRequestState): {
-  detail: string;
-  label: string;
-} | null {
-  switch (helpState.kind) {
-    case "idle":
-      return null;
-    case "creating":
-      return { label: "Skill guidance", detail: "Preparing a local review" };
-    case "review_required":
-      return { label: "Skill guidance", detail: "Review required · nothing sent" };
-    case "approving":
-      return { label: "Skill guidance", detail: "Approving · nothing sent" };
-    case "approved":
-      return { label: "Skill guidance", detail: "Approved · ready to send" };
-    case "submitting":
-      return { label: "Skill guidance", detail: "Sending the approved context once" };
-    case "completed": {
-      const receipt = helpState.result.receipt;
-      return {
-        label: "Skill guidance completed",
-        detail: `Verified receipt · ${receipt.inputBytes} bytes out, ${receipt.outputBytes} bytes back`,
-      };
-    }
-    case "interrupted":
-      return { label: "Skill guidance", detail: "Interrupted · cannot resume" };
-    case "terminal":
-      return { label: "Skill guidance", detail: "Message ended" };
-    case "unavailable":
-      return { label: "Skill guidance", detail: helpState.message };
-    default:
-      return { label: "Skill guidance", detail: "Retained local run available" };
-  }
+function EntryFact({ fact }: { fact: JournalFact }) {
+  return (
+    <div className="activity-panel__fact">
+      <dt>{fact.label}</dt>
+      {/* Identifiers are the tokens a user may have to quote back to support,
+          so they are rendered in a face that distinguishes 0 from O and are
+          never abbreviated. */}
+      <dd className={fact.form === "identifier" ? "activity-panel__id" : undefined}>
+        {fact.value}
+      </dd>
+    </div>
+  );
+}
+
+function EntryRow({
+  busy,
+  entry,
+  onPrepareRecovery,
+  onUndo,
+}: {
+  busy: boolean;
+  entry: JournalEntry;
+  onPrepareRecovery: (journalId: string, trigger: HTMLElement) => void;
+  onUndo: (executionId: string) => void;
+}) {
+  const { action } = entry;
+  return (
+    <li className="activity-panel__entry">
+      <div className="activity-panel__entry-main">
+        <strong className="activity-panel__headline">{entry.headline}</strong>
+        <EntryTime time={entry.time} />
+        <dl className="activity-panel__facts">
+          {/* The subject leads: an entry names what it is evidence of before
+              it says anything else about it. */}
+          <EntryFact fact={entry.subject} />
+          {entry.facts.map((fact) => <EntryFact fact={fact} key={fact.label} />)}
+        </dl>
+        {entry.note === null
+          ? null
+          : <small className="activity-panel__note">{entry.note}</small>}
+      </div>
+      {action === null ? null : action.kind === "undo" ? (
+        <Button
+          aria-label={`Undo execution ${action.executionId}`}
+          onPress={() => onUndo(action.executionId)}
+          size="small"
+          variant="quiet"
+        >
+          <RotateCcw aria-hidden="true" size={14} /> Undo
+        </Button>
+      ) : (
+        <Button
+          aria-label="Review recovery"
+          isDisabled={busy}
+          onPress={(event) => {
+            if (event.target instanceof HTMLElement) {
+              onPrepareRecovery(action.journalId, event.target);
+            }
+          }}
+          size="small"
+          variant="secondary"
+        >
+          Review recovery
+        </Button>
+      )}
+    </li>
+  );
+}
+
+/** The reason, the id and the remedy -- each shown only when the host gave it. */
+function CaveatDetail({ caveat }: { caveat: JournalCaveat }) {
+  return (
+    <>
+      {caveat.reason === null
+        ? null
+        : <p className="activity-panel__caveat-reason">{caveat.reason}</p>}
+      {caveat.recovery === null
+        ? null
+        : <p className="activity-panel__caveat-recovery">{describeRecovery(caveat.recovery)}</p>}
+      {caveat.correlationId === null ? null : (
+        <p className="activity-panel__caveat-correlation">
+          Correlation ID <code>{caveat.correlationId}</code>
+        </p>
+      )}
+    </>
+  );
 }
 
 export function ActivityPanel({
@@ -75,6 +172,7 @@ export function ActivityPanel({
   historyBusy,
   historyStatus,
   historyError,
+  historyFailure = null,
   onRefreshHistory,
   onDecideRecovery,
   onPrepareRecovery,
@@ -83,15 +181,25 @@ export function ActivityPanel({
   recoveryReturnFocusTarget,
   recoveryReview,
 }: ActivityPanelProps) {
-  const help = helpSummary(helpState);
-  const entries = history?.entries ?? [];
-  const openJournals = history?.openJournals ?? [];
+  const journal = buildActivityJournal({
+    guidance: helpState,
+    history,
+    historyError,
+    historyFailure,
+    historyRecorded: historyAvailable,
+    historyStatus,
+  });
+  const { caveat } = journal;
+  // Withdrawn rather than disabled: a greyed-out Refresh reads as "wait a
+  // moment", and this is the host saying re-reading will never work.
+  const refreshRuledOut = caveat?.recovery?.kind === "none";
+  const reviewBusy = historyBusy || recoveryBusy || recoveryReview !== null;
 
   return (
     <section aria-label="Workspace activity" className="activity-panel">
       <div className="activity-panel__toolbar">
         <p>Read-only record of governed executions and skill-guidance runs.</p>
-        {historyAvailable ? (
+        {historyAvailable && !refreshRuledOut ? (
           <Button
             aria-label="Refresh activity"
             isDisabled={historyBusy || recoveryBusy}
@@ -105,19 +213,6 @@ export function ActivityPanel({
         ) : null}
       </div>
 
-      {openJournals.length > 0 ? (
-        <div className="activity-panel__journal-banner" role="status">
-          <ShieldAlert aria-hidden="true" size={15} />
-          <span>
-            {openJournals.length === 1
-              ? "One execution journal needs attention"
-              : `${openJournals.length} execution journals need attention`}
-            {" · "}
-            {openJournals.map((journal) => journalStateLabel(journal.state)).join(", ")}
-          </span>
-        </div>
-      ) : null}
-
       {recoveryReview !== null ? (
         <RecoveryReview
           busy={recoveryBusy}
@@ -127,119 +222,53 @@ export function ActivityPanel({
         />
       ) : null}
 
-      {openJournals.length > 0 ? (
+      {caveat !== null && caveat.placement === "banner" ? (
         <div
-          aria-label="Open recovery journals"
-          className="activity-panel__list"
-          key="open-recovery-journals"
-          role="list"
+          className={caveat.tone === "alert"
+            ? "activity-panel__banner activity-panel__banner--alert"
+            : "activity-panel__banner"}
+          role={caveat.tone === "alert" ? "alert" : "status"}
         >
-          {openJournals.map((journal) => (
-            <div className="activity-panel__entry" key={journal.journalId} role="listitem">
-              <div className="activity-panel__entry-main">
-                <strong>{journalStateLabel(journal.state)}</strong>
-                <small>
-                  {journal.recoveryAvailability === "quarantined"
-                    ? "Select the exact workspace and governed-edits grant to review recovery."
-                    : journal.recoveryAvailability === "manual_review"
-                      ? "This journal requires manual review outside this recovery flow."
-                      : "A bounded checkpoint review is available."}
-                </small>
-              </div>
-              {journal.recoveryAvailability === "review_available" ? (
-                <Button
-                  aria-label="Review recovery"
-                  isDisabled={historyBusy || recoveryBusy || recoveryReview !== null}
-                  onPress={(event) => {
-                    if (event.target instanceof HTMLElement) {
-                      onPrepareRecovery(journal.journalId, event.target);
-                    }
-                  }}
-                  size="small"
-                  variant="secondary"
-                >
-                  Review recovery
-                </Button>
-              ) : null}
-            </div>
-          ))}
+          <p className="activity-panel__caveat-body">{caveat.body}</p>
+          <CaveatDetail caveat={caveat} />
         </div>
       ) : null}
 
-      {help ? (
-        <article className="activity-panel__entry activity-panel__entry--help">
-          <div className="activity-panel__entry-main">
-            <strong>{help.label}</strong>
-            <small>{help.detail}</small>
-          </div>
-        </article>
+      {caveat !== null && caveat.placement === "empty" ? (
+        <div
+          className="activity-panel__empty"
+          role={caveat.tone === "alert" ? "alert" : "status"}
+        >
+          <History aria-hidden="true" size={22} />
+          <h3>{caveat.title}</h3>
+          <p className="activity-panel__caveat-body">{caveat.body}</p>
+          <CaveatDetail caveat={caveat} />
+        </div>
       ) : null}
 
-      {entries.length === 0 && help === null && openJournals.length === 0 ? (
-        // "No activity yet" is a claim about the workspace, so it is only made
-        // once the history has actually been read. The other three states are
-        // claims about this panel, and each says which one it is.
-        historyAvailable && historyStatus === "unavailable" ? (
-          <div className="activity-panel__empty" role="alert">
-            <History aria-hidden="true" size={22} />
-            <h3>Activity could not be read</h3>
-            <p>
-              Forge could not read this workspace&apos;s execution history, so it
-              cannot say whether anything has happened.
-              {historyError === null ? "" : ` ${historyError}`}
-            </p>
-          </div>
-        ) : historyAvailable && historyStatus === "loading" ? (
-          <div className="activity-panel__empty">
-            <History aria-hidden="true" size={22} />
-            <h3>Reading activity…</h3>
-            <p>Asking the host for this workspace&apos;s execution history.</p>
-          </div>
-        ) : historyAvailable && historyStatus === "unread" ? (
-          <div className="activity-panel__empty">
-            <History aria-hidden="true" size={22} />
-            <h3>Activity has not been read yet</h3>
-            <p>
-              Forge has not asked the host for this workspace&apos;s execution
-              history. Refresh to read it.
-            </p>
-          </div>
-        ) : (
-          <div className="activity-panel__empty">
-            <History aria-hidden="true" size={22} />
-            <h3>No activity yet</h3>
-            <p>
-              {historyAvailable
-                ? "Governed changes and skill-guidance runs will appear here after they happen."
-                : "Enable governed edits on a workspace to record executions here."}
-            </p>
-          </div>
-        )
-      ) : (
-        <ul aria-label="Governed executions" className="activity-panel__list">
-          {entries.map((entry) => (
-            <li className="activity-panel__entry" key={entry.executionId}>
-              <div className="activity-panel__entry-main">
-                <strong>
-                  {entry.fileCount === 1 ? "1 file changed" : `${entry.fileCount} files changed`}
-                </strong>
-                <small>
-                  {journalStateLabel(entry.journalState)} · {entry.completedAt}
-                </small>
-              </div>
-              {entry.undoable ? (
-                <Button
-                  aria-label={`Undo execution ${entry.executionId}`}
-                  onPress={() => onUndo(entry.executionId)}
-                  size="small"
-                  variant="quiet"
-                >
-                  <RotateCcw aria-hidden="true" size={14} /> Undo
-                </Button>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+      {journal.sections.map((section) => (
+        <section className="activity-panel__section" key={section.key}>
+          <h3 className="activity-panel__section-title">{section.title}</h3>
+          <p className="activity-panel__section-caption">{section.caption}</p>
+          <ul aria-label={section.title} className="activity-panel__list">
+            {section.entries.map((entry) => (
+              <EntryRow
+                busy={reviewBusy}
+                entry={entry}
+                key={entry.id}
+                onPrepareRecovery={onPrepareRecovery}
+                onUndo={onUndo}
+              />
+            ))}
+          </ul>
+        </section>
+      ))}
+
+      {journal.unattributed === null ? null : (
+        // Below the record on purpose. It is not an entry -- nothing here can
+        // be checked against a run -- but dropping it would lose the fact that
+        // a run ended at all.
+        <p className="activity-panel__unattributed">{journal.unattributed}</p>
       )}
     </section>
   );

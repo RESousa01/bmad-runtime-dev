@@ -1,9 +1,11 @@
 .activity-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   min-height: 0;
+  overflow-y: auto;
   padding: 14px;
+  scrollbar-color: var(--color-border) transparent;
 }
 
 .activity-panel__toolbar {
@@ -20,17 +22,72 @@
   margin: 0;
 }
 
-.activity-panel__journal-banner {
-  align-items: center;
-  background: color-mix(in srgb, var(--color-warning), var(--color-surface) 88%);
-  border: 1px solid color-mix(in srgb, var(--color-warning), var(--color-border) 55%);
+/* ------------------------------------------------------------------ caveat */
+
+.activity-panel__banner {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-overlay);
-  color: var(--color-text-soft);
   display: flex;
-  font-size: var(--text-ui);
-  gap: 8px;
-  line-height: 1.45;
+  flex-direction: column;
+  gap: 4px;
   padding: 9px 11px;
+}
+
+.activity-panel__banner--alert {
+  background: color-mix(in srgb, var(--color-warning), var(--color-surface) 88%);
+  border-color: color-mix(in srgb, var(--color-warning), var(--color-border) 55%);
+}
+
+.activity-panel__banner p {
+  font-size: var(--text-ui);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.activity-panel__caveat-body {
+  color: var(--color-text-soft);
+}
+
+.activity-panel__caveat-reason,
+.activity-panel__caveat-recovery,
+.activity-panel__caveat-correlation {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: 1.45;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.activity-panel__caveat-correlation code {
+  font-family: var(--font-mono);
+  font-size: inherit;
+}
+
+/* ---------------------------------------------------------------- sections */
+
+.activity-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 10px uppercase: a section heading here is a label on a record, not a title
+   competing with the entries underneath it. */
+.activity-panel__section-title {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.activity-panel__section-caption {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: 1.45;
+  margin: 0 0 4px;
 }
 
 .activity-panel__list {
@@ -39,13 +96,13 @@
   gap: 6px;
   list-style: none;
   margin: 0;
-  overflow-y: auto;
   padding: 0;
-  scrollbar-color: var(--color-border) transparent;
 }
 
+/* ----------------------------------------------------------------- entries */
+
 .activity-panel__entry {
-  align-items: center;
+  align-items: flex-start;
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-overlay);
@@ -55,28 +112,80 @@
   padding: 9px 11px;
 }
 
-.activity-panel__entry--help {
-  border-left: 2px solid var(--color-accent);
-}
-
 .activity-panel__entry-main {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
-.activity-panel__entry-main strong {
+.activity-panel__headline {
   font-size: var(--text-ui);
   font-weight: 570;
 }
 
-.activity-panel__entry-main small {
+.activity-panel__time {
   color: var(--color-text-muted);
   font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
   line-height: 1.4;
+}
+
+/* No time is stated in words, so it must not read as a quieter timestamp. */
+.activity-panel__time--absent {
+  font-style: italic;
+  font-variant-numeric: normal;
+}
+
+.activity-panel__facts {
+  display: grid;
+  gap: 1px 10px;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 4px 0 0;
+}
+
+.activity-panel__fact {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.activity-panel__fact dt {
+  color: var(--color-text-muted);
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  min-width: 84px;
+  text-transform: uppercase;
+}
+
+.activity-panel__fact dd {
+  color: var(--color-text-soft);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  margin: 0;
+  min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* Host-issued tokens a user may have to quote back. Monospace so 0 and O, and
+   1 and l, are distinguishable in something being copied by eye. */
+.activity-panel__id {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+}
+
+.activity-panel__note {
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: 1.45;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------ absent */
 
 .activity-panel__empty {
   align-items: center;
@@ -98,5 +207,14 @@
   font-size: var(--text-ui);
   line-height: 1.55;
   margin: 0;
-  max-width: 260px;
+  max-width: 300px;
+}
+
+.activity-panel__unattributed {
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  margin: 0;
+  padding-top: 10px;
 }

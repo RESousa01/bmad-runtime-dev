@@ -2431,7 +2431,16 @@ describe("Forge desktop workbench", () => {
 
     await user.click(screen.getByRole("button", { name: "Run details" }));
     expect(screen.getByRole("heading", { name: "Activity" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "No activity yet" })).toBeTruthy();
+    /*
+     * "No activity yet" was a claim this harness had no basis for.
+     *
+     * The browser preview runs with governed edits disabled, and the host then
+     * keeps no execution journal at all -- which is not evidence that nothing
+     * happened. The assertion was pinning that confusion in place.
+     */
+    expect(screen.getByRole("heading", {
+      name: "No execution journal for this workspace",
+    })).toBeTruthy();
   });
 
   it("labels local context estimates without inventing provider cost", async () => {

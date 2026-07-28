@@ -22,18 +22,27 @@
  *      `asSingleLineText(_, 64)` -- arbitrary text. The store writes RFC 3339,
  *      but the renderer contract does not require it, and `new Date(string)` is
  *      lenient enough to turn `"2"` into February 2001. So a value is a time
- *      only if it matches RFC 3339 *and* parses; anything else is carried as
- *      the raw string it is. Ordering then follows: only entries with a real
- *      instant can be placed in time, and the rest are grouped apart rather
- *      than silently sorted to the bottom as though they were the oldest.
+ *      only if it is *wholly* RFC 3339, names a day the calendar has, and
+ *      parses; anything else is carried as the raw string it is. Ordering then
+ *      follows: only entries with a real instant can be placed in time, and
+ *      the rest are grouped apart rather than silently sorted to the bottom as
+ *      though they were the oldest.
  *
- *   3. **What the journal knows about its own gaps.** "The journal is empty"
- *      and "the journal could not be read" are opposite claims, and the panel
- *      used to make the first whenever it had nothing to show. Worse, it only
- *      ever mentioned a failed read when the whole surface was empty: one
- *      guidance entry was enough to swallow the fact that the governed-change
- *      half was missing. The caveat is therefore computed from the read state
- *      alone and never from whether there is anything to show.
+ *   3. **What the journal knows about its own gaps.** "The journal is empty",
+ *      "there is no journal" and "the journal could not be read" are three
+ *      different claims, and the panel used to make the first whenever it had
+ *      nothing to show. Worse, it only ever mentioned a failed read when the
+ *      whole surface was empty: one guidance entry was enough to swallow the
+ *      fact that the governed-change half was missing. The caveat is therefore
+ *      computed from the read state alone and never from whether there is
+ *      anything to show.
+ *
+ * What is deliberately *not* decided here is what a failed read means. That
+ * belongs to `features/surface-state`, which already maps every host error code
+ * to a state and a recovery and already lets the host's `retryable` flag
+ * overrule the table. A journal that formed its own opinion would be the second
+ * answer to a question that has one -- and the way this app previously came to
+ * offer a retry for a failure that could never succeed.
  */
 
 import type {
@@ -44,7 +53,9 @@ import type {
   ChangesHistoryEntryProjection,
   ChangesHistoryProjection,
   ChangesOpenJournalProjection,
+  LocalHostError,
 } from "../../lib/hostClient";
+import { presentHostError, type SurfaceRecovery } from "../surface-state/surfaceState";
 
 /* -------------------------------------------------------------------------
  * Time
@@ -78,16 +89,73 @@ export type JournalTime =
 const RFC_3339 =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/u;
 
+/**
+ * How many days that month actually had.
+ *
+ * Needed because `Date.parse` does not reject a day the calendar does not
+ * have; it rolls it forward. `2026-02-30T00:00:00Z` parses cleanly to
+ * `2026-03-02`, `2026-02-29` to `2026-03-01`, `2026-04-31` to `2026-05-01`.
+ * A journal that prints March 2 for a record the host wrote as February 30 has
+ * invented a date, which is worse than admitting it cannot read one -- so the
+ * day is checked against the month before the parse is trusted.
+ *
+ * The offset is irrelevant here: it moves the instant, not the calendar date
+ * that was written down, so validity is a pure function of the written Y-M-D.
+ */
+function daysInMonth(year: number, month: number): number {
+  if (month === 2) {
+    const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    return leapYear ? 29 : 28;
+  }
+  return month === 4 || month === 6 || month === 9 || month === 11 ? 30 : 31;
+}
+
 /** Reads a host-supplied time string without guessing at one. */
 export function readInstant(label: string, raw: string): JournalTime {
   const text = raw.trim();
   if (text.length === 0) return { kind: "unrecorded" };
   if (!RFC_3339.test(text)) return { kind: "unreadable", label, raw };
+  const year = Number(text.slice(0, 4));
+  const month = Number(text.slice(5, 7));
+  const day = Number(text.slice(8, 10));
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) {
+    return { kind: "unreadable", label, raw };
+  }
   const epochMs = Date.parse(text);
-  // The shape can be right and the value still impossible -- `2026-02-30`
-  // matches the pattern and parses to NaN.
+  // Still needed after the calendar check, for the fields it does not cover:
+  // `25:00:00` and a leap second `23:59:60` match the pattern and parse to NaN.
   if (!Number.isFinite(epochMs)) return { kind: "unreadable", label, raw };
   return { epochMs, kind: "recorded", label };
+}
+
+/**
+ * One recorded instant, in the zone the host recorded it in.
+ *
+ * UTC rather than the reader's local time, for the same reason the byte counts
+ * name their locale: this is evidence. Two people quoting the same receipt to
+ * support have to read the same clock off it, and the host's log is in UTC.
+ */
+export function formatInstant(epochMs: number): string {
+  return `${new Date(epochMs).toISOString().slice(0, 19).replace("T", " ")} UTC`;
+}
+
+/**
+ * A time, or the reason there is not one, as a sentence.
+ *
+ * The two absent cases get words rather than a dash. A dash in a time column
+ * is read as a time that is being withheld; these are a time that was never
+ * recorded and a value the host sent that is not a time, and the second one is
+ * a host defect worth showing rather than smoothing over.
+ */
+export function describeTime(time: JournalTime): string {
+  switch (time.kind) {
+    case "recorded":
+      return `${time.label} ${formatInstant(time.epochMs)}`;
+    case "unreadable":
+      return `The host recorded ${time.label.toLowerCase()} as “${time.raw}”, which is not a time this app can read.`;
+    case "unrecorded":
+      return "No time recorded.";
+  }
 }
 
 /* -------------------------------------------------------------------------
@@ -179,8 +247,46 @@ export interface JournalCaveat {
    * log. Null whenever the failure did not carry one -- never a placeholder.
    */
   readonly correlationId: string | null;
+  /**
+   * What can be done about it, decided by `features/surface-state`.
+   *
+   * Taken from there rather than settled here, because this panel offering a
+   * Refresh the host has already called final is the same defect that shipped
+   * three times before `presentHostError` existed. Null means the shell handed
+   * the journal a message but not the structured failure, so nobody has ruled
+   * on this occurrence -- which is a different thing from ruling that nothing
+   * can be done, and must not be shown as one.
+   */
+  readonly recovery: SurfaceRecovery | null;
   readonly placement: "empty" | "banner";
   readonly tone: "alert" | "neutral";
+}
+
+/**
+ * One recovery, as something to read.
+ *
+ * The journal states the remedy rather than offering a control for it: it is a
+ * record, and the actions that resolve these live on the surfaces that own
+ * them. `none` is quoted straight from the table, which already carries the
+ * host's own reason.
+ */
+export function describeRecovery(recovery: SurfaceRecovery): string {
+  switch (recovery.kind) {
+    case "retry":
+      return "Refreshing may read it.";
+    case "reauthenticate":
+      return "Sign in again, then refresh.";
+    case "regrant_workspace":
+      return "Choose this workspace's folder again, then refresh.";
+    case "review_context":
+      return "Review the context selection before trying again.";
+    case "recover_local_store":
+      return "The local store has to be repaired before the journal can be read.";
+    case "open_settings":
+      return "Something in Settings has to change first.";
+    case "none":
+      return recovery.because;
+  }
 }
 
 /* -------------------------------------------------------------------------
@@ -212,8 +318,17 @@ export interface ActivityJournalInput {
   /** False when the host keeps no execution journal for this workspace at all. */
   readonly historyRecorded: boolean;
   readonly historyStatus: ChangesHistoryReadStatus;
+  /** The host's safe message for a failed read, where that is all the shell kept. */
   readonly historyError: string | null;
-  readonly historyErrorCorrelationId: string | null;
+  /**
+   * The failed read itself, where the shell kept it.
+   *
+   * The only source of a correlation id -- the one thing that lets a user's
+   * report be matched to a line in the host log -- and the only thing that can
+   * say whether *this* read could go differently, which is not something a
+   * message string knows.
+   */
+  readonly historyFailure: LocalHostError | null;
 }
 
 /* -------------------------------------------------------------------------
@@ -380,8 +495,11 @@ function guidanceEntry(guidance: BmadRequestState): JournalEntry | null {
         id: `guidance:${guidance.result.runId}`,
         note: null,
         subject: { form: "identifier", label: "Run", value: guidance.result.runId },
-        // `UnixMillis` on the host wire, like every other numeric instant the
-        // renderer is given.
+        // Taken without a `readInstant`-style guard on purpose. This one is a
+        // number, and `bmadProtocol`'s decoder already put it through
+        // `asPositiveSafeInteger` at the wire boundary, so a non-finite value
+        // cannot reach here -- a second check would be unreachable code
+        // dressed up as caution.
         time: {
           epochMs: guidance.result.receipt.completedAt,
           kind: "recorded",
@@ -439,7 +557,7 @@ function unattributedGuidance(guidance: BmadRequestState): string | null {
     return `A skill-guidance run ended (${phrase(guidance.reason)}). The host did not name the run, so it is not recorded above.`;
   }
   if (guidance.kind === "unavailable" && guidance.run === null) {
-    return `A skill-guidance run failed (${guidance.message}) The host did not name the run, so it is not recorded above.`;
+    return `A skill-guidance run failed (${guidance.message}). The host did not name the run, so it is not recorded above.`;
   }
   return null;
 }
@@ -460,7 +578,12 @@ function caveatFor(
       key: "not_recorded",
       placement,
       reason: null,
-      title: "No activity yet",
+      recovery: null,
+      // Not "No activity yet". There being no journal is a fact about the
+      // workspace's settings; it is not evidence that nothing happened, and
+      // stating it as though it were is the same fabrication as printing an
+      // estimate as a measurement.
+      title: "No execution journal for this workspace",
       tone: "neutral",
     };
   }
@@ -472,6 +595,7 @@ function caveatFor(
         key: "unread",
         placement,
         reason: null,
+        recovery: null,
         title: "Activity has not been read yet",
         tone: "neutral",
       };
@@ -482,19 +606,27 @@ function caveatFor(
         key: "reading",
         placement,
         reason: null,
+        recovery: null,
         title: "Reading activity…",
         tone: "neutral",
       };
-    case "unavailable":
+    case "unavailable": {
+      const failure = input.historyFailure;
       return {
         body: "Forge could not read this workspace's execution journal, so it cannot say whether anything happened.",
-        correlationId: input.historyErrorCorrelationId,
+        correlationId: failure?.correlationId ?? null,
         key: "unreadable",
         placement,
-        reason: input.historyError,
+        // The structured failure wins where there is one: it is the same
+        // sentence the shell would have flattened into `historyError`, taken
+        // from the value that also carries the id and the retry verdict, so
+        // the three cannot come from different failures.
+        reason: failure === null ? input.historyError : failure.safeMessage,
+        recovery: failure === null ? null : presentHostError(failure).recovery,
         title: "Activity could not be read",
         tone: "alert",
       };
+    }
     case "loaded":
       // The only sentence in this module that claims something about the
       // workspace rather than about the read, and the only one that requires
@@ -505,6 +637,7 @@ function caveatFor(
         key: "nothing_yet",
         placement: "empty",
         reason: null,
+        recovery: null,
         title: "Nothing has happened yet",
         tone: "neutral",
       };
