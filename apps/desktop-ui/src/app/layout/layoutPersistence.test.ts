@@ -2,26 +2,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clampToBounds,
   layoutSchemaVersion,
-  layoutStorageKey,
   loadLayout,
   resolveRegionSize,
   saveLayout,
+  type LayoutStore,
   type RegionBounds,
 } from "./layoutPersistence";
 
 const bounds: RegionBounds = { min: 320, max: 720, initial: 420 };
 
-function memoryStorage(seed?: string): Storage {
-  const map = new Map<string, string>();
-  if (seed !== undefined) map.set(layoutStorageKey, seed);
+function memoryStorage(seed?: string): LayoutStore {
+  let held: string | null = seed ?? null;
   return {
-    get length() { return map.size; },
-    clear: () => map.clear(),
-    getItem: (key: string) => map.get(key) ?? null,
-    key: (index: number) => [...map.keys()][index] ?? null,
-    removeItem: (key: string) => { map.delete(key); },
-    setItem: (key: string, value: string) => { map.set(key, value); },
-  } as Storage;
+    read: () => held,
+    write: (value) => { held = value; },
+  };
 }
 
 describe("clampToBounds", () => {
@@ -74,13 +69,12 @@ describe("loadLayout", () => {
     expect(loadLayout(memoryStorage(stored)).sizes).toEqual({ inspector: 500 });
   });
 
-  it("survives storage that throws on read", () => {
-    const hostile = { getItem: () => { throw new Error("denied"); } } as unknown as Storage;
+  it("survives a store that throws on read", () => {
+    const hostile: LayoutStore = {
+      read: () => { throw new Error("denied"); },
+      write: () => undefined,
+    };
     expect(loadLayout(hostile).sizes).toEqual({});
-  });
-
-  it("survives storage being absent entirely", () => {
-    expect(loadLayout(undefined).sizes).toEqual({});
   });
 });
 
@@ -91,8 +85,11 @@ describe("saveLayout", () => {
     expect(loadLayout(storage).sizes).toEqual({ inspector: 480 });
   });
 
-  it("does not throw when storage refuses the write", () => {
-    const full = { setItem: () => { throw new Error("QuotaExceededError"); } } as unknown as Storage;
+  it("does not throw when the store refuses the write", () => {
+    const full: LayoutStore = {
+      read: () => null,
+      write: () => { throw new Error("refused"); },
+    };
     expect(() => saveLayout({ sizes: { inspector: 480 } }, full)).not.toThrow();
   });
 });

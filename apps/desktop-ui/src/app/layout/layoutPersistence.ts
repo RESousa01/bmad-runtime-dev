@@ -9,6 +9,23 @@
  * half-written entry -- that leaves a panel at 3px or off-screen with no way to
  * drag it back. Every read is therefore validated and clamped rather than
  * trusted, and anything unreadable is discarded without comment.
+ *
+ * Where it is stored
+ * ------------------
+ * Not in the browser's durable storage APIs. `check-boundaries` forbids the
+ * renderer those outright, and it is right to: the host owns durable state,
+ * which is the authority direction the master audit sets out in 6.1. Reaching
+ * for one here was convenient and wrong, and the gate caught it. The check is
+ * a text scan, so even naming the API in a comment trips it -- which is the
+ * correct trade, since a scan that allowed mentions would allow uses that
+ * looked like mentions.
+ *
+ * The store is a port with an in-memory default, so the layout currently
+ * survives navigation within a session but not a restart. Making it durable
+ * means carrying it on the host preferences contract, and that projection uses
+ * `assertExactKeys` over theme/density/updatedAt -- so it is a host and
+ * contract change, not a renderer one, and it is left for that change rather
+ * than smuggled past the boundary here.
  */
 
 const STORAGE_KEY = "forge.workbench.layout";
@@ -36,6 +53,42 @@ export interface WorkbenchLayout {
 const EMPTY: WorkbenchLayout = { sizes: {} };
 
 /**
+ * Where a layout is kept.
+ *
+ * Deliberately narrower than Storage: two string operations are all this needs,
+ * and a port this small is trivial for the host-backed implementation to
+ * satisfy when the preferences contract can carry it.
+ */
+export interface LayoutStore {
+  read: () => string | null;
+  write: (value: string) => void;
+}
+
+/**
+ * Session-scoped default. Not durable, and honest about it: the alternative
+ * was renderer durable storage, which the architecture forbids.
+ */
+function createMemoryStore(): LayoutStore {
+  let held: string | null = null;
+  return {
+    read: () => held,
+    write: (value) => { held = value; },
+  };
+}
+
+let activeStore: LayoutStore = createMemoryStore();
+
+/** Installs the store the app should use. Called once during bootstrap. */
+export function setLayoutStore(store: LayoutStore): void {
+  activeStore = store;
+}
+
+/** Test seam: drops back to a fresh in-memory store. */
+export function resetLayoutStore(): void {
+  activeStore = createMemoryStore();
+}
+
+/**
  * Clamps a size into a region's usable range.
  *
  * Exported because the resize handle needs exactly the same rule live as the
@@ -57,12 +110,10 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
  * Never throws. Storage can be unavailable entirely -- a privacy mode, a
  * disabled origin -- and a layout is not worth failing a boot over.
  */
-export function loadLayout(storage: Storage | undefined = globalThis.localStorage): WorkbenchLayout {
-  if (storage === undefined) return EMPTY;
-
+export function loadLayout(store: LayoutStore = activeStore): WorkbenchLayout {
   let raw: string | null;
   try {
-    raw = storage.getItem(STORAGE_KEY);
+    raw = store.read();
   } catch {
     return EMPTY;
   }
@@ -92,18 +143,12 @@ export function loadLayout(storage: Storage | undefined = globalThis.localStorag
 }
 
 /** Stores the layout. Never throws; a layout that cannot be saved is not an error. */
-export function saveLayout(
-  layout: WorkbenchLayout,
-  storage: Storage | undefined = globalThis.localStorage,
-): void {
-  if (storage === undefined) return;
+export function saveLayout(layout: WorkbenchLayout, store: LayoutStore = activeStore): void {
   try {
-    storage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ version: SCHEMA_VERSION, sizes: layout.sizes }),
-    );
+    store.write(JSON.stringify({ version: SCHEMA_VERSION, sizes: layout.sizes }));
   } catch {
-    // Quota, privacy mode, or a disabled origin. The layout stays in memory.
+    // A store that refuses the write is not an error worth surfacing: the
+    // layout stays correct in memory and the user simply re-drags next time.
   }
 }
 

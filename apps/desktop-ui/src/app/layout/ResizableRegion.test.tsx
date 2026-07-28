@@ -2,12 +2,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ResizableRegion } from "./ResizableRegion";
-import { layoutStorageKey, loadLayout, type RegionBounds } from "./layoutPersistence";
+import { loadLayout, resetLayoutStore, setLayoutStore, type RegionBounds } from "./layoutPersistence";
 
 const bounds: RegionBounds = { min: 320, max: 720, initial: 420 };
 
 describe("ResizableRegion", () => {
-  beforeEach(() => { globalThis.localStorage.clear(); });
+  beforeEach(() => { resetLayoutStore(); });
 
   it("exposes a separator that says where it is within its range", () => {
     render(<ResizableRegion bounds={bounds} label="Resize inspector" regionId="inspector">x</ResizableRegion>);
@@ -59,7 +59,7 @@ describe("ResizableRegion", () => {
   });
 
   it("opens at the default when the stored layout is corrupt", () => {
-    globalThis.localStorage.setItem(layoutStorageKey, "{ not json");
+    setLayoutStore({ read: () => "{ not json", write: () => undefined });
     render(<ResizableRegion bounds={bounds} label="Resize inspector" regionId="inspector">x</ResizableRegion>);
     expect(screen.getByRole("separator").getAttribute("aria-valuenow")).toBe("420");
   });
