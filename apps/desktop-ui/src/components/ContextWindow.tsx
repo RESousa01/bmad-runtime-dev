@@ -1,19 +1,26 @@
 import { Sparkles, Trash2 } from "lucide-react";
-import type { ContextPreviewProjection } from "../lib/hostClient";
+import type { TaskAttachments } from "../features/attachments/attachmentTypes";
 import { workspaceReadLimits } from "../lib/hostClient";
 import { OpenCodeIcon } from "./OpenCodeIcon";
 import "./context-window.css";
 
-export type ContextSelectionMode = "manual" | "automatic";
+/// Re-exported from the attachment feature, which owns the concept now.
+export type { AttachmentSelectionMode as ContextSelectionMode } from "../features/attachments/attachmentTypes";
 
 export interface ContextWindowProps {
   readonly canSuggest: boolean;
   readonly onClear: () => void;
   readonly onOpen?: (() => void) | undefined;
   readonly onSuggest: () => void;
-  readonly preview: ContextPreviewProjection | null;
-  readonly selectionMode: ContextSelectionMode;
-  readonly suggestionBusy: boolean;
+  /**
+   * What *this task* has attached.
+   *
+   * FE-13: the descriptor list, not the host projection. This panel renders a
+   * count and a token total, and the projection carries the full content of
+   * every attached file -- holding that per task, for every open task, is
+   * memory spent to display a filename.
+   */
+  readonly attachments: TaskAttachments;
 }
 
 const localTokenBudget = Math.floor(workspaceReadLimits.contextBytes / 4);
@@ -29,13 +36,14 @@ export function ContextWindow({
   onClear,
   onOpen,
   onSuggest,
-  preview,
-  selectionMode,
-  suggestionBusy,
+  attachments,
 }: ContextWindowProps) {
-  const usedTokens = preview?.estimatedTokens ?? 0;
+  const { descriptors, selectionMode, suggesting: suggestionBusy } = attachments;
+  // Summed from the descriptors rather than carried alongside them: one number
+  // that can disagree with the list it describes is one too many.
+  const usedTokens = descriptors.reduce((total, item) => total + item.estimatedTokens, 0);
   const fill = Math.min(100, (usedTokens / localTokenBudget) * 100);
-  const items = preview?.items ?? [];
+  const items = descriptors;
 
   return (
     <section

@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { adoptPreview, emptyTaskAttachments } from "../features/attachments/attachmentTypes";
 import type { ContextPreviewProjection } from "../lib/hostClient";
 import { ContextWindow } from "./ContextWindow";
 
@@ -25,6 +26,11 @@ const preview: ContextPreviewProjection = {
   modelTarget: null,
 };
 
+/// The task-owned shape the panel now takes. Built from a host projection so
+/// the fixture still describes what the host actually returns.
+const attached = adoptPreview(preview, "automatic");
+const pinned = adoptPreview(preview, "manual");
+
 afterEach(cleanup);
 
 describe("ContextWindow", () => {
@@ -34,9 +40,7 @@ describe("ContextWindow", () => {
         canSuggest
         onClear={vi.fn()}
         onSuggest={vi.fn()}
-        preview={preview}
-        selectionMode="automatic"
-        suggestionBusy={false}
+        attachments={attached}
       />,
     );
 
@@ -59,9 +63,7 @@ describe("ContextWindow", () => {
         canSuggest
         onClear={onClear}
         onSuggest={onSuggest}
-        preview={preview}
-        selectionMode="manual"
-        suggestionBusy={false}
+        attachments={pinned}
       />,
     );
 
@@ -77,9 +79,7 @@ describe("ContextWindow", () => {
         canSuggest={false}
         onClear={vi.fn()}
         onSuggest={vi.fn()}
-        preview={null}
-        selectionMode="manual"
-        suggestionBusy={false}
+        attachments={emptyTaskAttachments}
       />,
     );
     expect(screen.getByText("No files")).toBeTruthy();
@@ -97,9 +97,7 @@ describe("ContextWindow", () => {
         onClear={vi.fn()}
         onOpen={onOpen}
         onSuggest={vi.fn()}
-        preview={null}
-        selectionMode="manual"
-        suggestionBusy={false}
+        attachments={emptyTaskAttachments}
       />,
     );
 

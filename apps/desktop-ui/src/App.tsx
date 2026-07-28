@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { BmadPersonaPerspectiveView } from "./components/BmadLibraryPanel";
 import type { GitReviewSource } from "./components/GitReviewPanel";
-import type { ContextSelectionMode } from "./components/ContextWindow";
 import type { SessionContextMessage } from "./components/SessionContextPanel";
 import "./components/review-panel.css";
 import {
@@ -46,6 +45,13 @@ import {
 import { useHostProjection } from "./app/projection/hostProjection";
 import { eraseLocalData } from "./app/offboarding/eraseLocalData";
 import { resolveMenuDispatch } from "./app/chat/menuDispatch";
+import {
+  adoptPreview,
+  attachmentPaths,
+  clearAttachments,
+  type TaskAttachments,
+} from "./features/attachments/attachmentTypes";
+import { useTaskSessions } from "./features/tasks/taskSessionController";
 import { useDeferredFocusReturn } from "./app/focus/deferredFocusReturn";
 import { startProjectionSubscription } from "./app/projection/projectionPoller";
 import {
@@ -68,7 +74,7 @@ import { CommandPalette, type PaletteAction } from "./components/CommandPalette"
 import { createCommandRegistry, type CommandContext } from "./app/commands/commands";
 import { commandForEvent, formatKeybinding, isApplePlatform } from "./app/commands/keybindings";
 import { DRAWER_OVERLAY_QUERY } from "./components/redesign/AppShellLayout";
-import { AppDrawer } from "./app/AppDrawer";
+import { AppDrawer } from "./app/AppDrawer";
 import { AppModals, hasRenderableModal } from "./app/AppModals";
 import { AppMainView } from "./app/AppMainView";
 import { ShellProvider, type ShellModel } from "./app/AppProviders";
@@ -93,7 +99,6 @@ import {
   type ThemePreference,
   HostCapabilityError,
   HostCommandError,
-  type ContextPreviewProjection,
   type ChangesRecoveryPrepared,
   type HostRuntime,
   type WorkspaceProjection,
@@ -323,7 +328,6 @@ export function App({
   // Per-task capability execution state lives in `capabilitySessions` (keyed by
   // task session id) so a late completion routes to its owning task instead of
   // whichever tab is visible. Bound after `selectedSessionId` is derived.
-  const [attachNotice, setAttachNotice] = useState<string | null>(null);
   /*
    * FE-10 step 3: the workspace list, its selection and its busy flags belong
    * to the workspace controller. Destructured under the names the rest of this
@@ -343,10 +347,6 @@ export function App({
     setActionError: setWorkspaceActionError,
     workspaces: hostWorkspaces,
   } = workspaceState;
-  const [contextPreview, setContextPreview] = useState<ContextPreviewProjection | null>(null);
-  const [contextSelectionMode, setContextSelectionMode] =
-    useState<ContextSelectionMode>("manual");
-  const [contextSuggestionBusy, setContextSuggestionBusy] = useState(false);
   const [bmadLibraryState, setBmadLibraryState] = useState<BmadLibraryUiState>({ kind: "idle" });
   const [personaPerspectives, setPersonaPerspectives] = useState<
     ReadonlyMap<string, BmadPersonaPerspectiveView>
@@ -459,12 +459,37 @@ export function App({
   const bmadHelpOperationRef = useRef<"approve" | "cancel" | "submit" | null>(null);
   const bmadHelpStateRef = useRef<BmadRequestState>(initialBmadRequestState);
   const workspaceAuthorityKeyRef = useRef("");
-  const contextSuggestionGenerationRef = useRef(0);
-  const contextSuggestionInFlightRef = useRef(false);
 
   const routedTaskId = primaryRoute.kind === "task" ? primaryRoute.taskId : null;
   const selectedSessionId = routedTaskId ?? NO_TASK_SESSION_ID;
   const capabilitySessions = useCapabilitySessions(selectedSessionId);
+  /*
+   * FE-13: attachments belong to a task.
+   *
+   * They used to be four app-global values, so switching tasks destroyed them
+   * -- `selectSession` cleared them on every switch precisely because the
+   * alternative was sending one task's files with another task's message. A
+   * task now keeps what it has while the user works somewhere else.
+   */
+  const taskSessions = useTaskSessions(selectedSessionId);
+  const attachments = taskSessions.session.attachments;
+  /// Summed from the descriptors, so it cannot disagree with the list.
+  const attachedTokens = attachments.descriptors.length === 0
+    ? undefined
+    : attachments.descriptors.reduce((total, item) => total + item.estimatedTokens, 0);
+  /// Named separately so the invalidators can list a stable dependency; the
+  /// api object itself is rebuilt every render.
+  const clearAllTaskSessions = taskSessions.clearAll;
+  /** Writes fields of the *active* task's attachments. */
+  const patchAttachments = useCallback(
+    (patch: Partial<TaskAttachments>) => {
+      taskSessions.updateActive((session) => ({
+        ...session,
+        attachments: { ...session.attachments, ...patch },
+      }));
+    },
+    [taskSessions],
+  );
   // Chat is the default lane: every task owns a conversation, and BMAD is an
   // optional overlay on it rather than the only way to say something.
   const chatSessions = useChatSessions(selectedSessionId);
@@ -747,8 +772,19 @@ export function App({
     }
     const client = hostRuntime.client;
     const workspaceId = activeWorkspace.workspaceId;
-    const existingPaths = contextPreview?.items.map(({ relativePath }) => relativePath) ?? [];
-    const generation = ++contextSuggestionGenerationRef.current;
+    const existingPaths = attachmentPaths(attachments);
+    /*
+     * Two tokens, because two different things can invalidate this.
+     *
+     * `routing` is the task's: it goes stale if the task is closed or a newer
+     * selection supersedes this one, and it is what makes the result land on
+     * the task that asked rather than the visible one.
+     *
+     * `authorityKey` is the workspace's: a grant change invalidates the paths
+     * themselves, and its reset runs in an effect, so between the switch and
+     * that effect the task generation has not moved yet.
+     */
+    const routing = taskSessions.beginRequest();
     const authorityKey = workspaceAuthorityKey;
     /*
      * Both halves, and the same predicate on every path including the failure
@@ -757,27 +793,30 @@ export function App({
      * that checked only the generation would surface the old workspace's error
      * against the new one.
      */
-    const isStale = () => generation !== contextSuggestionGenerationRef.current
+    const isStale = () => !taskSessions.isCurrent(routing)
       || authorityKey !== workspaceAuthorityKeyRef.current;
-    setAttachNotice(null);
+    patchAttachments({ notice: null });
     try {
       const pick = await picker(client, workspaceId);
       if (pick.kind === "no_selection" || pick.value.relativePaths.length === 0) {
         if (isStale()) return;
-        setAttachNotice(emptyPickNotice(pick.kind === "picked"
-          ? pick.value.rejectedOutsideRoot + pick.value.rejectedUnreadable
-          : 0));
+        patchAttachments({
+          notice: emptyPickNotice(pick.kind === "picked"
+            ? pick.value.rejectedOutsideRoot + pick.value.rejectedUnreadable
+            : 0),
+        });
         return;
       }
       const merge = mergeContextPaths(existingPaths, pick.value.relativePaths);
       const projection = await workspaceSource.previewContext([...merge.relativePaths]);
       if (isStale()) return;
-      setContextPreview(projection);
-      setContextSelectionMode("manual");
-      setAttachNotice(attachmentNotice(pick.value, merge));
+      taskSessions.route(routing, (session) => ({
+        ...session,
+        attachments: adoptPreview(projection, "manual", attachmentNotice(pick.value, merge)),
+      }));
     } catch (error) {
       if (isStale()) return;
-      setAttachNotice(getSafeHostMessage(error));
+      patchAttachments({ notice: getSafeHostMessage(error) });
     }
   }
 
@@ -791,25 +830,23 @@ export function App({
 
   async function suggestContext(intent: string) {
     const terms = contextSearchTerms(intent);
-    if (
-      workspaceSource === null
-      || terms.length === 0
-      || contextSuggestionInFlightRef.current
-    ) {
+    if (workspaceSource === null || terms.length === 0 || attachments.suggesting) {
       if (terms.length === 0) {
-        setAttachNotice("Add a more specific task description before auto-selecting context.");
+        patchAttachments({
+          notice: "Add a more specific task description before auto-selecting context.",
+        });
       }
       return;
     }
     const source = workspaceSource;
     const authorityKey = workspaceAuthorityKey;
-    const generation = ++contextSuggestionGenerationRef.current;
-    /// Same predicate on every path, for the same reason as `browseAndAttach`.
-    const isStale = () => generation !== contextSuggestionGenerationRef.current
+    /// Same two tokens as `browseAndAttach`, for the same two reasons.
+    const routing = taskSessions.beginRequest();
+    const isStale = () => !taskSessions.isCurrent(routing)
       || authorityKey !== workspaceAuthorityKeyRef.current;
-    contextSuggestionInFlightRef.current = true;
-    setContextSuggestionBusy(true);
-    setAttachNotice(null);
+    // `suggesting` is the per-task lock: a second auto-select for *this* task
+    // is refused, while another task may run its own.
+    patchAttachments({ notice: null, suggesting: true });
     try {
       const resultGroups: WorkspaceSearchMatch[][] = [];
       for (const term of terms) {
@@ -819,36 +856,50 @@ export function App({
       const relativePaths = rankContextPaths(resultGroups, 8);
       if (relativePaths.length === 0) {
         if (isStale()) return;
-        setAttachNotice("Forge found no local files matching this task. Pin files from Files instead.");
+        patchAttachments({
+          notice: "Forge found no local files matching this task. Pin files from Files instead.",
+        });
         return;
       }
       const projection = await source.previewContext(relativePaths);
       if (isStale()) return;
-      setContextPreview(projection);
-      setContextSelectionMode("automatic");
-      setAttachNotice(
-        `Auto-selected ${projection.items.length} local ${projection.items.length === 1 ? "file" : "files"} for review.`,
-      );
+      const count = projection.items.length;
+      taskSessions.route(routing, (session) => ({
+        ...session,
+        attachments: adoptPreview(
+          projection,
+          "automatic",
+          `Auto-selected ${count} local ${count === 1 ? "file" : "files"} for review.`,
+        ),
+      }));
     } catch (error) {
-      if (!isStale()) setAttachNotice(getSafeHostMessage(error));
+      if (!isStale()) patchAttachments({ notice: getSafeHostMessage(error) });
     } finally {
-      // `contextSuggestionInFlightRef` guards against a second concurrent
-      // suggestion, so no other suggestContext can be running when this one
-      // settles. Reset it (and the spinner) unconditionally: a concurrent
-      // browseAndAttach/clearContext may have advanced the generation without
-      // clearing the in-flight flag, which would otherwise strand auto-select.
-      contextSuggestionInFlightRef.current = false;
-      setContextSuggestionBusy(false);
+      /*
+       * Cleared on the task that started it, unconditionally, even when the
+       * result was discarded. `route` would skip a superseded token and leave
+       * that task's spinner running for the rest of the session.
+       */
+      taskSessions.update(routing.taskId, (session) => ({
+        ...session,
+        attachments: { ...session.attachments, suggesting: false },
+      }));
     }
   }
 
-  function clearContext() {
-    contextSuggestionGenerationRef.current += 1;
-    contextSuggestionInFlightRef.current = false;
-    setContextSuggestionBusy(false);
-    setContextPreview(null);
-    setContextSelectionMode("manual");
-    setAttachNotice(null);
+  /**
+   * Drops the active task's attachments.
+   *
+   * No longer called on a task switch -- that was only ever necessary because
+   * the projection was app-global. It is now what it says: the user clearing
+   * their own selection, or a send spending it.
+   */
+  function clearContext(notice: string | null = null) {
+    taskSessions.supersede();
+    taskSessions.updateActive((session) => ({
+      ...session,
+      attachments: clearAttachments(notice),
+    }));
   }
   const explorerAvailabilityMessage = describeExplorerAvailability({
     hasWorkspace: activeWorkspace !== null,
@@ -944,11 +995,7 @@ export function App({
         bmadLibraryRequestedRef.current = false;
         bmadProjectionGenerationRef.current += 1;
         setBmadLibraryState({ kind: "idle" });
-        contextSuggestionGenerationRef.current += 1;
-        contextSuggestionInFlightRef.current = false;
-        setContextSuggestionBusy(false);
-        setContextPreview(null);
-        setContextSelectionMode("manual");
+        clearAllTaskSessions();
         // `abandon` bumps the binding generation itself, so the explicit bump
         // that used to sit at the top of this branch is gone -- two bumps for
         // one transition would have been harmless but is one more place the
@@ -968,6 +1015,7 @@ export function App({
     // stable while satisfying the exhaustive-deps rule honestly rather than by
     // suppression.
     adoptWorkspaces,
+    clearAllTaskSessions,
     hostBindingGenerationRef,
   ]);
 
@@ -1031,15 +1079,14 @@ export function App({
     setChangesHistoryBusy(false);
     setEnableEditsBusy(false);
     clearRecoveryReview();
-    contextSuggestionGenerationRef.current += 1;
-    contextSuggestionInFlightRef.current = false;
-    setContextSuggestionBusy(false);
-    setContextPreview(null);
-    setContextSelectionMode("manual");
+    // Every task's attachments, because they resolve against a workspace grant
+    // this invalidation is discarding.
+    clearAllTaskSessions();
     setContextDrawer(null);
   }, [
     clearAllChangesFlows,
     clearAllChatLanes,
+    clearAllTaskSessions,
     clearRecoveryReview,
     invalidateChangesHistory,
     setChangesHistoryBusy,
@@ -1057,7 +1104,6 @@ export function App({
     setModelSelectionBusy(false);
     setModelSelectionNotice(null);
     setPreferencesNotice(null);
-    setAttachNotice(null);
     resetWorkspaceActionState();
   }, [
     clearAllCapabilityRuns,
@@ -1730,7 +1776,6 @@ export function App({
         && current.kind !== "approved"
         && current.kind !== "submitting";
     },
-    clearContext,
     closeDrawer: () => setContextDrawer(null),
     closeModal: () => setAppModal(null),
     createTaskId,
@@ -1750,6 +1795,9 @@ export function App({
     dropChatSession: (taskId) => chatSessions.dropSession(taskId),
     openDeleteConfirmation: () => setAppModal("delete-task"),
     releaseRunState: (taskId) => {
+      // FE-13: the task's own session goes too -- its attachments were selected
+      // against a workspace grant for a message that was never sent.
+      taskSessions.close(taskId);
       // A capability run and a governed-changes flow are in-progress work, not
       // a record of what was said, so neither survives the task leaving the
       // open list. `closeCapabilitySession` also makes a late result for that
@@ -1806,7 +1854,7 @@ export function App({
   const guidance = createGuidanceRequest({
     applyEvent: applyBmadEvent,
     client: methodGuidanceClient,
-    contextPaths: contextPreview?.items.map(({ relativePath }) => relativePath) ?? [],
+    contextPaths: attachmentPaths(attachments),
     creation: {
       get: () => bmadHelpCreationRef.current,
       set: (value) => { bmadHelpCreationRef.current = value; },
@@ -1891,7 +1939,11 @@ export function App({
     const routing = sessionId === undefined
       ? chatSessions.captureRouting()
       : chatSessions.routingFor(sessionId);
-    const contextPaths = contextPreview?.items.map(({ relativePath }) => relativePath) ?? [];
+    // Read from the task the send belongs to, not the visible one: the Home
+    // composer creates a task and sends in the same tick.
+    const contextPaths = attachmentPaths(
+      sessionId === undefined ? attachments : taskSessions.sessionFor(sessionId).attachments,
+    );
     const agentCode = chatLane.agentCode;
     chatSessions.applyToLane(routing, (lane) => beginSend(lane, intent));
     try {
@@ -1901,7 +1953,7 @@ export function App({
         clientSessionRef: routing.sessionId,
         agentCode,
         text: intent,
-        contextPaths,
+        contextPaths: [...contextPaths],
       });
       chatSessions.applyToLane(routing, (lane) => applySentTurn(lane, turn));
       // Attachments are spent by the send that carried them. Leaving them armed
@@ -1910,15 +1962,18 @@ export function App({
       // acted on every turn, with nothing on screen distinguishing "these went
       // last time" from "these go again".
       //
-      // Ordering matters: `clearContext` sets `attachNotice` to null, so the
-      // notice has to be written after it or it is erased immediately.
+      // Cleared and announced in one write, on the task that sent them.
+      // Previously the clear reset the notice to null and the notice had to be
+      // written after it; one call cannot order itself wrongly.
       if (contextPaths.length > 0) {
         const count = contextPaths.length;
-        clearContext();
-        setAttachNotice(
-          `Sent ${count} attached ${count === 1 ? "file" : "files"} with this message. `
-          + `Attach again to include ${count === 1 ? "it" : "them"} in the next one.`,
-        );
+        taskSessions.update(routing.sessionId, (session) => ({
+          ...session,
+          attachments: clearAttachments(
+            `Sent ${count} attached ${count === 1 ? "file" : "files"} with this message. `
+            + `Attach again to include ${count === 1 ? "it" : "them"} in the next one.`,
+          ),
+        }));
       }
     } catch (error: unknown) {
       chatSessions.applyToLane(routing, (lane) => failSend(
@@ -2123,13 +2178,12 @@ export function App({
       // No invented token count either. It fed the context meter and the session
       // panel's "Total Tokens", so a session that had sent nothing reported a
       // cost. An absent number renders as "—", which is the truth.
-      inputTokens: reviewState?.review.totalTokenEstimate
-        ?? contextPreview?.estimatedTokens,
+      inputTokens: reviewState?.review.totalTokenEstimate ?? attachedTokens,
       messages,
     };
     // `hostRuntime.kind` was a dependency only because this used to branch on
     // browser preview to fabricate a transcript. Nothing in here reads it now.
-  }, [bmadHelpState, contextPreview?.estimatedTokens, currentBmadIntent, selectedSessionId, sessionContextModelId]);
+  }, [attachedTokens, bmadHelpState, currentBmadIntent, selectedSessionId, sessionContextModelId]);
 
   function resetChangesFlow() {
     changesGenerationRef.current += 1;
@@ -2492,11 +2546,11 @@ export function App({
       adoptReviewed: (projection) => {
         // A reviewed selection supersedes any auto-suggestion in flight, and
         // becomes a manual one: the user chose these files.
-        contextSuggestionGenerationRef.current += 1;
-        contextSuggestionInFlightRef.current = false;
-        setContextSuggestionBusy(false);
-        setContextPreview(projection);
-        setContextSelectionMode("manual");
+        taskSessions.supersede();
+        taskSessions.updateActive((session) => ({
+          ...session,
+          attachments: adoptPreview(projection, "manual"),
+        }));
       },
       session: {
         createdAt: sessionContext.createdAt,
@@ -2637,13 +2691,10 @@ export function App({
         key: `${selectedSessionId}:${methodGuidanceBindingKey}`,
         props: {
           agentLibrary: bmadLibraryState,
-          attachNotice,
+          attachments,
           canAttachFiles: canBrowseFiles || canBrowseFolder,
           chatLane,
           chatSendAvailable,
-          contextPreview,
-          contextSelectionMode,
-          contextSuggestionBusy,
           hostStatusLabel,
           initialDraft: taskDrafts.get(selectedTask.id) ?? "",
           interactionDisabled: !localTaskDraftingAvailable,

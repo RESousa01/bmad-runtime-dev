@@ -19,7 +19,6 @@ interface HarnessState {
   tasks: readonly TaskRecord[];
   route: PrimaryRoute;
   drafts: Map<string, string>;
-  contextCleared: number;
   drawerClosed: number;
   modalClosed: number;
   deleteConfirmationOpened: number;
@@ -33,7 +32,6 @@ interface HarnessState {
 function harness(seed: readonly TaskRecord[] = [], routedTaskId: string | null = null): Harness {
   const state: HarnessState = {
     canStart: true,
-    contextCleared: 0,
     deleteConfirmationOpened: 0,
     drafts: new Map(),
     drawerClosed: 0,
@@ -52,7 +50,6 @@ function harness(seed: readonly TaskRecord[] = [], routedTaskId: string | null =
   let nextId = 0;
   const ports = (): TaskLifecyclePorts => ({
     canStartTask: () => h.canStart,
-    clearContext: () => { h.contextCleared += 1; },
     closeDrawer: () => { h.drawerClosed += 1; },
     closeModal: () => { h.modalClosed += 1; },
     createTaskId: () => `generated-${++nextId}`,
@@ -93,19 +90,41 @@ describe("selectSession", () => {
     expect(h.drawerClosed).toBe(1);
   });
 
-  it("drops attached context when switching to a different task", () => {
-    // Attachment is scoped to the message about to be sent while the projection
-    // is app-global: without this, files pinned in one task stayed pinned and
-    // went out with the next task's message.
+  /*
+   * FE-13 reversed this. Switching used to clear attachments, because they
+   * lived in one app-global slot and the alternative was sending one task's
+   * files with another task's message. Now that a task owns them, a switch
+   * touches nothing -- and the release path is the only thing that discards.
+   */
+  it("does not release any task's state when switching between tasks", () => {
     const h = harness([createTask("a"), createTask("b")], "a");
     act(() => h.lifecycle.selectSession("b"));
-    expect(h.contextCleared).toBe(1);
+    expect(h.releasedRunState).toEqual([]);
   });
 
-  it("keeps context when re-selecting the task already open", () => {
+  it("does not release state when re-selecting the task already open", () => {
     const h = harness([createTask("a")], "a");
     act(() => h.lifecycle.selectSession("a"));
-    expect(h.contextCleared).toBe(0);
+    expect(h.releasedRunState).toEqual([]);
+  });
+
+  it("does not release the previous task's state when a new one starts", () => {
+    // The old `clearContext` ran here and acted on the *outgoing* task, which
+    // is not what starting a task should touch.
+    const h = harness([createTask("a")], "a");
+    act(() => { h.lifecycle.startNewSession(); });
+    expect(h.releasedRunState).toEqual([]);
+  });
+
+  it("does not release state when reopening a closed task", () => {
+    // Its session was dropped when it closed, so a reopened task starts empty
+    // by construction and there is nothing to clear.
+    const h = harness([createTask("a")], "a");
+    act(() => h.lifecycle.closeTaskById("a"));
+    h.rerender();
+    h.releasedRunState.length = 0;
+    act(() => h.lifecycle.reopenTaskById("a"));
+    expect(h.releasedRunState).toEqual([]);
   });
 
   it("ignores a task that does not exist", () => {

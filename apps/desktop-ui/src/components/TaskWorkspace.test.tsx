@@ -6,6 +6,10 @@ import { describe, expect, it, vi } from "vitest";
 import { initialBmadRequestState } from "../lib/bmadModelProjection";
 import type { ContextPreviewProjection } from "../lib/hostClient";
 import { TaskWorkspace, type TaskWorkspaceProps } from "./TaskWorkspace";
+import {
+  adoptPreview,
+  emptyTaskAttachments,
+} from "../features/attachments/attachmentTypes";
 import { RETAINED_TRANSCRIPT_MESSAGES, emptyChatLane } from "../state/chatSessions";
 
 function createContextPreview(
@@ -40,9 +44,7 @@ function createProps(
     chatLane: emptyChatLane,
     onAskMethodGuidance: vi.fn(async () => undefined),
     onSelectAgent: vi.fn(),
-    contextPreview: null,
-    contextSelectionMode: "manual",
-    contextSuggestionBusy: false,
+    attachments: emptyTaskAttachments,
     hostStatusLabel: "Desktop host ready",
     interactionDisabled: false,
     chatSendAvailable: true,
@@ -54,7 +56,6 @@ function createProps(
     modelAccessDetail: "Development connection · governed by BMAD review",
     modelAccessLabel: "Development model",
     agentLibrary: { kind: "idle" },
-    attachNotice: null,
     onAttachFiles: vi.fn(async () => undefined),
     onAttachFolder: vi.fn(async () => undefined),
     onClearContext: vi.fn(),
@@ -306,10 +307,10 @@ describe("TaskWorkspace Method guidance", () => {
 
   it("renders local context preview chips without implying model attachment", () => {
     render(<TaskWorkspace {...createProps({
-      contextPreview: createContextPreview([
-        "src/main.ts",
-        "src/features/task.tsx",
-      ]),
+      attachments: adoptPreview(
+        createContextPreview(["src/main.ts", "src/features/task.tsx"]),
+        "manual",
+      ),
     })} />);
 
     expect(screen.getByRole("heading", { name: "Context window" })).toBeTruthy();

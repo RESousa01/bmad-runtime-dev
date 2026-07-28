@@ -53,14 +53,18 @@ export interface TaskLifecyclePorts {
   readonly setPrimaryRoute: (route: PrimaryRoute) => void;
   readonly closeDrawer: () => void;
   /**
-   * Drops attached context.
+   * Discards the transient state a task owns: its capability run, its
+   * governed-changes flow, and its attachments. The transcript is the host's
+   * and is untouched.
    *
-   * Called on every route change between tasks, because the attachment is
-   * scoped to the message about to be sent while the projection is app-global.
-   * Without it, files pinned in one task stayed pinned after switching and went
-   * out with the next task's message -- files the user never attached there.
+   * There used to be a `clearContext` port called on four paths -- select,
+   * reopen, close and new -- because attachments were app-global and the only
+   * safe thing to do with state belonging to nobody was to destroy it on every
+   * route change. Every one of those calls acted on the *active* task, which is
+   * never the task the operation is about; with one global slot that was
+   * invisible, and with per-task state all four were wrong.
    */
-  readonly clearContext: () => void;
+  readonly releaseRunState: (taskId: string) => void;
   /** New ids must never repeat: the host derives durable session identity from them. */
   readonly createTaskId: () => string;
   /** Blocks starting a task while a BMAD request is mid-flight. */
@@ -71,8 +75,6 @@ export interface TaskLifecyclePorts {
     readonly set: (taskId: string, draft: string) => void;
     readonly drop: (taskId: string) => void;
   };
-  /** Discards the transient run state a task owns; its transcript is untouched. */
-  readonly releaseRunState: (taskId: string) => void;
   /** Discards a conversation and supersedes it, so a reply in flight is dropped. */
   readonly dropChatSession: (taskId: string) => void;
   readonly setPendingDeleteTaskId: (taskId: string | null) => void;
@@ -130,7 +132,6 @@ export function useTaskLifecycle(ports: TaskLifecyclePorts): TaskLifecycle {
   function reselectAfterRemoval(taskId: string): void {
     const next = nextSelectionAfter(ports.tasks, taskId, ports.routedTaskId);
     if (ports.routedTaskId !== taskId) return;
-    ports.clearContext();
     ports.closeDrawer();
     // No phantom task to land on: with nothing open, Home *is* the empty state.
     ports.setPrimaryRoute(next === null ? { kind: "home" } : { kind: "task", taskId: next });
@@ -197,8 +198,9 @@ export function useTaskLifecycle(ports: TaskLifecyclePorts): TaskLifecycle {
 
     reopenTaskById(taskId: string) {
       if (findTask(ports.tasks, taskId) === null) return;
+      // Nothing to clear: the session was dropped when the task closed, so a
+      // reopened task starts empty by construction.
       ports.setTasks((current) => reopenTask(current, taskId));
-      ports.clearContext();
       ports.closeDrawer();
       ports.setPrimaryRoute({ kind: "task", taskId });
     },
@@ -215,7 +217,9 @@ export function useTaskLifecycle(ports: TaskLifecyclePorts): TaskLifecycle {
 
     selectSession(id: string) {
       if (findTask(ports.tasks, id) === null) return;
-      if (id !== ports.selectedSessionId) ports.clearContext();
+      // FE-13: nothing is cleared on a switch. A task keeps its attachments
+      // while the user works elsewhere, which is the whole point of owning
+      // them.
       ports.setPrimaryRoute({ kind: "task", taskId: id });
       ports.closeDrawer();
     },
@@ -228,7 +232,6 @@ export function useTaskLifecycle(ports: TaskLifecyclePorts): TaskLifecycle {
       // the user deleted.
       const session = createTask(ports.createTaskId(), intent);
       ports.resetGuidanceForNewTask();
-      ports.clearContext();
       if (preserveIntentAsDraft && intent?.trim()) {
         ports.drafts.set(session.id, intent.trim());
       }

@@ -8,7 +8,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { MAX_TASK_TITLE_CHARS } from "../state/taskList";
 import type { BmadRequestState } from "../lib/bmadModelProjection";
 import type { BmadLibraryUiState } from "../lib/bmadProjection";
-import type { ChatMessage, ContextPreviewProjection } from "../lib/hostClient";
+import type { ChatMessage } from "../lib/hostClient";
+import type { TaskAttachments } from "../features/attachments/attachmentTypes";
 import {
   RETAINED_TRANSCRIPT_MESSAGES,
   type ChatLaneState,
@@ -17,7 +18,6 @@ import { brandIdentity } from "../lib/brand";
 import { OpenCodeIcon } from "./OpenCodeIcon";
 import {
   ContextWindow,
-  type ContextSelectionMode,
 } from "./ContextWindow";
 import { AgentSelector } from "./composer/AgentSelector";
 import "./composer/agent-selector.css";
@@ -30,9 +30,15 @@ const STARTER_INTENTS = [
 
 export interface TaskWorkspaceProps {
   canAttachFiles: boolean;
-  contextPreview: ContextPreviewProjection | null;
-  contextSelectionMode: ContextSelectionMode;
-  contextSuggestionBusy: boolean;
+  /**
+   * What *this task* has attached, including its notice and whether an
+   * auto-selection is running for it.
+   *
+   * FE-13: one task-owned value rather than four app-global props. The four
+   * could disagree -- a notice from one task shown beside another's file list
+   * -- because nothing tied them together.
+   */
+  attachments: TaskAttachments;
   hostStatusLabel: string;
   initialDraft?: string | undefined;
   interactionDisabled: boolean;
@@ -68,7 +74,6 @@ export interface TaskWorkspaceProps {
   onAttachFolder?: (() => Promise<void>) | undefined;
   onClearContext: () => void;
   agentLibrary: BmadLibraryUiState;
-  attachNotice: string | null;
   onOpenChanges: () => void;
   onOpenContext?: (() => void) | undefined;
   onOpenMethodLibrary: () => void;
@@ -306,9 +311,7 @@ function ChatTranscript({
 
 export function TaskWorkspace({
   canAttachFiles,
-  contextPreview,
-  contextSelectionMode,
-  contextSuggestionBusy,
+  attachments,
   hostStatusLabel,
   initialDraft = "",
   interactionDisabled,
@@ -329,7 +332,6 @@ export function TaskWorkspace({
   onAttachFolder,
   onClearContext,
   agentLibrary,
-  attachNotice,
   onOpenChanges,
   onOpenContext,
   onOpenMethodLibrary,
@@ -709,8 +711,8 @@ export function TaskWorkspace({
       </div>
 
       <form aria-label="Task composer" className="composer" onSubmit={submitTask}>
-        {attachNotice ? (
-          <p className="attach-notice" role="status">{attachNotice}</p>
+        {attachments.notice ? (
+          <p className="attach-notice" role="status">{attachments.notice}</p>
         ) : null}
         <div className="composer__input-row">
           {/* Design specification 7.4: pressing the composer control invokes
@@ -783,9 +785,7 @@ export function TaskWorkspace({
               const intent = draft.trim();
               if (intent.length > 0) void onSuggestContext(intent);
             }}
-            preview={contextPreview}
-            selectionMode={contextSelectionMode}
-            suggestionBusy={contextSuggestionBusy}
+            attachments={attachments}
           />
           <div className="composer__right">
             {/*
