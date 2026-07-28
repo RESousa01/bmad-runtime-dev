@@ -1,6 +1,7 @@
 import { Button } from "@sapphirus/ui";
 import { RotateCcw, ShieldAlert, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
+import { useFocusReturnOnUnmount } from "../app/focus/deferredFocusReturn";
 import type {
   ChangesRecoveryPrepared,
   RecoveryApprovalChoice,
@@ -43,14 +44,20 @@ export function RecoveryReview({
   const decisionStartedRef = useRef(false);
   const [decisionStarted, setDecisionStarted] = useState(false);
 
+  // Where focus goes when this closes is the shared helper's problem, not
+  // this component's. The copy that used to live here focused the return
+  // target from an effect cleanup, which runs mid-commit and so could be
+  // wrong about what was in the document -- see the helper for the failure
+  // that produced.
+  useFocusReturnOnUnmount(returnFocusTarget);
+
+  // A different review is a different thing to read, so the heading takes
+  // focus again. Keyed on the approval id alone: `returnFocusTarget` is not
+  // something the reader can see changing, and re-focusing the heading on it
+  // would pull focus off whichever control inside the review they had reached.
   useEffect(() => {
     headingRef.current?.focus();
-    return () => {
-      if (returnFocusTarget?.isConnected && !returnFocusTarget.closest("[inert]")) {
-        returnFocusTarget.focus();
-      }
-    };
-  }, [returnFocusTarget, review.recoveryApprovalId]);
+  }, [review.recoveryApprovalId]);
 
   const decide = (choice: RecoveryApprovalChoice) => {
     if (busy || decisionStartedRef.current) return;

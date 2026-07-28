@@ -1,10 +1,12 @@
 import { act, renderHook } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
+  focusIsUnclaimed,
   focusReturnTarget,
   isFocusRestorable,
   useDeferredFocusReturn,
+  useFocusReturnOnUnmount,
 } from "./deferredFocusReturn";
 
 const created: HTMLElement[] = [];
@@ -155,6 +157,111 @@ describe("the open and close cycle", () => {
     rerender({ open: true });
     rerender({ open: false });
     expect(document.activeElement).toBe(later);
+  });
+});
+
+describe("focusIsUnclaimed", () => {
+  it("reads the document root as nowhere", () => {
+    expect(focusIsUnclaimed(document.body)).toBe(true);
+    expect(focusIsUnclaimed(document.documentElement)).toBe(true);
+  });
+
+  it("reads nothing focused at all as nowhere", () => {
+    expect(focusIsUnclaimed(null)).toBe(true);
+  });
+
+  it("reads a live element as a claim to leave alone", () => {
+    expect(focusIsUnclaimed(button("claimed"))).toBe(false);
+  });
+});
+
+describe("returning focus when the surface itself unmounts", () => {
+  /// The restore is queued as a microtask, so one turn of the queue is what a
+  /// test has to wait for. Two, to leave no doubt about ordering.
+  async function settle(): Promise<void> {
+    await Promise.resolve();
+    await Promise.resolve();
+  }
+
+  beforeEach(() => {
+    // Focus left over from an earlier test would read as a claim and mask
+    // exactly the cases these tests are about.
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+
+  it("puts focus back on the control the surface took it from", async () => {
+    const opener = button("opener");
+    const inside = button("inside the surface");
+    inside.focus();
+    const { unmount } = renderHook(() => useFocusReturnOnUnmount(opener));
+
+    // The surface goes, and its focused control leaves the document with it.
+    inside.remove();
+    unmount();
+
+    await settle();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it("decides after the commit has finished, not during it", async () => {
+    // Stands in for the shell mid-commit. A `useLayoutEffect` that writes
+    // state anywhere in the tree forces a second synchronous render, and this
+    // cleanup is flushed ahead of that render's DOM mutations -- so at the
+    // instant it runs, the row focus belongs on can be out of the document and
+    // back again before the task ends. Checking once, there, is what left
+    // focus on `<body>`.
+    const opener = button("opener");
+    const { unmount } = renderHook(() => useFocusReturnOnUnmount(opener));
+
+    opener.remove();
+    unmount();
+    document.body.append(opener);
+
+    await settle();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it("leaves focus where a surface opened since has put it", async () => {
+    const opener = button("opener");
+    const elsewhere = button("elsewhere");
+    const { unmount } = renderHook(() => useFocusReturnOnUnmount(opener));
+
+    unmount();
+    elsewhere.focus();
+
+    await settle();
+    expect(document.activeElement).toBe(elsewhere);
+  });
+
+  it("does not restore into a subtree another overlay has made inert", async () => {
+    const shelter = document.createElement("div");
+    shelter.setAttribute("inert", "");
+    const opener = document.createElement("button");
+    shelter.append(opener);
+    document.body.append(shelter);
+    created.push(shelter);
+
+    const { unmount } = renderHook(() => useFocusReturnOnUnmount(opener));
+    unmount();
+
+    await settle();
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("does not return focus while the surface is still on screen", async () => {
+    // Nothing is focused, so a return firing here would look justified -- and
+    // it would take focus out of a surface the user is still reading.
+    const first = button("first");
+    const second = button("second");
+    const { rerender } = renderHook(
+      ({ target }) => useFocusReturnOnUnmount(target),
+      { initialProps: { target: first as HTMLElement | null } },
+    );
+
+    rerender({ target: second });
+
+    await settle();
+    expect(document.activeElement).toBe(document.body);
   });
 });
 

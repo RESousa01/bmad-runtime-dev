@@ -22,6 +22,13 @@
  * -- the row of a task that was just deleted -- or be inside an `[inert]`
  * subtree because another overlay opened. `focus()` on an inert element
  * silently does nothing, so this has to be checked rather than attempted.
+ *
+ * Two shapes of surface, one set of rules. `useDeferredFocusReturn` is for a
+ * surface whose owner outlives it and can watch an `isOpen` flag go false.
+ * `useFocusReturnOnUnmount` is for one that has no such owner and whose own
+ * unmount is the only moment left to act on. They share the guards above
+ * deliberately: FE-10 started because two hand-rolled copies had drifted, and a
+ * third would be the same mistake in a new shape.
  */
 
 import { useEffect, useRef } from "react";
@@ -99,4 +106,91 @@ export function useDeferredFocusReturn(isOpen: boolean): DeferredFocusReturn {
       return target;
     },
   };
+}
+
+/**
+ * Whether focus has been left nowhere.
+ *
+ * This is the whole justification for a return. Removing the element that had
+ * focus drops it on `<body>`, the next keystroke goes nowhere, and a keyboard
+ * user has to Tab in from the top of the document. If some other surface has
+ * since claimed focus, taking it back is the worse bug of the two -- it pulls
+ * the user out of whatever they just opened -- so a return is offered, not
+ * imposed.
+ *
+ * There is deliberately no check for a *disconnected* `activeElement`. Removing
+ * the focused element is specified to move focus to the body, so the two
+ * comparisons below already cover it, and a third clause would be unreachable
+ * defence carrying an explanation of a failure that does not happen.
+ */
+export function focusIsUnclaimed(activeElement: Element | null): boolean {
+  return activeElement === null
+    || activeElement === document.body
+    || activeElement === document.documentElement;
+}
+
+/**
+ * Returns focus when the surface itself is the thing that unmounts.
+ *
+ * The recovery review has no owner watching it: the changes panel renders it
+ * from two different branches and the activity panel from a third, and each
+ * simply stops rendering it. So there is no `isOpen` to fall, and the unmount
+ * is the only event left.
+ *
+ * The unmount is not the end of the story, and that is the defect this
+ * replaces. The review used to call `focus()` straight from its effect
+ * cleanup, guarded by an `isConnected` check made at that instant. Passive
+ * effects for a commit are flushed ahead of the DOM mutations of any render
+ * that commit schedules synchronously -- and a `useLayoutEffect` that writes
+ * state, anywhere in the shell, schedules exactly that. The check could
+ * therefore run against a half-applied DOM, decide the target was gone, and
+ * give up for good. Focus stayed on `<body>`. Nothing in the review changed to
+ * cause it; a state write added to the title bar was enough, which is what a
+ * one-shot check during a commit buys you.
+ *
+ * A microtask is late enough by construction: it runs once the task that
+ * committed the unmount has finished, so every render that task scheduled
+ * synchronously has already mutated the DOM. Waiting longer is not safer --
+ * it only widens the window in which this fights a surface the user has since
+ * opened -- and `focusIsUnclaimed` is what makes arriving late harmless rather
+ * than rude.
+ */
+export function useFocusReturnOnUnmount(target: HTMLElement | null): void {
+  const latest = useRef(target);
+
+  useEffect(() => {
+    latest.current = target;
+  }, [target]);
+
+  // Empty deps, deliberately. The cleanup has to mean "the surface is gone",
+  // and keying it on the target would also fire it whenever the target moved
+  // -- returning focus out of a surface that is still on screen.
+  useEffect(() => () => {
+    const returnTarget = latest.current;
+    /*
+     * Attempted twice, and the second attempt is not belt-and-braces.
+     *
+     * The immediate try is the ordinary path: nothing else has scheduled work,
+     * the DOM is settled, and focus lands before anything can observe it
+     * missing. Deferring unconditionally instead would leave focus on `<body>`
+     * for a microtask on every close -- unobservable to a person, but it is a
+     * real state the app passes through, and anything that samples focus in
+     * between reads it.
+     *
+     * The retry is for the case the immediate try cannot handle: a
+     * `useLayoutEffect` that writes state, anywhere in the shell, makes React
+     * flush this cleanup against a half-applied DOM, where the target can look
+     * disconnected and the attempt is dropped for good. A microtask runs after
+     * that task completes, so the DOM is whole by then.
+     *
+     * They compose safely because `focusIsUnclaimed` gates the retry: if the
+     * first attempt worked, focus is claimed and the retry does nothing.
+     */
+    const restore = () => {
+      if (!focusIsUnclaimed(document.activeElement)) return;
+      if (isFocusRestorable(returnTarget) && returnTarget !== null) returnTarget.focus();
+    };
+    restore();
+    queueMicrotask(restore);
+  }, []);
 }
