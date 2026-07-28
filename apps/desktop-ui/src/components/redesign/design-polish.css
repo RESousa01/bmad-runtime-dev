@@ -74,14 +74,6 @@
     background: var(--color-canvas);
   }
 
-  .task-workspace {
-    background: color-mix(
-      in srgb,
-      var(--color-canvas),
-      var(--color-surface) 3%
-    );
-  }
-
   .task-header {
     background: color-mix(
       in srgb,
@@ -91,21 +83,12 @@
     border-bottom-color: var(--color-border-subtle);
     box-shadow: 0 1px 0
       color-mix(in srgb, var(--color-surface), transparent 62%);
-    margin: 0;
-    padding: 18px 28px 16px;
-  }
-
-  .task-header__workspace > strong {
-    font-size: var(--text-input);
-    font-weight: 650;
   }
 
   .workspace-status {
     background: color-mix(in srgb, var(--color-surface), transparent 24%);
     border-color: var(--color-border-subtle);
-    border-radius: 999px;
     box-shadow: var(--shadow-control);
-    height: 26px;
     padding-inline: 9px;
   }
 
@@ -113,10 +96,6 @@
   .connection-state .status-dot,
   .agent-control__status .status-dot {
     box-shadow: 0 0 0 3px color-mix(in srgb, currentColor, transparent 88%);
-  }
-
-  .task-header__actions {
-    gap: 5px;
   }
 
   .task-header__actions .sapphirus-button {
@@ -133,7 +112,6 @@
   }
 
   .task-title-row {
-    gap: 11px;
     margin-top: 16px;
   }
 
@@ -141,12 +119,6 @@
     color: var(--color-accent-strong);
     font-size: var(--text-label);
     letter-spacing: var(--label-tracking);
-  }
-
-  .task-header h1 {
-    font-size: var(--text-display);
-    font-weight: 665;
-    letter-spacing: -0.032em;
   }
 
   /* 3a has no badges. "Browser preview" is a fact about the build, so it says
@@ -162,44 +134,23 @@
     text-transform: uppercase;
   }
 
-  .task-scroll-region {
-    padding: 26px 28px 18px;
-  }
-
   .preview-notice {
-    align-items: flex-start;
-    background: color-mix(
-      in srgb,
-      var(--color-surface-raised),
-      var(--color-accent-soft) 5%
-    );
     border-color: var(--color-border-subtle);
-    border-radius: var(--radius-overlay);
     box-shadow:
       inset 3px 0 0 color-mix(in srgb, var(--color-accent), transparent 18%),
       var(--shadow-control);
-    gap: 12px;
     margin-bottom: 30px;
-    max-width: min(1100px, calc(100% - 24px));
-    padding: 12px 14px 12px 16px;
   }
 
   .preview-notice strong {
-    font-size: var(--text-meta);
     line-height: 1.45;
     padding-top: 1px;
-  }
-
-  .preview-notice span {
-    font-size: var(--text-input);
-    line-height: 1.6;
   }
 
   .empty-session {
     animation: sapphirus-polish-rise-in 340ms cubic-bezier(0.2, 0.8, 0.2, 1)
       both;
     margin-top: min(12vh, 110px);
-    max-width: 540px;
   }
 
   .no-workspace-state__icon {
@@ -219,15 +170,8 @@
   }
 
   .empty-session h2 {
-    font-size: var(--text-display);
     font-weight: 670;
-    letter-spacing: -0.035em;
     margin-bottom: 12px;
-  }
-
-  .empty-session p {
-    font-size: var(--text-input);
-    line-height: 1.7;
   }
 
   .message {
@@ -280,21 +224,6 @@
     width: 100%;
   }
 
-  .composer:focus-within {
-    border-color: color-mix(
-      in srgb,
-      var(--color-accent),
-      var(--color-border) 30%
-    );
-    box-shadow:
-      0 0 0 3px color-mix(in srgb, var(--color-accent), transparent 86%),
-      0 18px 50px rgb(1 9 18 / 0.16);
-  }
-
-  .composer__input-row {
-    gap: 11px;
-  }
-
   .composer__input-row > .sapphirus-button.sapphirus-button--quiet {
     background: color-mix(in srgb, var(--color-surface), transparent 12%);
     border-color: var(--color-border-subtle);
@@ -317,20 +246,12 @@
   }
 
   .composer textarea {
-    font-size: var(--text-input);
-    line-height: 1.6;
-    min-height: 48px;
     padding-top: 5px;
-  }
-
-  .composer textarea::placeholder {
-    opacity: 0.76;
   }
 
   .composer__toolbar {
     border-top: 1px solid
       color-mix(in srgb, var(--color-border-subtle), transparent 20%);
-    margin-top: 10px;
     padding-top: 10px;
   }
 
@@ -448,12 +369,6 @@
     transform: translateY(-1px);
   }
 
-  .composer__availability {
-    font-size: var(--text-ui);
-    line-height: 1.5;
-    margin: 8px 3px 0;
-  }
-
   .attached-context {
     background: color-mix(in srgb, var(--color-accent-soft), transparent 72%);
     border: 1px solid color-mix(in srgb, var(--color-accent), transparent 78%);
@@ -539,10 +454,7 @@
   }
 
   .task-shell-layout__modal > .utility-panel.utility-panel--settings {
-    height: min(650px, calc(100dvh - 84px));
-    max-height: calc(100dvh - 84px);
     min-height: 0;
-    width: min(840px, 100%);
   }
 
   .utility-panel--settings .utility-panel__header {
@@ -551,14 +463,11 @@
       var(--color-surface),
       var(--color-chrome) 8%
     );
-    min-height: 68px;
     padding-inline: 25px 18px;
   }
 
   .utility-panel--settings .utility-panel__header h2 {
-    font-size: var(--text-title);
     font-weight: 680;
-    letter-spacing: -0.028em;
   }
 
   .utility-panel__header .sapphirus-button {
@@ -570,11 +479,6 @@
     border-color: var(--color-border-subtle);
   }
 
-  .settings-layout {
-    grid-template-columns: 205px minmax(0, 1fr);
-    height: calc(100% - 68px);
-  }
-
   .settings-nav {
     background: color-mix(
       in srgb,
@@ -582,17 +486,11 @@
       var(--color-surface) 14%
     );
     border-right-color: var(--color-border-subtle);
-    gap: 4px;
-    padding: 18px 13px;
   }
 
   .settings-nav .sapphirus-button {
     border: 1px solid transparent;
-    border-radius: var(--radius-overlay);
-    font-size: var(--text-body);
     gap: 10px;
-    min-height: 40px;
-    padding-inline: 12px;
     transition:
       background-color 150ms ease,
       border-color 150ms ease,
@@ -620,37 +518,18 @@
     font-weight: var(--fw-semibold);
   }
 
-  .settings-pane {
-    padding: 31px 36px 36px;
-  }
-
-  .settings-pane > section {
-    max-width: 540px;
-  }
-
-  .settings-pane__header {
-    margin-bottom: 6px;
-    padding-bottom: 20px;
-  }
-
   .settings-pane__header h3 {
-    font-size: var(--text-title);
     font-weight: 675;
-    letter-spacing: -0.025em;
   }
 
   .settings-pane__header p,
   .settings-pane__copy {
-    font-size: var(--text-input);
-    line-height: 1.6;
     margin-top: 7px;
   }
 
   .settings-row {
     border-radius: var(--radius-overlay);
     margin-inline: -11px;
-    min-height: 86px;
-    padding: 13px 11px;
     transition: background-color 150ms ease;
   }
 
@@ -659,13 +538,7 @@
   }
 
   .settings-row strong {
-    font-size: var(--text-body);
     letter-spacing: -0.006em;
-  }
-
-  .settings-row small {
-    font-size: var(--text-input);
-    line-height: 1.55;
   }
 
   /* The value at the end of a settings row is a value, not a tag. "Browser
@@ -684,17 +557,11 @@
   }
 
   .settings-choice-group legend {
-    font-size: var(--text-body);
     padding-bottom: 12px;
-  }
-
-  .settings-choice-group .preference-options {
-    gap: 10px;
   }
 
   .settings-choice-group .preference-option.sapphirus-button {
     border-radius: var(--radius-overlay);
-    min-height: 58px;
     padding-inline: 12px;
     transition:
       background-color 150ms ease,
@@ -722,19 +589,12 @@
       color-mix(in srgb, var(--color-accent), transparent 62%);
   }
 
-  .settings-choice-group .density-options {
-    gap: 10px;
-    max-width: 330px;
-  }
-
   .settings-choice-group .density-options .sapphirus-button,
   .settings-pane__action.sapphirus-button {
     border-radius: var(--radius-overlay);
   }
 
   .settings-pane__action.sapphirus-button {
-    margin-top: 22px;
-    min-height: 42px;
     padding-inline: 13px;
   }
 
@@ -748,24 +608,13 @@
   }
 
   .workspace-setting-summary {
-    background: color-mix(
-      in srgb,
-      var(--color-surface-raised),
-      var(--color-accent-soft) 4%
-    );
     border-color: var(--color-border-subtle);
-    border-radius: var(--radius-overlay);
     box-shadow: var(--shadow-control);
     margin-top: 23px;
-    padding: 14px;
   }
 
   .workspace-setting-summary strong {
     font-size: var(--text-body);
-  }
-
-  .account-summary {
-    padding: 22px;
   }
 
   .account-avatar {

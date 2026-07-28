@@ -69,7 +69,6 @@
 }
 
 .composer__input-row > .sapphirus-button {
-  flex: 0 0 auto;
   white-space: nowrap;
 }
 
@@ -180,7 +179,6 @@
   }
 
   .task-title-row {
-    display: grid;
     grid-template-columns: auto minmax(0, 1fr);
   }
 
