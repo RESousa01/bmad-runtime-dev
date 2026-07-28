@@ -1,0 +1,261 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-030-gaps",
+  "tasks": ["FND-030"],
+  "title": "Close three of the four gaps FND-028-031 left fail-closed: version two consent verification, a development version two receipt signer, and single-use streaming",
+  "state": "complete_local",
+  "completedAt": "2026-07-29T00:00:00Z",
+  "closes": [
+    "V2-CONSENT-VERIFIER",
+    "DEVELOPMENT-V2-RECEIPT-SIGNER",
+    "V2-IDEMPOTENCY-AND-CONSUMPTION"
+  ],
+  "deliberatelyNotAttempted": [
+    {
+      "id": "V2-EGRESS-MANIFEST-PREIMAGE",
+      "reason": "No canonical version two local-egress-manifest preimage exists in Rust. Defining one is a cross-language change in another lane, so the version two verifier compares manifestHash to localEgressManifestHash and says in its own documentation that this one binding stays a client-consistency check.",
+      "ownedBy": "packages/contracts, crates/desktop-cloud"
+    },
+    {
+      "id": "STREAM-FAILURE-CODE-COVERAGE",
+      "reason": "Adding a stream_invalid member to StreamFailureCode requires global contract regeneration, which is unsafe while other agents hold this checkout. The existing mapping is unchanged."
+    }
+  ],
+  "changedFiles": [
+    "services/desktop-support-api/Security/InstallationConsentVerifier.cs",
+    "services/desktop-support-api/DevelopmentAdapters.cs",
+    "services/desktop-support-api/Idempotency.cs",
+    "services/desktop-support-api/ConsentConsumption.cs",
+    "services/desktop-support-api/Sql/SqlIdempotencyStore.cs",
+    "services/desktop-support-api/Model/ModelStreamEndpoint.cs",
+    "services/desktop-support-api/Configuration/DevelopmentFoundryComposition.cs",
+    "services/desktop-support-api/Configuration/ProductionComposition.cs",
+    "services/desktop-support-api/Program.cs",
+    "services/desktop-support-api.Tests/Security/InstallationModelStreamConsentVerifierTests.cs",
+    "services/desktop-support-api.Tests/Security/DevelopmentModelReceiptSignerV2Tests.cs",
+    "services/desktop-support-api.Tests/Security/DevelopmentStreamCompositionTests.cs",
+    "services/desktop-support-api.Tests/Model/ModelStreamSingleUseTests.cs",
+    "services/desktop-support-api.Tests/Sql/SqlModelStreamIdempotencyTests.cs",
+    "artifacts/foundry/api/FND-030-gaps.json"
+  ],
+  "gapOne": {
+    "id": "V2-CONSENT-VERIFIER",
+    "type": "InstallationModelStreamConsentVerifier",
+    "livesBeside": "InstallationConsentVerifier, which is byte-for-byte unchanged",
+    "envelopePurposePreimage": "sapphirus:model-context-consent:v2\\n",
+    "signatureVerification": "Installation ES256 over the ASCII bytes of the recomputed envelope hash, identical to version one, including the key-hash and key-id equality checks.",
+    "signedDraftFields": [
+      "schemaVersion", "decisionId", "requestId", "invocationId", "deliveryModel",
+      "tenantHash", "subjectHash", "registrationId", "installationPublicKeyHash",
+      "entitlementLeaseId", "entitlementLeaseHash", "tenantPolicyId",
+      "tenantPolicyVersion", "tenantPolicyHash", "purpose", "modelRole",
+      "requestMode", "modelProfileId", "requestedVariantId", "catalogVersion",
+      "contextSnapshotId", "canonicalOutputSchemaId", "canonicalOutputSchemaHash",
+      "manifestHash", "invocationBindingHash", "consumptionHash",
+      "consentDisclosureHash", "providerProfileHash", "modelProfileHash",
+      "modelCapabilityHash", "region", "retentionMode", "budgetClass",
+      "issuedAt", "notBefore", "expiresAt", "nonceHash"
+    ],
+    "requestAgreementChecked": [
+      "requestId", "registrationId", "deliveryModel", "purpose", "modelRole",
+      "requestMode", "modelProfileId", "requestedVariantId", "catalogVersion",
+      "contextSnapshotId", "canonicalOutputSchemaId", "canonicalOutputSchemaHash",
+      "modelProfileHash", "modelCapabilityHash", "manifestHash", "retentionMode",
+      "budgetClass"
+    ],
+    "notes": [
+      "Nullable draft members are written as JSON null rather than omitted, so an absent variant and the literal string null are different preimages.",
+      "The request-agreement comparison is performed by the verifier itself, not only by RequestGuards.ValidateStreamRequest, so a validly signed decision presented with a different request is refused by this type on its own.",
+      "Version one, its draft, its verifier, and the cross-language golden vector EXPECTED_ENVELOPE_HASH shared with crates/desktop-cloud/tests/consent_envelope_vector.rs were not touched; InstallationConsentVerifierTests still reports 22 passed."
+    ]
+  },
+  "gapTwo": {
+    "id": "DEVELOPMENT-V2-RECEIPT-SIGNER",
+    "type": "DevelopmentModelReceiptSignerV2",
+    "gatedOn": "SupportPlaneOptions.DevelopmentSigningEnabled, the same flag DevelopmentModelReceiptSigner uses",
+    "distinguishability": [
+      "The server-computed ResolvedReceiptBinding is copied through untouched and never recomputed, so credentialBindingHash and providerProfileHash keep the development_api_key mechanism ModelReceiptBinding folded into them.",
+      "The proof signature is base64url of the marker 'development-model-receipt-unsigned:' followed by the receipt digest. Its decoded length is 67 bytes, never the 64 an IEEE P-1363 r||s pair requires, so production ES256 verification fails at the length check before any curve arithmetic.",
+      "The proof issuer is https://development.invalid/ and the key id is development-model-receipt-key-not-production; neither names a Key Vault key.",
+      "The receipt hash is the real canonical model-access-receipt-v2 digest, so a development receipt is still internally consistent and still fails ModelResultGuards.ValidateReceiptV2 when edited."
+    ],
+    "requiredTest": "DevelopmentModelReceiptSignerV2Tests.A_development_signed_receipt_fails_production_verification, with A_production_signed_receipt_verifies_under_the_production_key as the control that the same verification accepts a vault-signed receipt.",
+    "compositionAdded": [
+      "Program.cs Development: IModelReceiptSignerV2 -> DevelopmentModelReceiptSignerV2, beside the existing version one registration.",
+      "DevelopmentFoundryComposition: ModelStreamingCoordinator and IModelStreamRouteResolver, composed exactly as ProductionComposition composes them, with the credential mechanism read from the Responses executor rather than hard-coded."
+    ]
+  },
+  "gapThree": {
+    "id": "V2-IDEMPOTENCY-AND-CONSUMPTION",
+    "seamAdded": "IModelStreamIdempotencyStore, with MemoryModelStreamIdempotencyStore (Idempotency.cs) and SqlModelStreamIdempotencyStore (Sql/SqlIdempotencyStore.cs)",
+    "whyASeparateSeam": "IModelCallIdempotencyStore is shaped around an acquire-then-commit callback pair returning ModelAccessResult. A stream's provider egress happens while the response body is written, after the route has returned, and its outcome is a version two receipt, so the reservation and the completion had to be split.",
+    "ordering": "validate -> active registration -> verify consent -> resolve route -> reserve idempotency -> consume consent -> open the provider stream. This is the ordering ModelAccessCoordinator already applies, including that consent is consumed before egress and is never restored by a provider failure.",
+    "idempotencyKey": "The Idempotency-Key header when supplied, otherwise the request identifier, which is what crates/desktop-cloud/src/transport.rs already sends as the idempotency key for a model call. Deriving rather than requiring means an omitted header can never produce an unreserved provider call.",
+    "failureBehaviour": {
+      "cancelled": "Terminal cancelled event, no receipt, claim left started; a retry under the same key answers model_call_uncertain (409).",
+      "disconnected": "Identical to cancelled; the completion write, when it happens, uses CancellationToken.None so a hung-up desktop cannot suppress the record.",
+      "providerFailure": "Terminal failed event, no receipt, claim left started; the consumed consent is not restored.",
+      "completed": "Completion marker recorded; a retry answers model_call_already_completed (409) exposing only receiptId, requestHash, and resultHash.",
+      "differentRequestSameKey": "IdempotencyConflictException -> idempotency_conflict (409), raised before any egress."
+    },
+    "migrationRequired": false,
+    "migrationRationale": "The streaming reservation reuses dbo.desktop_model_call_idempotency. Its row shape is already exactly right — subject-partitioned key, request fingerprint, started/completed state, receipt marker, no payload — and sharing it means one idempotency key can never fund both a structured call and a stream because the fingerprints differ. The forward-only migration history stays at 0001_support_authority.sql and SqlMigrationRunner was not modified.",
+    "sqlBehaviourDifference": "SqlModelStreamIdempotencyStore never releases a claim. SqlModelCallIdempotencyStore releases when acquisition fails before any commit, which is safe there because nothing was spent; here consent is consumed before the reservation is used, so releasing would hand the key back over consent that is already gone.",
+    "consentStoreSeam": "IContextConsentConsumptionStore needed no type change. It was already version agnostic: ContextConsentConsumptionRequest carries plain subject, registration, decision, request, consumption-hash, and instant values, so the version two request satisfies it unchanged. This differs from the plan's description of it as version-one-typed."
+  },
+  "compositionChanges": [
+    {
+      "surface": "Program.cs, all environments",
+      "change": "IModelStreamConsentVerifier now resolves to InstallationModelStreamConsentVerifier instead of UnavailableModelStreamConsentVerifier. The unavailable type is retained as the fail-closed stand-in for any composition that has no verifier at all."
+    },
+    {
+      "surface": "Program.cs, Development",
+      "change": "IContextConsentConsumptionStore defaults to the new MemoryContextConsentConsumptionStore instead of UnavailableContextConsentConsumptionStore when Sapphirus:DevelopmentConsentStorePath is unset. Production composes SqlConsentConsumptionStore unconditionally, so the unavailable default protected nothing there; it only made a local model call impossible to complete. The file store is still used, and still preferred, whenever the path is configured.",
+      "riskAccepted": "A Development run now enforces single use for the lifetime of the process rather than refusing outright. Restart-durable single use requires the store path; cross-replica single use is Production and unchanged."
+    },
+    {
+      "surface": "Program.cs, Development",
+      "change": "IModelStreamIdempotencyStore -> MemoryModelStreamIdempotencyStore, bounded by the same IdempotencyMaximumEntries and IdempotencyRetentionMinutes the model-call store uses."
+    },
+    {
+      "surface": "ProductionComposition",
+      "change": "IModelStreamIdempotencyStore -> SqlModelStreamIdempotencyStore."
+    },
+    {
+      "surface": "ModelStreamEndpoint",
+      "change": "The uncomposed-dependency refusal now also covers the reservation store and the consent consumption store, so a plane missing either answers foundry_project_unavailable rather than streaming unreserved."
+    }
+  ],
+  "problemVocabularyUsed": [
+    "model_call_already_completed",
+    "model_call_uncertain",
+    "consent_already_consumed",
+    "consent_consumption_unavailable",
+    "idempotency_conflict",
+    "foundry_project_unavailable"
+  ],
+  "problemVocabularyAdded": [],
+  "contractChangesMade": 0,
+  "commands": [
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release",
+      "phase": "baseline",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "670 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet build services/desktop-support-api/Sapphirus.DesktopSupportApi.csproj -c Release",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "0 warnings, 0 errors under TreatWarningsAsErrors and Nullable=enable."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*InstallationConsentVerifierTests*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "22 passed, 0 failed, 0 skipped; the version one golden vector is intact."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*InstallationModelStreamConsentVerifier*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "43 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*DevelopmentModelReceiptSignerV2*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "10 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*DevelopmentStreamComposition*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "6 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*ModelStreamSingleUse*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "14 passed, 0 failed, 0 skipped; includes end-to-end runs over the fixed route that count provider calls."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*SqlModelStreamIdempotency*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "7 passed, 0 failed, 0 skipped against a real LocalDB database with the embedded migrations applied."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*ModelStreamEndpointTests*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "6 passed, 0 failed, 0 skipped; unchanged by the new stages."
+    },
+    {
+      "command": "dotnet test ... -- --filter-class \"*ModelAccessCoordinator*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "6 passed, 0 failed, 0 skipped; the structured path is unchanged."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release",
+      "phase": "final",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "750 passed, 0 failed, 0 skipped; the 670-test baseline is intact and 80 tests were added. Run eight times: six runs reported 750 passed, and two reported 749 passed with one failure, always in SupportPlaneModelTelemetryTests. See preExistingFlake."
+    },
+    {
+      "command": "dotnet restore Sapphirus.slnx --locked-mode",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Locked restore succeeded; neither packages.lock.json changed, because no PackageReference was added."
+    },
+    {
+      "command": "node tools/check-secrets.mjs",
+      "exitCode": 1,
+      "classification": "blocked_external",
+      "result": "Two findings, both pre-existing and both outside this lease: crates/desktop-runtime/tests/bmad_config.rs (literal secret assignment) and packages/bmad-foundation/source/method/6.10.0/test/test-installer-channels.js (C0 control byte). Neither is in a file this task touched; the one synthetic credential added here uses the allowlisted must-not-cross- spelling."
+    }
+  ],
+  "preExistingFlake": {
+    "tests": [
+      "services/desktop-support-api.Tests/Model/SupportPlaneModelTelemetryTests.cs::Reported_usage_records_only_the_categories_the_provider_named",
+      "services/desktop-support-api.Tests/Model/SupportPlaneModelTelemetryTests.cs::Unavailable_usage_records_nothing_rather_than_a_free_zero"
+    ],
+    "cause": "SupportPlaneModelTelemetryTests.CreateListener enables measurement events for every instrument whose meter is named Sapphirus.DesktopSupport, process-wide rather than only its own SupportPlaneTelemetry, and appends to a plain List<T>. PrivacyTelemetryTests runs in a different class, therefore in parallel, and records long measurements on its own SupportPlaneTelemetry. The listener receives them, so the list is mutated concurrently and picks up foreign measurements: one test loses the entry it asserts is present, the other observes a usage measurement it never made.",
+    "provenPreExisting": "Both classes are outside this task's lease and neither was modified. With all five new test files temporarily removed from compilation, the full suite passed eight consecutive runs at 670, while running only --filter-class \"*Telemetry*\" — that is, the two pre-existing telemetry classes alone — failed on twelve of twenty runs. The added tests change scheduling and therefore how often the race is observed; they do not record any measurement on that meter.",
+    "notFixedHere": "Both files are outside the lease for this task, and fixing the race means giving the listener a per-instance meter filter and a thread-safe collection, which is a change to tests this task must not edit."
+  },
+  "developmentEndToEndReadiness": {
+    "canStream": "yes, subject to operator configuration",
+    "requiredConfiguration": [
+      "Sapphirus__FoundryProjectEndpoint set to the real project endpoint, in the canonical https://<account>.services.ai.azure.com/api/projects/<project> form the same validator Production uses accepts",
+      "Sapphirus__FoundryDevelopmentApiKey set to the project API key",
+      "Sapphirus__DevelopmentSigningEnabled set to true, or the development version two signer refuses at signing time exactly as the version one signer does",
+      "Sapphirus__DevelopmentConsentStorePath set to a fully qualified directory if single use must survive a host restart; otherwise single use is process-lifetime only"
+    ],
+    "unverifiableLocally": [
+      "No real Foundry project, endpoint, or key was available in this environment, so the wire was exercised only against the canonical fixtures and the fake server. Whether the operator's project answers the Responses surface under the api-key header is unchanged by this task and was already measured under FND-028-031.",
+      "The desktop client does not yet call the streaming route, so the end-to-end path was proved through the real endpoint, coordinator, normalizer, and receipt signer over an in-process HTTP client rather than from the Windows app."
+    ]
+  },
+  "planRepositoryDiscrepancies": [
+    {
+      "item": "IContextConsentConsumptionStore was described as version-one-typed.",
+      "finding": "It is already version agnostic; ContextConsentConsumptionRequest carries only plain strings and an instant. No type change was needed, only wiring it into the streaming path."
+    },
+    {
+      "item": "The plan allowed for a SQL migration following the 0001_support_authority.sql convention.",
+      "finding": "None was required. dbo.desktop_model_call_idempotency already has the exact shape a streaming reservation needs, and reusing it additionally prevents one key from funding both a structured call and a stream. SqlMigrationRunner was not modified."
+    },
+    {
+      "item": "The lease named Sql/SqlIdempotencyStore.cs and Sql/SqlConsentConsumptionStore.cs but not Sql/SqlModelCallIdempotencyStore.cs.",
+      "finding": "Extending IModelCallIdempotencyStore itself would have required editing the unleased file, so the streaming reservation is a separate seam and its SQL implementation lives in Sql/SqlIdempotencyStore.cs. SqlModelCallIdempotencyStore.cs is untouched."
+    },
+    {
+      "item": "The lease did not include services/desktop-support-api.Tests/Model/ModelStreamEndpointTests.cs.",
+      "finding": "Its factory composes a Development host without a consent store path, so enforcing consent consumption unconditionally would have failed its successful-stream test. Rather than weaken the enforcement or edit an unleased test, the Development default consent store was changed from unavailable to the process-lifetime memory store, which is a composition change in a branch that cannot execute outside Development. All six of that class's tests still pass unmodified."
+    }
+  ]
+}

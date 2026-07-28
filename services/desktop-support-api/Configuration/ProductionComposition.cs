@@ -175,9 +175,18 @@ public static class ProductionComposition
         builder.Services.AddSingleton<IModelCallIdempotencyStore>(provider =>
             new SqlModelCallIdempotencyStore(
                 provider.GetRequiredService<SqlConnectionFactory>()));
+        // Streaming reservations share the model-call table, so no migration is
+        // required; the fingerprint check means one key can never fund both a
+        // structured call and a stream.
+        builder.Services.AddSingleton<IModelStreamIdempotencyStore>(provider =>
+            new SqlModelStreamIdempotencyStore(
+                provider.GetRequiredService<SqlConnectionFactory>()));
         builder.Services.AddSingleton<IContextConsentConsumptionStore>(provider =>
             new SqlConsentConsumptionStore(
                 provider.GetRequiredService<SqlConnectionFactory>()));
+        // The version two stream consent verifier is composed once, for every
+        // environment, in Program.cs; it needs no Azure resource, so there is
+        // nothing environment-specific to register here.
         builder.Services.AddSingleton<IContextConsentVerifier>(
             new Security.InstallationConsentVerifier(TimeProvider.System));
 

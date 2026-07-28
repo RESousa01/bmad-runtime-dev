@@ -98,13 +98,16 @@ builder.Services.AddRateLimiter(rateLimiter =>
 builder.Services.AddSingleton(options);
 builder.Services.AddSingleton<Sapphirus.DesktopSupportApi.Observability.SupportPlaneTelemetry>();
 
-// The streaming route's consent verifier fails closed by default. Version two
-// installation-key verification has no provider yet, and a model-egress route
-// must never read "cannot verify" as "verified", so the route refuses until a
-// real verifier is composed over it.
+// The streaming route's version two consent verifier. It verifies the
+// installation ES256 proof over the version two envelope exactly as the version
+// one verifier does over its own, and additionally requires the decision and the
+// request to agree on profile, catalog epoch, variant, request mode, context
+// snapshot, and output schema. UnavailableModelStreamConsentVerifier remains the
+// fail-closed stand-in for any composition that has no verifier at all.
 builder.Services.AddSingleton<
-    Sapphirus.DesktopSupportApi.Model.IModelStreamConsentVerifier,
-    Sapphirus.DesktopSupportApi.Model.UnavailableModelStreamConsentVerifier>();
+    Sapphirus.DesktopSupportApi.Model.IModelStreamConsentVerifier>(
+    new Sapphirus.DesktopSupportApi.Security.InstallationModelStreamConsentVerifier(
+        TimeProvider.System));
 builder.Services.AddSingleton(provider =>
     new Sapphirus.DesktopSupportApi.Model.ModelAccessCoordinator(
         provider.GetRequiredService<IDeviceRegistry>(),
@@ -132,15 +135,28 @@ if (builder.Environment.IsDevelopment())
             options.IdempotencyMaximumEntries,
             TimeSpan.FromMinutes(options.IdempotencyRetentionMinutes),
             TimeProvider.System));
+    builder.Services.AddSingleton<IModelStreamIdempotencyStore>(_ =>
+        new MemoryModelStreamIdempotencyStore(
+            options.IdempotencyMaximumEntries,
+            TimeSpan.FromMinutes(options.IdempotencyRetentionMinutes),
+            TimeProvider.System));
     builder.Services.AddSingleton<ISignedPolicyService, DevelopmentSignedPolicyService>();
     builder.Services.AddSingleton<IModelReceiptSigner, DevelopmentModelReceiptSigner>();
+    // Beside the version one signer and gated on the same flag. Without it the
+    // streaming coordinator cannot be composed at all, which is what previously
+    // made Development answer foundry_project_unavailable to every stream.
+    builder.Services.AddSingleton<IModelReceiptSignerV2, DevelopmentModelReceiptSignerV2>();
     builder.Services.AddSingleton<IModelAccessBroker, DevelopmentModelAccessBroker>();
     builder.Services.AddSingleton<IContextConsentVerifier>(
         new Sapphirus.DesktopSupportApi.Security.InstallationConsentVerifier(TimeProvider.System));
+    // Durable across restarts when the operator names a store path; otherwise
+    // single-use for the lifetime of this process. Production composes the SQL
+    // authority unconditionally, so the previous unavailable default protected
+    // nothing there and only made a local model call impossible to complete.
     builder.Services.AddSingleton<IContextConsentConsumptionStore>(_ =>
         !string.IsNullOrWhiteSpace(options.DevelopmentConsentStorePath)
         ? new DevelopmentFileContextConsentConsumptionStore(options.DevelopmentConsentStorePath)
-        : new UnavailableContextConsentConsumptionStore());
+        : new MemoryContextConsentConsumptionStore());
 
     // Model catalog (FND-024..FND-026) in Development.
     //

@@ -213,6 +213,22 @@ public static class ModelStreamEndpoint
             .DisableAntiforgery();
     }
 
+    /// <summary>
+    /// Handles one streaming request through explicit stages: validate -> load
+    /// active registration -> verify consent -> resolve route -> reserve
+    /// idempotency -> consume consent -> open the provider stream. The last two
+    /// orderings are the ones that matter, and they are the same ones
+    /// <see cref="ModelAccessCoordinator"/> applies to the structured path:
+    /// consent is consumed before provider egress, and a provider failure never
+    /// restores it.
+    ///
+    /// <para>
+    /// Everything that can refuse does so here, before the response body opens,
+    /// so a refusal is still an RFC 7807 problem document. Once
+    /// <see cref="ModelStreamResult"/> begins writing, the only way to report a
+    /// failure is a terminal stream event.
+    /// </para>
+    /// </summary>
     internal static async Task<IResult> HandleAsync(
         ModelAccessRequestV2 request,
         HttpContext context,
@@ -220,6 +236,9 @@ public static class ModelStreamEndpoint
         [FromServices] IModelStreamConsentVerifier consentVerifier,
         [FromServices] IModelStreamRouteResolver? routeResolver,
         [FromServices] ModelStreamingCoordinator? coordinator,
+        [FromServices] IModelStreamIdempotencyStore? idempotency,
+        [FromServices] IContextConsentConsumptionStore? consentConsumption,
+        [FromServices] TimeProvider? timeProvider,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -228,9 +247,13 @@ public static class ModelStreamEndpoint
         {
             return Problem(errorCode, StatusCodes.Status400BadRequest);
         }
-        if (routeResolver is null || coordinator is null)
+        if (routeResolver is null
+            || coordinator is null
+            || idempotency is null
+            || consentConsumption is null)
         {
-            // The Foundry adapter is not composed in this environment. Saying
+            // The Foundry adapter, or the single-use authority a model call
+            // cannot run without, is not composed in this environment. Saying
             // so is more useful than a five hundred, and it is the truth: the
             // project surface is unavailable to this process.
             return Problem(
@@ -272,6 +295,54 @@ public static class ModelStreamEndpoint
             return Problem(code, status);
         }
 
+        // Stage: reserve the run. A key that already produced a receipt replays
+        // the safe completion marker; a key whose prior run never recorded an
+        // outcome is terminal uncertainty, because that run's consent was
+        // consumed before egress and cannot fund a second provider call.
+        string idempotencyKey = StreamIdempotencyKey(context.Request, request);
+        ModelStreamReservation reservation = await idempotency
+            .ReserveAsync(
+                subject,
+                idempotencyKey,
+                RequestGuards.Fingerprint(request),
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (reservation.PriorCompletion is ModelCallCompletionMarker completion)
+        {
+            return AlreadyCompleted(completion);
+        }
+        if (reservation.State == ModelStreamReservationState.Uncertain)
+        {
+            return Problem(
+                SupportProblemCodes.ModelCallUncertain,
+                StatusCodes.Status409Conflict);
+        }
+
+        // Stage: consume consent. This happens before the provider stream is
+        // opened, and nothing downstream restores it — not a provider failure,
+        // not a cancelled read, not a desktop that hangs up mid-answer.
+        ContextConsentConsumption consumption = await consentConsumption
+            .ConsumeAsync(
+                new ContextConsentConsumptionRequest(
+                    subject,
+                    request.RegistrationId,
+                    request.Consent.DecisionId,
+                    request.RequestId,
+                    request.Consent.ConsumptionHash,
+                    (timeProvider ?? TimeProvider.System).GetUtcNow()),
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (consumption == ContextConsentConsumption.Unavailable)
+        {
+            return Problem(
+                "consent_consumption_unavailable",
+                StatusCodes.Status503ServiceUnavailable);
+        }
+        if (consumption == ContextConsentConsumption.AlreadyConsumed)
+        {
+            return Problem("consent_already_consumed", StatusCodes.Status409Conflict);
+        }
+
         ResolvedModelRoute route = resolution.Route!;
         ModelStreamCall call = new(
             subject,
@@ -285,8 +356,52 @@ public static class ModelStreamEndpoint
             request.BudgetClass,
             request.RequestedVariantId);
 
-        return new ModelStreamResult(call, coordinator, device);
+        return new ModelStreamResult(
+            call,
+            coordinator,
+            device,
+            idempotency,
+            subject,
+            idempotencyKey);
     }
+
+    /// <summary>
+    /// The single-use key for one streaming run.
+    ///
+    /// <para>
+    /// A supplied <c>Idempotency-Key</c> header wins, which keeps this route's
+    /// posture identical to <c>POST /desktop/v1/model-access/calls</c>. Absent
+    /// one, the request identifier is the key — which is exactly what the
+    /// desktop client already sends as its idempotency key for a model call
+    /// (see <c>crates/desktop-cloud/src/transport.rs</c>). Deriving rather than
+    /// requiring means a request can never reach the provider unreserved just
+    /// because a header was omitted, and the consent binding already forces the
+    /// request identifier and the decision's to agree, so the derived key is
+    /// authority the caller could not have widened.
+    /// </para>
+    /// </summary>
+    internal static string StreamIdempotencyKey(
+        HttpRequest httpRequest,
+        ModelAccessRequestV2 request) =>
+        RequestGuards.IdempotencyKey(httpRequest) ?? request.RequestId;
+
+    /// <summary>
+    /// The replay answer. It exposes only the completion marker — never the
+    /// transcript, which was never stored, and never the receipt body.
+    /// </summary>
+    private static IResult AlreadyCompleted(ModelCallCompletionMarker completion) =>
+        Results.Json(
+            new
+            {
+                type = "https://errors.sapphirus.invalid/model_call_already_completed",
+                title = "The model call already completed.",
+                status = StatusCodes.Status409Conflict,
+                code = "model_call_already_completed",
+                receiptId = completion.ReceiptId,
+                requestHash = completion.RequestHash,
+                resultHash = completion.ResultHash,
+            },
+            statusCode: StatusCodes.Status409Conflict);
 
     /// <summary>
     /// Lifts the authorization facts a receipt binds itself to. The request
@@ -422,7 +537,10 @@ public static class ModelStreamEndpoint
     private sealed class ModelStreamResult(
         ModelStreamCall call,
         ModelStreamingCoordinator coordinator,
-        ActiveDeviceRegistration device) : IResult
+        ActiveDeviceRegistration device,
+        IModelStreamIdempotencyStore idempotency,
+        string subject,
+        string idempotencyKey) : IResult
     {
         public async Task ExecuteAsync(HttpContext httpContext)
         {
@@ -439,9 +557,41 @@ public static class ModelStreamEndpoint
                     httpContext.RequestAborted,
                     device.RevocationToken);
             HttpResponseStreamSink sink = new(httpContext.Response);
-            await coordinator
+            ModelStreamRunResult run = await coordinator
                 .RunAsync(call, sink, operationCancellation.Token)
                 .ConfigureAwait(false);
+
+            // Only a run that produced a signed receipt records an outcome. A
+            // cancelled, disconnected, refused, or failed run deliberately
+            // leaves its claim started, so a retry under the same key is told
+            // the outcome is uncertain rather than being handed a fresh
+            // reservation over consent that has already been spent.
+            if (run.Receipt is not ModelAccessReceiptV2 receipt)
+            {
+                return;
+            }
+            try
+            {
+                // The desktop may already be gone; the call still happened, so
+                // the token here is deliberately not the request's.
+                await idempotency
+                    .CompleteAsync(
+                        subject,
+                        idempotencyKey,
+                        new ModelCallCompletionMarker(
+                            receipt.ReceiptId,
+                            receipt.RequestHash,
+                            receipt.ResultHash),
+                        CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // The stream was already delivered in full, so there is no
+                // status code left to change. Leaving the claim started is the
+                // fail-closed direction: the next call under this key reports
+                // uncertainty rather than funding a second provider call.
+            }
         }
     }
 

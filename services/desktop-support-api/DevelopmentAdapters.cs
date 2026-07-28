@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Sapphirus.DesktopSupportApi.Policy;
+using Sapphirus.DesktopSupportApi.Signing;
 
 namespace Sapphirus.DesktopSupportApi;
 
@@ -135,6 +137,215 @@ public sealed class DevelopmentModelReceiptSigner(SupportPlaneOptions options) :
             result.PayloadJson,
             result.PayloadHash,
             receipt));
+    }
+
+    private static string Hash(string value) => "sha256:" + Convert.ToHexStringLower(
+        SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+}
+
+/// <summary>
+/// The development version two receipt signer. It exists beside
+/// <see cref="DevelopmentModelReceiptSigner"/>, is gated on the same
+/// <see cref="SupportPlaneOptions.DevelopmentSigningEnabled"/> flag, and is what
+/// lets a local run with a real project endpoint and the development API key
+/// actually complete a streaming call instead of stopping at an uncomposed
+/// signer.
+///
+/// <para>
+/// A development receipt must stay trivially distinguishable from a production
+/// one, and three independent things make it so.
+/// </para>
+/// <para>
+/// First, the credential mechanism is already folded into
+/// <c>credentialBindingHash</c> by
+/// <see cref="ModelReceiptBinding.ComputeCredentialBindingHash"/>. This signer
+/// copies the server-computed binding through untouched and never recomputes or
+/// substitutes it, so a receipt produced under the development API key carries a
+/// different credential binding from a byte-identical managed-identity call.
+/// </para>
+/// <para>
+/// Second, the proof carries a development issuer and key identifier that name
+/// no Key Vault key and resolve to nothing.
+/// </para>
+/// <para>
+/// Third, and load bearing, the proof's signature is not a signature. It is the
+/// base64url of a domain-separated marker followed by the receipt digest, which
+/// is <see cref="ProofMarker"/>'s length plus thirty-two bytes and therefore can
+/// never decode to the sixty-byte-plus-four IEEE P-1363 <c>r||s</c> pair an
+/// ES256 verification requires. Production verification of a development receipt
+/// fails at the length check before any curve arithmetic happens; it cannot
+/// accidentally succeed.
+/// </para>
+/// <para>
+/// The receipt hash itself is the real canonical version two digest, so a
+/// development receipt is still internally consistent and still fails
+/// <c>ModelResultGuards.ValidateReceiptV2</c> if anything about it is edited.
+/// Being honest about the body while being unmistakable about the proof is the
+/// point.
+/// </para>
+/// </summary>
+public sealed class DevelopmentModelReceiptSignerV2(SupportPlaneOptions options)
+    : IModelReceiptSignerV2
+{
+    /// <summary>
+    /// The domain-separated marker the development proof carries instead of a
+    /// signature. It is prepended to the receipt digest, so the encoded value
+    /// has neither the length nor the shape of an ES256 signature.
+    /// </summary>
+    internal const string ProofMarker = "development-model-receipt-unsigned:";
+
+    /// <summary>An issuer that resolves to nothing.</summary>
+    internal const string ProofIssuer = "https://development.invalid/";
+
+    /// <summary>A key identifier that names no Key Vault key.</summary>
+    internal const string ProofKeyId = "development-model-receipt-key-not-production";
+
+    public Task<ModelAccessReceiptV2> SignAsync(
+        string subject,
+        ModelReceiptAuthorization authorization,
+        UnsignedModelAccessResultV2 result,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentException.ThrowIfNullOrWhiteSpace(subject);
+        ArgumentNullException.ThrowIfNull(authorization);
+        ArgumentNullException.ThrowIfNull(result);
+        if (!options.DevelopmentSigningEnabled)
+        {
+            throw new InvalidOperationException(
+                "A production model-receipt signing provider is not configured.");
+        }
+        if (!string.Equals(Hash(result.PayloadJson), result.PayloadHash, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The unsigned model result did not match its declared payload hash.");
+        }
+
+        // The same eligibility rule the vault signer applies. Only a succeeded,
+        // fully bound result may carry a receipt at all, in Development too.
+        if (result.TerminalStatus != ModelTerminalStatuses.Succeeded
+            || !ContractIds.Is(result.RunId, "run")
+            || !RequestGuards.IsSha256(result.Binding.CredentialBindingHash)
+            || !RequestGuards.IsSha256(result.Binding.ProviderProfileHash)
+            || !RequestGuards.IsSha256(result.Binding.ModelProfileHash)
+            || !RequestGuards.IsSha256(result.Binding.ModelCapabilityHash)
+            || !RequestGuards.IsSha256(result.Binding.ResolvedProfileHash)
+            || !RequestGuards.IsSha256(result.Binding.CatalogHash)
+            || !RequestGuards.IsSha256(result.Binding.DeploymentInventoryHash)
+            || !RequestGuards.IsSha256(result.Binding.ResolvedDeploymentHash))
+        {
+            throw new InvalidOperationException(
+                "The unsigned model result is not eligible for a signed receipt.");
+        }
+
+        ModelAccessReceiptV2 unsignedReceipt = new(
+            ModelAccessReceiptV2.SchemaVersionValue,
+            ContractIds.FromEntropy("receipt", RandomNumberGenerator.GetBytes(16)),
+            authorization.RequestId,
+            result.RunId,
+            authorization.RequestHash,
+            result.PayloadHash,
+            "windows_local",
+            authorization.TenantHash,
+            authorization.SubjectHash,
+            authorization.RegistrationId,
+            authorization.ManifestHash,
+            authorization.InvocationBindingHash,
+            authorization.ConsumptionHash,
+            authorization.ConsentEnvelopeHash,
+            authorization.ConsentDisclosureHash,
+            // Copied through, never recomputed: the credential mechanism the
+            // call actually used is already inside these server-side hashes.
+            result.Binding.ProviderProfileHash,
+            result.Binding.ModelProfileHash,
+            result.Binding.ModelCapabilityHash,
+            result.ResponseLane,
+            result.RequestedProfileId,
+            result.Binding.ResolvedProfileId,
+            result.Binding.ResolvedProfileHash,
+            result.RequestedVariantId,
+            result.Binding.ResolvedVariantId,
+            result.Binding.CatalogVersion,
+            result.Binding.CatalogHash,
+            result.Binding.DeploymentInventoryHash,
+            result.Binding.ResolvedDeploymentHash,
+            result.Binding.ResolvedModel,
+            result.ReportedResponseModel,
+            result.Binding.CredentialBindingHash,
+            authorization.RetentionMode,
+            result.Binding.Region,
+            authorization.InputBytes,
+            result.OutputBytes,
+            result.Usage,
+            result.RetryCount,
+            result.FallbackEvents,
+            result.ProviderRequestId,
+            result.StartedAt,
+            result.CompletedAt,
+            result.TerminalStatus,
+            "",
+            new ModelAccessReceiptProof("", "", "", "", "", "", ""));
+
+        // The real canonical digest, computed by the production code path, so a
+        // development receipt is internally consistent and any edit to it is
+        // still detectable.
+        byte[] digest = AzureModelReceiptSigner.ComputeReceiptDigestV2(unsignedReceipt);
+        string receiptHash = CanonicalProof.Render(digest);
+        return Task.FromResult(unsignedReceipt with
+        {
+            ReceiptHash = receiptHash,
+            Proof = new ModelAccessReceiptProof(
+                "support_plane_signature",
+                "ES256",
+                ProofIssuer,
+                options.Audience,
+                ProofKeyId,
+                receiptHash,
+                RenderDevelopmentProof(digest)),
+        });
+    }
+
+    /// <summary>
+    /// The development proof value: base64url of <see cref="ProofMarker"/>
+    /// followed by the receipt digest. Its decoded length is the marker length
+    /// plus thirty-two, never sixty-four, so no ES256 verification can consume
+    /// it as an <c>r||s</c> pair.
+    /// </summary>
+    internal static string RenderDevelopmentProof(byte[] digest)
+    {
+        ArgumentNullException.ThrowIfNull(digest);
+        byte[] marker = Encoding.ASCII.GetBytes(ProofMarker);
+        byte[] value = new byte[marker.Length + digest.Length];
+        marker.CopyTo(value, 0);
+        digest.CopyTo(value, marker.Length);
+        return Convert.ToBase64String(value)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+    }
+
+    /// <summary>
+    /// Whether a proof is a development marker rather than a vault signature.
+    /// It exists so an audit — or a test — can assert the distinction without
+    /// re-spelling the marker.
+    /// </summary>
+    internal static bool IsDevelopmentProof(ModelAccessReceiptProof? proof)
+    {
+        if (proof is null || string.IsNullOrEmpty(proof.Signature))
+        {
+            return false;
+        }
+        try
+        {
+            byte[] decoded = Security.InstallationPublicKey.DecodeBase64Url(proof.Signature);
+            byte[] marker = Encoding.ASCII.GetBytes(ProofMarker);
+            return decoded.Length == marker.Length + 32
+                && decoded.AsSpan(0, marker.Length).SequenceEqual(marker);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 
     private static string Hash(string value) => "sha256:" + Convert.ToHexStringLower(

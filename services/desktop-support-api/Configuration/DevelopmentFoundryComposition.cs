@@ -162,6 +162,36 @@ public static class DevelopmentFoundryComposition
         services.AddSingleton<IModelStreamTransport>(provider =>
             provider.GetRequiredService<FoundryResponsesProviderExecutor>());
 
+        // The streaming surface, composed exactly as Production composes it.
+        //
+        // Without these two registrations the route answered
+        // foundry_project_unavailable even with a real project endpoint and a
+        // valid development key, because the coordinator and the route resolver
+        // are what the endpoint checks for before it will stream at all.
+        //
+        // The credential mechanism handed to the coordinator is read from the
+        // executor rather than hard-coded, so it is the mechanism the transport
+        // will actually use. It is folded into every receipt's
+        // credential-binding hash, which is what keeps a development receipt
+        // distinguishable from a managed-identity one at the hash level, and the
+        // development receipt signer composed in Program.cs makes it
+        // unmistakable at the proof level as well.
+        services.AddSingleton(provider => new ModelStreamingCoordinator(
+            provider.GetRequiredService<IModelStreamTransport>(),
+            provider.GetRequiredService<IModelReceiptSignerV2>(),
+            TimeProvider.System,
+            ModelStreamLimits.Default,
+            provider.GetRequiredService<FoundryResponsesProviderExecutor>()
+                .CredentialMechanismId,
+            provider.GetRequiredService<Observability.SupportPlaneTelemetry>()));
+        services.AddSingleton<IModelStreamRouteResolver>(provider =>
+            new EffectiveCatalogStreamRouteResolver(
+                provider.GetRequiredService<EffectiveModelCatalogService>(),
+                provider.GetRequiredService<IModelEntitlementSource>(),
+                provider.GetRequiredService<IModelCatalogPolicySource>(),
+                provider.GetRequiredService<SupportPlaneOptions>().Region,
+                provider.GetRequiredService<Observability.SupportPlaneTelemetry>()));
+
         // The same cache, the same background refresh, and the same health
         // check Production composes. Only the credential differs.
         services.AddSingleton(provider => new FoundryDeploymentCatalogCache(

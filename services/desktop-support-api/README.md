@@ -43,3 +43,10 @@ qualified directory while the host runs in `Development`. The adapter atomically
 per subject, registration, and consumption hash, stores only a subject hash plus bounded authority
 metadata, and treats interrupted writes as consumed. The setting is rejected outside Development;
 production still requires a transactional shared store.
+
+When that path is not set, `Development` now composes an in-process consent consumption store rather
+than the unavailable one. Single use is still enforced, for the lifetime of the process rather than
+across restarts, which is what lets a local model call actually complete. The previous unavailable
+default protected nothing in production, because production composes the SQL authority
+unconditionally; it only made the local path impossible to finish. Set
+`Sapphirus__DevelopmentConsentStorePath` when single use has to survive a restart.

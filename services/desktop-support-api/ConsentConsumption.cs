@@ -41,6 +41,61 @@ public sealed class UnavailableContextConsentConsumptionStore : IContextConsentC
     }
 }
 
+/// <summary>
+/// Process-lifetime single-use consent authority for Development.
+///
+/// <para>
+/// It is the Development default rather than
+/// <see cref="UnavailableContextConsentConsumptionStore"/>, which stays the
+/// default for any composition that has no store at all. The distinction
+/// matters: Production composes the durable SQL authority unconditionally, so
+/// the unavailable default was never what protected a deployed plane — it only
+/// made a local run unable to spend consent at all, which in turn made the
+/// streaming route unusable on the one machine that can reach the real project.
+/// </para>
+/// <para>
+/// This store enforces single use for the lifetime of the process and no
+/// further. An operator who needs single use to survive a restart sets
+/// <c>Sapphirus__DevelopmentConsentStorePath</c> and gets
+/// <see cref="DevelopmentFileContextConsentConsumptionStore"/> instead; an
+/// operator who needs it to survive across replicas is in Production and gets
+/// the SQL store. It refuses the same malformed authority the durable stores
+/// refuse, so a request that would be rejected there is rejected here too.
+/// </para>
+/// </summary>
+public sealed class MemoryContextConsentConsumptionStore : IContextConsentConsumptionStore
+{
+    private readonly Lock _gate = new();
+    private readonly HashSet<string> _consumed = new(StringComparer.Ordinal);
+
+    public ValueTask<ContextConsentConsumption> ConsumeAsync(
+        ContextConsentConsumptionRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!ContractIds.Is(request.RegistrationId, "dreg")
+            || string.IsNullOrWhiteSpace(request.SubjectPartition)
+            || string.IsNullOrWhiteSpace(request.DecisionId)
+            || string.IsNullOrWhiteSpace(request.RequestId)
+            || !RequestGuards.IsSha256(request.ConsumptionHash)
+            || request.ConsumedAt == default)
+        {
+            throw new ArgumentException(
+                "The consent consumption authority is invalid.",
+                nameof(request));
+        }
+        string authority =
+            $"{request.SubjectPartition}\0{request.RegistrationId}\0{request.ConsumptionHash}";
+        lock (_gate)
+        {
+            return ValueTask.FromResult(_consumed.Add(authority)
+                ? ContextConsentConsumption.Consumed
+                : ContextConsentConsumption.AlreadyConsumed);
+        }
+    }
+}
+
 public sealed class DevelopmentFileContextConsentConsumptionStore : IContextConsentConsumptionStore
 {
     private readonly string _root;
