@@ -93,6 +93,15 @@ why FE-03 matters beyond tidiness.
 To verify a surface the browser preview cannot reach — it blocks sending, so a
 transcript never populates — inject representative markup with `javascript_tool`
 and read computed styles off it. That is how the three faults above were found.
+Review *is* reachable, though: open a task and press Review, and the sample data
+renders a real diff.
+
+**`pnpm css:conflicts` now fails on new ones.** There are 146 today, recorded in
+`tools/css-conflicts-baseline.json`; only pairs outside that baseline fail, so
+removing conflicts is always allowed and the count in the passing message drops
+as they go. Re-record with `node tools/check-css-conflicts.mjs --write-baseline`
+— but read what it is about to record first, because a conflict is a declaration
+that does nothing.
 
 ## Decisions taken, and what they cost
 
@@ -119,7 +128,14 @@ and read computed styles off it. That is how the three faults above were found.
 1. **FE-03 was attempted and reverted.** Read the section in the reconciliation
    document before retrying — the premise that reproducing emission order
    preserves behaviour is false, and the retry needs the anonymous layer
-   identified and Tailwind preflight's shorthand resets handled.
+   identified and Tailwind preflight's shorthand resets handled. Note that
+   `pnpm css:conflicts` now delivers a good part of what FE-03 was *for*: the
+   harm was never the absence of `@layer`, it was that a declaration could do
+   nothing and no one could tell. Retry FE-03 for the ability to reorder
+   deliberately, not to find these.
+2. **146 recorded CSS conflicts.** Each is a declaration that does nothing.
+   `design-polish.css` holds roughly a third of them, and is the obvious place
+   to start — it is also the file that keeps re-adding what other files remove.
 2. **The four confirmed Critical findings**, none of them frontend: the
    `direct-model-providers` compile default, the empty updater key, the Bicep
    perimeter conflict (already tracked as NET-001), and 228-of-597 BMAD drift.
