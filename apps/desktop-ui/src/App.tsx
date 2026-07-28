@@ -59,6 +59,7 @@ import {
 import { useHostProjection } from "./app/projection/hostProjection";
 import { eraseLocalData } from "./app/offboarding/eraseLocalData";
 import { resolveMenuDispatch } from "./app/chat/menuDispatch";
+import { useDeferredFocusReturn } from "./app/focus/deferredFocusReturn";
 import {
   classifyProjectionFailure,
   decideProjectionOutcome,
@@ -421,11 +422,20 @@ export function App({
   const recoveryReturnFocusTarget = recovery.returnFocusTarget;
   const { clear: clearRecoveryReview, decisionInFlight: recoveryDecisionInFlight } = recovery;
   const drawerIsOverlay = useMediaQuery(DRAWER_OVERLAY_QUERY);
-  const workspaceReturnFocusRef = useRef<HTMLElement | null>(null);
-  const utilityReturnFocusRef = useRef<HTMLElement | null>(null);
-  const pendingUtilityReturnFocusRef = useRef<HTMLElement | null>(null);
-  const contextDrawerReturnFocusRef = useRef<HTMLElement | null>(null);
-  const pendingContextDrawerReturnFocusRef = useRef<HTMLElement | null>(null);
+  /*
+   * FE-10 step 3: where focus goes when an overlay closes.
+   *
+   * Three surfaces, one mechanism. Each used to carry its own captured ref, a
+   * second "pending" ref armed on dismiss, and an effect to consume it -- and
+   * every one of those parts is a way to leave focus on `<body>`, which sends
+   * the next keystroke nowhere.
+   */
+  const utilityFocus = useDeferredFocusReturn(appModal !== null);
+  const drawerFocus = useDeferredFocusReturn(contextDrawer !== null);
+  const workspacePanelFocus = useDeferredFocusReturn(appModal !== null);
+  /// Whether the drawer should take focus itself on open, rather than leaving
+  /// it where it was. True only when the drawer replaces a surface that had
+  /// focus -- otherwise opening a side panel would steal it from the composer.
   const focusContextDrawerOnOpenRef = useRef(false);
   const bmadProjectionGenerationRef = useRef(0);
 
@@ -1089,10 +1099,8 @@ export function App({
   hostBoundUiInvalidatorRef.current = invalidateHostBoundUi;
 
   function dismissWorkspacePanel() {
+    workspacePanelFocus.arm();
     setAppModal(null);
-    const returnFocus = workspaceReturnFocusRef.current;
-    workspaceReturnFocusRef.current = null;
-    window.requestAnimationFrame(() => returnFocus?.focus());
   }
 
   function openUtilityPanel(
@@ -1100,13 +1108,7 @@ export function App({
     settingsPage: SettingsSection = "general",
     returnFocusTarget: HTMLElement | null = null,
   ) {
-    const activeElement = document.activeElement;
-    utilityReturnFocusRef.current = returnFocusTarget
-      ?? (activeElement instanceof HTMLElement
-        && activeElement !== document.body
-        && activeElement !== document.documentElement
-        ? activeElement
-        : null);
+    utilityFocus.capture(returnFocusTarget);
     setContextDrawer(null);
     setUtilitySettingsPage(mode === "settings" ? settingsPage : "general");
     setAppModal(mode);
@@ -1398,9 +1400,8 @@ export function App({
   });
 
   function dismissUtilityPanel(restoreFocus = true) {
-    pendingUtilityReturnFocusRef.current = restoreFocus ? utilityReturnFocusRef.current : null;
+    utilityFocus.arm(restoreFocus);
     setAppModal(null);
-    utilityReturnFocusRef.current = null;
   }
 
   function openContextDrawer(
@@ -1408,48 +1409,21 @@ export function App({
     returnFocusTarget: HTMLElement | null = null,
     focusDrawerOnOpen = false,
   ) {
-    const activeElement = document.activeElement;
-    contextDrawerReturnFocusRef.current = returnFocusTarget
-      ?? (activeElement instanceof HTMLElement
-        && activeElement !== document.body
-        && activeElement !== document.documentElement
-        ? activeElement
-        : null);
+    drawerFocus.capture(returnFocusTarget);
     focusContextDrawerOnOpenRef.current = focusDrawerOnOpen;
     setContextDrawer(kind);
   }
 
   function dismissContextDrawer(restoreFocus = true) {
-    pendingContextDrawerReturnFocusRef.current = restoreFocus
-      ? contextDrawerReturnFocusRef.current
-      : null;
-    contextDrawerReturnFocusRef.current = null;
+    drawerFocus.arm(restoreFocus);
     focusContextDrawerOnOpenRef.current = false;
     setContextDrawer(null);
   }
 
   useEffect(() => {
-    if (appModal !== null) return;
-    const returnFocus = pendingUtilityReturnFocusRef.current;
-    pendingUtilityReturnFocusRef.current = null;
-    if (returnFocus?.isConnected && !returnFocus.closest("[inert]")) {
-      returnFocus.focus();
-    }
-  }, [appModal]);
-
-  useEffect(() => {
-    if (contextDrawer !== null) {
-      if (focusContextDrawerOnOpenRef.current) {
-        focusContextDrawerOnOpenRef.current = false;
-        document.querySelector<HTMLElement>(".context-drawer__close")?.focus();
-      }
-      return;
-    }
-    const returnFocus = pendingContextDrawerReturnFocusRef.current;
-    pendingContextDrawerReturnFocusRef.current = null;
-    if (returnFocus?.isConnected && !returnFocus.closest("[inert]")) {
-      returnFocus.focus();
-    }
+    if (contextDrawer === null || !focusContextDrawerOnOpenRef.current) return;
+    focusContextDrawerOnOpenRef.current = false;
+    document.querySelector<HTMLElement>(".context-drawer__close")?.focus();
   }, [contextDrawer]);
 
   useEffect(() => {
@@ -1919,7 +1893,9 @@ export function App({
       return;
     }
     const openingFromUtility = appModal !== null;
-    const returnFocus = openingFromUtility ? utilityReturnFocusRef.current : null;
+    // The drawer inherits the panel's return target: closing the panel to open
+    // the drawer should not send focus back to whatever opened the panel.
+    const returnFocus = openingFromUtility ? utilityFocus.transfer() : null;
     if (openingFromUtility) {
       dismissUtilityPanel(false);
     }
@@ -2553,17 +2529,16 @@ export function App({
   );
 
   function openWorkspaceManager() {
-    workspaceReturnFocusRef.current = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    workspacePanelFocus.capture();
     setContextDrawer(null);
     setAppModal("workspace-manager");
   }
 
   function openWorkspaceManagerFromUtilityPanel() {
-    const returnFocus = utilityReturnFocusRef.current;
-    utilityReturnFocusRef.current = null;
-    workspaceReturnFocusRef.current = returnFocus;
+    // Same inheritance as `openMethodLibrary`: the manager replaces the panel,
+    // so it takes over the panel's return target rather than capturing the
+    // panel itself as the place to go back to.
+    workspacePanelFocus.capture(utilityFocus.transfer());
     setContextDrawer(null);
     setAppModal("workspace-manager");
   }
