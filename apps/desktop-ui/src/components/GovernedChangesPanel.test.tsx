@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
@@ -175,6 +175,103 @@ describe("GovernedChangesPanel", () => {
     expect(screen.queryByRole("button", { name: /Review .*changes/u })).toBeNull();
   });
 
+  /**
+   * FE-23. The three controls were disabled on `state.busy`, which is host
+   * state and so lands a render late. Until it does all three stay live, and
+   * the dangerous press is not a second Apply -- it is a Discard arriving
+   * behind one, because a per-button guard never sees two different buttons.
+   */
+  it("takes one decision per proposal, whichever controls are pressed", () => {
+    const props = createProps({
+      state: { kind: "review", busy: false, review: reviewEnvelope },
+    });
+    render(<GovernedChangesPanel {...props} />);
+
+    /*
+     * The nodes are captured before any of them is pressed, and pressed
+     * without awaiting.
+     *
+     * Both details matter. Awaiting would let React re-render between presses
+     * and hide the very race under test; re-querying by name would fail on the
+     * third press, because the first one relabels Apply to "Applying…" -- so
+     * the query, not the guard, would be what stopped it.
+     */
+    const apply = screen.getByRole("button", { name: "Apply changes" });
+    const discard = screen.getByRole("button", { name: "Discard" });
+    fireEvent.click(apply);
+    fireEvent.click(discard);
+    fireEvent.click(apply);
+
+    expect(props.onDecide).toHaveBeenCalledTimes(1);
+    expect(props.onDecide).toHaveBeenCalledWith("apply");
+  });
+
+  /**
+   * The same double-press with no render between the two.
+   *
+   * The test above passes even against a guard read from render state, because
+   * React flushes a discrete click before the next is dispatched and the
+   * disabled attribute lands in time. Inside one batch -- which `act`
+   * reproduces, and which a deferred or transition-wrapped render does in
+   * earnest -- no re-render happens between the presses, and a guard read from
+   * render state sees the state from before the first one.
+   *
+   * The ref is what closes that. This is the test that says so, and without it
+   * the mutation swapping the ref for render state survives.
+   */
+  it("still takes one decision when both presses land in a single batch", () => {
+    const props = createProps({
+      state: { kind: "review", busy: false, review: reviewEnvelope },
+    });
+    render(<GovernedChangesPanel {...props} />);
+    const apply = screen.getByRole("button", { name: "Apply changes" });
+    const discard = screen.getByRole("button", { name: "Discard" });
+
+    act(() => {
+      apply.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+      discard.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    });
+
+    expect(props.onDecide).toHaveBeenCalledTimes(1);
+    expect(props.onDecide).toHaveBeenCalledWith("apply");
+  });
+
+  it("says which decision is running, and only on that control", () => {
+    // Three disabled buttons explain nothing to someone who has just committed
+    // to writing files. Relabelling all three would say three things run.
+    const props = createProps({
+      state: { kind: "review", busy: false, review: reviewEnvelope },
+    });
+    render(<GovernedChangesPanel {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "Apply changes" }));
+
+    expect(screen.getByRole("button", { name: "Applying…" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Revise" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Discard" })).toBeTruthy();
+  });
+
+  it("re-opens the decision when a new proposal arrives", () => {
+    // A different approval is a different decision to make. Carrying the guard
+    // across would leave the next proposal permanently undecidable.
+    const props = createProps({
+      state: { kind: "review", busy: false, review: reviewEnvelope },
+    });
+    const { rerender } = render(<GovernedChangesPanel {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "Apply changes" }));
+
+    rerender(<GovernedChangesPanel {...createProps({
+      onDecide: props.onDecide,
+      state: {
+        kind: "review",
+        busy: false,
+        review: { ...reviewEnvelope, approvalId: "approval_second" },
+      },
+    })} />);
+    fireEvent.click(screen.getByRole("button", { name: "Apply changes" }));
+
+    expect(props.onDecide).toHaveBeenCalledTimes(2);
+  });
+
   it("renders the exact reviewed content as a line diff and binds each decision", () => {
     const props = createProps({
       state: { kind: "review", busy: false, review: reviewEnvelope },
@@ -189,12 +286,29 @@ describe("GovernedChangesPanel", () => {
       "fn main() { updated(); }",
     );
 
+    /*
+     * Each control is proven on its own proposal, not three in a row on one.
+     *
+     * This used to press all three against a single review and assert three
+     * calls -- which is now impossible by design: a reviewed proposal takes
+     * exactly one decision. Pressing Apply and then Discard was never a
+     * sequence anyone should be able to perform, and the old assertion was
+     * documenting that they could.
+     */
     fireEvent.click(screen.getByRole("button", { name: "Apply changes" }));
-    fireEvent.click(screen.getByRole("button", { name: "Revise" }));
-    fireEvent.click(screen.getByRole("button", { name: "Discard" }));
     expect(props.onDecide).toHaveBeenNthCalledWith(1, "apply");
-    expect(props.onDecide).toHaveBeenNthCalledWith(2, "revise");
-    expect(props.onDecide).toHaveBeenNthCalledWith(3, "discard");
+    expect(props.onDecide).toHaveBeenCalledTimes(1);
+
+    for (const [name, choice] of [["Revise", "revise"], ["Discard", "discard"]] as const) {
+      cleanup();
+      const fresh = createProps({
+        state: { kind: "review", busy: false, review: reviewEnvelope },
+      });
+      render(<GovernedChangesPanel {...fresh} />);
+      fireEvent.click(screen.getByRole("button", { name }));
+      expect(fresh.onDecide).toHaveBeenCalledWith(choice);
+      expect(fresh.onDecide).toHaveBeenCalledTimes(1);
+    }
   });
 
   it("disables every decision while a decision is in flight", () => {

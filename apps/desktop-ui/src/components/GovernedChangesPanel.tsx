@@ -9,7 +9,15 @@ import {
   Trash2,
   Undo2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  beginDecision,
+  decisionInFlight,
+  decisionLabel,
+  settleDecision,
+  undecided,
+  type ApprovalDecisionState,
+} from "../features/review/approvalDecision";
 import type {
   ApprovalChoice,
   ChangesExecutionProjection,
@@ -270,6 +278,49 @@ export function GovernedChangesPanel({
   recoveryReview,
   state,
 }: GovernedChangesPanelProps) {
+  /*
+   * One decision per reviewed proposal, guarded by a ref.
+   *
+   * The three controls were disabled on `state.busy`, which is host state and
+   * so arrives a render late. Until it does, all three are live -- and the
+   * dangerous press is not a second Apply but a Discard landing behind one,
+   * because a per-button guard never sees two different buttons. The ref is
+   * read and written in the same tick as the click, which is the only thing
+   * that closes that window.
+   *
+   * Reset when the proposal changes: a new envelope is a new decision to make.
+   */
+  const [decision, setDecision] = useState<ApprovalDecisionState>(undecided);
+  const decisionRef = useRef(decision);
+  // Keyed on the approval id, which is what an approval binds to. Keying on
+  // the diff hash instead would reset the guard whenever the same proposal was
+  // re-rendered with identical content, and fail to reset it for a new
+  // proposal that happened to produce the same diff.
+  const reviewId = state.kind === "review" ? state.review.approvalId : null;
+
+  useEffect(() => {
+    decisionRef.current = undecided;
+    setDecision(undecided);
+  }, [reviewId]);
+
+  // The host has answered, so the decision is terminal rather than in flight.
+  // Left `deciding` it would keep saying "Applying…" over a finished apply.
+  useEffect(() => {
+    if (state.kind === "review") return;
+    const settled = settleDecision(decisionRef.current);
+    decisionRef.current = settled;
+    setDecision(settled);
+  }, [state.kind]);
+
+  const decide = (choice: Parameters<typeof onDecide>[0]) => {
+    const next = beginDecision(decisionRef.current, choice);
+    if (next === decisionRef.current) return;
+    decisionRef.current = next;
+    setDecision(next);
+    onDecide(choice);
+  };
+  const inFlight = decisionInFlight(decision);
+
   const errorBanner = errorMessage
     ? (
       <p className="changes-error" role="alert">
@@ -389,28 +440,28 @@ export function GovernedChangesPanel({
         */}
         <div className="change-actions">
           <Button
-            isDisabled={state.busy}
-            onPress={() => onDecide("apply")}
+            isDisabled={state.busy || decision.kind !== "undecided"}
+            onPress={() => { decide("apply"); }}
             size="large"
             variant="primary"
           >
-            Apply changes
+            {decisionLabel("apply", inFlight)}
           </Button>
           <Button
-            isDisabled={state.busy}
-            onPress={() => onDecide("revise")}
+            isDisabled={state.busy || decision.kind !== "undecided"}
+            onPress={() => { decide("revise"); }}
             size="large"
             variant="quiet"
           >
-            Revise
+            {decisionLabel("revise", inFlight)}
           </Button>
           <Button
-            isDisabled={state.busy}
-            onPress={() => onDecide("discard")}
+            isDisabled={state.busy || decision.kind !== "undecided"}
+            onPress={() => { decide("discard"); }}
             size="large"
             variant="quiet"
           >
-            Discard
+            {decisionLabel("discard", inFlight)}
           </Button>
         </div>
         {errorBanner}
