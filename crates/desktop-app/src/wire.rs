@@ -231,15 +231,61 @@ pub enum HostCommandData {
     PickedFiles(PickedFilesProjection),
 }
 
+/// One file the pick refused, on the wire.
+///
+/// `relative_path` is `null` whenever the broker declined to name it, which it
+/// does for every refusal decided before workspace containment is proven. Such
+/// a candidate has no workspace-relative name -- only an absolute path from a
+/// directory the renderer was never granted -- so the null is the boundary
+/// showing through, not a missing value to be filled in later.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RejectedPickProjection {
+    pub relative_path: Option<String>,
+    pub reason: desktop_workspace::PickRejection,
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PickedFilesProjection {
     pub workspace_id: ContractId,
     pub relative_paths: Vec<String>,
     pub selected_count: u32,
+    /// Every refusal, in the order the candidates were offered.
+    pub rejected: Vec<RejectedPickProjection>,
     pub rejected_outside_root: u32,
     pub rejected_unreadable: u32,
     pub truncated: bool,
+}
+
+impl PickedFilesProjection {
+    /// Builds the projection from what the broker returned.
+    ///
+    /// One constructor because the file pick and the folder pick built this
+    /// identically in two places, and a mapping duplicated across two call
+    /// sites is one that can come to disagree about which counts go with which
+    /// refusals -- silently, because both still typecheck.
+    pub fn from_broker(
+        workspace_id: ContractId,
+        picked: desktop_workspace::PickedFiles,
+    ) -> Self {
+        Self {
+            workspace_id,
+            selected_count: u32::try_from(picked.relative_paths.len()).unwrap_or(u32::MAX),
+            relative_paths: picked.relative_paths,
+            rejected: picked
+                .rejected
+                .into_iter()
+                .map(|refusal| RejectedPickProjection {
+                    relative_path: refusal.relative_path,
+                    reason: refusal.reason,
+                })
+                .collect(),
+            rejected_outside_root: u32::try_from(picked.rejected_outside_root).unwrap_or(u32::MAX),
+            rejected_unreadable: u32::try_from(picked.rejected_unreadable).unwrap_or(u32::MAX),
+            truncated: picked.truncated,
+        }
+    }
 }
 
 pub const PREFERENCES_SCHEMA: &str = "desktop-preferences.v1";

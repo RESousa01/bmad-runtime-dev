@@ -388,10 +388,38 @@ export type WorkspaceSelection =
   | { kind: "no_selection" }
   | { kind: "workspace_selected"; value: WorkspaceProjection };
 
+/// Why the host refused one picked file.
+export type PickRejectionReason =
+  /// Not inside the granted root, or not addressable within it.
+  | "outside_workspace"
+  /// Inside the root but refused by policy: sensitive, a symlink, a reparse
+  /// point, or a cloud placeholder.
+  | "blocked"
+  /// Present and readable, but not UTF-8 text within the size bound.
+  | "not_text"
+  /// The filesystem would not give it up.
+  | "unreadable";
+
+/**
+ * One file the pick refused.
+ *
+ * `relativePath` is null whenever the broker declined to name it, which it does
+ * for every refusal decided before workspace containment is proven. Such a
+ * candidate has no workspace-relative name -- only an absolute path from a
+ * directory this renderer was never granted -- so the null is the boundary
+ * showing through, not a value the host forgot to send.
+ */
+export interface RejectedPickProjection {
+  relativePath: string | null;
+  reason: PickRejectionReason;
+}
+
 export interface PickedFilesProjection {
   workspaceId: string;
   relativePaths: string[];
   selectedCount: number;
+  /// Every refusal, in the order the candidates were offered.
+  rejected: RejectedPickProjection[];
   rejectedOutsideRoot: number;
   rejectedUnreadable: number;
   truncated: boolean;

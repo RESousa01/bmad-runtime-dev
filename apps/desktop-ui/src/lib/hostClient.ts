@@ -77,6 +77,8 @@ export type {
   WorkspaceProjection,
   WorkspaceRevocationResult,
   WorkspaceSearchMatch,
+  PickRejectionReason,
+  RejectedPickProjection,
   WorkspaceFilePick,
   WorkspaceSelection,
   WorkspaceTextProjection,

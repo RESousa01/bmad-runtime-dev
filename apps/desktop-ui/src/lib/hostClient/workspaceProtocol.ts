@@ -18,6 +18,8 @@ import {
   type WorkspaceProjection,
   workspaceReadLimits,
   type WorkspaceSearchMatch,
+  type PickRejectionReason,
+  type RejectedPickProjection,
   type WorkspaceFilePick,
   type WorkspaceSelection,
   type WorkspaceTextProjection,
@@ -303,6 +305,7 @@ export function parseWorkspaceFilePickReply(
     "workspaceId",
     "relativePaths",
     "selectedCount",
+    "rejected",
     "rejectedOutsideRoot",
     "rejectedUnreadable",
     "truncated",
@@ -318,6 +321,7 @@ export function parseWorkspaceFilePickReply(
   if (relativePaths.length !== asUnsignedInteger(projection.selectedCount)) {
     return fail();
   }
+  const rejected = parseRejectedPicks(projection.rejected, fail);
   return {
     pick: {
       kind: "picked",
@@ -325,6 +329,7 @@ export function parseWorkspaceFilePickReply(
         workspaceId: asContractId(projection.workspaceId),
         relativePaths,
         selectedCount: relativePaths.length,
+        rejected,
         rejectedOutsideRoot: asUnsignedInteger(projection.rejectedOutsideRoot),
         rejectedUnreadable: asUnsignedInteger(projection.rejectedUnreadable),
         truncated: asBoolean(projection.truncated),
@@ -332,6 +337,52 @@ export function parseWorkspaceFilePickReply(
     },
     sequence: parsed.sequence,
   };
+}
+
+const pickRejectionReasons: readonly PickRejectionReason[] = [
+  "outside_workspace",
+  "blocked",
+  "not_text",
+  "unreadable",
+];
+
+/**
+ * Validates the refusal list, including the half of the boundary that lives on
+ * this side of it.
+ *
+ * A named refusal goes through `asRelativePath`, the same validator every other
+ * path from the host does. That matters more here than anywhere else: these
+ * strings describe files the host *declined* to hand over, so a bug that let an
+ * absolute path through would be leaking exactly the paths the broker refuses
+ * to name -- and it would arrive on the one code path nobody thinks of as
+ * carrying data.
+ *
+ * Bounded at the same 100 as the accepted paths. A pick that refused thousands
+ * is a pick whose refusals nobody is going to read, and an unbounded list from
+ * the host is an unbounded allocation here.
+ */
+function parseRejectedPicks(
+  value: unknown,
+  fail: () => never,
+): RejectedPickProjection[] {
+  if (!Array.isArray(value) || value.length > 100) return fail();
+  return value.map((entry) => {
+    const refusal = asRecord(entry);
+    assertExactKeys(refusal, ["relativePath", "reason"]);
+    const reason = refusal.reason;
+    if (typeof reason !== "string"
+      || !pickRejectionReasons.includes(reason as PickRejectionReason)) {
+      return fail();
+    }
+    return {
+      // Null is a value here, not an absence: it is the host saying this file
+      // cannot be named without crossing the grant.
+      relativePath: refusal.relativePath === null
+        ? null
+        : asRelativePath(refusal.relativePath),
+      reason: reason as PickRejectionReason,
+    };
+  });
 }
 
 export function parseWorkspaceListReply(

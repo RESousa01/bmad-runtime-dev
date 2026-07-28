@@ -146,3 +146,99 @@ describe("pickRejections", () => {
     expect(pickRejections(pick())).toEqual([]);
   });
 });
+
+/**
+ * FE-15. The host now names the refusals it can name.
+ *
+ * A file rejected below the containment check is proven to be inside the grant
+ * and has a workspace-relative path, so its refusal says which file it was. One
+ * decided above that check has no name but an absolute path from outside the
+ * grant, so it stays a count -- and that split is the host's, reproduced here
+ * rather than reinvented.
+ */
+describe("pickRejections with named refusals", () => {
+  it("names the files the host named", () => {
+    const rejections = pickRejections(pick({
+      rejected: [
+        { relativePath: "src/image.bin", reason: "not_text" },
+        { relativePath: ".env", reason: "blocked" },
+      ],
+      rejectedOutsideRoot: 2,
+    }));
+
+    expect(rejections).toEqual([
+      { reason: "Not a readable text file.", relativePath: "src/image.bin" },
+      {
+        reason: "Not readable here: it is a link, a placeholder, or a protected file.",
+        relativePath: ".env",
+      },
+    ]);
+  });
+
+  it("groups the ones it could not name, by cause", () => {
+    // Two identical unnamed lines would read as a rendering fault, and a count
+    // is all that can truthfully be said about a file with no name.
+    const rejections = pickRejections(pick({
+      rejected: [
+        { relativePath: null, reason: "outside_workspace" },
+        { relativePath: null, reason: "outside_workspace" },
+        { relativePath: null, reason: "unreadable" },
+      ],
+    }));
+
+    expect(rejections).toEqual([
+      { reason: "2 files were outside this workspace.", relativePath: "" },
+      { reason: "1 file could not be read.", relativePath: "" },
+    ]);
+  });
+
+  it("puts the actionable ones first", () => {
+    // A named file is something the user can go and look at. A count is not,
+    // so it does not get to sit above the thing that is.
+    const rejections = pickRejections(pick({
+      rejected: [
+        { relativePath: null, reason: "outside_workspace" },
+        { relativePath: "src/image.bin", reason: "not_text" },
+      ],
+    }));
+
+    expect(rejections[0]?.relativePath).toBe("src/image.bin");
+  });
+
+  it("ignores the counts once the host sends the list", () => {
+    // The counts carry the host's older grouping, in which a binary file
+    // inside the workspace is an outside-root rejection. Reading both would
+    // report the same refusal twice, once correctly and once not.
+    const rejections = pickRejections(pick({
+      rejected: [{ relativePath: "src/image.bin", reason: "not_text" }],
+      rejectedOutsideRoot: 1,
+    }));
+
+    expect(rejections).toHaveLength(1);
+    expect(rejections[0]?.relativePath).toBe("src/image.bin");
+  });
+
+  it("says nothing when a pick refused nothing", () => {
+    expect(pickRejections(pick({ rejected: [] }))).toEqual([]);
+  });
+
+  it("still reports the cap alongside the host's refusals", () => {
+    const many = Array.from({ length: 150 }, (_, i) => `file-${i}.ts`);
+    const merge = mergeContextPaths([], many);
+    const rejections = pickRejections(
+      pick({ rejected: [{ relativePath: "a.bin", reason: "not_text" }] }),
+      merge,
+    );
+
+    expect(rejections).toHaveLength(2);
+    expect(rejections[1]?.reason).toBe(`Only the first ${maxContextFiles} files were attached.`);
+  });
+
+  it("falls back to the counts for a host that does not send the list", () => {
+    // `rejected` absent is an older host, not a pick that refused nothing --
+    // and the difference decides whether the user is told anything at all.
+    expect(pickRejections(pick({ rejectedUnreadable: 2 }))).toEqual([
+      { reason: "2 files could not be read.", relativePath: "" },
+    ]);
+  });
+});

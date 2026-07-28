@@ -3333,14 +3333,7 @@ fn pick_workspace_files(
         .resolve_picked_files(workspace_id.as_str(), &candidates, MAX_PICKED_FILES)
         .map_err(|error| map_workspace_error(&error))?;
     Ok(HostCommandData::PickedFiles(
-        crate::wire::PickedFilesProjection {
-            workspace_id,
-            selected_count: u32::try_from(picked.relative_paths.len()).unwrap_or(u32::MAX),
-            relative_paths: picked.relative_paths,
-            rejected_outside_root: u32::try_from(picked.rejected_outside_root).unwrap_or(u32::MAX),
-            rejected_unreadable: u32::try_from(picked.rejected_unreadable).unwrap_or(u32::MAX),
-            truncated: picked.truncated,
-        },
+        crate::wire::PickedFilesProjection::from_broker(workspace_id, picked),
     ))
 }
 
@@ -3373,14 +3366,7 @@ fn pick_workspace_folder(
         .resolve_picked_folder(workspace_id.as_str(), &candidate, MAX_PICKED_FILES)
         .map_err(|error| map_workspace_error(&error))?;
     Ok(HostCommandData::PickedFiles(
-        crate::wire::PickedFilesProjection {
-            workspace_id,
-            selected_count: u32::try_from(picked.relative_paths.len()).unwrap_or(u32::MAX),
-            relative_paths: picked.relative_paths,
-            rejected_outside_root: u32::try_from(picked.rejected_outside_root).unwrap_or(u32::MAX),
-            rejected_unreadable: u32::try_from(picked.rejected_unreadable).unwrap_or(u32::MAX),
-            truncated: picked.truncated,
-        },
+        crate::wire::PickedFilesProjection::from_broker(workspace_id, picked),
     ))
 }
 
