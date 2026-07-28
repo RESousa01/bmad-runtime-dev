@@ -1,0 +1,143 @@
+/*
+ * Button and IconButton presentation.
+ *
+ * Split out of tokens.css for FE-04: the token contract and the components
+ * that consume it are different concerns, and a file named for tokens should
+ * not be where button padding lives. Imported from tokens.css so consumers
+ * still have one entry point.
+ */
+.sapphirus-button {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  cursor: default;
+  display: inline-flex;
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  font-weight: 540;
+  gap: 0.55rem;
+  justify-content: center;
+  line-height: 1;
+  min-width: 0;
+  outline: none;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  user-select: none;
+}
+
+.sapphirus-button--small {
+  height: 2rem;
+  padding: 0 0.7rem;
+}
+
+.sapphirus-button--medium {
+  height: 2.5rem;
+  padding: 0 1rem;
+}
+
+.sapphirus-button--large {
+  height: 2.875rem;
+  padding: 0 1.3rem;
+}
+
+.sapphirus-button--icon {
+  height: 2.25rem;
+  padding: 0;
+  width: 2.25rem;
+}
+
+.sapphirus-button--primary {
+  background: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent), white 12%);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--color-accent), transparent 75%);
+  color: var(--color-on-accent);
+}
+
+.sapphirus-button--secondary {
+  background: var(--color-surface-raised);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-control);
+  color: var(--color-text);
+}
+
+.sapphirus-button--quiet {
+  background: transparent;
+  color: var(--color-text-soft);
+}
+
+.sapphirus-button--danger {
+  background: color-mix(in srgb, var(--color-danger), transparent 86%);
+  border-color: color-mix(in srgb, var(--color-danger), transparent 52%);
+  color: var(--color-danger);
+}
+
+.sapphirus-button[data-hovered] {
+  border-color: color-mix(in srgb, var(--color-accent), var(--color-border) 45%);
+}
+
+.sapphirus-button--primary[data-hovered] {
+  background: var(--color-accent-strong);
+  transform: translateY(-1px);
+}
+
+.sapphirus-button--quiet[data-hovered],
+.sapphirus-button--secondary[data-hovered] {
+  background: var(--color-surface-hover);
+}
+
+.sapphirus-button[data-pressed] {
+  transform: translateY(0);
+}
+
+.sapphirus-button[data-focus-visible],
+.sapphirus-tab[data-focus-visible] {
+  box-shadow: 0 0 0 2px var(--color-canvas), 0 0 0 4px var(--color-focus);
+}
+
+.sapphirus-button[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/*
+ * Pending is not disabled-with-a-different-name. A disabled control is not
+ * available; a pending one is already working. It stays legible rather than
+ * dimming to 45%, because the user is meant to keep reading it while they
+ * wait, and the cursor says the press will not land.
+ */
+.sapphirus-button--pending {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.sapphirus-button--pending[data-disabled] {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sapphirus-button--pending {
+    transition: none;
+  }
+}
+
+/*
+ * Windows high contrast replaces the palette, so a focus ring drawn with
+ * box-shadow disappears entirely. An outline in the system Highlight colour is
+ * the one that survives, and forced-color-adjust: auto lets the platform own
+ * the rest. FE-04 requires focus to remain visible here.
+ */
+@media (forced-colors: active) {
+  .sapphirus-button {
+    forced-color-adjust: auto;
+  }
+
+  .sapphirus-button[data-focus-visible] {
+    box-shadow: none;
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .sapphirus-button--pending {
+    opacity: 1;
+  }
+}
