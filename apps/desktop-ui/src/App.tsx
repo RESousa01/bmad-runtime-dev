@@ -37,6 +37,7 @@ import {
 } from "./state/taskList";
 import { useTaskLifecycle } from "./app/task/taskLifecycle";
 import { createModelActions } from "./app/model/modelController";
+import { useChangesHistoryState } from "./app/changes/changesHistoryState";
 import { DeleteTaskDialog } from "./components/DeleteTaskDialog";
 import { matchMenuIntent } from "./lib/menuIntent";
 import {
@@ -80,7 +81,6 @@ import {
   HostCapabilityError,
   HostCommandError,
   type ContextPreviewProjection,
-  type ChangesHistoryProjection,
   type ChangesRecoveryPrepared,
   type HostRuntime,
   type RecoveryApprovalChoice,
@@ -337,20 +337,22 @@ export function App({
   const [changesFlowByTask, setChangesFlowByTask] =
     useState<ReadonlyMap<string, GovernedChangesUiState | null>>(new Map());
   const [changesError, setChangesError] = useState<string | null>(null);
-  const [changesHistory, setChangesHistory] = useState<ChangesHistoryProjection | null>(null);
-  /// Whether the workspace's execution history has actually been read.
-  ///
-  /// `changesHistory === null` meant both "never asked" and "asked, nothing
-  /// there", and the Activity panel rendered the pair identically as "No
-  /// activity yet". Worse, nothing asked: `refreshChangesHistory` was reachable
-  /// only from post-mutation sites and the Refresh button, from no effect at
-  /// all — so opening Activity on a workspace with real governed history showed
-  /// "No activity yet" until the user happened to press Refresh. Someone
-  /// checking whether a change could still be rolled back was told it could not.
-  const [changesHistoryStatus, setChangesHistoryStatus] = useState<
-    "unread" | "loading" | "loaded" | "unavailable"
-  >("unread");
-  const [changesHistoryBusy, setChangesHistoryBusy] = useState(false);
+  /*
+   * FE-10 step 3: the Activity journal's read state.
+   *
+   * The projection and "has it been read" only make sense together --
+   * `projection === null` meant both "never asked" and "asked, nothing there",
+   * and Activity rendered the pair identically as "No activity yet". Every
+   * transition lives in the hook so the two cannot disagree.
+   */
+  const changesHistoryState = useChangesHistoryState();
+  const {
+    busy: changesHistoryBusy,
+    invalidate: invalidateChangesHistory,
+    projection: changesHistory,
+    setBusy: setChangesHistoryBusy,
+    status: changesHistoryStatus,
+  } = changesHistoryState;
   const [recoveryReview, setRecoveryReview] = useState<
     Extract<ChangesRecoveryPrepared, { status: "review_required" }> | null
   >(null);
@@ -1008,8 +1010,7 @@ export function App({
     changesGenerationRef.current += 1;
     clearAllChangesFlows();
     setChangesError(null);
-    setChangesHistory(null);
-    setChangesHistoryStatus("unread");
+    invalidateChangesHistory();
     setChangesHistoryBusy(false);
     setEnableEditsBusy(false);
     recoveryGenerationRef.current += 1;
@@ -1024,7 +1025,12 @@ export function App({
     setContextPreview(null);
     setContextSelectionMode("manual");
     setContextDrawer(null);
-  }, [clearAllChangesFlows, clearAllChatLanes]);
+  }, [
+    clearAllChangesFlows,
+    clearAllChatLanes,
+    invalidateChangesHistory,
+    setChangesHistoryBusy,
+  ]);
 
   const invalidateHostBoundUi = useCallback(() => {
     invalidateWorkspaceBoundUi();
@@ -2510,7 +2516,7 @@ export function App({
     const generation = changesGenerationRef.current;
     const sequence = hostRuntime.bootstrap.projectionSequence;
     setChangesHistoryBusy(true);
-    setChangesHistoryStatus("loading");
+    changesHistoryState.beginRead();
     setChangesError(null);
     try {
       const history = await client.changesHistory(workspace.workspaceId, workspace.grantEpoch);
@@ -2519,8 +2525,7 @@ export function App({
         && workspaceAuthorityKeyRef.current === authorityKey
         && hostRuntime.kind === "ready"
       ) {
-        setChangesHistory(history);
-        setChangesHistoryStatus("loaded");
+        changesHistoryState.completeRead(history);
       }
     } catch (error) {
       // Inside the staleness guard, like every other write in this function.
@@ -2533,7 +2538,7 @@ export function App({
         generation === changesGenerationRef.current
         && workspaceAuthorityKeyRef.current === authorityKey
       ) {
-        setChangesHistoryStatus("unavailable");
+        changesHistoryState.failRead();
         handleChangesFailure(client, error, sequence);
       }
     } finally {
@@ -2677,12 +2682,7 @@ export function App({
       }
       promoteWorkspace(enabled);
       clearAllChangesFlows();
-      setChangesHistory(null);
-      // Paired: `setChangesHistory(null)` alone leaves the status `loaded`, so the
-      // load-on-open effect never fires and Activity reports "No activity yet"
-      // immediately after a governed change is applied — the exact scenario the
-      // effect exists to fix.
-      setChangesHistoryStatus("unread");
+      invalidateChangesHistory();
     } catch (error) {
       if (generation === changesGenerationRef.current) {
         handleChangesFailure(client, error, sequence);
@@ -2745,12 +2745,7 @@ export function App({
           busy: false,
           execution: decision.execution,
         });
-        setChangesHistory(null);
-        // Paired: `setChangesHistory(null)` alone leaves the status `loaded`, so the
-        // load-on-open effect never fires and Activity reports "No activity yet"
-        // immediately after a governed change is applied — the exact scenario the
-        // effect exists to fix.
-        setChangesHistoryStatus("unread");
+        invalidateChangesHistory();
       } else if (decision.disposition === "discarded") {
         setChangesFlowForTask(originTask, { kind: "discarded" });
       } else {
@@ -2828,12 +2823,7 @@ export function App({
         : null,
       onActiveWorkspaceChanged: () => {
         resetAllChangesFlows();
-        setChangesHistory(null);
-        // Paired: `setChangesHistory(null)` alone leaves the status `loaded`, so
-        // the load-on-open effect never fires and Activity reports "No activity
-        // yet" immediately after a governed change is applied -- the exact
-        // scenario the effect exists to fix.
-        setChangesHistoryStatus("unread");
+        invalidateChangesHistory();
         clearAllCapabilityRuns();
       },
     },
