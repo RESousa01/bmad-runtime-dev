@@ -20,6 +20,8 @@
     "contracts:verify:cross-language": "pnpm --filter @sapphirus/contracts verify:cross-language",
     "contracts:test": "pnpm --filter @sapphirus/contracts test",
     "bmad:foundation:verify": "pnpm --filter @sapphirus/bmad-foundation run verify",
+    "bmad:coverage": "node tools/check-bmad-coverage.mjs --check",
+    "bmad:coverage:test": "node --test tools/check-bmad-coverage.test.mjs",
     "secrets:check": "node --test tools/check-secrets.test.mjs && node tools/check-secrets.mjs",
     "release:test": "node --test tools/release-metadata.test.mjs tools/release-sbom.test.mjs tools/release-attestation-predicate.test.mjs",
     "release:metadata": "node tools/resolve-release-metadata.mjs",
@@ -48,7 +50,7 @@
     "readiness:check": "node tools/check-readiness-scorecard.mjs",
     "readiness:test": "node --test tools/check-readiness-scorecard.test.mjs",
     "toolchain:check": "node tools/check-toolchain.mjs",
-    "verify:source": "pnpm toolchain:check && pnpm ci:policy:test && pnpm ci:reachable && pnpm boundaries:test && pnpm brand:test && pnpm css:conflicts:test && pnpm local:contracts:test && pnpm support:cloud-contracts:test && pnpm bmad:foundation:verify && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm release:test && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm css:conflicts && pnpm build",
+    "verify:source": "pnpm toolchain:check && pnpm ci:policy:test && pnpm ci:reachable && pnpm boundaries:test && pnpm brand:test && pnpm css:conflicts:test && pnpm local:contracts:test && pnpm support:cloud-contracts:test && pnpm bmad:foundation:verify && pnpm bmad:coverage && pnpm bmad:coverage:test && pnpm contracts:verify:typescript && pnpm secrets:check && pnpm release:test && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm css:conflicts && pnpm build",
     "verify": "pnpm verify:source",
     "verify:deferred-full": "pnpm contracts:verify:cross-language && pnpm secrets:check && pnpm typecheck && pnpm lint && pnpm test && pnpm verify:boundaries && pnpm rust:fmt && pnpm rust:clippy && pnpm rust:test && pnpm build"
   },
