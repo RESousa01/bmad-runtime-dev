@@ -481,11 +481,15 @@
         "The API key is read from an environment variable, never committed, never logged, never placed in telemetry, a problem document, or a receipt.",
         "The credential-binding hash must incorporate the credential mechanism, so a receipt produced under the development credential can never be mistaken for one produced under managed identity."
       ],
-      "openRisk": {
+      "resolvedRisk": {
         "id": "DEV-CREDENTIAL-DISCOVERY-SCOPE",
-        "summary": "The Foundry project deployments API may require an Entra token and may not accept an API key at all. API-key auth is generally available on the OpenAI-compatible inference surface, not necessarily on the project management surface.",
-        "ifDiscoveryRejectsTheKey": "Fall back to an operator-declared deployment inventory file, loaded only in Development, clearly labelled untrusted, and fed into the same normalizer and catalog cache. This preserves the architecture: the catalog is still built from an inventory, it is simply a declared one rather than a discovered one.",
-        "cheapTest": "Call the deployments URL with an api-key header instead of a bearer token and record the status class."
+        "state": "resolved",
+        "resolvedAt": "2026-07-28T21:40:00Z",
+        "summary": "The concern was that the Foundry project deployments API might require an Entra token and reject an API key, since key auth is generally an inference-surface feature rather than a project-management one.",
+        "measurement": "The operator probed the real project from a network that can reach it. An api-key request header returned 200 on GET <projectEndpoint>/deployments?api-version=v1&deploymentType=ModelDeployment and 400 on POST <projectEndpoint>/openai/v1/responses with an empty body. A 400 there is the desired result: authentication succeeded and only the empty body was rejected.",
+        "conclusion": "An API key authenticates both surfaces. Live deployment discovery and live Responses calls are both available under the development credential, so the full catalog architecture runs against the real project without Entra.",
+        "consequence": "The declared-inventory fallback is unnecessary and will not be built. Offline determinism is already covered by the fake Foundry server, so a second declared-input path would add surface without adding proof.",
+        "measurementBoundary": "The probe ran on the operator's work machine. This development environment cannot resolve DNS for the Foundry host at all, which is why an identical probe here returned curl status 000 rather than an authorization result."
       },
       "consequences": [
         "FND-002 can never reach ready=true in this environment, because identity attachment and role assignment are unobtainable, not merely unsupplied.",
