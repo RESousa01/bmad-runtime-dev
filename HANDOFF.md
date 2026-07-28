@@ -103,70 +103,58 @@ as they go. Re-record with `node tools/check-css-conflicts.mjs --write-baseline`
 — but read what it is about to record first, because a conflict is a declaration
 that does nothing.
 
-### Phase 2: the command registry and the composition root
+### Phase 2 (FE-08 … FE-12)
 
-**FE-09 gave every command entry point one registry.** The palette built
-its own action array, Ctrl+K was an unrelated document listener, and task
-commands were *omitted* from the list whenever no task was open. Omission is
-the failure the task names: a command that disappears is indistinguishable
-from a feature the app does not have. `app/commands/commandRegistry.ts` makes
-`reason` a required field of the `unavailable` variant, so the compiler
-enforces the acceptance criterion — there is no way to mark a command
-unavailable without saying why. Two shipped defects fell out: `hint` was
-rendering category words like "drawer" inside `<kbd>`, which announces a
-filing category as keyboard input; and bindings were spelled per platform,
-where `Mod+K` now resolves to Cmd or Ctrl and `findKeybindingConflicts` fails
-the build if two commands ever claim one chord.
+Phase 2 is five tasks. **FE-08, FE-09, FE-11 and FE-12 meet every acceptance
+criterion. FE-10 meets two of three.**
 
-**FE-10 is partly done.** App.tsx has gone from 3,572 to 3,264 lines across
-nine commits, and each moved a real invariant somewhere it can be checked:
+**FE-09 — one command registry.** The palette built its own action array, Ctrl+K
+was an unrelated document listener, and task commands *vanished* when no task
+was open. A command that disappears is indistinguishable from a feature the app
+does not have. `reason` is a required field of the `unavailable` variant, so the
+compiler enforces the acceptance criterion. Two shipped defects fell out:
+`<kbd>drawer</kbd>` announced a filing category as keyboard input, and shortcut
+glyphs were hardcoded to the mockup's platform.
 
-- `app/useAppBootstrap.ts` — the host runtime state machine. Every transition
-  claims the next binding generation *before* publishing, so an async read
-  from a replaced binding lands stale and is discarded. Two behaviour changes
-  were deliberate and are in the commit message.
-- `app/AppRouter.tsx` — the primary-view rule, which was a three-deep ternary
-  hiding a design decision: no task selected *is* Home. The order of its two
-  checks is load-bearing and covered.
-- `app/AppWorkbench.tsx` — the modal-containment contract, three facts that
-  have to change together and were three places apart.
-- `app/workspace/workspaceController.ts` — one `runWorkspaceAction`, so
-  `recovery_required` and `integrity_failure` are classified in one place
-  rather than three. Missing that branch reported a host demanding recovery
-  as an ordinary error while the app carried on believing it was healthy.
-- `app/task/taskLifecycle.ts` — fixed a real focus bug: confirming a deletion
-  of an already-gone task closed the dialog and left focus on `<body>`.
-- `app/model/modelController.ts` — `adoptAuthority` is now the only way to
-  publish a new model status, so the reset of everything derived from the old
-  authority cannot be forgotten. One of the three actions had it copied inline.
-- `app/changes/changesHistoryState.ts` — the Activity journal's projection and
-  its read status now move together. Clearing one without the other left the
-  status `loaded`, so the load-on-open effect never fired and Activity said
-  "No activity yet" right after a change was applied. Four call sites carried a
-  comment about it; deleting the status reset passed all 698 tests.
-- `app/capability/capabilityController.ts` — the routing token is captured
-  before the host call, in one place. A run belongs to the task it started
-  from, and the call outlives the user's attention.
-- `app/changes/changesRunner.ts` — the same shape for governed changes: the
-  origin task and the supersede generation, captured once. Its catch path also
-  now sits inside the supersede guard, so a failure from an abandoned proposal
-  cannot blank the review the current flow just produced.
-- `app/hostFailure.ts` — one definition of "is this a recovery failure". It had
-  three. Getting it wrong is silent in the worst direction: the app keeps
-  running against a host that has told it to stop.
+**FE-11 — domain clients.** `lib/hostClient/clients/index.ts` partitions the
+facade's 48 methods into eleven `Pick<DesktopHostClient, …>` views, so a chat
+controller cannot revoke a workspace and that is a compile error rather than a
+convention. Totality is proved at compile time (`AssertNever<UnclaimedClientMethod>`,
+whose error names the unfiled method); disjointness is a test, because a union
+does not mind duplicates. Error losslessness is now tested: all thirty codes
+round-trip, an undeclared field is refused rather than ignored, and
+`getSafeHostMessage` is a display helper rather than a discard.
 
-The remaining work follows one rule that has held for all of these: find the
-shape the sibling functions repeat, name it once, and make the ports interface
-narrow enough that the feature's whole authority is visible in it. Do not
-extract a cluster whose only shared property is that it is adjacent. Every
-extraction so far surfaced a real defect or a real duplication; the ones that
-would not are not worth doing.
+**FE-12 — chat no longer needs BMAD.** A host advertising `chat.send`, a granted
+workspace and a connected model was still reported unable to send, because the
+gate ran through `methodGuidanceClient` — which required all eleven BMAD
+commands. The composer greyed and blamed the model provider, which was false.
+An earlier comment claimed the two signals were "deliberately not one"; they
+were separated from the loaded catalogue but not from the command bundle, so the
+defect the comment described as fixed was live. Closures are now data,
+`resolveCapabilities` gives each feature its own, and a test keeps chat's and
+BMAD's disjoint. The transport moved with the gate — fixing only the gate would
+have been worse, enabling a composer whose sends fail at the host.
 
-Every one of these was mutation-verified: the invariant was broken, the
-failing test observed, the file restored. One test did *not* fail under
-mutation and was rewritten rather than kept — it asserted that
-`invalidateHostBoundUi` runs before `setHostRuntime`, which React batches
-into one render, so the order is not observable. It now asserts what is.
+**FE-10 — partly met.**
+
+- *No circular dependencies* — met, and now measured.
+  `tools/check-import-cycles.mjs` runs Tarjan over the value-import graph and is
+  wired into `verify:source`. Type-only edges are excluded; an inline
+  `import { type A, b }` still counts.
+- *Host bootstrap and recovery remain covered* — met.
+- *App.tsx becomes a readable composition map* — **not met.** 3,254 lines, down
+  from 3,572. Twelve modules came out, each surfacing a real defect rather than
+  moving code around: a delete confirmation that lost focus, a journal
+  invalidation that could be half-written, a workspace failure that misreported a
+  host demanding recovery, an attach failure that survived a workspace switch, a
+  status label that sent users to Settings while the host was still checking.
+
+Everything was mutation-verified: break the invariant, watch the test fail,
+restore. Four mutations *passed* and each exposed a weak test that was rewritten
+rather than counted — an ordering assertion React batching made unobservable, a
+capability mutation that did not express the bug, a cap test with no existing
+selection, and a guard test that only checked the projection.
 
 ## Decisions taken, and what they cost
 
@@ -190,14 +178,23 @@ into one render, so the order is not observable. It now asserts what is.
 
 ## Still open
 
-0. **FE-10 is not finished.** App.tsx is 3,264 lines, not the "readable
-   composition map" the acceptance criteria ask for. What is left is the
-   BMAD guidance actions (~400 lines), the offboarding and about projections,
-   the recovery-review flow, and the context attachment handlers. The pattern that has worked is: find the shape the
-   sibling functions repeat, name it once, and make the ports interface
-   narrow enough that the feature's whole authority is visible in it. Do not
-   extract a cluster whose only shared property is that it is adjacent.
+0. **FE-10's composition-root criterion is the one thing phase 2 has left.**
+   App.tsx is 3,254 lines: a 289-line prelude, a 2,854-line component body with
+   53 named functions and 14 effects, and a 161-line JSX return. The remaining
+   bulk is the BMAD guidance authority flow (~450 lines), the recovery-review
+   flow (~150), and the effects.
 
+   The BMAD flow was deliberately left. It is already factored around a named
+   authority predicate (`bmadRequestAuthorityIsCurrent`) and a reducer
+   (`transitionBmadRequest`), so an extraction there moves risk without
+   surfacing a defect — which every other extraction in this phase did.
+
+   The rule that has held for all twelve: find the shape the sibling functions
+   repeat, name it once, and make the ports interface narrow enough that the
+   feature's whole authority is visible in it. Do not extract a cluster whose
+   only shared property is adjacency. FE-11's domain clients are what make a
+   further extraction worth doing now — a controller can take `ChatClient`
+   instead of the facade.
 
 1. **FE-03 was attempted and reverted.** Read the section in the reconciliation
    document before retrying — the premise that reproducing emission order
