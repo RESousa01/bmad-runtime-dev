@@ -17,7 +17,9 @@ export interface WorkspacePanelProps {
   onRemove: (workspaceId: string) => void;
   onSelect: () => void;
   workspaceError: string | null;
-  workspaces: WorkspaceProjection[];
+  /// `readonly`: the panel only lists these. A mutable array here let a view
+  /// reorder the workspace list the controller owns.
+  workspaces: readonly WorkspaceProjection[];
 }
 
 function unavailableCopy(mode: WorkspacePanelProps["mode"]): string {

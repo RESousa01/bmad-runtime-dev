@@ -96,6 +96,10 @@ import {
 } from "./lib/hostClient";
 import { useAppBootstrap } from "./app/useAppBootstrap";
 import { AppRouter } from "./app/AppRouter";
+import {
+  createWorkspaceActions,
+  useWorkspaceState,
+} from "./app/workspace/workspaceController";
 import { AppWorkbench } from "./app/AppWorkbench";
 import type { GovernedChangesUiState } from "./components/GovernedChangesPanel";
 import type {
@@ -297,11 +301,25 @@ export function App({
   // task session id) so a late completion routes to its owning task instead of
   // whichever tab is visible. Bound after `selectedSessionId` is derived.
   const [attachNotice, setAttachNotice] = useState<string | null>(null);
-  const [hostWorkspaces, setHostWorkspaces] = useState<WorkspaceProjection[]>([]);
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
-  const [workspaceSelectionBusy, setWorkspaceSelectionBusy] = useState(false);
-  const [workspaceRemovalBusyId, setWorkspaceRemovalBusyId] = useState<string | null>(null);
-  const [workspaceActionError, setWorkspaceActionError] = useState<string | null>(null);
+  /*
+   * FE-10 step 3: the workspace list, its selection and its busy flags belong
+   * to the workspace controller. Destructured under the names the rest of this
+   * component already uses, so the move is a change of owner rather than a
+   * rename sprayed across two thousand lines.
+   */
+  const workspaceState = useWorkspaceState();
+  const {
+    actionError: workspaceActionError,
+    activeWorkspace,
+    activeWorkspaceId,
+    adoptWorkspaces,
+    promoteWorkspace,
+    removalBusyId: workspaceRemovalBusyId,
+    resetActionState: resetWorkspaceActionState,
+    selectionBusy: workspaceSelectionBusy,
+    setActionError: setWorkspaceActionError,
+    workspaces: hostWorkspaces,
+  } = workspaceState;
   const [contextPreview, setContextPreview] = useState<ContextPreviewProjection | null>(null);
   const [contextSelectionMode, setContextSelectionMode] =
     useState<ContextSelectionMode>("manual");
@@ -352,7 +370,6 @@ export function App({
   const recoveryDecisionRef = useRef(false);
   const recoveryPreparationRef = useRef(false);
   const drawerIsOverlay = useMediaQuery(DRAWER_OVERLAY_QUERY);
-  const workspaceActionBusyRef = useRef(false);
   const workspaceReturnFocusRef = useRef<HTMLElement | null>(null);
   const utilityReturnFocusRef = useRef<HTMLElement | null>(null);
   const pendingUtilityReturnFocusRef = useRef<HTMLElement | null>(null);
@@ -392,19 +409,7 @@ export function App({
     republishHostRuntime,
     retryHostRuntime,
   } = useAppBootstrap({
-    adoptWorkspaces: useCallback((
-      workspaces: readonly WorkspaceProjection[],
-      preserveActive: boolean,
-    ) => {
-      setHostWorkspaces([...workspaces]);
-      setActiveWorkspaceId((current) => (
-        preserveActive
-        && current !== null
-        && workspaces.some(({ workspaceId }) => workspaceId === current)
-          ? current
-          : workspaces[0]?.workspaceId ?? null
-      ));
-    }, []),
+    adoptWorkspaces,
     browserDemoWorkspaces: BROWSER_DEMO_WORKSPACES,
     invalidateHostBoundUi: invalidateHostBoundUiPort,
     loadRuntime: hostRuntimeLoader,
@@ -487,9 +492,6 @@ export function App({
     () => findTask(tasks, pendingDeleteTaskId),
     [pendingDeleteTaskId, tasks],
   );
-  const activeWorkspace = hostWorkspaces.find(({ workspaceId }) => workspaceId === activeWorkspaceId)
-    ?? hostWorkspaces[0]
-    ?? null;
   const workspaceName = activeWorkspace?.displayName ?? "No local workspace selected";
   const workspaceDescription = hostRuntime.kind === "browser_demo"
     ? "Sample data · Read only"
@@ -916,11 +918,7 @@ export function App({
         ) {
           return;
         }
-        setHostWorkspaces(bootstrap.workspaces);
-        setActiveWorkspaceId((current) => current !== null
-          && bootstrap.workspaces.some(({ workspaceId }) => workspaceId === current)
-          ? current
-          : bootstrap.workspaces[0]?.workspaceId ?? null);
+        adoptWorkspaces(bootstrap.workspaces, true);
         // `republishHostRuntime`, not `adoptHostRuntime`: the new binding
         // generation was claimed above, before the await, and adopting here
         // would claim a second one -- invalidating the very read that is
@@ -971,10 +969,11 @@ export function App({
       });
     }
   }, [
-    // All three are stable for the life of the component -- a ref object and
-    // two `useCallback`s with stable dependencies -- so naming them keeps this
+    // All stable for the life of the component -- a ref object and
+    // `useCallback`s with stable dependencies -- so naming them keeps this
     // callback stable while satisfying the exhaustive-deps rule honestly
     // rather than by suppression.
+    adoptWorkspaces,
     hostBindingGenerationRef,
     markHostUnavailable,
     republishHostRuntime,
@@ -1049,15 +1048,13 @@ export function App({
     setModelSelectionNotice(null);
     setPreferencesNotice(null);
     setAttachNotice(null);
-    workspaceActionBusyRef.current = false;
-    setWorkspaceSelectionBusy(false);
-    setWorkspaceRemovalBusyId(null);
-    setWorkspaceActionError(null);
+    resetWorkspaceActionState();
   }, [
     clearAllCapabilityRuns,
     clearBmadHelpProjection,
     clearMethodLibraryProjection,
     invalidateWorkspaceBoundUi,
+    resetWorkspaceActionState,
   ]);
 
   // Closes the loop opened by `invalidateHostBoundUiPort` above. Assigned
@@ -1334,8 +1331,7 @@ export function App({
       // all revoked seconds earlier. The workbench looked operational and every
       // action failed. The earlier comment here claimed this was "the same set";
       // it was not.
-      setHostWorkspaces([]);
-      setActiveWorkspaceId(null);
+      adoptWorkspaces([], false);
       setModelAuthStatus(null);
       setTaskDrafts(new Map());
       clearContext();
@@ -1762,11 +1758,7 @@ export function App({
       if (isStale()) {
         return false;
       }
-      setHostWorkspaces(workspaces);
-      setActiveWorkspaceId((current) => current !== null
-        && workspaces.some(({ workspaceId }) => workspaceId === current)
-        ? current
-        : workspaces[0]?.workspaceId ?? null);
+      adoptWorkspaces(workspaces, true);
       return true;
     };
 
@@ -1876,6 +1868,10 @@ export function App({
     };
   }, [
     adoptHostRuntime,
+    // Stable: a `useCallback` with no dependencies. Naming it does not restart
+    // the poller, which matters -- a poller that restarted every render would
+    // hammer the host.
+    adoptWorkspaces,
     // A ref object, so naming it never restarts the poller. The poller reads
     // `.current` on every tick to decide whether its binding is still the live
     // one, which is why it must be a dependency at all.
@@ -2820,11 +2816,7 @@ export function App({
       if (generation !== changesGenerationRef.current) {
         return;
       }
-      setHostWorkspaces((current) => [
-        enabled,
-        ...current.filter(({ workspaceId }) => workspaceId !== enabled.workspaceId),
-      ]);
-      setActiveWorkspaceId(enabled.workspaceId);
+      promoteWorkspace(enabled);
       clearAllChangesFlows();
       setChangesHistory(null);
       // Paired: `setChangesHistory(null)` alone leaves the status `loaded`, so the
@@ -2948,111 +2940,45 @@ export function App({
     }
   }
 
-  async function selectWorkspace() {
-    if (hostRuntime.kind !== "ready" || !canSelectWorkspace || workspaceActionBusyRef.current) {
-      return;
-    }
-    workspaceActionBusyRef.current = true;
-    setWorkspaceSelectionBusy(true);
-    setWorkspaceActionError(null);
-    try {
-      const selection = await hostRuntime.client.selectWorkspace();
-      if (selection.kind === "workspace_selected") {
-        setHostWorkspaces((current) => [
-          selection.value,
-          ...current.filter(({ workspaceId }) => workspaceId !== selection.value.workspaceId),
-        ]);
-        setActiveWorkspaceId(selection.value.workspaceId);
-      }
-    } catch (error) {
-      if (
-        error instanceof HostCommandError
-        && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
-      ) {
-        markReadOnlyRecovery(
-          hostRuntime.client,
-          hostRuntime.bootstrap.projectionSequence,
-        );
-      } else {
-        setWorkspaceActionError(getSafeHostMessage(error));
-      }
-    } finally {
-      workspaceActionBusyRef.current = false;
-      setWorkspaceSelectionBusy(false);
-    }
-  }
-
-  function activateWorkspace(workspaceId: string) {
-    if (
-      hostRuntime.kind !== "ready"
-      || !canActivateWorkspace
-      || workspaceActionBusyRef.current
-      || !hostWorkspaces.some((workspace) => workspace.workspaceId === workspaceId)
-    ) {
-      return;
-    }
-    setWorkspaceActionError(null);
-    if (workspaceId !== activeWorkspaceId) {
-      resetAllChangesFlows();
-      setChangesHistory(null);
-      // Paired: `setChangesHistory(null)` alone leaves the status `loaded`, so the
-      // load-on-open effect never fires and Activity reports "No activity yet"
-      // immediately after a governed change is applied — the exact scenario the
-      // effect exists to fix.
-      setChangesHistoryStatus("unread");
-      clearAllCapabilityRuns();
-    }
-    setActiveWorkspaceId(workspaceId);
-  }
-
-  async function removeWorkspace(workspaceId: string) {
-    if (
-      hostRuntime.kind !== "ready"
-      || !canRemoveWorkspace
-      || workspaceActionBusyRef.current
-    ) {
-      return;
-    }
-    const expectedWorkspace = hostWorkspaces.find(
-      (workspace) => workspace.workspaceId === workspaceId,
-    );
-    if (!expectedWorkspace) {
-      return;
-    }
-
-    workspaceActionBusyRef.current = true;
-    setWorkspaceRemovalBusyId(workspaceId);
-    setWorkspaceActionError(null);
-    try {
-      const result = await hostRuntime.client.revokeWorkspace(expectedWorkspace);
-      setHostWorkspaces(result.workspaces);
-      setActiveWorkspaceId((current) => {
-        if (
-          current !== workspaceId
-          && current !== null
-          && result.workspaces.some((workspace) => workspace.workspaceId === current)
-        ) {
-          return current;
+  /*
+   * The three mutating workspace actions, built from the controller.
+   *
+   * Each used to repeat the same six steps by hand -- guard, mark busy, clear
+   * the error, call the host, classify the failure, clear busy. The
+   * classification is the part that mattered: `recovery_required` and
+   * `integrity_failure` are the host saying its own state is untrustworthy, and
+   * an action that missed that branch reported a host demanding recovery as an
+   * ordinary error while the app carried on believing it was healthy. It is now
+   * written once, in `runWorkspaceAction`.
+   */
+  const { activateWorkspace, removeWorkspace, selectWorkspace } = createWorkspaceActions(
+    workspaceState,
+    {
+      host: hostRuntime.kind === "ready"
+        ? {
+          canActivate: canActivateWorkspace,
+          canRemove: canRemoveWorkspace,
+          canSelect: canSelectWorkspace,
+          enterReadOnlyRecovery: () => markReadOnlyRecovery(
+            hostRuntime.client,
+            hostRuntime.bootstrap.projectionSequence,
+          ),
+          revokeWorkspace: (expected) => hostRuntime.client.revokeWorkspace(expected),
+          selectWorkspace: () => hostRuntime.client.selectWorkspace(),
         }
-        return result.workspaces[0]?.workspaceId ?? null;
-      });
-    } catch (error) {
-      if (
-        error instanceof HostCommandError
-        && (error.details.code === "recovery_required" || error.details.code === "integrity_failure")
-      ) {
-        markReadOnlyRecovery(
-          hostRuntime.client,
-          hostRuntime.bootstrap.projectionSequence,
-        );
-      } else {
-        setWorkspaceActionError(getSafeHostMessage(error));
-      }
-    } finally {
-      workspaceActionBusyRef.current = false;
-      setWorkspaceRemovalBusyId(null);
-    }
-  }
+        : null,
+      onActiveWorkspaceChanged: () => {
+        resetAllChangesFlows();
+        setChangesHistory(null);
+        // Paired: `setChangesHistory(null)` alone leaves the status `loaded`, so
+        // the load-on-open effect never fires and Activity reports "No activity
+        // yet" immediately after a governed change is applied -- the exact
+        // scenario the effect exists to fix.
+        setChangesHistoryStatus("unread");
+        clearAllCapabilityRuns();
+      },
+    },
+  );
 
   function openWorkspaceManager() {
     workspaceReturnFocusRef.current = document.activeElement instanceof HTMLElement
