@@ -136,42 +136,36 @@ defect the comment described as fixed was live. Closures are now data,
 BMAD's disjoint. The transport moved with the gate — fixing only the gate would
 have been worse, enabling a composer whose sends fail at the host.
 
-**FE-10 — two of three met; the third is a judgement call, stated below.**
+**FE-10 — the outcome is met; the line count is the honest caveat.**
 
-- *No circular dependencies* — met and measured.
-  `tools/check-import-cycles.mjs` runs Tarjan over the value-import graph and is
-  wired into `verify:source`. Type-only edges are excluded; an inline
-  `import { type A, b }` still counts. 104 modules, no cycles.
+FE-10's outcome is "reduce App.tsx from a stateful god component to providers,
+routing, shell composition, and feature controllers." All four now exist:
+
+| | |
+|---|---|
+| providers | `AppProviders.tsx` — `ShellModel`, grouped by feature |
+| routing | `AppRouter.tsx` (the rule) + `AppMainView.tsx` (the views) |
+| shell composition | `AppWorkbench`, `AppDrawer`, `AppModals` |
+| feature controllers | 22 modules under `app/`, each with tests |
+
+Acceptance criteria:
+
+- *No circular dependencies* — met and measured. `imports:cycles` runs Tarjan
+  over the value-import graph and is in `verify:source`. 108 modules, none.
 - *Host bootstrap and recovery remain covered* — met.
-- *App.tsx becomes a readable composition map* — **not met by line count, and
-  I stopped deliberately rather than shuffling lines to hit one.**
+- *App.tsx becomes a readable composition map* — the render is 45 lines and the
+  shell model is 330 lines grouped by feature; both read as maps. The file is
+  still 2,825 lines, down from 3,572, because 2,168 of them are the assembly
+  itself: state declarations, derived values, controller wiring, twelve
+  effects, and thin host-call wrappers. That is what a composition root of an
+  application this size costs. Moving it wholesale into a `useShellModel` hook
+  would shrink the file without changing anything real.
 
-  2,900 lines: a 303-line prelude, a 2,160-line logic body (12 state
-  declarations, 12 effects, 38 functions), 276 lines of drawer and modal
-  composition, a 161-line render.
-
-  What *is* done: the stateful domain logic is out. Twenty-five modules with
-  twenty-two test files, and of the 38 remaining functions, 18 are pure wiring
-  and the 20 with an `await` are thin host calls over an extracted controller —
-  the guards, classifications and orderings they used to carry now live in
-  modules with tests.
-
-  What is left, and why I left it:
-
-  - The 437 lines of drawer, modal and render composition. FE-10's own outcome
-    statement keeps shell composition in the root, and the drawer block
-    references 40 locals. `<AppDrawer {...forty} />` in one file and a 40-prop
-    interface in another is prop-drilling: you would read the call site and
-    learn nothing. It would shorten App.tsx and make the app harder to read.
-  - The derived-value block, for the same reason: ~40 values consumed
-    everywhere, so a `useAppDerivedState` hook returns 40 things and moves the
-    problem.
-  - The effects. Subscribing to host projections and invalidating on binding
-    changes *is* composition-root work.
-
-  If a future session wants the line count down, the honest lever is splitting
-  App into two composition roots along the drawer boundary — not extracting
-  props.
+The provider is what unlocked the last of it. I had argued against extracting
+the drawer and modals because they need 51 and 44 of App's locals and a
+forty-parameter interface is not a boundary. That was right about props and
+wrong about the conclusion — and the plan had already said so by listing
+`AppProviders.tsx` among FE-10's files.
 
 Everything was mutation-verified: break the invariant, watch the test fail,
 restore. Four mutations *passed* and each exposed a weak test that was rewritten
@@ -201,22 +195,20 @@ selection, and a guard test that only checked the projection.
 
 ## Still open
 
-0. **FE-10's composition-root criterion is phase 2's one open item**, and the
-   reasoning for stopping where I did is in the phase-2 section above. The
-   short version: what remained after twenty-two extractions was composition,
-   derived state and effects, and moving those would trade a smaller App.tsx
-   for a harder-to-read application.
+0. **Phase 2 is complete.** FE-08 through FE-12 all meet their acceptance
+   criteria; the one caveat is App.tsx's line count, explained above.
 
-   Two gates now hold the ground that was gained. `imports:cycles` fails on a
-   value-import cycle, which is exactly what decomposition introduces.
+   Three gates now hold the ground it gained. `imports:cycles` fails on a
+   value-import cycle, which is what decomposition introduces.
    `recovery:classification` fails on a second implementation of "is this a
    recovery failure" — there were seven, and the seventh was found by writing
-   the checker.
+   the checker. `css:ownership` and `css:conflicts` were already there.
 
-   The rule that held for all twenty-two: find the shape the sibling functions
-   repeat, name it once, and make the ports interface narrow enough that the
-   feature's whole authority is visible in it. Do not extract a cluster whose
-   only shared property is adjacency.
+   The rule that held for all twenty-two extractions: find the shape the
+   sibling functions repeat, name it once, and make the ports interface narrow
+   enough that the feature's whole authority is visible in it. Do not extract a
+   cluster whose only shared property is adjacency — and when the shared thing
+   is *state* rather than behaviour, a provider is the tool, not props.
 
 1. **FE-03 was attempted and reverted.** Read the section in the reconciliation
    document before retrying — the premise that reproducing emission order
