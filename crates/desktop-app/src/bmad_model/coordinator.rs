@@ -42,10 +42,12 @@ use super::transport::BmadHelpTransport;
 use super::transport::DeterministicHelpTransport;
 #[cfg(feature = "direct-model-providers")]
 use super::transport::DirectModelTransport;
-#[cfg(any(
-    feature = "direct-model-providers",
-    not(feature = "deterministic-help")
-))]
+// Unconditional, because the uses below already cover every configuration:
+// `apply_frontend_selection` installs this transport when the direct provider
+// is compiled and unconfigured, and again when it is not compiled at all.
+// The old condition -- direct-model-providers, or deterministic-help off --
+// excluded exactly one combination (deterministic on, direct off), which never
+// built while `direct-model-providers` was a default feature.
 use super::transport::OfflineHelpTransport;
 use super::verification::BmadHelpProposalValidator;
 #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
@@ -487,6 +489,17 @@ impl BmadHelpCoordinator {
         self.active = None;
     }
 
+    // The only fallible step here is constructing the direct transport. Without
+    // that feature nothing can fail, but the signature has to stay the same in
+    // every trust mode -- callers handle the Result and the mode is a build
+    // choice, not an API change.
+    #[cfg_attr(
+        not(feature = "direct-model-providers"),
+        allow(
+            clippy::unnecessary_wraps,
+            reason = "the fallible arm is compiled out; the signature is mode-independent"
+        )
+    )]
     pub(crate) fn configure_frontend_selection(
         &mut self,
         composition: FrontendModelComposition,

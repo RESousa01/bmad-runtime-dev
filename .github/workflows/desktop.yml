@@ -44,5 +44,20 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
       - run: cargo test --workspace --all-features --locked
+      # Each trust mode is a distinct build of the product, and --all-features
+      # compiles none of them: it compiles all three at once, which is a shape
+      # that never ships. Audit item QR-03 asks for the matrix, and it is not
+      # theoretical -- when the default feature was removed, three of these
+      # four did not compile at all, because nothing had ever built them alone.
+      - run: cargo clippy -p desktop-app --all-targets --locked -- -D warnings
+        name: clippy (local_only - no model egress compiled)
+      - run: cargo clippy -p desktop-app --all-targets --locked --features direct-model-providers -- -D warnings
+        name: clippy (development_direct)
+      - run: cargo clippy -p desktop-app --all-targets --locked --features deterministic-help -- -D warnings
+        name: clippy (deterministic offline Help)
+      - run: cargo clippy -p desktop-app --all-targets --locked --features production-support -- -D warnings
+        name: clippy (organization_managed)
+      - run: cargo test -p desktop-app -p desktop-cloud --locked
+        name: test (local_only - the default build)
       - run: pnpm build
       - run: pnpm desktop:build

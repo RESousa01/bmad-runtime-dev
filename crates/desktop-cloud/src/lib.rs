@@ -14,7 +14,13 @@ mod installation_identity;
 mod model;
 mod production;
 mod production_round_trip;
-#[cfg(feature = "direct-provider")]
+// Not gated on `direct-provider`. This is the taxonomy that says *why* a model
+// call failed -- host request invalid, provider refused, transport broke -- and
+// desktop-app uses it as the error type of the `ModelTransport::dispatch`
+// trait, which every trust mode goes through. Gating it meant the crate only
+// compiled when the direct provider was on, which the removed default feature
+// hid. Its own dependencies are `model`, `transport` and `CloudError`, none of
+// which are gated.
 mod provider_failure;
 mod support_contract;
 mod transport;
@@ -50,7 +56,6 @@ pub use production::{
     VerifiedSignedPolicy,
 };
 pub use production_round_trip::{ProductionRoundTrip, RegistrationMaterial};
-#[cfg(feature = "direct-provider")]
 pub use provider_failure::{ProviderFailure, ProviderFailureKind, MAX_RETRY_AFTER};
 pub use support_contract::{
     project_model_access_request, CanonicalProjectionInputs, ConsentProfile, ConsentSubject,

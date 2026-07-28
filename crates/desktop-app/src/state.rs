@@ -486,9 +486,14 @@ impl HostState {
                 true,
             )
         })?;
+        // Without the direct provider compiled in there is nothing to sign in
+        // to, so this is the whole body: the block is the tail expression, and
+        // `self` is discarded with the arguments to keep clippy honest about a
+        // method that genuinely uses neither.
         #[cfg(not(feature = "direct-model-providers"))]
         {
             let _ = (
+                self,
                 provider_id,
                 model_id,
                 credential,
@@ -496,11 +501,11 @@ impl HostState {
                 region,
                 changed_at,
             );
-            return Err(LocalError::new(
+            Err(LocalError::new(
                 LocalErrorCode::FeatureDisabled,
                 "Direct model connections are not enabled in this build.",
                 false,
-            ));
+            ))
         }
 
         #[cfg(feature = "direct-model-providers")]

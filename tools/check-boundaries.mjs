@@ -416,6 +416,33 @@ if (rootPackage) {
       "package.json: the offline desktop installer must include deterministic local Help",
     );
   }
+  // Audit finding F-09: the crate used to default to `direct-model-providers`,
+  // so a build meant for production silently compiled the development egress
+  // path. The default is gone; these two checks are what stop it returning --
+  // one keeps the manifest honest, the other keeps every script that produces
+  // a running application explicit about the mode it is producing.
+  const desktopManifest = await requiredText(join(root, "crates/desktop-app/Cargo.toml"));
+  const declaredDefault = /(?:^|\n)\s*default\s*=\s*\[([^\]]*)\]/u.exec(desktopManifest)?.[1] ?? "";
+  if (declaredDefault.trim() !== "") {
+    violations.push(
+      "crates/desktop-app/Cargo.toml: the trust mode must not have a default feature; "
+      + "every build has to name the mode it is compiling",
+    );
+  }
+  const TRUST_MODES = ["direct-model-providers", "deterministic-help", "production-support"];
+  for (const script of ["desktop:dev", "desktop:dev:deterministic", "desktop:build", "desktop:build:direct"]) {
+    const command = rootPackage.scripts?.[script];
+    if (typeof command !== "string") {
+      violations.push(`package.json: ${script} is missing`);
+      continue;
+    }
+    if (!TRUST_MODES.some((mode) => command.includes(`--features ${mode}`))) {
+      violations.push(
+        `package.json: ${script} must name its trust mode with --features; `
+        + "without one it compiles the offline mode and cannot reach any model",
+      );
+    }
+  }
   const sourceVerification = rootPackage.scripts?.["verify:source"];
   if (typeof sourceVerification !== "string") {
     violations.push("package.json: verify:source is missing");

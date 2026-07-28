@@ -26,11 +26,17 @@
 
 use std::time::Duration;
 
+// Only the HTTP-classification half needs to read a body or a content type,
+// and that half is compiled with the direct provider.
+#[cfg(feature = "direct-provider")]
 use desktop_runtime::deserialize_strict_json;
+#[cfg(feature = "direct-provider")]
 use serde_json::Value;
 use thiserror::Error;
 
+#[cfg(feature = "direct-provider")]
 use crate::model::MAX_OUTPUT_BYTES;
+#[cfg(feature = "direct-provider")]
 use crate::transport::is_json_content_type;
 use crate::CloudError;
 
@@ -42,15 +48,18 @@ use crate::CloudError;
 /// the read loop — so lowering the header ceiling would have left a chunked
 /// response bounded by the old, larger number. Chunked is what these providers
 /// actually send, so the loop is the arm that matters.
+#[cfg(feature = "direct-provider")]
 pub(crate) const MAX_PROVIDER_RESPONSE_BYTES: usize = MAX_OUTPUT_BYTES;
 
 /// The `Content-Length` form of the same ceiling.
+#[cfg(feature = "direct-provider")]
 pub(crate) const MAX_PROVIDER_RESPONSE_BYTES_DECLARED: u64 = MAX_PROVIDER_RESPONSE_BYTES as u64;
 
 /// How much of a *rejected* response is read so its error code can be matched.
 ///
 /// Small on purpose. Nothing here is kept, and an error body large enough to
 /// need more than this is not one whose `error.code` is going to be legible.
+#[cfg(feature = "direct-provider")]
 pub(crate) const MAX_ERROR_BODY_BYTES: usize = 16 * 1024;
 
 /// The longest provider error code that will be compared at all.
@@ -58,6 +67,7 @@ pub(crate) const MAX_ERROR_BODY_BYTES: usize = 16 * 1024;
 /// A code is a short enum-like token. Refusing to even compare a longer one
 /// keeps a hostile body from turning classification into a long memcmp, and
 /// makes the allowlist the only thing that can ever match.
+#[cfg(feature = "direct-provider")]
 const MAX_ERROR_CODE_BYTES: usize = 128;
 
 /// The ceiling on a `Retry-After` this crate will repeat to a caller.
@@ -74,6 +84,7 @@ pub const MAX_RETRY_AFTER: Duration = Duration::from_mins(5);
 /// This is the one refinement that *removes* retryability, and it is the whole
 /// reason error bodies are read: `OpenAI` reports an exhausted balance as a 429,
 /// identical in status to an ordinary rate limit.
+#[cfg(feature = "direct-provider")]
 const QUOTA_ERROR_CODES: [&str; 5] = [
     "insufficient_quota",
     "billing_hard_limit_reached",
@@ -86,6 +97,7 @@ const QUOTA_ERROR_CODES: [&str; 5] = [
 ///
 /// These arrive as **400**, not 413, which is why status alone cannot tell a
 /// user to shorten the conversation.
+#[cfg(feature = "direct-provider")]
 const TOO_LARGE_ERROR_CODES: [&str; 4] = [
     "context_length_exceeded",
     "string_above_max_length",
@@ -94,6 +106,7 @@ const TOO_LARGE_ERROR_CODES: [&str; 4] = [
 ];
 
 /// Provider error codes that turn a generic 4xx into "the content filter said no".
+#[cfg(feature = "direct-provider")]
 const CONTENT_FILTER_ERROR_CODES: [&str; 3] = [
     "content_filter",
     "content_policy_violation",
@@ -101,6 +114,7 @@ const CONTENT_FILTER_ERROR_CODES: [&str; 3] = [
 ];
 
 /// Provider error codes that turn a generic 4xx into "this key is wrong".
+#[cfg(feature = "direct-provider")]
 const CREDENTIAL_ERROR_CODES: [&str; 4] = [
     "invalid_api_key",
     "invalid_authentication",
@@ -354,6 +368,7 @@ impl ProviderFailure {
     /// every entry of every allowlist. A body that could make a failure more
     /// retryable would be a way to drive a retry loop from the wire.
     #[must_use]
+    #[cfg(feature = "direct-provider")]
     pub(crate) fn refined_by_error_body(self, body: &[u8]) -> Self {
         let Some(code) = provider_error_code(body) else {
             return self;
@@ -384,6 +399,7 @@ impl ProviderFailure {
 
     /// Whether reading a bounded slice of the error body could change the
     /// answer. Keeps the common 5xx path from paying for a read it will ignore.
+    #[cfg(feature = "direct-provider")]
     pub(crate) const fn wants_error_body(&self) -> bool {
         matches!(
             self.kind,
@@ -402,6 +418,7 @@ impl From<ProviderFailure> for CloudError {
 /// reading. Owned, so classification is a pure function of copied scalars and
 /// two header strings that never outlive it.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg(feature = "direct-provider")]
 pub(crate) struct ProviderResponseHead {
     pub(crate) status: u16,
     pub(crate) content_type: Option<String>,
@@ -417,10 +434,12 @@ pub(crate) struct ProviderResponseHead {
 /// rather than silently letting a 429 body be parsed as a model reply — which
 /// is the shape of "a guard that reads like protection and isn't".
 #[derive(Debug)]
+#[cfg(feature = "direct-provider")]
 pub(crate) struct AcceptedResponseHead {
     pub(crate) declared_length: Option<u64>,
 }
 
+#[cfg(feature = "direct-provider")]
 impl ProviderResponseHead {
     pub(crate) fn from_response(response: &reqwest::Response) -> Self {
         let header = |name: &str| {
@@ -498,6 +517,7 @@ impl ProviderResponseHead {
 /// prevent. An unrecognised 1xx or 3xx is not an answer at all: with redirects
 /// disabled a 302 means something other than the provider replied, which is a
 /// captive portal far more often than it is a real move.
+#[cfg(feature = "direct-provider")]
 const fn status_kind(status: u16) -> ProviderFailureKind {
     match status {
         401 => ProviderFailureKind::CredentialRejected,
@@ -514,6 +534,7 @@ const fn status_kind(status: u16) -> ProviderFailureKind {
 }
 
 /// Classifies a transport-level failure — nothing was received to inspect.
+#[cfg(feature = "direct-provider")]
 pub(crate) fn classify_transport_error(error: &reqwest::Error) -> ProviderFailure {
     let kind = if error.is_timeout() {
         ProviderFailureKind::Timeout
@@ -535,6 +556,7 @@ pub(crate) fn classify_transport_error(error: &reqwest::Error) -> ProviderFailur
 ///
 /// The returned string is compared against an allowlist by the only caller and
 /// then dropped. It is never stored in a [`ProviderFailure`] and never rendered.
+#[cfg(feature = "direct-provider")]
 fn provider_error_code(body: &[u8]) -> Option<String> {
     let value: Value = deserialize_strict_json(body).ok()?;
     let error = value.get("error")?;
@@ -553,6 +575,7 @@ fn provider_error_code(body: &[u8]) -> Option<String> {
 /// and this machine's, which on a laptop that has been asleep is nothing, and
 /// neither provider sends it. `parse::<u64>` also disposes of negatives, `NaN`,
 /// and `"1e9"` without a special case.
+#[cfg(feature = "direct-provider")]
 fn parse_retry_after(seconds: Option<&str>, millis: Option<&str>) -> Option<Duration> {
     let from_millis = millis
         .and_then(|value| value.trim().parse::<u64>().ok())
@@ -563,7 +586,7 @@ fn parse_retry_after(seconds: Option<&str>, millis: Option<&str>) -> Option<Dura
     Some(from_millis.or(from_seconds)?.min(MAX_RETRY_AFTER))
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "direct-provider"))]
 mod tests {
     #![allow(
         clippy::expect_used,

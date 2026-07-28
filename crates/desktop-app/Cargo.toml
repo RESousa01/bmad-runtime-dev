@@ -9,7 +9,28 @@ authors.workspace = true
 publish.workspace = true
 
 [features]
-default = ["direct-model-providers"]
+# No default trust mode, deliberately.
+#
+# This used to default to `direct-model-providers`, so `cargo build -p
+# desktop-app` produced a binary that could reach a model provider directly
+# with locally configured credentials -- the development egress path -- and
+# nothing at the call site said so. Audit finding F-09 rates that Critical,
+# because a build intended for production silently carried it and its receipts,
+# policy and identity guarantees were then ambiguous.
+#
+# With no feature the crate compiles the offline mode only, which is the
+# `local_only` trust mode in the master audit's section 6.2. Every other mode
+# is opt-in, by name, at the build that wants it:
+#
+#   direct-model-providers  development, direct provider credentials
+#   deterministic-help      canned local replies, for offline installers
+#   production-support      organization-managed, and still fails closed
+#                           unless the full package-controlled value set is
+#                           present at build time
+#
+# check-boundaries.mjs enforces that every dev and build script names one, so
+# the default cannot quietly return.
+default = []
 deterministic-help = ["desktop-cloud/deterministic-fake"]
 production-support = []
 direct-model-providers = ["desktop-cloud/direct-provider"]
