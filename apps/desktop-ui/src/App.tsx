@@ -58,6 +58,7 @@ import {
 } from "./app/statusLabels";
 import { useHostProjection } from "./app/projection/hostProjection";
 import { eraseLocalData } from "./app/offboarding/eraseLocalData";
+import { resolveMenuDispatch } from "./app/chat/menuDispatch";
 import {
   classifyProjectionFailure,
   decideProjectionOutcome,
@@ -75,7 +76,6 @@ import {
   underReview,
 } from "./app/capability/capabilityController";
 import { DeleteTaskDialog } from "./components/DeleteTaskDialog";
-import { matchMenuIntent } from "./lib/menuIntent";
 import {
   type OffboardingStatus,
   SettingsDialog,
@@ -2000,31 +2000,25 @@ export function App({
     // forever. Applied before the send so the tab is labelled even if the
     // request then fails, and a no-op once the task has any title.
     autoTitleFromMessage(sessionId ?? selectedSessionId, intent);
-    // With an agent bound, a message that unambiguously names one of that
-    // agent's menu items dispatches it instead — the behaviour the method's
-    // own activation describes. Anything else stays an ordinary conversation.
-    const boundAgent = chatLane.agentCode;
-    if (boundAgent !== null && bmadLibraryState.kind === "ready") {
-      const agent = bmadLibraryState.projection.methodAgents.find(
-        (candidate) => candidate.agentCode === boundAgent,
+    const dispatch = resolveMenuDispatch({
+      boundAgent: chatLane.agentCode,
+      intent,
+      library: bmadLibraryState,
+    });
+    if (dispatch !== null) {
+      // Record the exchange before leaving. A dispatch is still a turn the
+      // user took: returning straight to the capability run cleared the
+      // composer and dropped the message, so the conversation lost the very
+      // sentence that caused the run to open.
+      const dispatchRouting = sessionId === undefined
+        ? chatSessions.captureRouting()
+        : chatSessions.routingFor(sessionId);
+      const dispatchedAt = Date.now();
+      chatSessions.applyToLane(dispatchRouting, (lane) =>
+        appendDispatchExchange(lane, intent, dispatch.label, dispatchedAt),
       );
-      const dispatched = agent ? matchMenuIntent(intent, agent.menus) : null;
-      if (dispatched?.menu.capabilityId != null) {
-        // Record the exchange before leaving. A dispatch is still a turn the
-        // user took: returning straight to the capability run cleared the
-        // composer and dropped the message, so the conversation lost the very
-        // sentence that caused the run to open.
-        const dispatchRouting = sessionId === undefined
-          ? chatSessions.captureRouting()
-          : chatSessions.routingFor(sessionId);
-        const dispatchedAt = Date.now();
-        const label = dispatched.menu.displayLabel;
-        chatSessions.applyToLane(dispatchRouting, (lane) =>
-          appendDispatchExchange(lane, intent, label, dispatchedAt),
-        );
-        openCapabilityRun(dispatched.menu.capabilityId, label);
-        return;
-      }
+      openCapabilityRun(dispatch.capabilityId, dispatch.label);
+      return;
     }
     // The Home composer creates the task and sends in the same tick, so the
     // active-session state has not settled yet. Binding to the id the caller
