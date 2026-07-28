@@ -86,6 +86,24 @@ describe("TitleBar Forge identity", () => {
     expect(document.activeElement).toBe(tab("Third task"));
   });
 
+  /// Regression guard: the title bar is a custom one, so `data-tauri-drag-region`
+  /// is the only thing making the window movable. FE-18 put a new element
+  /// between the strip and the tabs, and an element that covers empty title bar
+  /// without the attribute is dead space where dragging used to work.
+  it("leaves every empty stretch of the bar draggable", () => {
+    const { container } = render(
+      <TitleBar
+        activeTaskId="task-1"
+        onMenu={() => undefined}
+        taskTabs={[{ id: "task-1", title: "First task" }]}
+      />,
+    );
+
+    for (const selector of [".title-bar", ".title-strip", ".title-strip__tabs-region"]) {
+      expect(container.querySelector(`${selector}[data-tauri-drag-region]`)).not.toBeNull();
+    }
+  });
+
   it("uses the plus action only to create another task", () => {
     const onNewTask = vi.fn();
     render(

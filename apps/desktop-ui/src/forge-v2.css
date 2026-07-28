@@ -158,6 +158,27 @@
   color: var(--color-text-soft);
 }
 
+.app-shell--forge-v2 .title-strip__tabs-region {
+  gap: 2px;
+}
+
+/* Sized to the 28px control height the rest of the strip uses, so the row
+   still reads as one line of controls once the overflow control appears. */
+.app-shell--forge-v2 .title-strip__overflow-trigger {
+  height: 28px;
+  padding: 0 8px;
+}
+
+.app-shell--forge-v2 .title-strip__overflow-trigger:hover,
+.app-shell--forge-v2 .title-strip__overflow-trigger[aria-expanded="true"] {
+  background: var(--color-surface-hover);
+  color: var(--color-text-soft);
+}
+
+.app-shell--forge-v2 .title-strip__overflow-item {
+  min-height: 28px;
+}
+
 .app-shell--forge-v2 .title-strip__end {
   gap: 0;
   padding-right: 4px;

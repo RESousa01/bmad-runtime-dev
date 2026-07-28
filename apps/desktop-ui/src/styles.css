@@ -3799,17 +3799,136 @@ code {
   color: var(--color-text-muted);
 }
 
+/* The row gives up room from the tabs and from nothing else. Flex shares a
+   shortfall out in proportion to base size, so without this the menu, home and
+   new-task controls squeeze to slivers alongside the tabs instead of the tabs
+   overflowing — which is the whole defect, moved one element to the left. */
+.title-strip__button.sapphirus-button {
+  flex: 0 0 auto;
+}
+
+/*
+ * The tab row and its overflow control, as one box.
+ *
+ * Grouped because the control is charged for the room it takes, and the two
+ * only shrink together: measuring the tab row alone and then putting a sibling
+ * control beside it makes the row narrower every time the control appears, so
+ * the two corrections chase each other.
+ *
+ * It does not grow. Growing would push the new-task control away from the tabs
+ * and across to the window buttons; the room the tabs could have is worked out
+ * from the row instead — see `roomInRow` in TaskTabStrip.tsx.
+ *
+ * `min-width: 0` is what lets this shrink past its content when the window
+ * narrows. Without it a flex item refuses to go below min-content and the
+ * strip pushes the window controls off the right edge instead of overflowing.
+ */
+.title-strip__tabs-region {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* Clipped, not scrolled. A hidden scrollbar is the defect FE-18 removes: the
+   tabs past the edge are gone with nothing on screen saying so and no key that
+   reaches them. Anything clipped here is a single over-wide active tab, which
+   is the one case the overflow menu cannot answer. */
 .title-strip__tabs {
   align-items: center;
   display: flex;
+  flex: 0 1 auto;
   gap: 2px;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
+  overflow: hidden;
 }
 
-.title-strip__tabs::-webkit-scrollbar {
-  display: none;
+.title-strip__overflow {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.title-strip__overflow-trigger {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  padding: 4px 8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.title-strip__overflow-trigger:hover,
+.title-strip__overflow-trigger[aria-expanded="true"] {
+  background: var(--color-surface-hover);
+  color: var(--color-text-soft);
+}
+
+.title-strip__overflow-trigger:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+/* Nothing between here and the app shell clips, so the menu is free to hang
+   below a 36px title bar. It hangs leftwards from the trigger's right edge:
+   the trigger only exists once the tabs have filled the row, which puts it far
+   to the right, and a menu opening rightwards from there runs off the window —
+   where `.app-shell`'s `overflow: hidden` would cut it in half. */
+.title-strip__overflow-menu {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-overlay);
+  box-shadow: var(--shadow-popover);
+  display: grid;
+  right: 0;
+  max-height: min(60dvh, 420px);
+  max-width: 320px;
+  min-width: 200px;
+  overflow-y: auto;
+  padding: 4px;
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: 80;
+}
+
+.title-strip__overflow-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-row);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: var(--text-ui);
+  gap: 8px;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.title-strip__overflow-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title-strip__overflow-item:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-soft);
+}
+
+.title-strip__overflow-item:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
 }
 
 .title-strip__tab {
@@ -3897,6 +4016,15 @@ code {
 
 .workspace-crumb__divider {
   opacity: 0.5;
+}
+
+/* Same rule as the strip's own controls: a row that is short of space takes it
+   from the tabs. `flex: 0 0 auto` here is what stops settings, account and the
+   window buttons from being squeezed — or pushed off the right edge — by a
+   task list that has outgrown the bar. */
+.title-strip__end,
+.title-bar__controls {
+  flex: 0 0 auto;
 }
 
 .title-strip__end {
