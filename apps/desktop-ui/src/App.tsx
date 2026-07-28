@@ -89,7 +89,6 @@ import {
   type RetentionManifestProjection,
   type ApprovalChoice,
   type DensityPreference,
-  type DesktopHostClient,
   type ThemePreference,
   HostCapabilityError,
   HostCommandError,
@@ -101,7 +100,14 @@ import {
   type WorkspaceFilePick,
   type WorkspaceSearchMatch,
 } from "./lib/hostClient";
-import { useAppBootstrap } from "./app/useAppBootstrap";
+import { useAppBootstrap, type BoundHostClient } from "./app/useAppBootstrap";
+import type {
+  AppClient,
+  BmadCapabilityClient,
+  WorkspaceClient,
+} from "./lib/hostClient/clients";
+/// The full client, needed only where a runtime is published.
+import type { BootstrapReply, DesktopHostClient } from "./lib/hostClient";
 import { AppRouter } from "./app/AppRouter";
 import {
   createWorkspaceActions,
@@ -745,7 +751,7 @@ export function App({
     && hostRuntime.bootstrap.supportedCommands.includes("workspace.pick_folder");
 
   async function browseAndAttach(
-    picker: (client: DesktopHostClient, workspaceId: string) => Promise<WorkspaceFilePick>,
+    picker: (client: WorkspaceClient, workspaceId: string) => Promise<WorkspaceFilePick>,
   ) {
     if (hostRuntime.kind !== "ready" || !activeWorkspace || !workspaceSource) {
       return;
@@ -891,7 +897,23 @@ export function App({
     };
   }, [activeWorkspace, modelAuthStatus]);
 
-  const loadMethodLibrary = useCallback(async (client: DesktopHostClient) => {
+  /*
+   * FE-11: narrow ports rather than the whole facade.
+   *
+   * This reads the library and, when the renderer session has expired,
+   * re-bootstraps -- so `BmadCapabilityClient & AppClient` is exactly its
+   * authority. Publishing the rebound runtime needs the full client, and that
+   * is a *different* job, so it arrives as a callback the caller supplies
+   * rather than as a wider parameter here. Widening the parameter to make one
+   * line compile is how a controller ends up holding the facade again.
+   */
+  const loadMethodLibrary = useCallback(async (
+    client: BmadCapabilityClient & AppClient,
+    rebind: {
+      readonly republish: (bootstrap: BootstrapReply) => void;
+      readonly abandon: () => void;
+    },
+  ) => {
     bmadLibraryRequestedRef.current = true;
     const generation = ++bmadProjectionGenerationRef.current;
     setBmadLibraryState({ kind: "loading" });
@@ -920,11 +942,8 @@ export function App({
         // generation was claimed above, before the await, and adopting here
         // would claim a second one -- invalidating the very read that is
         // currently succeeding.
-        if (bootstrap.bootMode !== "ready") {
-          republishHostRuntime({ kind: "read_only_recovery", client, bootstrap });
-          return;
-        }
-        republishHostRuntime({ kind: "ready", client, bootstrap });
+        rebind.republish(bootstrap);
+        if (bootstrap.bootMode !== "ready") return;
         if (!bootstrap.supportedCommands.includes("bmad.library.snapshot")) {
           return;
         }
@@ -952,11 +971,11 @@ export function App({
         setContextSuggestionBusy(false);
         setContextPreview(null);
         setContextSelectionMode("manual");
-        // `markHostUnavailable` bumps the binding generation itself, so the
-        // explicit bump that used to sit at the top of this branch is gone --
-        // two bumps for one transition would have been harmless but is one
-        // more place the epoch could drift.
-        markHostUnavailable(client);
+        // `abandon` bumps the binding generation itself, so the explicit bump
+        // that used to sit at the top of this branch is gone -- two bumps for
+        // one transition would have been harmless but is one more place the
+        // epoch could drift.
+        rebind.abandon();
         return;
       }
       setBmadLibraryState({
@@ -966,15 +985,33 @@ export function App({
       });
     }
   }, [
-    // All stable for the life of the component -- a ref object and
-    // `useCallback`s with stable dependencies -- so naming them keeps this
-    // callback stable while satisfying the exhaustive-deps rule honestly
-    // rather than by suppression.
+    // Both stable for the life of the component -- a ref object and a
+    // `useCallback` with no dependencies -- so naming them keeps this callback
+    // stable while satisfying the exhaustive-deps rule honestly rather than by
+    // suppression.
     adoptWorkspaces,
     hostBindingGenerationRef,
-    markHostUnavailable,
-    republishHostRuntime,
   ]);
+
+  /**
+   * How `loadMethodLibrary` re-publishes a runtime it had to re-bootstrap.
+   *
+   * Built here because publishing needs the full client, which the library
+   * reader deliberately does not hold. `republishHostRuntime` rather than
+   * `adoptHostRuntime`: the new binding generation was already claimed before
+   * the await, and adopting would claim a second one -- invalidating the very
+   * read that is currently succeeding.
+   */
+  const methodLibraryRebind = useCallback((client: DesktopHostClient) => ({
+    abandon: () => markHostUnavailable(client),
+    republish: (bootstrap: BootstrapReply) => republishHostRuntime({
+      kind: bootstrap.bootMode === "ready" ? "ready" : "read_only_recovery",
+      client,
+      bootstrap,
+    }),
+  // `useCallback`, not a declaration: it is captured by the projection poller,
+  // and a new function every render would restart the poller every render.
+  }), [markHostUnavailable, republishHostRuntime]);
 
   const clearMethodLibraryProjection = useCallback(() => {
     bmadLibraryRequestedRef.current = false;
@@ -1510,12 +1547,13 @@ export function App({
       setContextDrawer((current) => current === "skills" ? null : current);
       return;
     }
-    void loadMethodLibrary(methodLibraryClient);
+    void loadMethodLibrary(methodLibraryClient, methodLibraryRebind(methodLibraryClient));
   }, [
     activeWorkspaceId,
     clearMethodLibraryProjection,
     loadMethodLibrary,
     methodLibraryClient,
+    methodLibraryRebind,
   ]);
 
   useEffect(() => {
@@ -1717,7 +1755,7 @@ export function App({
           return;
         }
         if (refreshMethodLibrary && bmadLibraryRequestedRef.current) {
-          await loadMethodLibrary(client);
+          await loadMethodLibrary(client, methodLibraryRebind(client));
         }
       } catch (error) {
         if (isStale()) {
@@ -1741,7 +1779,7 @@ export function App({
             // hide session, approval, execution, evidence, connectivity, and
             // update events, so establish a fresh renderer authority instead
             // of advancing past projections this renderer cannot reconstruct.
-            let reboundBootstrap: Awaited<ReturnType<DesktopHostClient["bootstrap"]>>;
+            let reboundBootstrap: Awaited<ReturnType<AppClient["bootstrap"]>>;
             try {
               reboundBootstrap = await client.bootstrap();
             } catch {
@@ -1764,7 +1802,7 @@ export function App({
               bootstrap: reboundBootstrap,
             }, true);
             if (reloadMethodLibrary) {
-              void loadMethodLibrary(client);
+              void loadMethodLibrary(client, methodLibraryRebind(client));
             }
           } catch (snapshotError) {
             if (!isStale()) {
@@ -1790,10 +1828,11 @@ export function App({
     };
   }, [
     adoptHostRuntime,
-    // Stable: a `useCallback` with no dependencies. Naming it does not restart
-    // the poller, which matters -- a poller that restarted every render would
-    // hammer the host.
+    // Stable: `useCallback`s over stable dependencies. Naming them does not
+    // restart the poller, which matters -- a poller that restarted every render
+    // would hammer the host.
     adoptWorkspaces,
+    methodLibraryRebind,
     // A ref object, so naming it never restarts the poller. The poller reads
     // `.current` on every tick to decide whether its binding is still the live
     // one, which is why it must be a dependency at all.
@@ -1931,7 +1970,7 @@ export function App({
     }
     openContextDrawer("skills", returnFocus, openingFromUtility);
     if (!bmadLibraryRequestedRef.current) {
-      void loadMethodLibrary(methodLibraryClient);
+      void loadMethodLibrary(methodLibraryClient, methodLibraryRebind(methodLibraryClient));
     }
   }
 
@@ -2620,7 +2659,11 @@ export function App({
     }
   }
 
-  function handleChangesFailure(client: DesktopHostClient, error: unknown, sequence: number) {
+  function handleChangesFailure(
+    client: BoundHostClient,
+    error: unknown,
+    sequence: number,
+  ) {
     // One definition of "recovery failure", shared with the workspace and
     // changes runners. Reporting a host that demanded recovery as an ordinary
     // error leaves the app running against one that has told it to stop.
@@ -2902,7 +2945,7 @@ export function App({
             onRunCapability={openCapabilityRun}
             onReload={() => {
               if (methodLibraryClient) {
-                void loadMethodLibrary(methodLibraryClient);
+                void loadMethodLibrary(methodLibraryClient, methodLibraryRebind(methodLibraryClient));
               }
             }}
             onViewPersona={(agentCode) => {
