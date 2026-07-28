@@ -73,6 +73,11 @@ async fn stage_routes_bind_their_reviewed_paths_and_methods() {
             "/desktop/v1/entitlements/leases",
             HttpMethod::Post,
         ),
+        (
+            SupportStageRoute::ModelCatalog,
+            "/desktop/v1/model-catalog",
+            HttpMethod::Get,
+        ),
     ] {
         let transport = transport(|| json_ok("{\"ok\":true}"));
         let body = if matches!(expected_method, HttpMethod::Post) {
@@ -163,6 +168,24 @@ async fn stage_exchange_fails_closed_on_untrusted_responses() {
         .await
         .is_err());
     assert!(get_with_body
+        .executor_for_test()
+        .seen
+        .lock()
+        .expect("seen")
+        .is_empty());
+
+    // The catalog route is a GET, so it rejects a smuggled body too.
+    let catalog_with_body = transport(|| json_ok("{}"));
+    assert!(catalog_with_body
+        .exchange_stage(
+            SupportStageRoute::ModelCatalog,
+            Zeroizing::new("token".to_owned()),
+            b"{\"x\":1}".to_vec(),
+            "idem_4b",
+        )
+        .await
+        .is_err());
+    assert!(catalog_with_body
         .executor_for_test()
         .seen
         .lock()

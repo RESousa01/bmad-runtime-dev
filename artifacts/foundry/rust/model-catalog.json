@@ -1,0 +1,222 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "FND-040,FND-041",
+  "title": "Model-catalog transport, and catalog snapshot plus stable selection persistence",
+  "state": "complete_local",
+  "startedAt": "2026-07-28T23:05:00Z",
+  "completedAt": "2026-07-29T00:35:00Z",
+  "redGate": {
+    "mode": "test_first",
+    "reason": "A catalog is untrusted bytes from the network whose display strings reach an untrusted renderer, and a persisted selection decides which model answers a user mid-draft. Both had to fail closed before any consumer of either existed.",
+    "proofPlan": [
+      "Bind the catalog to one reviewed route variant and prove no renderer-supplied string can reach URL construction.",
+      "Prove every projection gate rejects rather than partially accepts: unknown and mis-cased fields, dropped nullable-but-required properties, calendar-impossible instants, dangling defaults, duplicate identifiers, schema bounds, foreign providers, and unsafe display text including lone surrogates.",
+      "Prove cache metadata is a separate authority from catalog content: a 304 reuses only a matching, unexpired, same-subject cached catalog, and one subject's validator is never offered for another.",
+      "Prove resolution never silently switches models: a disappeared or blocked current selection stops resolution and requires an explicit choice.",
+      "Prove the durable footprint has no column that could hold Azure authority, and that a replayed older catalog cannot become durable truth."
+    ]
+  },
+  "changedFiles": [
+    "crates/desktop-cloud/src/transport.rs",
+    "crates/desktop-cloud/src/model_catalog.rs",
+    "crates/desktop-cloud/src/lib.rs",
+    "crates/desktop-cloud/tests/foundry_catalog_transport.rs",
+    "crates/desktop-cloud/tests/model_catalog_selection.rs",
+    "crates/desktop-cloud/tests/stage_exchange.rs",
+    "crates/desktop-store/src/model_catalog.rs",
+    "crates/desktop-store/src/migrations.rs",
+    "crates/desktop-store/src/lib.rs",
+    "crates/desktop-store/tests/model_catalog_store.rs",
+    "crates/desktop-store/tests/bmad_builder_store.rs",
+    "crates/desktop-store/tests/bmad_help_run_store.rs",
+    "crates/desktop-store/tests/bmad_memlog_store.rs",
+    "crates/desktop-store/tests/bmad_method_store.rs",
+    "crates/desktop-app/src/bmad_model/coordinator.rs",
+    "artifacts/foundry/rust/model-catalog.json"
+  ],
+  "transport": {
+    "route": "/desktop/v1/model-catalog",
+    "routeVariant": "SupportStageRoute::ModelCatalog",
+    "method": "GET",
+    "conditional": "If-None-Match, echoed only from a cache entry bound to the current subject",
+    "maxResponseBytes": 262144,
+    "decodedThrough": "desktop_runtime::generated_contracts::ModelCatalog",
+    "statusMapping": {
+      "200": "decode and validate",
+      "304": "reuse only a matching, unexpired, same-subject cached catalog",
+      "401": "CloudError::ReauthenticationRequired",
+      "403": "CloudError::EntitlementUnavailable",
+      "409": "CloudError::ContractUpgradeRequired",
+      "426": "CloudError::ContractUpgradeRequired",
+      "503": "CloudError::ModelCatalogUnavailable",
+      "other": "CloudError::TransportFailed"
+    },
+    "integrityRejections": [
+      "unknown property",
+      "field name in the wrong case",
+      "unrecognized schema version",
+      "nullable-but-required property dropped rather than nulled",
+      "calendar-impossible instant",
+      "expiry at or before generation",
+      "default naming an absent or unavailable profile",
+      "duplicate profile identifier across either array or between them",
+      "duplicate variant identifier",
+      "default variant absent from its profile",
+      "variant or profile count outside the schema bounds",
+      "foreign provider",
+      "blocked availability on a selectable profile",
+      "control character in display text",
+      "bidi override or isolate in display text",
+      "zero-width character or byte order mark in display text",
+      "lone surrogate anywhere in the body",
+      "same catalog version arriving with a different content hash",
+      "body on a 304",
+      "validator on a 304 that was not the one sent"
+    ],
+    "newCloudErrorVariants": [
+      "ContractUpgradeRequired",
+      "ModelCatalogUnavailable",
+      "ModelCatalogIntegrity"
+    ]
+  },
+  "persistence": {
+    "storeVersion": 19,
+    "previousStoreVersion": 18,
+    "tables": [
+      "model_catalog_snapshots",
+      "model_profile_selections"
+    ],
+    "indexes": [
+      "model_catalog_snapshots_by_workspace",
+      "model_profile_selections_by_workspace",
+      "model_profile_selections_one_current"
+    ],
+    "snapshotIsMetadataOnly": true,
+    "snapshotOmits": [
+      "profile rows",
+      "display text",
+      "cache validator"
+    ],
+    "selectionColumns": [
+      "workspace_id",
+      "profile_id",
+      "variant_id",
+      "catalog_version",
+      "catalog_hash",
+      "selected_at_ms",
+      "recorded_at_ms",
+      "is_current"
+    ],
+    "millisecondCeiling": 9007199254740991,
+    "retentionBound": 8,
+    "downgradePolicy": "A catalog epoch never moves backwards, and a repeated epoch must carry the same content hash.",
+    "removedProfilePolicy": "Current is cleared, the row is preserved as history, and the caller must obtain an explicit choice."
+  },
+  "selectionResolution": {
+    "order": [
+      "current selection if still available",
+      "most recent still-valid prior selection",
+      "catalog default",
+      "deterministic first selectable profile"
+    ],
+    "neverFallsThrough": "A current selection that disappeared or became unavailable stops resolution; it does not fall through to any later rule.",
+    "determinism": "Lexicographically smallest profile identifier, and identifier tiebreakers after the timestamp, so equal-millisecond history resolves identically.",
+    "invalidation": "A change to the catalog version, catalog hash, profile, or variant invalidates context estimates, consent, and prepared requests."
+  },
+  "commands": [
+    {
+      "command": "cargo test -p desktop-cloud --test foundry_catalog_transport --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "18 passed, 0 failed, 0 ignored."
+    },
+    {
+      "command": "cargo test -p desktop-cloud --test model_catalog_selection --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "11 passed, 0 failed, 0 ignored."
+    },
+    {
+      "command": "cargo test -p desktop-store model_catalog --locked",
+      "exitCode": 0,
+      "classification": "superseded",
+      "result": "0 passed, 0 failed, 122 filtered out across ten binaries. The plan's filter is a test-name filter and no test name carried the substring.",
+      "nextAction": "The eleven store tests were renamed so the plan's exact command selects them."
+    },
+    {
+      "command": "cargo test -p desktop-store model_catalog --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "11 passed, 0 failed, 0 ignored; the other nine binaries filtered out."
+    },
+    {
+      "command": "cargo test -p desktop-cloud --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "98 passed, 0 failed, 0 ignored, including five compile-fail documentation tests. Baseline was 69."
+    },
+    {
+      "command": "cargo test -p desktop-store --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "139 passed, 0 failed, 0 ignored."
+    },
+    {
+      "command": "cargo clippy -p desktop-cloud -p desktop-store --all-targets --locked -- -D warnings",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Clean under the workspace deny-all plus pedantic configuration."
+    },
+    {
+      "command": "cargo clippy -p desktop-cloud -p desktop-store --all-targets --all-features --locked -- -D warnings",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Clean with every feature enabled."
+    },
+    {
+      "command": "cargo build -p desktop-app --locked",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "The exhaustive map_cloud_error match compiles with the three new arms."
+    },
+    {
+      "command": "cargo fmt -p desktop-cloud -p desktop-store -- --check",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Clean at the time of the run. A later run reported a diff only in another lane's newly added crates/desktop-store/tests/bmad_config.rs, which is not part of this task."
+    }
+  ],
+  "planDivergencesApplied": [
+    {
+      "id": "NO-RUST-GENERATED-DIR",
+      "applied": "desktop-cloud consumes desktop_runtime::generated_contracts. No per-crate generated tree was created."
+    },
+    {
+      "id": "NO-SQL-STORE-MIGRATIONS",
+      "applied": "A V18_TO_V19_SQL constant, a V19_TABLES inventory, LATEST_STORE_VERSION 19, an 18 => arm, a moved LATEST_STORE_VERSION arm, and updated legacy-simulation drop batches."
+    }
+  ],
+  "planTensionsResolved": [
+    {
+      "tension": "FND-040 requires rejecting a missing default; FND-041 requires a deterministic-first-profile fallback for when there is no server default.",
+      "resolution": "The defaultProfileId property being absent is rejected, and a default naming an absent or unavailable profile is rejected. An explicit null is accepted, because the schema admits it and it means the support plane declined to name one. Rejecting an explicit null would make FND-041's documented last resolution step unreachable and would take the product offline over a choice the server was entitled to leave open.",
+      "provedBy": [
+        "a_catalog_that_declines_to_name_a_default_is_still_a_valid_catalog",
+        "every_malicious_or_incoherent_catalog_body_is_rejected_as_an_integrity_failure",
+        "without_a_server_default_the_first_selectable_profile_is_chosen_deterministically"
+      ]
+    },
+    {
+      "tension": "FND-040 requires rejecting a catalog-hash mismatch, but the desktop cannot recompute a server-side catalog hash and the canonical valid fixture does not bind catalogHash to the catalogVersion digest.",
+      "resolution": "No hash algorithm was invented. The enforced invariant is that one catalog version identifies exactly one content hash: a version that reappears carrying a different hash is rejected as a transplant, in the transport against the in-memory cache and in the store against the durable snapshot.",
+      "provedBy": [
+        "a_catalog_version_that_reappears_with_a_different_hash_is_a_transplant",
+        "a_replayed_older_model_catalog_never_overwrites_a_newer_one"
+      ]
+    }
+  ],
+  "notProved": [
+    "No real Foundry project, endpoint, deployment, tenant, subscription, or credential was contacted. Every fixture is synthetic and every response is scripted. This is local implementation evidence only, under the FND-002-AZURE-INPUTS external blocker policy.",
+    "The support plane's own /desktop/v1/model-catalog handler is another lane's work and was not exercised end to end from this crate."
+  ]
+}

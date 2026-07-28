@@ -1811,6 +1811,15 @@ const fn map_cloud_error(error: &CloudError) -> BmadHelpCoordinatorError {
         }
         CloudError::CanonicalProjectionInvalid => BmadHelpCoordinatorError::ConsentBindingMismatch,
         CloudError::InstallationKeyUnavailable => BmadHelpCoordinatorError::Integrity,
+        // Catalog-lane failures (FND-040). This coordinator never fetches a
+        // catalog, so these arms exist to keep the exhaustive match honest
+        // rather than to classify a path it takes: an upgrade requirement and
+        // an unavailable catalog are both "the support plane would not serve
+        // this", and a catalog that failed validation is an integrity failure.
+        CloudError::ContractUpgradeRequired | CloudError::ModelCatalogUnavailable => {
+            BmadHelpCoordinatorError::TransportFailed
+        }
+        CloudError::ModelCatalogIntegrity => BmadHelpCoordinatorError::Integrity,
     }
 }
 

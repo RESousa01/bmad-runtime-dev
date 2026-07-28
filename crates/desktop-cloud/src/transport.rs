@@ -65,6 +65,10 @@ pub struct OutboundHttpRequest {
     body: Vec<u8>,
     bearer: Zeroizing<String>,
     idempotency_key: String,
+    /// The conditional-request validator, when the caller holds a cached
+    /// representation. Opaque to this crate: it is echoed back exactly as the
+    /// support plane issued it and is never parsed or derived from a body.
+    if_none_match: Option<String>,
 }
 
 impl OutboundHttpRequest {
@@ -87,6 +91,11 @@ impl OutboundHttpRequest {
     pub fn idempotency_key(&self) -> &str {
         &self.idempotency_key
     }
+
+    #[must_use]
+    pub fn if_none_match(&self) -> Option<&str> {
+        self.if_none_match.as_deref()
+    }
 }
 
 impl fmt::Debug for OutboundHttpRequest {
@@ -99,6 +108,7 @@ impl fmt::Debug for OutboundHttpRequest {
             .field("body_bytes", &self.body.len())
             .field("bearer", &"[REDACTED]")
             .field("idempotency_key", &self.idempotency_key)
+            .field("if_none_match", &self.if_none_match.is_some())
             .finish()
     }
 }
@@ -109,6 +119,11 @@ pub struct HttpResponse {
     content_type: Option<String>,
     content_length: Option<u64>,
     body: Vec<u8>,
+    /// The representation validator the support plane issued, when it issued
+    /// one. Held beside the body rather than inside it: cache metadata and
+    /// catalog content are separate authorities, and a body may never supply
+    /// its own validator.
+    etag: Option<String>,
 }
 
 impl HttpResponse {
@@ -124,7 +139,31 @@ impl HttpResponse {
             content_type,
             content_length,
             body,
+            etag: None,
         }
+    }
+
+    /// Attaches the transport-observed `ETag` header value.
+    #[must_use]
+    pub fn with_etag(mut self, etag: Option<String>) -> Self {
+        self.etag = etag;
+        self
+    }
+
+    pub(crate) const fn status(&self) -> u16 {
+        self.status
+    }
+
+    pub(crate) fn content_type(&self) -> Option<&str> {
+        self.content_type.as_deref()
+    }
+
+    pub(crate) fn body(&self) -> &[u8] {
+        &self.body
+    }
+
+    pub(crate) fn etag(&self) -> Option<&str> {
+        self.etag.as_deref()
     }
 }
 
@@ -137,6 +176,7 @@ impl fmt::Debug for HttpResponse {
             .field("content_length", &self.content_length)
             .field("body", &"[REDACTED]")
             .field("body_bytes", &self.body.len())
+            .field("etag", &self.etag.is_some())
             .finish()
     }
 }
@@ -214,6 +254,7 @@ where
                 body,
                 bearer,
                 idempotency_key: request.request_id().to_string(),
+                if_none_match: None,
             })
             .await?;
         if !session.is_current(access) {
@@ -233,6 +274,10 @@ pub enum SupportStageRoute {
     DeviceRegistrations,
     PolicyCurrent,
     EntitlementLeases,
+    /// The effective model catalog (FND-040). The enum *is* the allowlist: a
+    /// renderer can name this variant but can never supply the path it maps
+    /// to, so no renderer-controlled string ever reaches URL construction.
+    ModelCatalog,
 }
 
 impl SupportStageRoute {
@@ -243,13 +288,14 @@ impl SupportStageRoute {
             Self::DeviceRegistrations => "/desktop/v1/devices/registrations",
             Self::PolicyCurrent => "/desktop/v1/policy/current",
             Self::EntitlementLeases => "/desktop/v1/entitlements/leases",
+            Self::ModelCatalog => "/desktop/v1/model-catalog",
         }
     }
 
     #[must_use]
     pub const fn method(self) -> HttpMethod {
         match self {
-            Self::Bootstrap | Self::PolicyCurrent => HttpMethod::Get,
+            Self::Bootstrap | Self::PolicyCurrent | Self::ModelCatalog => HttpMethod::Get,
             Self::DeviceRegistrations | Self::EntitlementLeases => HttpMethod::Post,
         }
     }
@@ -283,18 +329,15 @@ where
         if matches!(route.method(), HttpMethod::Get) && !body.is_empty() {
             return Err(CloudError::TransportFailed);
         }
-        let mut url = self.origin.endpoint.clone();
-        url.set_path(route.path());
-        url.set_query(None);
-        url.set_fragment(None);
         let response = self
             .executor
             .execute(OutboundHttpRequest {
                 method: route.method(),
-                url,
+                url: self.stage_url(route),
                 body,
                 bearer,
                 idempotency_key: idempotency_key.to_owned(),
+                if_none_match: None,
             })
             .await?;
         if !(200..300).contains(&response.status) {
@@ -308,6 +351,50 @@ where
             return Err(CloudError::TransportFailed);
         }
         Ok(response.body)
+    }
+
+    /// Builds one reviewed stage URL under the fixed support origin. The path
+    /// comes only from [`SupportStageRoute`], and any query or fragment the
+    /// configured origin might carry is cleared.
+    fn stage_url(&self, route: SupportStageRoute) -> Url {
+        let mut url = self.origin.endpoint.clone();
+        url.set_path(route.path());
+        url.set_query(None);
+        url.set_fragment(None);
+        url
+    }
+
+    /// Issues one bodyless conditional `GET` against a reviewed route and
+    /// returns the raw, still-untrusted response.
+    ///
+    /// The caller owns classification and decoding; this method only guarantees
+    /// that the method is `GET`, that no body is sent, and that the URL was
+    /// built from the route allowlist under the fixed origin.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CloudError::TransportFailed`] when the route is not a `GET`
+    /// route or the executor fails.
+    pub(crate) async fn conditional_get(
+        &self,
+        route: SupportStageRoute,
+        bearer: Zeroizing<String>,
+        if_none_match: Option<String>,
+        idempotency_key: &str,
+    ) -> Result<HttpResponse, CloudError> {
+        if !matches!(route.method(), HttpMethod::Get) {
+            return Err(CloudError::TransportFailed);
+        }
+        self.executor
+            .execute(OutboundHttpRequest {
+                method: HttpMethod::Get,
+                url: self.stage_url(route),
+                body: Vec::new(),
+                bearer,
+                idempotency_key: idempotency_key.to_owned(),
+                if_none_match,
+            })
+            .await
     }
 }
 
@@ -352,6 +439,7 @@ impl HttpExecutor for ReqwestHttpExecutor {
             body,
             bearer,
             idempotency_key,
+            if_none_match,
         } = request;
         let builder = match method {
             HttpMethod::Get => self.client.get(url),
@@ -361,10 +449,19 @@ impl HttpExecutor for ReqwestHttpExecutor {
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(body),
         };
-        let mut response = builder
+        let mut builder = builder
             .bearer_auth(bearer.as_str())
             .header(reqwest::header::ACCEPT, "application/json")
-            .header("Idempotency-Key", idempotency_key)
+            .header("Idempotency-Key", idempotency_key);
+        if let Some(validator) = if_none_match {
+            // An `ETag` is opaque, but it still has to be a legal header value.
+            // A validator that cannot be represented is dropped rather than
+            // failing the request: the worst case is an unconditional fetch.
+            if let Ok(value) = reqwest::header::HeaderValue::from_str(&validator) {
+                builder = builder.header(reqwest::header::IF_NONE_MATCH, value);
+            }
+        }
+        let mut response = builder
             .send()
             .await
             .map_err(|_| CloudError::TransportFailed)?;
@@ -378,6 +475,11 @@ impl HttpExecutor for ReqwestHttpExecutor {
         let content_type = response
             .headers()
             .get(reqwest::header::CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .map(str::to_owned);
+        let etag = response
+            .headers()
+            .get(reqwest::header::ETAG)
             .and_then(|value| value.to_str().ok())
             .map(str::to_owned);
         let mut response_body = Vec::with_capacity(
@@ -399,12 +501,7 @@ impl HttpExecutor for ReqwestHttpExecutor {
             }
             response_body.extend_from_slice(&chunk);
         }
-        Ok(HttpResponse::new(
-            status,
-            content_type,
-            content_length,
-            response_body,
-        ))
+        Ok(HttpResponse::new(status, content_type, content_length, response_body).with_etag(etag))
     }
 }
 

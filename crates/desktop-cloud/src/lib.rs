@@ -13,6 +13,7 @@ mod identity;
 mod installation_identity;
 mod model;
 mod model_access_compatibility;
+mod model_catalog;
 mod production;
 mod production_round_trip;
 // Not gated on `direct-provider`. This is the taxonomy that says *why* a model
@@ -56,6 +57,11 @@ pub use model_access_compatibility::{
     CURRENT_REQUEST_SCHEMA_VERSION, LEGACY_PROFILE_ID, LEGACY_RECEIPT_SCHEMA_VERSION,
     LEGACY_REQUEST_MODE, LEGACY_REQUEST_SCHEMA_VERSION, MINIMUM_DESKTOP_CONTRACT_EPOCH,
     REMOVAL_CONTRACT_EPOCH,
+};
+pub use model_catalog::{
+    resolve_model_selection, CachedModelCatalog, ModelCatalogCacheMetadata, ModelCatalogFetch,
+    ModelCatalogRequest, ModelSelectionBlocked, ModelSelectionOutcome, ModelSelectionSource,
+    PersistedModelSelection, ResolvedModelSelection, VerifiedModelCatalog,
 };
 pub use production::{
     pinned_key_from_point, verify_canonical_receipt_proof, CanonicalReceiptProof, PinnedProofKey,
@@ -152,4 +158,10 @@ pub enum CloudError {
     CanonicalProjectionInvalid,
     #[error("the installation signing key is unavailable")]
     InstallationKeyUnavailable,
+    #[error("this desktop build is no longer accepted by the support plane")]
+    ContractUpgradeRequired,
+    #[error("the model catalog is unavailable")]
+    ModelCatalogUnavailable,
+    #[error("the model catalog failed integrity validation")]
+    ModelCatalogIntegrity,
 }
