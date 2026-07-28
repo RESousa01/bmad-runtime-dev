@@ -64,8 +64,9 @@
 }
 
 .settings-nav .sapphirus-button[aria-current="page"] {
-  background: var(--color-surface-selected);
+  background: transparent;
   color: var(--color-text);
+  font-weight: var(--fw-semibold);
 }
 
 .settings-pane {

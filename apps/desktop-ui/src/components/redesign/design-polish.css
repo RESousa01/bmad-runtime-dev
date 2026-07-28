@@ -609,21 +609,15 @@
     transform: translateX(2px);
   }
 
+  /* The accent belongs to the one consequential decision, which in this
+     product is Apply changes. Spending it on "which settings tab is open"
+     is what specification 3.5 rules out. */
   .settings-nav .sapphirus-button[aria-current="page"] {
-    background: var(--color-surface-selected);
-    border-color: color-mix(
-      in srgb,
-      var(--color-accent),
-      var(--color-border-subtle) 78%
-    );
-    box-shadow:
-      inset 2px 0 0 var(--color-accent),
-      var(--shadow-control);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
     color: var(--color-text);
-  }
-
-  .settings-nav .sapphirus-button[aria-current="page"] > svg {
-    color: var(--color-accent-strong);
+    font-weight: var(--fw-semibold);
   }
 
   .settings-pane {

@@ -2,16 +2,11 @@ import { Button } from "@sapphirus/ui";
 import {
   Check,
   ChevronRight,
-  Download,
-  FolderKanban,
-  Info,
   KeyRound,
   LockKeyhole,
   Monitor,
   Moon,
-  Palette,
   PlugZap,
-  SlidersHorizontal,
   Sparkles,
   Sun,
   Trash2,
@@ -249,19 +244,24 @@ export interface SettingsDialogProps {
   workspaceLabel: string;
 }
 
+/*
+ * No icons. 3a is text-led, and eight glyphs down a nav of eight words added a
+ * second thing to read without distinguishing anything the label did not
+ * already say. The theme choices below keep theirs, because sun/moon/monitor
+ * carry the meaning there rather than repeating it.
+ */
 const sections: Array<{
-  icon: typeof SlidersHorizontal;
   id: SettingsSection;
   label: string;
 }> = [
-  { id: "general", label: "General", icon: SlidersHorizontal },
-  { id: "appearance", label: "Appearance", icon: Palette },
-  { id: "agent-model", label: "Providers", icon: PlugZap },
-  { id: "workspaces", label: "Workspaces", icon: FolderKanban },
-  { id: "skills-agents", label: "Skills & agents", icon: Sparkles },
-  { id: "updates", label: "Updates", icon: Download },
-  { id: "offboarding", label: "Local data", icon: Trash2 },
-  { id: "about", label: "About", icon: Info },
+  { id: "general", label: "General" },
+  { id: "appearance", label: "Appearance" },
+  { id: "agent-model", label: "Providers" },
+  { id: "workspaces", label: "Workspaces" },
+  { id: "skills-agents", label: "Skills & agents" },
+  { id: "updates", label: "Updates" },
+  { id: "offboarding", label: "Local data" },
+  { id: "about", label: "About" },
 ];
 
 const themes: Array<{ icon: typeof Sun; id: ThemePreference; label: string }> = [
@@ -384,14 +384,14 @@ export function SettingsDialog({
       </header>
       <div className="settings-dialog__body">
         <nav aria-label="Settings sections" className="settings-dialog__nav">
-          {sections.map(({ icon: Icon, id, label }) => (
+          {sections.map(({ id, label }) => (
             <Button
               {...(section === id ? { "aria-current": "page" as const } : {})}
               key={id}
               onPress={() => setSection(id)}
               variant="quiet"
             >
-              <Icon aria-hidden="true" size={16} /> {label}
+              {label}
             </Button>
           ))}
         </nav>

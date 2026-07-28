@@ -63,9 +63,12 @@
   width: 100%;
 }
 
+/* Current section reads by weight and colour, like every other selected row
+   in the product. A filled bar behind one of eight words is a container. */
 .settings-dialog__nav .sapphirus-button[aria-current="page"] {
-  background: var(--color-surface-selected);
+  background: transparent;
   color: var(--color-text);
+  font-weight: var(--fw-semibold);
 }
 
 .settings-dialog__pane {
