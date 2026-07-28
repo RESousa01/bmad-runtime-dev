@@ -39,6 +39,7 @@ import { createModelActions } from "./app/model/modelController";
 import { useChangesHistoryState } from "./app/changes/changesHistoryState";
 import { createChangesRunner } from "./app/changes/changesRunner";
 import { isRecoveryFailure } from "./app/hostFailure";
+import { isAvailable, resolveCapabilities } from "./app/capabilityMatrix";
 import { useHostProjection } from "./app/projection/hostProjection";
 import {
   attachmentNotice,
@@ -104,6 +105,7 @@ import { useAppBootstrap, type BoundHostClient } from "./app/useAppBootstrap";
 import type {
   AppClient,
   BmadCapabilityClient,
+  ChatClient,
   WorkspaceClient,
 } from "./lib/hostClient/clients";
 /// The full client, needed only where a runtime is published.
@@ -613,19 +615,43 @@ export function App({
     ? hostRuntime.client
     : null;
   /*
-   * Two signals, deliberately not one. Audit finding F-05 is that ordinary
-   * conversation was gated on the BMAD Help capability bundle, so a host able
-   * to hold a conversation reported itself unable when Help was incomplete.
+   * FE-12: one capability check per feature.
    *
-   * Sending a chat turn needs a ready host, a granted workspace and a model
-   * provider. It does not need the skills catalogue, and it must not start
-   * needing it again -- which is why these are separate names rather than one
-   * value passed to two props.
+   * `chatSendAvailable` used to be `methodGuidanceClient !== null && model
+   * ready`, and `methodGuidanceClient` required all eleven BMAD commands. So a
+   * host advertising `chat.send`, a granted workspace and a connected model was
+   * still reported unable to send, because it did not also advertise
+   * `bmad.help.approve` -- and the composer said the model was not connected,
+   * which was not true.
+   *
+   * The two closures are now disjoint by construction, and a test keeps them
+   * that way: the defect returns the moment someone adds "just one" BMAD
+   * command to the chat gate.
    */
-  const chatSendAvailable = methodGuidanceClient !== null
-    && modelAuthStatus?.status === "development_ready";
-  /* BMAD Help additionally needs the skills catalogue to have loaded. */
-  const methodGuidanceAvailableForRequests = chatSendAvailable && methodLibraryAvailable;
+  const capabilities = resolveCapabilities({
+    browserPreview: hostRuntime.kind === "browser_demo",
+    hostReady: hostRuntime.kind === "ready",
+    libraryLoaded: methodLibraryAvailable,
+    modelReady: modelAuthStatus?.status === "development_ready",
+    supportedCommands: hostRuntime.kind === "ready"
+      ? hostRuntime.bootstrap.supportedCommands
+      : [],
+    workspaceGrantEpoch: activeWorkspace?.grantEpoch ?? null,
+  });
+  const chatSendAvailable = isAvailable(capabilities.chat);
+  const methodGuidanceAvailableForRequests = isAvailable(capabilities.help);
+  /*
+   * FE-12: the send transport, gated on chat's own closure.
+   *
+   * Fixing the *gate* without fixing this would be worse than the defect it
+   * replaces: the composer would enable and the send would fail at the host,
+   * turning a clear "not available" into a message that silently does not
+   * arrive.
+   */
+  const chatSendClient: ChatClient | null = hostRuntime.kind === "ready"
+    && isAvailable(capabilities.chat)
+    ? hostRuntime.client
+    : null;
   const methodRequestInFlight = bmadHelpState.kind === "creating"
     || bmadHelpState.kind === "review_required"
     || bmadHelpState.kind === "approving"
@@ -2054,7 +2080,7 @@ export function App({
   /// that agent's sealed persona travels with the request, which is how the
   /// method is practised here without a separate LLM runtime.
   async function sendChatMessage(intent: string, sessionId?: string): Promise<void> {
-    const client = methodGuidanceClient;
+    const client = chatSendClient;
     const workspace = activeWorkspace;
     if (!client || !workspace) {
       throw new HostCapabilityError("Choose a local workspace before sending a message.");
