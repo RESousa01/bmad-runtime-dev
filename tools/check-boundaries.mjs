@@ -442,6 +442,32 @@ if (rootPackage) {
         + "without one it compiles the offline mode and cannot reach any model",
       );
     }
+    /*
+     * Naming a mode is not enough on its own. The global constraint is that
+     * direct API-key providers are development-only and cannot be compiled
+     * into a *release artifact*, and the check above accepts any of the three
+     * modes -- so `desktop:build` could be switched to the development egress
+     * path and still pass, which is the state F-09 describes.
+     *
+     * Scoped to `tauri build`, because that is what produces something
+     * shippable. `tauri dev` runs the development egress path on purpose and
+     * leaves no artifact behind. Among build scripts the `:direct` suffix is
+     * what marks one as deliberately producing that path for local use;
+     * anything else asking for it is the old default returning under a new
+     * name.
+     */
+    const producesArtifact = /\btauri\s+build\b/u.test(command);
+    if (
+      producesArtifact
+      && !script.endsWith(":direct")
+      && command.includes("--features direct-model-providers")
+    ) {
+      violations.push(
+        `package.json: ${script} builds an artifact with direct-model-providers, `
+        + "which is development-only; only a build script named :direct may "
+        + "compile the direct provider egress path",
+      );
+    }
   }
   const sourceVerification = rootPackage.scripts?.["verify:source"];
   if (typeof sourceVerification !== "string") {

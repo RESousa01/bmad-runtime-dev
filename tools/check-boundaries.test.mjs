@@ -85,3 +85,41 @@ test("every workflow action reference is an immutable reviewed commit", async ()
   assert.match(guard, /action reference must use a reviewed full commit SHA/u);
   assert.match(guard, /workflowFiles/u);
 });
+
+test("no release artifact compiles the development provider egress path", async () => {
+  /*
+   * Audit finding, phase 0-2 review: `check-boundaries` required each desktop
+   * script to *name* a trust mode but accepted any of the three, so
+   * `desktop:build` could be switched to `direct-model-providers` and still
+   * pass — which is the state F-09 describes, arriving under a different name.
+   *
+   * Scoped to `tauri build`: `tauri dev` runs that path deliberately and
+   * leaves no artifact. Among build scripts only a `:direct` one may.
+   */
+  const [manifest, guard] = await Promise.all([
+    source("package.json"),
+    source("tools", "check-boundaries.mjs"),
+  ]);
+  const scripts = JSON.parse(manifest).scripts ?? {};
+
+  for (const [name, command] of Object.entries(scripts)) {
+    if (typeof command !== "string") continue;
+    if (!/\btauri\s+build\b/u.test(command)) continue;
+    if (name.endsWith(":direct")) continue;
+    assert.doesNotMatch(
+      command,
+      /--features direct-model-providers/u,
+      `${name} builds an artifact with the development provider egress path`,
+    );
+  }
+
+  // And the rule is enforced, not merely currently satisfied today.
+  assert.ok(
+    guard.includes("const producesArtifact"),
+    "check-boundaries must scope the rule to scripts that produce an artifact",
+  );
+  assert.ok(
+    guard.includes("builds an artifact with direct-model-providers"),
+    "check-boundaries must report a release build that compiles the direct path",
+  );
+});
