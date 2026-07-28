@@ -1099,6 +1099,136 @@ describe("TaskWorkspace composer flow", () => {
   });
 });
 
+/**
+ * FE-15, through the DOM.
+ *
+ * Clearing everything was the only way to unattach anything, so a user who
+ * picked a folder and wanted all of it but one file had to start over. And a
+ * refused file could only be re-attached by opening the dialog and finding it
+ * again.
+ */
+describe("TaskWorkspace attachment rows", () => {
+  const attached = adoptPreview(
+    createContextPreview(["src/a.ts", "src/b.ts"]),
+    "manual",
+  );
+
+  it("offers a remove control per file, named after the file", () => {
+    const onRemoveAttachment = vi.fn();
+    render(<TaskWorkspace {...createProps({ attachments: attached, onRemoveAttachment })} />);
+
+    // Named, not "Remove": a row of identical controls is one a screen-reader
+    // user cannot choose between.
+    expect(screen.getByRole("button", { name: "Remove src/a.ts" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Remove src/b.ts" })).toBeTruthy();
+  });
+
+  it("removes by opaque id, not by path", () => {
+    const onRemoveAttachment = vi.fn();
+    render(<TaskWorkspace {...createProps({ attachments: attached, onRemoveAttachment })} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove src/a.ts" }));
+
+    const [id] = onRemoveAttachment.mock.calls[0] ?? [];
+    expect(id).toBe(attached.descriptors[0]?.attachmentId);
+    expect(id).not.toBe("src/a.ts");
+  });
+
+  it("renders no remove control when the surface cannot honour one", () => {
+    render(<TaskWorkspace {...createProps({ attachments: attached })} />);
+    expect(screen.queryByRole("button", { name: "Remove src/a.ts" })).toBeNull();
+  });
+
+  /// FE-15's per-file retry, and the rule about where it may appear.
+  it("offers a retry only for a refusal the host called transient", async () => {
+    const onAttachFiles = vi.fn(async () => ({
+      attached: 0,
+      rejected: [
+        { relativePath: "src/locked.ts", reason: "Could not be read.", retryable: true },
+        { relativePath: "src/image.bin", reason: "Not a readable text file.", retryable: false },
+      ],
+    }));
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({
+      onAttachFiles,
+      onRetryAttachment: vi.fn(async () => true),
+    })} />);
+
+    await user.click(screen.getByRole("button", { name: "Add file" }));
+    await screen.findByText("src/locked.ts");
+
+    // One retry, not two. A binary file will be binary next time, and a
+    // control that cannot succeed teaches the user only that nothing works.
+    expect(screen.getAllByRole("button", { name: "Try again" })).toHaveLength(1);
+  });
+
+  it("clears the row when the retry attaches the file", async () => {
+    const onAttachFiles = vi.fn(async () => ({
+      attached: 0,
+      rejected: [
+        { relativePath: "src/locked.ts", reason: "Could not be read.", retryable: true },
+        { relativePath: "src/image.bin", reason: "Not a readable text file.", retryable: false },
+      ],
+    }));
+    const onRetryAttachment = vi.fn(async () => true);
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({ onAttachFiles, onRetryAttachment })} />);
+
+    await user.click(screen.getByRole("button", { name: "Add file" }));
+    await user.click(await screen.findByRole("button", { name: "Try again" }));
+
+    await waitFor(() => { expect(screen.queryByText("src/locked.ts")).toBeNull(); });
+    // And the file nobody retried keeps its row.
+    expect(screen.getByText("src/image.bin")).toBeTruthy();
+    expect(onRetryAttachment).toHaveBeenCalledWith("src/locked.ts");
+  });
+
+  it("keeps the row when the file is still refused", async () => {
+    const onAttachFiles = vi.fn(async () => ({
+      attached: 0,
+      rejected: [{ relativePath: "src/locked.ts", reason: "Could not be read.", retryable: true }],
+    }));
+    const onRetryAttachment = vi.fn(async () => false);
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({ onAttachFiles, onRetryAttachment })} />);
+
+    await user.click(screen.getByRole("button", { name: "Add file" }));
+    await user.click(await screen.findByRole("button", { name: "Try again" }));
+
+    await waitFor(() => { expect(onRetryAttachment).toHaveBeenCalled(); });
+    expect(screen.getByText("src/locked.ts")).toBeTruthy();
+    // Still offered: an I/O failure that happened twice can still stop.
+    expect(await screen.findByRole("button", { name: "Try again" })).toBeTruthy();
+  });
+
+  it("retries once however many times the control is pressed", async () => {
+    const gate = deferredValue<boolean>();
+    const onAttachFiles = vi.fn(async () => ({
+      attached: 0,
+      rejected: [{ relativePath: "src/locked.ts", reason: "Could not be read.", retryable: true }],
+    }));
+    const onRetryAttachment = vi.fn(() => gate.promise);
+    const user = userEvent.setup();
+    render(<TaskWorkspace {...createProps({ onAttachFiles, onRetryAttachment })} />);
+
+    await user.click(screen.getByRole("button", { name: "Add file" }));
+    const retry = await screen.findByRole("button", { name: "Try again" });
+    fireEvent.click(retry);
+    fireEvent.click(retry);
+
+    expect(onRetryAttachment).toHaveBeenCalledTimes(1);
+    gate.settle(true);
+  });
+});
+
+/// Shared with the composer-flow suite below; declared here because the retry
+/// tests above need it too.
+function deferredValue<T>() {
+  let settle: (value: T) => void = () => undefined;
+  const promise = new Promise<T>((resolve) => { settle = resolve; });
+  return { promise, settle };
+}
+
 /// FE-19, through the DOM. The pairing rules are proven in `timelineModel`'s
 /// own tests; these prove the transcript renders what the pairing decided
 /// rather than re-deriving it from adjacency.

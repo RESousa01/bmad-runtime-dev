@@ -1,4 +1,4 @@
-import { Sparkles, Trash2 } from "lucide-react";
+import { Sparkles, Trash2, X } from "lucide-react";
 import type { TaskAttachments } from "../features/attachments/attachmentTypes";
 import { projectContextUsage, type ContextUsage } from "../features/model-context/contextUsage";
 import {
@@ -15,6 +15,15 @@ export interface ContextWindowProps {
   readonly canSuggest: boolean;
   readonly onClear: () => void;
   readonly onOpen?: (() => void) | undefined;
+  /**
+   * Drops one attachment, by its opaque id.
+   *
+   * FE-15. Clearing everything was the only way to unattach anything, so a
+   * user who picked a folder and wanted all of it but one file had to start
+   * over. Optional so surfaces that only display a selection do not have to
+   * invent a handler that would render a control they cannot honour.
+   */
+  readonly onRemove?: ((attachmentId: string) => void) | undefined;
   readonly onSuggest: () => void;
   /**
    * What *this task* has attached.
@@ -83,6 +92,7 @@ export function ContextWindow({
   canSuggest,
   onClear,
   onOpen,
+  onRemove,
   onSuggest,
   attachments,
   modelContext = unmeasuredModelContext,
@@ -177,7 +187,16 @@ export function ContextWindow({
           className="context-window__items context-window__items--compact"
         >
           {items.map((item) => (
-            <li key={item.relativePath}>
+            /*
+             * Keyed on the opaque id, not the path.
+             *
+             * Windows resolves `Src/App.tsx` and `src/app.tsx` to one file, so
+             * two rows can carry the same path spelling -- and a duplicate
+             * React key makes the list act on whichever row it reconciled to,
+             * which is exactly the case where being wrong throws away a file
+             * the user chose.
+             */
+            <li key={item.attachmentId}>
               <code title={item.relativePath}>{item.relativePath}</code>
               {/* The tilde carries the same claim the row label does, and has
                   to carry it independently: once the host reports a figure the
@@ -185,6 +204,17 @@ export function ContextWindow({
               <span title={`${item.estimatedTokens.toLocaleString("en-US")} estimated tokens`}>
                 ~{compactTokens(item.estimatedTokens)}
               </span>
+              {onRemove === undefined ? null : (
+                <button
+                  aria-label={`Remove ${item.relativePath}`}
+                  className="context-window__remove"
+                  onClick={() => { onRemove(item.attachmentId); }}
+                  title={`Remove ${item.relativePath}`}
+                  type="button"
+                >
+                  <X aria-hidden="true" size={11} />
+                </button>
+              )}
             </li>
           ))}
         </ul>

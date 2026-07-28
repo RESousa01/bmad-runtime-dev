@@ -48,6 +48,10 @@ import { resolveMenuDispatch } from "./app/chat/menuDispatch";
 import {
   adoptPreview,
   attachmentPaths,
+  // Aliased: `removeAttachment` is the shell handler that wires this to the
+  // active task, and two names for the same idea in one file is how the wrong
+  // one gets called.
+  removeAttachment as dropAttachment,
   clearAttachments,
   type TaskAttachments,
 } from "./features/attachments/attachmentTypes";
@@ -840,6 +844,46 @@ export function App({
 
   function browseAndAttachFolder(): Promise<ImportOutcome | undefined> {
     return browseAndAttach((client, workspaceId) => client.pickWorkspaceFolder(workspaceId));
+  }
+
+  /**
+   * Attaches one previously refused file again.
+   *
+   * Resolves to whether it worked, which the host answers by simply not
+   * returning an item for a file it still cannot read. That is the honest test:
+   * asking for the path back and seeing whether it comes.
+   *
+   * Routed like every other attachment request, because a retry pressed just
+   * before switching tasks would otherwise land its result on whichever task
+   * is now on screen.
+   */
+  async function retryAttachment(relativePath: string): Promise<boolean> {
+    if (workspaceSource === null) return false;
+    const routing = taskSessions.beginRequest();
+    const authorityKey = workspaceAuthorityKey;
+    const isStale = () => !taskSessions.isCurrent(routing)
+      || authorityKey !== workspaceAuthorityKeyRef.current;
+    const existing = attachmentPaths(taskSessions.sessionFor(routing.taskId).attachments);
+    const merge = mergeContextPaths(existing, [relativePath]);
+    const projection = await workspaceSource.previewContext([...merge.relativePaths]);
+    // A stale result is not a failure, but it is not a success either: saying
+    // it attached would leave the row cleared on a task that never got it.
+    if (isStale()) return false;
+    const attached = projection.items
+      .some((item) => item.relativePath === relativePath);
+    taskSessions.route(routing, (session) => ({
+      ...session,
+      attachments: adoptPreview(projection, session.attachments.selectionMode, null),
+    }));
+    return attached;
+  }
+
+  /** Drops one attachment from the task that owns it. */
+  function removeAttachment(attachmentId: string) {
+    taskSessions.updateActive((session) => ({
+      ...session,
+      attachments: dropAttachment(session.attachments, attachmentId),
+    }));
   }
 
   async function suggestContext(intent: string) {
@@ -2754,6 +2798,11 @@ export function App({
           onAskMethodGuidance: sendBmadMessage,
           onAttachFiles: canBrowseFiles ? browseAndAttachFiles : undefined,
           onAttachFolder: canBrowseFolder ? browseAndAttachFolder : undefined,
+          // Both gated on the same capability that gates attaching in the first
+          // place. A remove control on a surface that cannot re-add is a
+          // one-way door, and a retry needs the same host reach the pick did.
+          onRemoveAttachment: canBrowseFiles ? removeAttachment : undefined,
+          onRetryAttachment: canBrowseFiles ? retryAttachment : undefined,
           onClearContext: clearContext,
           onCloseTask: () => closeTaskById(selectedTask.id),
           onDeleteTask: () => requestTaskDeletion(selectedTask.id),

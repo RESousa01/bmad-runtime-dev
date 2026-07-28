@@ -92,6 +92,15 @@ export interface TaskWorkspaceProps {
    */
   onAttachFiles?: (() => Promise<ImportOutcome | void>) | undefined;
   onAttachFolder?: (() => Promise<ImportOutcome | void>) | undefined;
+  /**
+   * Attaches one previously refused file again, resolving to whether it worked.
+   *
+   * Resolving false rather than throwing, because a file that is still
+   * unreadable is the expected outcome of a retry and not an exception.
+   */
+  onRetryAttachment?: ((relativePath: string) => Promise<boolean>) | undefined;
+  /** Drops one attachment, by its opaque id. */
+  onRemoveAttachment?: ((attachmentId: string) => void) | undefined;
   onClearContext: () => void;
   agentLibrary: BmadLibraryUiState;
   onOpenChanges: () => void;
@@ -366,6 +375,8 @@ export function TaskWorkspace({
   modelContext,
   onAttachFiles,
   onAttachFolder,
+  onRetryAttachment,
+  onRemoveAttachment,
   onClearContext,
   agentLibrary,
   onOpenChanges,
@@ -799,6 +810,28 @@ export function TaskWorkspace({
                   {rejection.relativePath === ""
                     ? rejection.reason
                     : <><code>{rejection.relativePath}</code> — {rejection.reason}</>}
+                  {/*
+                    Offered only where the host said another attempt could go
+                    differently -- an I/O failure. A binary file will be binary
+                    next time and a `.env` will still be sensitive, so a retry
+                    on those is a control that cannot succeed, and pressing it
+                    teaches the user only that the app is not working.
+                  */}
+                  {onRetryAttachment !== undefined
+                    && composer.canRetryAttachment(rejection.relativePath) ? (
+                      <Button
+                        onPress={() => {
+                          composer.retryAttachment(rejection.relativePath, onRetryAttachment);
+                        }}
+                        size="small"
+                        variant="quiet"
+                      >
+                        Try again
+                      </Button>
+                    ) : null}
+                  {composer.retryingPath === rejection.relativePath
+                    ? <span className="attach-rejections__busy">Trying…</span>
+                    : null}
                 </li>
               ))}
             </ul>
@@ -894,6 +927,7 @@ export function TaskWorkspace({
             }}
             attachments={attachments}
             modelContext={modelContext}
+            onRemove={onRemoveAttachment}
           />
           <div className="composer__right">
             {/*

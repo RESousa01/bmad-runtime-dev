@@ -23,6 +23,7 @@ import type { AttachmentRejection, ComposerEvent } from "./composerEvents";
 import {
   canOpenFileDialog as canOpenFileDialogIn,
   canRetry as canRetryIn,
+  canRetryAttachment as canRetryAttachmentIn,
   canSend as canSendIn,
   canStop as canStopIn,
   composerTransition,
@@ -68,6 +69,21 @@ export interface ComposerController {
    */
   readonly openFileDialog: (open: () => Promise<ImportOutcome | void>) => void;
   readonly send: (submit: (intent: string) => Promise<void>) => void;
+  /** The file being attached again, or null. */
+  readonly retryingPath: string | null;
+  /** Whether this refused file may be attached again right now. */
+  readonly canRetryAttachment: (relativePath: string) => boolean;
+  /**
+   * Attaches one refused file again.
+   *
+   * `attach` resolves true when the file is now attached. Returning the
+   * verdict rather than throwing on refusal is deliberate: a file that is
+   * still unreadable is the expected outcome of a retry, not an exception.
+   */
+  readonly retryAttachment: (
+    relativePath: string,
+    attach: (relativePath: string) => Promise<boolean>,
+  ) => void;
   readonly stop: (abort: () => Promise<void>) => void;
   /** Clears everything -- a task switch, or a message the host consumed. */
   readonly reset: () => void;
@@ -203,6 +219,50 @@ export function useComposer(options: UseComposerOptions = {}): ComposerControlle
     dispatch({ type: "rejections_dismissed" });
   }, [dispatch]);
 
+  const retryAttachment = useCallback((
+    relativePath: string,
+    attach: (relativePath: string) => Promise<boolean>,
+  ) => {
+    // From the ref, for the same reason send and the dialog do: the second
+    // press of a double-press arrives before the first has re-rendered.
+    if (!canRetryAttachmentIn(stateRef.current, relativePath)) return;
+    const previous = stateRef.current.rejections
+      .find((rejection) => rejection.relativePath === relativePath);
+    dispatch({ relativePath, type: "retry_requested" });
+    void (async () => {
+      let attached = false;
+      try {
+        attached = await attach(relativePath);
+      } catch (error) {
+        // A failed retry restores the row rather than replacing it with a
+        // transport error. The file is still not attached, which is what the
+        // row was already saying, and the host's message describes the attempt
+        // rather than the file.
+        dispatch({
+          rejection: {
+            reason: describeFailure(error).reason,
+            relativePath,
+            retryable: true,
+          },
+          relativePath,
+          type: "retry_settled",
+        });
+        return;
+      }
+      dispatch({
+        // Still refused: keep the reason the user already read. Restating it
+        // as something new would suggest a second, different problem.
+        rejection: attached ? null : previous ?? {
+          reason: "Still could not be read.",
+          relativePath,
+          retryable: true,
+        },
+        relativePath,
+        type: "retry_settled",
+      });
+    })();
+  }, [dispatch]);
+
   const reset = useCallback(() => {
     dispatch({ type: "reset" });
   }, [dispatch]);
@@ -210,6 +270,9 @@ export function useComposer(options: UseComposerOptions = {}): ComposerControlle
   return {
     canOpenFileDialog: canOpenFileDialogIn(state),
     canRetry: !locked && canRetryIn(state),
+    canRetryAttachment: (relativePath: string) => canRetryAttachmentIn(state, relativePath),
+    retryAttachment,
+    retryingPath: state.retryingPath,
     canSend: !locked && canSendIn(state),
     canStop: !locked && canStopIn(state),
     dismissRejections,

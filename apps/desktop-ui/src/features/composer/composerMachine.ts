@@ -66,6 +66,14 @@ export interface ComposerState {
   /** Why the last send failed, or null. */
   readonly failure: { readonly reason: string; readonly retryable: boolean } | null;
   /**
+   * The file currently being attached again, or null.
+   *
+   * Named rather than counted, so the row that is retrying is the row that
+   * shows it. A single boolean would put the spinner on every retryable row at
+   * once, which says the app is doing four things when it is doing one.
+   */
+  readonly retryingPath: string | null;
+  /**
    * Where the composer returns when the dialog or an import ends.
    *
    * Recorded on entry rather than inferred on exit, because "before the dialog"
@@ -81,6 +89,7 @@ export const initialComposerState: ComposerState = {
   phase: "idle",
   rejections: [],
   resumePhase: "idle",
+  retryingPath: null,
 };
 
 /** The phase a draft alone implies. */
@@ -142,6 +151,27 @@ export function canStop(state: ComposerState): boolean {
 /** Whether the last failure invites another attempt. */
 export function canRetry(state: ComposerState): boolean {
   return state.phase === "failed" && state.failure?.retryable === true;
+}
+
+/**
+ * Whether one refused file may be attached again.
+ *
+ * Two conditions, and each rules out a control that could not work: the
+ * composer must be at rest, and the file must be one the host classified as
+ * worth another attempt. A binary file will be binary next time -- offering
+ * the button there teaches the user only that pressing it changes nothing.
+ *
+ * "No second retry while one is running" is not a third condition. A running
+ * retry *is* `importing-attachments`, which `isResting` already excludes, and
+ * the two are set and cleared in the same transitions -- so a separate
+ * `retryingPath !== null` test was a clause nothing could make false on its
+ * own, which mutation testing duly found. `retryingPath` says *which* file, for
+ * the row that shows it; the phase says whether anything is in flight.
+ */
+export function canRetryAttachment(state: ComposerState, relativePath: string): boolean {
+  if (!isResting(state.phase)) return false;
+  return state.rejections.some((rejection) =>
+    rejection.relativePath === relativePath && rejection.retryable === true);
 }
 
 export function composerTransition(
@@ -220,6 +250,50 @@ export function composerTransition(
 
     case "rejections_dismissed":
       return { ...state, rejections: [] };
+
+    case "retry_requested": {
+      /*
+       * Only from rest, and only for a file that is actually refused.
+       *
+       * The second half matters as much as the first: a retry for a path with
+       * no rejection would put the composer into `importing-attachments` with
+       * nothing on screen explaining why, and `retry_settled` would then push a
+       * refusal for a file the user never saw refused.
+       *
+       * The resting check is also what stops a second retry starting while one
+       * is running, because a running retry is exactly this phase. A separate
+       * `retryingPath !== null` test lived here and was removed: the two are
+       * set and cleared together, so nothing could make it false on its own.
+       */
+      if (!isResting(state.phase)) return state;
+      const refused = state.rejections
+        .some((rejection) => rejection.relativePath === event.relativePath);
+      if (!refused) return state;
+      return {
+        ...state,
+        phase: "importing-attachments",
+        resumePhase: restingPhase(state.draft),
+        retryingPath: event.relativePath,
+      };
+    }
+
+    case "retry_settled": {
+      if (state.retryingPath !== event.relativePath) return state;
+      /*
+       * This file's old refusal goes whatever the outcome, and only this
+       * file's. Every other refusal on screen describes a file nobody
+       * retried, and clearing those would tell the user their problems were
+       * fixed by an action that never touched them.
+       */
+      const others = state.rejections
+        .filter((rejection) => rejection.relativePath !== event.relativePath);
+      return {
+        ...state,
+        phase: state.resumePhase,
+        rejections: event.rejection === null ? others : [...others, event.rejection],
+        retryingPath: null,
+      };
+    }
 
     case "send_requested":
       // The double-submit guard. A second press while `sending` is ignored,

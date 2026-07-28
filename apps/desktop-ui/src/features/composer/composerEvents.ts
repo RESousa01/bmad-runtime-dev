@@ -64,6 +64,28 @@ export type ComposerEvent =
   | { readonly type: "import_failed"; readonly reason: string }
   /** The user dismissed the per-file rejection list. */
   | { readonly type: "rejections_dismissed" }
+  /**
+   * The user asked for one refused file to be attached again.
+   *
+   * Carries the path rather than an index, because the list it refers to can be
+   * replaced by another pick while this is in flight, and an index into a list
+   * that has moved names a different file.
+   */
+  | { readonly type: "retry_requested"; readonly relativePath: string }
+  /**
+   * That one file settled. `rejection` is null when it attached.
+   *
+   * Separate from `import_settled` because the two answer different questions.
+   * A settle describes a whole pick and replaces the refusal list; a retry
+   * describes one file and must leave every other file's refusal standing --
+   * folding it into the settle would make retrying one file quietly clear the
+   * warnings about all the others.
+   */
+  | {
+    readonly type: "retry_settled";
+    readonly relativePath: string;
+    readonly rejection: AttachmentRejection | null;
+  }
   | { readonly type: "send_requested" }
   /** The host accepted the request and is producing a reply. */
   | { readonly type: "stream_started" }

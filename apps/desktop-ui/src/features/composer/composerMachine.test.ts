@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   canOpenFileDialog,
   canRetry,
+  canRetryAttachment,
   canSend,
   canStop,
   composerReducer,
@@ -331,6 +332,126 @@ describe("failure and retry", () => {
   it("allows a file dialog from the failed state", () => {
     // The user may want to attach the file that would have made it work.
     expect(canOpenFileDialog(after(typed, send, failed))).toBe(true);
+  });
+});
+
+/**
+ * FE-15's per-file retry.
+ *
+ * A retry describes one file. The settle that follows a pick describes a whole
+ * selection and replaces the refusal list, so folding a retry into it would
+ * make attaching one file quietly clear the warnings about every other.
+ */
+describe("retrying one refused file", () => {
+  const refused: ComposerEvent = {
+    type: "import_settled",
+    attached: 1,
+    rejected: [
+      { relativePath: "src/locked.ts", reason: "Could not be read.", retryable: true },
+      { relativePath: "src/image.bin", reason: "Not a readable text file.", retryable: false },
+      { relativePath: "", reason: "1 file was outside this workspace." },
+    ],
+  };
+  const withRefusals = () => composerReducer(after(typed), [openDialog, startImport, refused]);
+
+  it("offers a retry only for the file the host said could go differently", () => {
+    const state = withRefusals();
+    expect(canRetryAttachment(state, "src/locked.ts")).toBe(true);
+    expect(canRetryAttachment(state, "src/image.bin")).toBe(false);
+  });
+
+  it("offers no retry for a refusal the host would not name", () => {
+    // Retrying needs a file to name, and this is the one it has no name for.
+    expect(canRetryAttachment(withRefusals(), "")).toBe(false);
+  });
+
+  it("refuses a retry for a file that was never refused", () => {
+    // Otherwise the composer enters an import with nothing on screen saying
+    // why, and the settle pushes a refusal the user never saw raised.
+    const state = withRefusals();
+    expect(canRetryAttachment(state, "src/never-picked.ts")).toBe(false);
+    expect(composerTransition(state, {
+      type: "retry_requested", relativePath: "src/never-picked.ts",
+    })).toBe(state);
+  });
+
+  it("names the file it is retrying, so one row can show it", () => {
+    const state = composerTransition(withRefusals(), {
+      type: "retry_requested", relativePath: "src/locked.ts",
+    });
+    expect(state.phase).toBe("importing-attachments");
+    expect(state.retryingPath).toBe("src/locked.ts");
+  });
+
+  it("refuses a second retry while one is running", () => {
+    const running = composerTransition(withRefusals(), {
+      type: "retry_requested", relativePath: "src/locked.ts",
+    });
+    expect(canRetryAttachment(running, "src/locked.ts")).toBe(false);
+    expect(composerTransition(running, {
+      type: "retry_requested", relativePath: "src/image.bin",
+    })).toBe(running);
+  });
+
+  it("clears the row when the file attaches", () => {
+    const state = composerReducer(withRefusals(), [
+      { type: "retry_requested", relativePath: "src/locked.ts" },
+      { type: "retry_settled", relativePath: "src/locked.ts", rejection: null },
+    ]);
+    expect(state.rejections.map((r) => r.relativePath)).toEqual(["src/image.bin", ""]);
+    expect(state.retryingPath).toBeNull();
+    expect(state.phase).toBe("drafting");
+  });
+
+  /// The reason this event exists at all.
+  it("leaves every other file's refusal standing", () => {
+    const state = composerReducer(withRefusals(), [
+      { type: "retry_requested", relativePath: "src/locked.ts" },
+      { type: "retry_settled", relativePath: "src/locked.ts", rejection: null },
+    ]);
+    expect(state.rejections).toHaveLength(2);
+  });
+
+  it("keeps the row when the file is still refused", () => {
+    const state = composerReducer(withRefusals(), [
+      { type: "retry_requested", relativePath: "src/locked.ts" },
+      {
+        type: "retry_settled",
+        relativePath: "src/locked.ts",
+        rejection: {
+          relativePath: "src/locked.ts", reason: "Still could not be read.", retryable: true,
+        },
+      },
+    ]);
+    expect(state.rejections).toHaveLength(3);
+    expect(canRetryAttachment(state, "src/locked.ts")).toBe(true);
+  });
+
+  it("ignores a settle for a file it is not retrying", () => {
+    // A settle arriving for a superseded retry must not clear a row the user
+    // is still looking at.
+    const running = composerTransition(withRefusals(), {
+      type: "retry_requested", relativePath: "src/locked.ts",
+    });
+    expect(composerTransition(running, {
+      type: "retry_settled", relativePath: "src/image.bin", rejection: null,
+    })).toBe(running);
+  });
+
+  it("keeps the draft through a retry", () => {
+    const state = composerReducer(withRefusals(), [
+      { type: "retry_requested", relativePath: "src/locked.ts" },
+      { type: "retry_settled", relativePath: "src/locked.ts", rejection: null },
+    ]);
+    expect(state.draft).toBe("fix the login");
+  });
+
+  it("forgets an in-flight retry on reset", () => {
+    const state = composerReducer(withRefusals(), [
+      { type: "retry_requested", relativePath: "src/locked.ts" },
+      { type: "reset" },
+    ]);
+    expect(state.retryingPath).toBeNull();
   });
 });
 

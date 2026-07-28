@@ -114,6 +114,37 @@
   font-size: var(--text-meta);
 }
 
+/* Quiet until the row is under the pointer or the control has focus.
+   A remove button on every row, always lit, turns a list the user reads into
+   a row of things they might delete -- and it is the only destructive control
+   on this surface, so it is the one that must not be pressed by accident.
+   Focus-visible is not folded into the hover rule: a keyboard user never
+   hovers, and a control they cannot see is a control they cannot use. */
+.context-window__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-muted);
+  opacity: 0;
+  cursor: pointer;
+}
+
+.context-window__items li:hover .context-window__remove,
+.context-window__remove:focus-visible {
+  opacity: 1;
+}
+
+.context-window__remove:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
 .context-window__items li:hover {
   background: var(--color-surface-hover);
 }
