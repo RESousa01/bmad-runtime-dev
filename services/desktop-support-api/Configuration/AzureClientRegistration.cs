@@ -98,9 +98,15 @@ public static class AzureClientRegistration
     }
 
     /// <summary>
-    /// Registers the deployment-discovery transport and client. The Responses
-    /// executor is a separate task: the existing Azure OpenAI client stays
-    /// exactly where it is and this seam is added beside it.
+    /// Registers the deployment-discovery transport, the production credential
+    /// mechanism, and the client. The Responses executor is a separate task:
+    /// the existing Azure OpenAI client stays exactly where it is and this seam
+    /// is added beside it.
+    ///
+    /// The credential mechanism registered here is always managed identity. The
+    /// development API-key mechanism is registered only by
+    /// <see cref="DevelopmentFoundryComposition"/>, and its constructor refuses
+    /// to build outside Development or Test.
     /// </summary>
     public static IServiceCollection AddFoundryDiscoveryTransport(
         this IServiceCollection services,
@@ -108,10 +114,37 @@ public static class AzureClientRegistration
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
+        services.AddFoundryDiscoveryHttpClient(options.ValidatedFoundryProjectEndpoint);
+        services.TryAddSingleton<IFoundryRequestAuthenticator>(provider =>
+            new ManagedIdentityFoundryAuthenticator(
+                provider.GetRequiredService<ProductionAzureCredentials>().FoundryModel));
+        services.TryAddSingleton(provider => new FoundryDeploymentDiscoveryClient(
+            provider.GetRequiredService<IHttpClientFactory>()
+                .CreateClient(FoundryDiscoveryHttpClientName),
+            provider.GetRequiredService<IFoundryRequestAuthenticator>(),
+            options.ValidatedFoundryProjectEndpoint,
+            TimeProvider.System));
+        services.TryAddSingleton<IFoundryDeploymentDiscovery>(provider =>
+            new FoundryDeploymentDiscovery(
+                provider.GetRequiredService<FoundryDeploymentDiscoveryClient>()));
+        return services;
+    }
+
+    /// <summary>
+    /// The bounded discovery transport, shared by every composition that talks
+    /// to a Foundry project. Only the credential mechanism differs between
+    /// Production and Development; the transport policy does not.
+    /// </summary>
+    internal static IServiceCollection AddFoundryDiscoveryHttpClient(
+        this IServiceCollection services,
+        Uri projectEndpoint)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(projectEndpoint);
         services
             .AddHttpClient(FoundryDiscoveryHttpClientName, client =>
             {
-                client.BaseAddress = options.ValidatedFoundryProjectEndpoint;
+                client.BaseAddress = projectEndpoint;
                 client.Timeout = DiscoveryHeaderTimeout;
                 client.MaxResponseContentBufferSize =
                     FoundryDeploymentDiscoveryClient.MaximumAggregateResponseBytes;
@@ -135,16 +168,6 @@ public static class AzureClientRegistration
                 UseProxy = false,
                 PooledConnectionLifetime = TimeSpan.FromMinutes(5),
             });
-
-        services.TryAddSingleton(provider => new FoundryDeploymentDiscoveryClient(
-            provider.GetRequiredService<IHttpClientFactory>()
-                .CreateClient(FoundryDiscoveryHttpClientName),
-            provider.GetRequiredService<ProductionAzureCredentials>().FoundryModel,
-            options.ValidatedFoundryProjectEndpoint,
-            TimeProvider.System));
-        services.TryAddSingleton<IFoundryDeploymentDiscovery>(provider =>
-            new FoundryDeploymentDiscovery(
-                provider.GetRequiredService<FoundryDeploymentDiscoveryClient>()));
         return services;
     }
 }

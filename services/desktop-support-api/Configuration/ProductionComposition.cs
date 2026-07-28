@@ -71,6 +71,14 @@ public static class ProductionComposition
         // cache is the only thing the rest of the plane reads. Warming happens
         // in the background so a cold or unreachable provider shows up as an
         // unhealthy catalog rather than a host that will not start.
+        //
+        // The credential mechanism composed above is always managed identity.
+        // The development API-key mechanism is registered only by
+        // DevelopmentFoundryComposition, whose own environment guard and whose
+        // authenticator constructor both refuse anything but Development and
+        // Test. The assertion below is a third, structural net.
+        AssertNoDevelopmentFoundryCredential(builder.Services);
+
         builder.Services.AddSingleton(provider => new FoundryDeploymentCatalogCache(
             provider.GetRequiredService<IFoundryDeploymentDiscovery>(),
             TimeProvider.System,
@@ -122,6 +130,33 @@ public static class ProductionComposition
                 .UseAzureMonitor()
                 .WithTracing(tracing => tracing.AddProcessor(
                     new Observability.PrivacyRedactionProcessor()));
+        }
+    }
+
+    /// <summary>
+    /// Refuses to compose a production graph that carries the development
+    /// Foundry credential.
+    ///
+    /// <see cref="DevelopmentFoundryComposition"/> registers the development
+    /// authenticator under its concrete type as well as under the seam, which
+    /// is what makes it visible here without building the container.
+    /// </summary>
+    internal const string DevelopmentCredentialForbiddenCode =
+        "production_foundry_development_credential_forbidden";
+
+    internal static void AssertNoDevelopmentFoundryCredential(IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        foreach (ServiceDescriptor descriptor in services)
+        {
+            if (descriptor.ServiceType == typeof(DevelopmentFoundryApiKeyAuthenticator)
+                || descriptor.ImplementationType
+                    == typeof(DevelopmentFoundryApiKeyAuthenticator)
+                || descriptor.ImplementationInstance
+                    is DevelopmentFoundryApiKeyAuthenticator)
+            {
+                throw new InvalidOperationException(DevelopmentCredentialForbiddenCode);
+            }
         }
     }
 

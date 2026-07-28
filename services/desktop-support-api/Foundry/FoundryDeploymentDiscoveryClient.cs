@@ -16,10 +16,19 @@ namespace Sapphirus.DesktopSupportApi.Foundry;
 /// provider field, deployment name, endpoint, or token is ever logged or
 /// surfaced: failures are stable error codes, and retrieval facts stay in
 /// server-only evidence.
+///
+/// It does not know how the request is authenticated. That is
+/// <see cref="IFoundryRequestAuthenticator"/>'s job, and the credential is
+/// acquired once per discovery operation rather than once per page.
 /// </summary>
 public sealed class FoundryDeploymentDiscoveryClient
 {
-    public const string TokenScope = "https://ai.azure.com/.default";
+    /// <summary>
+    /// The Entra scope the managed-identity mechanism requests. It stays here
+    /// as the documented discovery scope; the single definition lives on the
+    /// authenticator that actually asks for it.
+    /// </summary>
+    public const string TokenScope = ManagedIdentityFoundryAuthenticator.TokenScope;
     public const string ClientRequestIdHeader = "x-ms-client-request-id";
     public const string ProviderRequestIdHeader = "x-ms-request-id";
     public const int MaximumPages = 32;
@@ -47,18 +56,18 @@ public sealed class FoundryDeploymentDiscoveryClient
     };
 
     private readonly HttpClient _httpClient;
-    private readonly TokenCredential _credential;
+    private readonly IFoundryRequestAuthenticator _authenticator;
     private readonly Uri _projectEndpoint;
     private readonly TimeProvider _timeProvider;
 
     public FoundryDeploymentDiscoveryClient(
         HttpClient httpClient,
-        TokenCredential credential,
+        IFoundryRequestAuthenticator authenticator,
         Uri projectEndpoint,
         TimeProvider timeProvider)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
-        ArgumentNullException.ThrowIfNull(credential);
+        ArgumentNullException.ThrowIfNull(authenticator);
         ArgumentNullException.ThrowIfNull(projectEndpoint);
         ArgumentNullException.ThrowIfNull(timeProvider);
         if (!IsProjectEndpointShape(projectEndpoint))
@@ -68,10 +77,35 @@ public sealed class FoundryDeploymentDiscoveryClient
                 nameof(projectEndpoint));
         }
         _httpClient = httpClient;
-        _credential = credential;
+        _authenticator = authenticator;
         _projectEndpoint = projectEndpoint;
         _timeProvider = timeProvider;
     }
+
+    /// <summary>
+    /// Convenience overload for the managed-identity mechanism, which is the
+    /// only production one. It composes
+    /// <see cref="ManagedIdentityFoundryAuthenticator"/> and is otherwise
+    /// identical to the seam-taking constructor.
+    /// </summary>
+    public FoundryDeploymentDiscoveryClient(
+        HttpClient httpClient,
+        TokenCredential credential,
+        Uri projectEndpoint,
+        TimeProvider timeProvider)
+        : this(
+            httpClient,
+            new ManagedIdentityFoundryAuthenticator(credential),
+            projectEndpoint,
+            timeProvider)
+    {
+    }
+
+    /// <summary>
+    /// How the outbound requests of this client are authenticated. It never
+    /// carries the credential itself, only the mechanism identifier.
+    /// </summary>
+    public string CredentialMechanismId => _authenticator.CredentialMechanismId;
 
     public async Task<FoundryDiscoveryResult> DiscoverAsync(
         CancellationToken cancellationToken)
@@ -82,15 +116,14 @@ public sealed class FoundryDeploymentDiscoveryClient
         long totalBytes = 0;
         int pageCount = 0;
 
-        string token;
+        // The credential is acquired once for the whole operation, so a
+        // paginated inventory costs one acquisition rather than one per page.
+        IFoundryRequestAuthenticator operationCredential;
         try
         {
-            AccessToken accessToken = await _credential
-                .GetTokenAsync(
-                    new TokenRequestContext([TokenScope]),
-                    cancellationToken)
+            operationCredential = await _authenticator
+                .BeginOperationAsync(cancellationToken)
                 .ConfigureAwait(false);
-            token = accessToken.Token;
         }
         catch (OperationCanceledException)
         {
@@ -100,13 +133,6 @@ public sealed class FoundryDeploymentDiscoveryClient
         {
             // Never propagate credential exception text: it routinely carries
             // tenant, client, and endpoint detail.
-            return Failure(
-                FoundryDiscoveryOutcome.Authorization,
-                "foundry_discovery_token_unavailable",
-                Evidence(retrievedAt, pageCount, totalBytes, clientRequestIds, providerRequestIds));
-        }
-        if (string.IsNullOrEmpty(token))
-        {
             return Failure(
                 FoundryDiscoveryOutcome.Authorization,
                 "foundry_discovery_token_unavailable",
@@ -134,10 +160,28 @@ public sealed class FoundryDeploymentDiscoveryClient
                     Evidence(retrievedAt, pageCount, totalBytes, clientRequestIds, providerRequestIds));
             }
 
+            using HttpRequestMessage request = new(HttpMethod.Get, current);
+            try
+            {
+                await operationCredential
+                    .ApplyAsync(request, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                // An unauthenticated request is never sent, and the credential
+                // failure text never escapes.
+                return Failure(
+                    FoundryDiscoveryOutcome.Authorization,
+                    "foundry_discovery_token_unavailable",
+                    Evidence(retrievedAt, pageCount, totalBytes, clientRequestIds, providerRequestIds));
+            }
             string clientRequestId = Guid.NewGuid().ToString("D");
             clientRequestIds.Add(clientRequestId);
-            using HttpRequestMessage request = new(HttpMethod.Get, current);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Headers.TryAddWithoutValidation(ClientRequestIdHeader, clientRequestId);
 
             HttpResponseMessage response;
