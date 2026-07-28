@@ -61,11 +61,26 @@ services:
       Sapphirus__ReceiptSigningKeyName: forge-contract-signing
       Sapphirus__SqlServer: forge-contract.database.windows.net
       Sapphirus__SqlDatabase: forge_contract
-      Sapphirus__ModelEndpoint: https://forge-contract.openai.azure.com/
-      Sapphirus__ModelDeployment: forge-contract-model
+      # Foundry model path, matching the shape main.bicep now injects. The
+      # project name below is a PROJECT name; no Foundry deployment name is
+      # known to this repository and none is set here.
+      Sapphirus__FoundryProjectEndpoint: https://forge-contract.services.ai.azure.com/api/projects/forge-contract
+      Sapphirus__FoundryModelIdentityClientId: 55555555-5555-5555-5555-555555555555
+      Sapphirus__AllowSharedPilotIdentity: "false"
+      Sapphirus__FoundryDeploymentRefreshSeconds: "300"
+      Sapphirus__FoundryCatalogMaximumStaleSeconds: "1800"
+      Sapphirus__ModelProfileConfigurationPrefix: "desktop-support:model-profiles:"
+      # Canonical profile pins that main.bicep still injects.
       Sapphirus__ProviderProfileHash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
       Sapphirus__ModelProfileHash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       Sapphirus__ModelCapabilityHash: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      # Legacy fixed-deployment configuration. main.bicep no longer injects the
+      # three values below; they stay here only because the current image's
+      # ProductionOptions.Validate still requires them, so removing them would
+      # make this rehearsal fail for a reason unrelated to deployment shape.
+      # Delete them in the same change that stops the service requiring them.
+      Sapphirus__ModelEndpoint: https://forge-contract.openai.azure.com/
+      Sapphirus__ModelDeployment: forge-contract-model
       Sapphirus__DeploymentHash: sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
     healthcheck:
       # Readiness intentionally calls real Azure dependencies and must remain

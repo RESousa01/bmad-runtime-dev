@@ -1,0 +1,354 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/tools/foundry-profiles/profile-document.schema.json",
+  "title": "forge.model-profile-document.v1",
+  "description": "One operator-authored model profile document. It carries a complete profile set plus the registry version that publishes it. Every profile mirrors sapphirus.model-profile.v1 field-for-field; packages/contracts/schemas/model-profile.schema.json remains the authority and this document may never widen it. The App Configuration key prefix and the registry-version key are tool constants, deliberately unrepresentable here, so an authored document can never redirect a write to another key.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registryVersion",
+    "profiles"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "forge.model-profile-document.v1" },
+    "registryVersion": {
+      "description": "Monotonic version of the whole published set. A publish that does not raise this value is a downgrade and is refused.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/ModelProfile" }
+    }
+  },
+  "$defs": {
+    "ModelProfile": {
+      "description": "One versioned organization model profile, mirroring sapphirus.model-profile.v1 exactly.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "profileId",
+        "displayName",
+        "description",
+        "family",
+        "priority",
+        "enabled",
+        "visible",
+        "deploymentName",
+        "expectedModel",
+        "purposeAllowlist",
+        "modelRoleAllowlist",
+        "requestModeAllowlist",
+        "canonicalOutputSchemaAllowlist",
+        "supportedModalities",
+        "requiredCapabilities",
+        "limits",
+        "variants",
+        "retryPolicy",
+        "retentionMode",
+        "allowedRegions",
+        "qualification",
+        "priceProfile"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "sapphirus.model-profile.v1" },
+        "profileId": { "$ref": "#/$defs/ModelProfileId" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "family": {
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 64 },
+            { "type": "null" }
+          ]
+        },
+        "priority": {
+          "description": "Deterministic ordering key for default selection and listing. Lower sorts first; ties break on profileId ordinal order.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "enabled": { "type": "boolean" },
+        "visible": { "type": "boolean" },
+        "deploymentName": { "$ref": "#/$defs/DeploymentName" },
+        "expectedModel": { "$ref": "#/$defs/ExpectedModelIdentity" },
+        "purposeAllowlist": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/AllowlistToken" }
+        },
+        "modelRoleAllowlist": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/AllowlistToken" }
+        },
+        "requestModeAllowlist": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/ModelRequestMode" }
+        },
+        "canonicalOutputSchemaAllowlist": {
+          "description": "Canonical output schema identifiers this profile may be asked to satisfy in structured_response mode. Empty means the profile is chat-only and must never be bound to a structured output schema.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/CanonicalSchemaId" }
+        },
+        "supportedModalities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/ModelModality" }
+        },
+        "requiredCapabilities": { "$ref": "#/$defs/ModelProfileCapabilities" },
+        "limits": { "$ref": "#/$defs/ModelProfileLimits" },
+        "variants": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/ModelProfileVariant" }
+        },
+        "retryPolicy": { "$ref": "#/$defs/ModelProfileRetryPolicy" },
+        "retentionMode": { "const": "transient_no_store" },
+        "allowedRegions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "$ref": "#/$defs/RegionName" }
+        },
+        "qualification": { "$ref": "#/$defs/ModelProfileQualification" },
+        "priceProfile": { "$ref": "#/$defs/ModelPriceProfile" }
+      }
+    },
+    "ModelProfileId": {
+      "description": "Stable organization-chosen profile identifier. Deliberately independent of any Foundry deployment name so a deployment can be replaced without invalidating persisted user selections.",
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+){0,7}$"
+    },
+    "ModelVariantId": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 32,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+){0,3}$"
+    },
+    "AllowlistToken": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "RegionName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9]{0,63}$"
+    },
+    "CanonicalSchemaId": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9.-]*\\.v[1-9][0-9]*$"
+    },
+    "DeploymentName": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,126}[A-Za-z0-9]$"
+    },
+    "ModelIdentityPart": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "Sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "UtcInstant": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$"
+    },
+    "ModelRequestMode": {
+      "enum": [
+        "structured_response",
+        "streaming_chat"
+      ]
+    },
+    "ModelModality": {
+      "enum": [
+        "text",
+        "image",
+        "pdf"
+      ]
+    },
+    "ReasoningEffort": {
+      "enum": [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "OutputVerbosity": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "QualificationStatus": {
+      "enum": [
+        "qualified",
+        "unqualified",
+        "expired"
+      ]
+    },
+    "ExpectedModelIdentity": {
+      "description": "The exact model identity the organization qualified behind this deployment name. Discovery must confirm all three parts before the profile becomes selectable; a deployment that now serves a different model fails closed.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publisher",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "publisher": { "$ref": "#/$defs/ModelIdentityPart" },
+        "name": { "$ref": "#/$defs/ModelIdentityPart" },
+        "version": { "$ref": "#/$defs/ModelIdentityPart" }
+      }
+    },
+    "ModelProfileCapabilities": {
+      "description": "Capabilities Forge relies on for this profile. Discovery may narrow these by refusing a deployment that lacks one; it may never broaden them.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "textInput",
+        "imageInput",
+        "pdfInput",
+        "attachments",
+        "toolCalling",
+        "structuredOutput",
+        "reasoning",
+        "streaming"
+      ],
+      "properties": {
+        "textInput": { "type": "boolean" },
+        "imageInput": { "type": "boolean" },
+        "pdfInput": { "type": "boolean" },
+        "attachments": { "type": "boolean" },
+        "toolCalling": { "type": "boolean" },
+        "structuredOutput": { "type": "boolean" },
+        "reasoning": { "type": "boolean" },
+        "streaming": { "type": "boolean" }
+      }
+    },
+    "ModelProfileLimits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contextTokens",
+        "maxInputTokens",
+        "maxOutputTokens",
+        "maxAttachmentBytes",
+        "maxOutputBytes"
+      ],
+      "properties": {
+        "contextTokens": { "type": "integer", "minimum": 1, "maximum": 100000000 },
+        "maxInputTokens": { "type": "integer", "minimum": 1, "maximum": 100000000 },
+        "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 10000000 },
+        "maxAttachmentBytes": { "type": "integer", "minimum": 0, "maximum": 134217728 },
+        "maxOutputBytes": { "type": "integer", "minimum": 1, "maximum": 16777216 }
+      }
+    },
+    "ModelProfileVariant": {
+      "description": "A named operating point of the same deployment. Variants change reasoning effort, verbosity, and output budget; they never change the deployment or the model identity.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variantId",
+        "displayName",
+        "reasoningEffort",
+        "verbosity",
+        "maxOutputTokens"
+      ],
+      "properties": {
+        "variantId": { "$ref": "#/$defs/ModelVariantId" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "reasoningEffort": { "$ref": "#/$defs/ReasoningEffort" },
+        "verbosity": { "$ref": "#/$defs/OutputVerbosity" },
+        "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 10000000 }
+      }
+    },
+    "ModelProfileRetryPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maximumAttempts",
+        "initialBackoffMilliseconds",
+        "maximumBackoffMilliseconds"
+      ],
+      "properties": {
+        "maximumAttempts": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "initialBackoffMilliseconds": { "type": "integer", "minimum": 0, "maximum": 60000 },
+        "maximumBackoffMilliseconds": { "type": "integer", "minimum": 0, "maximum": 300000 }
+      }
+    },
+    "ModelProfileQualification": {
+      "description": "Evidence that this exact profile was qualified. A profile without qualification evidence is never selectable.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "evidenceHash",
+        "qualifiedAt"
+      ],
+      "properties": {
+        "status": { "$ref": "#/$defs/QualificationStatus" },
+        "evidenceHash": { "$ref": "#/$defs/Sha256" },
+        "qualifiedAt": {
+          "oneOf": [
+            { "$ref": "#/$defs/UtcInstant" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "ModelPriceProfile": {
+      "description": "Versioned server-side price profile. Cost is always computed here, never accepted from a provider or a client.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "currency",
+        "inputMicrounitsPerThousand",
+        "outputMicrounitsPerThousand",
+        "reasoningMicrounitsPerThousand",
+        "cacheReadMicrounitsPerThousand"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "inputMicrounitsPerThousand": { "type": "integer", "minimum": 0, "maximum": 1000000000 },
+        "outputMicrounitsPerThousand": { "type": "integer", "minimum": 0, "maximum": 1000000000 },
+        "reasoningMicrounitsPerThousand": { "type": "integer", "minimum": 0, "maximum": 1000000000 },
+        "cacheReadMicrounitsPerThousand": { "type": "integer", "minimum": 0, "maximum": 1000000000 }
+      }
+    }
+  }
+}

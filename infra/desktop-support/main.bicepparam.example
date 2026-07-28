@@ -8,8 +8,20 @@ param entraAudience = 'api://replace-with-application-id'
 param approvedDesktopClientId = '33333333-3333-3333-3333-333333333333'
 param sqlAdministratorObjectId = 'replace-with-entra-group-object-id'
 param sqlAdministratorLogin = 'Sapphirus SQL Administrators'
+// Legacy Azure OpenAI pin, still required while the legacy account is retained.
 param modelName = 'replace-with-approved-model-name'
 param modelVersion = 'replace-with-pinned-model-version'
+param retireLegacyOpenAiAccount = false
+// External Microsoft Foundry project. Placeholder shape only. Never commit a
+// real endpoint, subscription ID, or resource ID.
+param foundryProjectEndpoint = 'https://replace-with-account.services.ai.azure.com/api/projects/replace-with-project'
+param foundryProjectResourceId = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/replace-with-foundry-resource-group/providers/Microsoft.CognitiveServices/accounts/replace-with-account/projects/replace-with-project'
+param modelProfileConfigurationPrefix = 'desktop-support:model-profiles:'
+param foundryDeploymentRefreshSeconds = 300
+param foundryCatalogMaximumStaleSeconds = 1800
+param allowSharedPilotIdentity = false
+param foundryPrivateDnsZoneName = ''
+param foundryPrivateEndpointGroupId = ''
 param releaseChannel = 'beta'
 param tags = {
   application: 'sapphirus'

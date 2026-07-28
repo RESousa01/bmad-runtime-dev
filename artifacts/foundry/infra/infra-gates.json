@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "forge.foundry-infra-evidence.v1",
+  "taskIds": [
+    "FND-060",
+    "FND-062"
+  ],
+  "state": "local_gates_complete",
+  "repositoryCommit": "492c3e66431a13c726fceed5f504a067bc581772",
+  "generatedAt": "2026-07-28T18:22:00Z",
+  "changedFiles": [
+    "infra/desktop-support/main.bicep",
+    "infra/desktop-support/main.json",
+    "infra/desktop-support/main.bicepparam.example",
+    "infra/desktop-support/main.example.bicepparam",
+    "infra/desktop-support/README.md",
+    "infra/desktop-support/local/docker-compose.yml",
+    "tools/foundry-smoke/network-smoke.ps1",
+    "tools/foundry-smoke/network-smoke.Tests.ps1",
+    "artifacts/foundry/infra/network-smoke.json",
+    "artifacts/foundry/infra/infra-gates.json"
+  ],
+  "commands": [
+    {
+      "command": "az bicep build --file infra/desktop-support/main.bicep --outfile infra/desktop-support/main.json",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Compiled. Only the pre-existing experimental-Asserts warning; no linter diagnostics. The committed ARM template was regenerated from this run, so main.json does not drift from main.bicep."
+    },
+    {
+      "command": "az bicep build-params --file infra/desktop-support/main.example.bicepparam",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "The example parameter file still satisfies the template's parameter set after the Foundry parameters were added and deploymentHash was removed."
+    },
+    {
+      "command": "pwsh -NoProfile -File tools/foundry-smoke/network-smoke.Tests.ps1",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "128 assertions passed, 0 failed. Offline: every Azure boundary is injected, and the two cases that exercise the real resolver and TLS probe use an RFC 2606 reserved name that can never resolve."
+    },
+    {
+      "command": "pwsh -NoProfile -File tools/foundry-smoke/check-prerequisites.Tests.ps1",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "65 assertions passed. Regression run: the network smoke dot-sources this script to cross-check the two endpoint validators."
+    },
+    {
+      "command": "node --test tools/forge-local.test.mjs tools/support-cloud-contracts.test.mjs",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "12 passed, 0 failed. These are the repository gates that read main.bicep, main.json, both parameter examples, and local/docker-compose.yml."
+    },
+    {
+      "command": "pwsh -NoProfile -File tools/foundry-smoke/network-smoke.ps1 -ProjectEndpoint '' -ManagedIdentityClientId ''",
+      "exitCode": 2,
+      "classification": "passed",
+      "result": "Fails closed with five explicit blockers and writes artifacts/foundry/infra/network-smoke.json. Exit 2 is the documented not-ready code."
+    },
+    {
+      "command": "az deployment group what-if --resource-group <rg> --template-file infra/desktop-support/main.bicep --parameters infra/desktop-support/main.example.bicepparam",
+      "exitCode": 1,
+      "classification": "not_run",
+      "failureFingerprint": "azure-cli-unauthenticated",
+      "result": "ERROR: Please run 'az login' to setup account. No authenticated Azure session and no Foundry project exist in this environment, so the plan's what-if step could not run. Recorded as an external blocker, not as a pass."
+    }
+  ],
+  "acceptance": {
+    "noSecondFixedModelDeploymentInvented": "passed",
+    "dedicatedFoundryModelIdentityOnContainerApp": "passed",
+    "configurationPointsAtCompleteProjectEndpoint": "passed",
+    "legacyOpenAiRetiredOnlyBehindOperatorFlag": "passed",
+    "legacyOpenAiPrivateLinkEntryRemovedOnRetirement": "passed",
+    "foundryPrivateLinkOptionalAndOperatorSupplied": "passed",
+    "networkSmokeValidatesShapeBeforeAnyNetworkCall": "passed",
+    "networkSmokeRedactionFailsClosed": "passed",
+    "realFoundryProjectReachability": "not_verified"
+  },
+  "blockers": [
+    {
+      "id": "FND-002-AZURE-INPUTS",
+      "state": "active",
+      "summary": "No authenticated Azure CLI session, no Foundry project endpoint, no model-broker identity, and no Foundry role scope are available in this environment.",
+      "consequence": "az deployment group what-if could not run, the deployment-time assertions in main.bicep have never been evaluated by ARM, and network-smoke.ps1 has never reached a real Foundry host. Only the local gates above are proved.",
+      "nextAction": "Authenticate the Azure CLI, supply the Foundry parameters, run az deployment group what-if, then run tools/foundry-smoke/network-smoke.ps1 and tools/foundry-smoke/check-prerequisites.ps1 against the real project."
+    }
+  ],
+  "notes": [
+    "The Foundry data-plane role ID is held in the named variable foundryDataPlaneRoleDefinitionId in main.bicep with a deployment-time validation comment. It is the same ID tools/foundry-smoke/check-prerequisites.ps1 verifies; the two must move together.",
+    "A resourceGroup-scoped Bicep file cannot carry a role assignment whose scope is in another resource group (BCP139), and creating a module was outside this change's file lease. The grant is therefore emitted in-template only when the Foundry resource is co-located; otherwise foundryRoleAssignmentMode reports operator-managed and README.md carries the exact az role assignment create step, following the sql-grants.md precedent.",
+    "No Foundry private-link zone name or subresource was invented. foundryPrivateDnsZoneName and foundryPrivateEndpointGroupId are operator-supplied and empty by default; the stack creates no Foundry endpoint or zone, and network-smoke.ps1 reports egress.posture from the addresses actually resolved.",
+    "No Foundry deployment name appears in the template, the parameter examples, the compose rehearsal, the smoke tool, or its report. network-smoke.json carries counts, status classes, and hashes only.",
+    "Sequencing: main.bicep no longer injects Sapphirus__ModelEndpoint, Sapphirus__ModelDeployment, or Sapphirus__DeploymentHash, but ProductionOptions.Validate in services/desktop-support-api still requires all three. The API must not be deployed with deployApi=true from this template until the service-side task stops requiring them.",
+    "The real (non-injected) resolver, TLS probe, and managed-identity token path were exercised once by hand during this change. Two defects were found and fixed: Task.Wait surfaced a faulted TCP connect as an AggregateException that escaped the tls_unreachable contract carrying the host name, and an IMDS transport failure escaped as http_request_failed instead of managed_identity_token_unavailable.",
+    "artifacts/ is gitignored in this repository. These two evidence files need git add -f, the same way artifacts/foundry/prerequisites.json and artifacts/foundry/tasks/*.json are already tracked."
+  ],
+  "documentationDrift": [
+    "docs/guides/azure-support-plane-deployment-guide.md still shows `param deploymentHash` and lists `modelEndpoint` as a template output. Both are gone. That file was outside this change's lease and needs a follow-up.",
+    "docs/operations/foundry-prerequisites.md documents check-prerequisites.ps1 only; network-smoke.ps1 has no entry there yet. Also outside this change's lease."
+  ],
+  "evidence": [
+    "artifacts/foundry/infra/network-smoke.json",
+    "infra/desktop-support/README.md"
+  ]
+}

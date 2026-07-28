@@ -1,0 +1,352 @@
+{
+  "schemaVersion": "forge.model-profile-document.v1",
+  "registryVersion": 1,
+  "profiles": [
+    {
+      "schemaVersion": "sapphirus.model-profile.v1",
+      "profileId": "fast-response",
+      "displayName": "Fast",
+      "description": "Low-latency answers for short questions. EXAMPLE ONLY: the deployment and model identity below are synthetic placeholders.",
+      "family": "example-fast",
+      "priority": 10,
+      "enabled": true,
+      "visible": true,
+      "deploymentName": "example-fast-do-not-deploy",
+      "expectedModel": {
+        "publisher": "ExamplePublisher",
+        "name": "example-model-fast",
+        "version": "0000-00-01"
+      },
+      "purposeAllowlist": [
+        "ordinary_chat",
+        "bmad_help"
+      ],
+      "modelRoleAllowlist": [
+        "assistant"
+      ],
+      "requestModeAllowlist": [
+        "structured_response",
+        "streaming_chat"
+      ],
+      "canonicalOutputSchemaAllowlist": [
+        "sapphirus.bmad-method-help-proposal.v1"
+      ],
+      "supportedModalities": [
+        "text"
+      ],
+      "requiredCapabilities": {
+        "textInput": true,
+        "imageInput": false,
+        "pdfInput": false,
+        "attachments": false,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "reasoning": false,
+        "streaming": true
+      },
+      "limits": {
+        "contextTokens": 128000,
+        "maxInputTokens": 96000,
+        "maxOutputTokens": 8000,
+        "maxAttachmentBytes": 0,
+        "maxOutputBytes": 131072
+      },
+      "variants": [
+        {
+          "variantId": "swift",
+          "displayName": "Swift",
+          "reasoningEffort": "none",
+          "verbosity": "low",
+          "maxOutputTokens": 4000
+        },
+        {
+          "variantId": "standard",
+          "displayName": "Standard",
+          "reasoningEffort": "low",
+          "verbosity": "medium",
+          "maxOutputTokens": 8000
+        }
+      ],
+      "retryPolicy": {
+        "maximumAttempts": 3,
+        "initialBackoffMilliseconds": 250,
+        "maximumBackoffMilliseconds": 4000
+      },
+      "retentionMode": "transient_no_store",
+      "allowedRegions": [
+        "exampleregion"
+      ],
+      "qualification": {
+        "status": "qualified",
+        "evidenceHash": "sha256:c0c1a77892bdef79b29d5b4362904d4fa50b159e92197c0395365601e683e483",
+        "qualifiedAt": "2026-07-28T00:00:00.000Z"
+      },
+      "priceProfile": {
+        "version": "example-price-0000-00",
+        "currency": "XTS",
+        "inputMicrounitsPerThousand": 100,
+        "outputMicrounitsPerThousand": 400,
+        "reasoningMicrounitsPerThousand": 0,
+        "cacheReadMicrounitsPerThousand": 10
+      }
+    },
+    {
+      "schemaVersion": "sapphirus.model-profile.v1",
+      "profileId": "balanced-default",
+      "displayName": "Balanced",
+      "description": "Default profile for everyday work. Shares one deployment with Deep; the variants differ only in reasoning effort and output budget.",
+      "family": "example-reasoning",
+      "priority": 20,
+      "enabled": true,
+      "visible": true,
+      "deploymentName": "example-shared-do-not-deploy",
+      "expectedModel": {
+        "publisher": "ExamplePublisher",
+        "name": "example-model-reasoning",
+        "version": "0000-00-02"
+      },
+      "purposeAllowlist": [
+        "ordinary_chat",
+        "bmad_help",
+        "planning"
+      ],
+      "modelRoleAllowlist": [
+        "assistant",
+        "planner"
+      ],
+      "requestModeAllowlist": [
+        "structured_response",
+        "streaming_chat"
+      ],
+      "canonicalOutputSchemaAllowlist": [
+        "sapphirus.bmad-method-help-proposal.v1"
+      ],
+      "supportedModalities": [
+        "text"
+      ],
+      "requiredCapabilities": {
+        "textInput": true,
+        "imageInput": false,
+        "pdfInput": false,
+        "attachments": false,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "reasoning": true,
+        "streaming": true
+      },
+      "limits": {
+        "contextTokens": 256000,
+        "maxInputTokens": 220000,
+        "maxOutputTokens": 24000,
+        "maxAttachmentBytes": 0,
+        "maxOutputBytes": 262144
+      },
+      "variants": [
+        {
+          "variantId": "balanced",
+          "displayName": "Balanced",
+          "reasoningEffort": "medium",
+          "verbosity": "medium",
+          "maxOutputTokens": 16000
+        },
+        {
+          "variantId": "thorough",
+          "displayName": "Thorough",
+          "reasoningEffort": "high",
+          "verbosity": "high",
+          "maxOutputTokens": 24000
+        }
+      ],
+      "retryPolicy": {
+        "maximumAttempts": 3,
+        "initialBackoffMilliseconds": 250,
+        "maximumBackoffMilliseconds": 8000
+      },
+      "retentionMode": "transient_no_store",
+      "allowedRegions": [
+        "exampleregion"
+      ],
+      "qualification": {
+        "status": "qualified",
+        "evidenceHash": "sha256:d52bbd939446e3c440e55f7ade543dd1e02f88f01f375e6142d3a7840e100b6e",
+        "qualifiedAt": "2026-07-28T00:00:00.000Z"
+      },
+      "priceProfile": {
+        "version": "example-price-0000-00",
+        "currency": "XTS",
+        "inputMicrounitsPerThousand": 300,
+        "outputMicrounitsPerThousand": 1200,
+        "reasoningMicrounitsPerThousand": 1200,
+        "cacheReadMicrounitsPerThousand": 30
+      }
+    },
+    {
+      "schemaVersion": "sapphirus.model-profile.v1",
+      "profileId": "deep-reasoning",
+      "displayName": "Deep",
+      "description": "Long-form analysis with attachments. Same deployment as Balanced, higher reasoning effort and a larger output budget.",
+      "family": "example-reasoning",
+      "priority": 30,
+      "enabled": true,
+      "visible": true,
+      "deploymentName": "example-shared-do-not-deploy",
+      "expectedModel": {
+        "publisher": "ExamplePublisher",
+        "name": "example-model-reasoning",
+        "version": "0000-00-02"
+      },
+      "purposeAllowlist": [
+        "bmad_help",
+        "planning"
+      ],
+      "modelRoleAllowlist": [
+        "planner"
+      ],
+      "requestModeAllowlist": [
+        "structured_response",
+        "streaming_chat"
+      ],
+      "canonicalOutputSchemaAllowlist": [
+        "sapphirus.bmad-method-help-proposal.v1"
+      ],
+      "supportedModalities": [
+        "text",
+        "pdf"
+      ],
+      "requiredCapabilities": {
+        "textInput": true,
+        "imageInput": false,
+        "pdfInput": true,
+        "attachments": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "reasoning": true,
+        "streaming": true
+      },
+      "limits": {
+        "contextTokens": 256000,
+        "maxInputTokens": 220000,
+        "maxOutputTokens": 64000,
+        "maxAttachmentBytes": 8388608,
+        "maxOutputBytes": 524288
+      },
+      "variants": [
+        {
+          "variantId": "deep",
+          "displayName": "Deep",
+          "reasoningEffort": "high",
+          "verbosity": "medium",
+          "maxOutputTokens": 32000
+        },
+        {
+          "variantId": "exhaustive",
+          "displayName": "Exhaustive",
+          "reasoningEffort": "high",
+          "verbosity": "high",
+          "maxOutputTokens": 64000
+        }
+      ],
+      "retryPolicy": {
+        "maximumAttempts": 2,
+        "initialBackoffMilliseconds": 500,
+        "maximumBackoffMilliseconds": 16000
+      },
+      "retentionMode": "transient_no_store",
+      "allowedRegions": [
+        "exampleregion"
+      ],
+      "qualification": {
+        "status": "qualified",
+        "evidenceHash": "sha256:2cfbda2a5c7cce0d87c115ae292e789fe523551540f84190df94aecf326ddcb7",
+        "qualifiedAt": "2026-07-28T00:00:00.000Z"
+      },
+      "priceProfile": {
+        "version": "example-price-0000-00",
+        "currency": "XTS",
+        "inputMicrounitsPerThousand": 300,
+        "outputMicrounitsPerThousand": 1200,
+        "reasoningMicrounitsPerThousand": 2400,
+        "cacheReadMicrounitsPerThousand": 30
+      }
+    },
+    {
+      "schemaVersion": "sapphirus.model-profile.v1",
+      "profileId": "evaluation-harness",
+      "displayName": "Evaluation Harness",
+      "description": "Hidden profile used by qualification replays. It is enabled so evaluations can select it explicitly, and invisible so it never appears in the picker.",
+      "family": "example-reasoning",
+      "priority": 900,
+      "enabled": true,
+      "visible": false,
+      "deploymentName": "example-shared-do-not-deploy",
+      "expectedModel": {
+        "publisher": "ExamplePublisher",
+        "name": "example-model-reasoning",
+        "version": "0000-00-02"
+      },
+      "purposeAllowlist": [
+        "bmad_help"
+      ],
+      "modelRoleAllowlist": [
+        "planner"
+      ],
+      "requestModeAllowlist": [
+        "structured_response"
+      ],
+      "canonicalOutputSchemaAllowlist": [
+        "sapphirus.bmad-method-help-proposal.v1"
+      ],
+      "supportedModalities": [
+        "text"
+      ],
+      "requiredCapabilities": {
+        "textInput": true,
+        "imageInput": false,
+        "pdfInput": false,
+        "attachments": false,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "reasoning": true,
+        "streaming": false
+      },
+      "limits": {
+        "contextTokens": 256000,
+        "maxInputTokens": 220000,
+        "maxOutputTokens": 16000,
+        "maxAttachmentBytes": 0,
+        "maxOutputBytes": 262144
+      },
+      "variants": [
+        {
+          "variantId": "replay",
+          "displayName": "Replay",
+          "reasoningEffort": "medium",
+          "verbosity": "low",
+          "maxOutputTokens": 16000
+        }
+      ],
+      "retryPolicy": {
+        "maximumAttempts": 1,
+        "initialBackoffMilliseconds": 0,
+        "maximumBackoffMilliseconds": 0
+      },
+      "retentionMode": "transient_no_store",
+      "allowedRegions": [
+        "exampleregion"
+      ],
+      "qualification": {
+        "status": "qualified",
+        "evidenceHash": "sha256:715cdd4ae2266e7d4cfb710c62618fb0a26e6ed9fe49ebf947b8b4e1b3eb4176",
+        "qualifiedAt": "2026-07-28T00:00:00.000Z"
+      },
+      "priceProfile": {
+        "version": "example-price-0000-00",
+        "currency": "XTS",
+        "inputMicrounitsPerThousand": 300,
+        "outputMicrounitsPerThousand": 1200,
+        "reasoningMicrounitsPerThousand": 1200,
+        "cacheReadMicrounitsPerThousand": 30
+      }
+    }
+  ]
+}

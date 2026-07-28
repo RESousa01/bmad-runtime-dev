@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "forge.foundry-prerequisites.v1",
+  "generatedAt": "2026-07-28T00:00:00.0000000+00:00",
+  "ready": true,
+  "projectEndpoint": null,
+  "intendedDeploymentNames": [
+    "example-fast-do-not-deploy",
+    "example-shared-do-not-deploy"
+  ],
+  "selectedDeploymentNames": [
+    "example-fast-do-not-deploy",
+    "example-shared-do-not-deploy"
+  ],
+  "checks": {
+    "endpointValidated": true,
+    "entraTokenAcquired": true,
+    "deploymentInventoryCaptured": true,
+    "managedIdentityAttached": true,
+    "foundryRoleAssigned": true
+  },
+  "azureContext": {
+    "subscriptionIdHash": "sha256:5c42c12fdf13d020335817e8c2a95e74cfbe8f08d8629ea4129ecb25a49a2970",
+    "tenantIdHash": "sha256:5c42c12fdf13d020335817e8c2a95e74cfbe8f08d8629ea4129ecb25a49a2970"
+  },
+  "managedIdentity": {
+    "attached": true,
+    "clientIdHash": "sha256:5c42c12fdf13d020335817e8c2a95e74cfbe8f08d8629ea4129ecb25a49a2970",
+    "resourceIdHash": "sha256:5c42c12fdf13d020335817e8c2a95e74cfbe8f08d8629ea4129ecb25a49a2970",
+    "principalIdHash": "sha256:5c42c12fdf13d020335817e8c2a95e74cfbe8f08d8629ea4129ecb25a49a2970"
+  },
+  "authorization": {
+    "assigned": true,
+    "roleDefinitionId": "53ca6127-db72-4b80-b1b0-d745d6d5456d",
+    "scopeHash": "sha256:5c42c12fdf13d020335817e8c2a95e74cfbe8f08d8629ea4129ecb25a49a2970"
+  },
+  "deploymentInventory": {
+    "pageCount": 1,
+    "inventoryHash": "sha256:5c42c12fdf13d020335817e8c2a95e74cfbe8f08d8629ea4129ecb25a49a2970",
+    "deployments": [
+      {
+        "deploymentName": "example-fast-do-not-deploy",
+        "modelPublisher": "ExamplePublisher",
+        "modelName": "example-model-fast",
+        "modelVersion": "0000-00-01",
+        "sku": {
+          "name": "ExampleStandard",
+          "tier": "Example",
+          "size": "S",
+          "family": "Example",
+          "capacity": 1
+        },
+        "type": "ModelDeployment",
+        "capabilityKeys": [
+          "json_schema",
+          "streaming",
+          "tool_calling"
+        ]
+      },
+      {
+        "deploymentName": "example-shared-do-not-deploy",
+        "modelPublisher": "ExamplePublisher",
+        "modelName": "example-model-reasoning",
+        "modelVersion": "0000-00-02",
+        "sku": {
+          "name": "ExampleStandard",
+          "tier": "Example",
+          "size": "L",
+          "family": "Example",
+          "capacity": 1
+        },
+        "type": "ModelDeployment",
+        "capabilityKeys": [
+          "attachments",
+          "json_schema",
+          "pdf_input",
+          "reasoning",
+          "streaming",
+          "tool_calling"
+        ]
+      }
+    ]
+  },
+  "blockers": []
+}

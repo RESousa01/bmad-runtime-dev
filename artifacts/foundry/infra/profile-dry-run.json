@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "forge.model-profile-publish.v1",
+  "generatedAt": "2026-07-28T18:28:11.3222723+00:00",
+  "mode": "dry_run",
+  "completed": false,
+  "approved": false,
+  "approvalSource": "none",
+  "label": "production",
+  "archiveLabel": null,
+  "keyPrefix": "desktop-support:model-profile:",
+  "registryVersionKey": "desktop-support:model-profile-registry:version",
+  "storeEndpointHash": null,
+  "storeReadable": false,
+  "currentRegistryVersion": null,
+  "registryVersion": null,
+  "registryHash": null,
+  "capabilityHash": null,
+  "validation": {
+    "valid": false,
+    "profileCount": 4,
+    "deploymentInventoryReady": false,
+    "violations": [
+      {
+        "code": "deployment_inventory_not_ready",
+        "path": "$"
+      }
+    ]
+  },
+  "diff": null,
+  "plannedOperations": [],
+  "appliedOperations": [],
+  "blockers": [
+    "document_refused",
+    "store_endpoint_missing"
+  ]
+}

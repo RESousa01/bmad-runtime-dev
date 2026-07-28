@@ -420,6 +420,31 @@
       }
     },
     {
+      "id": "FND-060-SERVICE-CONFIG-SKEW",
+      "state": "active",
+      "affects": ["FND-020", "FND-060", "FND-064"],
+      "summary": "infra/desktop-support/main.bicep no longer injects Sapphirus__ModelEndpoint, Sapphirus__ModelDeployment, or Sapphirus__DeploymentHash, but ProductionOptions.Validate still requires all three. A deployment with deployApi=true would fail configuration validation at startup.",
+      "detectedAt": "2026-07-28T19:45:00Z",
+      "evidence": "ProductionOptions.cs still reads ModelEndpoint at line 99, requires SafeIdentifier on ModelDeployment at line 118, and requires a sha256 DeploymentHash at line 122.",
+      "nextAction": "The FND-020 lane must drop these three from the required set. Note the coupling that made this non-trivial: ModelAccessProfile.Resolve reads production.ModelDeployment, and the Chat Completions executor is deliberately being kept alive until FND-028, so the option cannot simply be deleted. It must become optional and legacy-scoped until FND-028 replaces the executor and FND-065 removes it.",
+      "doNotDeployUntilResolved": true,
+      "mitigation": "infra/desktop-support/local/docker-compose.yml still sets the legacy values with an explanatory comment, so the local Production rehearsal keeps working. That mitigation is asserted by tools/forge-local.test.mjs."
+    },
+    {
+      "id": "FND-060-ROLE-ASSIGNMENT-SCOPE",
+      "state": "recorded",
+      "affects": ["FND-060", "FND-062", "FND-002"],
+      "summary": "Bicep rejects a cross-resource-group extension scope with BCP139, so the Foundry role assignment can only be emitted in-template when the Foundry resource is co-located with the stack.",
+      "resolution": "The template emits the grant only for the co-located case and outputs foundryRoleAssignmentMode as in-template or operator-managed. The operator path is documented in infra/desktop-support/README.md with the exact az role assignment command, following the existing sql-grants.md precedent. check-prerequisites.ps1 remains the thing that proves the grant either way."
+    },
+    {
+      "id": "FND-062-PRIVATE-LINK-DECLARATIVE-ONLY",
+      "state": "recorded",
+      "affects": ["FND-062"],
+      "summary": "The plan forbids guessing a Foundry private-link zone or subresource and requires referencing rather than duplicating an existing endpoint. Combined with cross-resource-group scoping, there is no private-link resource this template can honestly create.",
+      "resolution": "The two private-link parameters are validated, echoed as outputs, and documented. Actual verification is the egress.posture field in the network smoke report, which reports private-address-egress only when every resolved address is private."
+    },
+    {
       "id": "FND-001-DOTNET-FILTER",
       "state": "workaround_validated",
       "affects": [
@@ -439,6 +464,20 @@
     }
   ],
   "decisions": [
+    {
+      "id": "EXECUTION-BOUNDARY",
+      "decidedAt": "2026-07-28T19:20:00Z",
+      "decidedBy": "operator",
+      "question": "Who runs the Azure-facing verification steps?",
+      "decision": "This development machine has no Azure connectivity and never will. Every Azure-facing step is executed by the operator on a separate work machine. No task may plan to run az, deploy a template, or call the Foundry project from this repository's development environment.",
+      "consequences": [
+        "FND-002 stays permanently blocked in this environment. It can only reach ready=true from an operator run elsewhere.",
+        "Every Azure-facing tool must be a self-contained, operator-runnable script that validates its own inputs, refuses to persist secrets, and emits a redacted report the operator can hand back without leaking tenant data.",
+        "The deliverable for FND-002, FND-060, FND-061, FND-062, and FND-064 is a script plus a runbook, not an executed run.",
+        "Local gates must remain fully provable offline against the deterministic fake, because that is the only evidence this environment can generate."
+      ],
+      "handbackProtocol": "The prerequisite and smoke reports are redacted by construction, so the operator can paste them back verbatim. They carry counts, status classes, hashes, and blocker codes, never endpoints, tokens, deployment names, or response bodies."
+    },
     {
       "id": "STREAM-SURFACE",
       "decidedAt": "2026-07-28T18:45:00Z",

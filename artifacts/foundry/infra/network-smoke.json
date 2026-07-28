@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "forge.foundry-network-smoke.v1",
+  "generatedAt": "2026-07-28T18:24:41.3163345+00:00",
+  "ready": false,
+  "projectEndpoint": null,
+  "checks": {
+    "endpointValidated": false,
+    "dnsResolved": false,
+    "tlsReachable": false,
+    "managedIdentityTokenAcquired": false,
+    "deploymentRouteReachable": false
+  },
+  "dns": {
+    "resolved": false,
+    "addressCount": 0,
+    "addressFamilies": [],
+    "privateAddressCount": 0,
+    "allAddressesPrivate": false,
+    "addressSetHash": null
+  },
+  "tls": {
+    "reachable": false,
+    "negotiatedProtocol": null,
+    "protocolIsModern": false,
+    "certificateValidated": false,
+    "certificateSubjectHash": null,
+    "certificateIssuerHash": null,
+    "certificateNotAfter": null,
+    "certificateExpired": false
+  },
+  "managedIdentity": {
+    "tokenAcquired": false,
+    "tokenScope": "https://ai.azure.com/.default",
+    "tokenSource": null,
+    "clientIdSupplied": false,
+    "clientIdHash": null
+  },
+  "deploymentRoute": {
+    "requested": false,
+    "statusClass": null,
+    "deploymentCount": 0,
+    "modelDeploymentCount": 0,
+    "inventoryHash": null,
+    "additionalPagesAvailable": false
+  },
+  "egress": {
+    "posture": "unknown"
+  },
+  "blockers": [
+    "deployment_route_unavailable",
+    "dns_unresolved",
+    "managed_identity_token_unavailable",
+    "project_endpoint_missing",
+    "tls_unreachable"
+  ]
+}
