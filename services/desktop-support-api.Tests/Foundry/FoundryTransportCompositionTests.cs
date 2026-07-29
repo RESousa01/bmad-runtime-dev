@@ -115,28 +115,30 @@ public sealed class FoundryTransportCompositionTests
         }
 
         using ServiceProvider provider = services.BuildServiceProvider();
-        TokenCredential foundryCredential = provider
-            .GetRequiredService<ProductionAzureCredentials>()
-            .FoundryModel;
+        IFoundryRequestAuthenticator foundryAuthenticator = provider
+            .GetRequiredService<IFoundryRequestAuthenticator>();
 
-        Assert.IsType<Azure.Identity.ManagedIdentityCredential>(foundryCredential);
+        Assert.IsType<FoundryApiKeyAuthenticator>(foundryAuthenticator);
+        Assert.Equal(
+            FoundryCredentialMechanisms.ApiKey,
+            foundryAuthenticator.CredentialMechanismId);
         Assert.DoesNotContain(
             "eyJ",
-            foundryCredential.ToString() ?? "",
+            foundryAuthenticator.ToString() ?? "",
             StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Deployment_discovery_credential_is_a_separate_instance_from_every_azure_client()
+    public void Foundry_credential_is_not_one_of_the_azure_managed_identity_credentials()
     {
         ProductionOptions options = CreateValidatedOptions();
 
         ProductionAzureCredentials credentials =
             AzureClientRegistration.CreateManagedIdentityCredentials(options);
 
-        Assert.NotSame(credentials.FoundryModel, credentials.AppConfiguration);
-        Assert.NotSame(credentials.FoundryModel, credentials.KeyVault);
-        Assert.NotSame(credentials.FoundryModel, credentials.Model);
+        Assert.All(
+            new object[] { credentials.AppConfiguration, credentials.KeyVault, credentials.Model },
+            credential => Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credential));
     }
 
     [Fact]

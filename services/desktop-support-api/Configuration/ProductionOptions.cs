@@ -1,12 +1,10 @@
 using System.Text.RegularExpressions;
+using Sapphirus.DesktopSupportApi.Foundry;
 
 namespace Sapphirus.DesktopSupportApi.Configuration;
 
 public sealed partial class ProductionOptions
 {
-    /// <summary>Only this release channel may share one identity (FND-020).</summary>
-    internal const string PilotReleaseChannel = "beta";
-
     private const string FoundryHostSuffix = ".services.ai.azure.com";
     private const string FoundryProjectPathPrefix = "/api/projects/";
     private const string FoundryProjectAliasName = "_project";
@@ -39,19 +37,39 @@ public sealed partial class ProductionOptions
     public string FoundryProjectEndpoint { get; init; } = "";
 
     /// <summary>
-    /// Client ID of the user-assigned identity that reaches Foundry. It is
-    /// distinct from the App Configuration/Key Vault/SQL runtime identity and
-    /// from the SQL migration identity unless an explicit pilot flag says
-    /// otherwise.
+    /// Backend-only secret-injected API key used to authenticate every
+    /// Foundry request (inventory and Responses alike) with an
+    /// <c>api-key</c> header. Required and non-empty in Production. It must
+    /// never appear in a committed <c>appsettings*.json</c>, a configuration
+    /// dump, a health payload, or exception text; <see cref="Validate"/> only
+    /// ever reasons about its shape, never its value, and no member of this
+    /// type renders it via <c>ToString</c>.
     /// </summary>
-    public Guid FoundryModelIdentityClientId { get; init; }
+    public string FoundryApiKey { get; init; } = "";
 
     /// <summary>
-    /// Opt-in, pilot-only escape hatch that lets the Foundry model identity be
-    /// the same principal as the runtime identity. It defaults to false and is
-    /// rejected outside the pilot release channel. The SQL migration identity
-    /// is never shareable.
+    /// The one explicit, operator-selected route-inventory mode. There is no
+    /// runtime fallback between modes: a mode that fails, fails closed.
     /// </summary>
+    public FoundryInventoryMode FoundryInventoryMode { get; init; } =
+        FoundryInventoryMode.ConfiguredAndProbed;
+
+    /// <summary>
+    /// Hash of the FND-002 prerequisite-evidence report that qualified the
+    /// selected <see cref="FoundryInventoryMode"/> against the live project.
+    /// A mode change requires a fresh report and a fresh hash; this value is
+    /// folded into the canonical route-inventory snapshot hash.
+    /// </summary>
+    public string FoundryPrerequisiteEvidenceHash { get; init; } = "";
+
+    /// <summary>
+    /// No longer meaningful: Foundry authentication is a single backend API
+    /// key, not a choice between distinct managed identities, so there is
+    /// nothing left to "share." The property is kept only so previously
+    /// deployed configuration that still sets it does not fail to bind; it is
+    /// never read by <see cref="Validate"/> or by any composition path.
+    /// </summary>
+    [Obsolete("Foundry authentication no longer uses managed identity; this setting is a no-op.")]
     public bool AllowSharedPilotIdentity { get; init; }
 
     public int FoundryDeploymentRefreshSeconds { get; init; } = 300;
@@ -120,7 +138,9 @@ public sealed partial class ProductionOptions
             || !TryValidateFoundryProjectEndpoint(
                 FoundryProjectEndpoint,
                 out Uri foundryProjectEndpoint)
-            || !IsValidFoundryModelIdentity(supportPlane)
+            || !DevelopmentFoundryApiKeyAuthenticator.IsWellFormedApiKey(FoundryApiKey)
+            || !Enum.IsDefined(FoundryInventoryMode)
+            || !RequestGuards.IsSha256(FoundryPrerequisiteEvidenceHash)
             || FoundryDeploymentRefreshSeconds
                 is < MinimumRefreshSeconds or > MaximumRefreshSeconds
             || FoundryCatalogMaximumStaleSeconds < FoundryDeploymentRefreshSeconds
@@ -175,29 +195,6 @@ public sealed partial class ProductionOptions
             throw new InvalidOperationException(
                 "SQL migration requires a distinct, non-empty migration managed identity client ID.");
         }
-    }
-
-    /// <summary>
-    /// The Foundry model identity must exist, must never be the SQL migration
-    /// identity, and may equal the runtime identity only when an operator has
-    /// explicitly opted in on the pilot channel.
-    /// </summary>
-    private bool IsValidFoundryModelIdentity(SupportPlaneOptions supportPlane)
-    {
-        if (FoundryModelIdentityClientId == Guid.Empty
-            || FoundryModelIdentityClientId == SqlMigrationIdentityClientId)
-        {
-            return false;
-        }
-        if (FoundryModelIdentityClientId != ManagedIdentityClientId)
-        {
-            return true;
-        }
-        return AllowSharedPilotIdentity
-            && string.Equals(
-                supportPlane.ReleaseChannel,
-                PilotReleaseChannel,
-                StringComparison.Ordinal);
     }
 
     private static bool TryValidateEndpoint(

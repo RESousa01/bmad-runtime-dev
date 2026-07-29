@@ -246,7 +246,7 @@ public sealed class FoundryAuthenticationTests
     }
 
     [Fact]
-    public void Production_composition_resolves_the_managed_identity_authenticator()
+    public void Production_composition_resolves_the_backend_api_key_authenticator()
     {
         ServiceCollection services = new();
         services.AddProductionAzureClients(CreateValidatedProductionOptions());
@@ -255,10 +255,10 @@ public sealed class FoundryAuthenticationTests
         IFoundryRequestAuthenticator authenticator =
             provider.GetRequiredService<IFoundryRequestAuthenticator>();
 
-        Assert.IsType<ManagedIdentityFoundryAuthenticator>(authenticator);
-        Assert.Equal("managed_identity", authenticator.CredentialMechanismId);
+        Assert.IsType<FoundryApiKeyAuthenticator>(authenticator);
+        Assert.Equal(FoundryCredentialMechanisms.ApiKey, authenticator.CredentialMechanismId);
         Assert.Equal(
-            "managed_identity",
+            FoundryCredentialMechanisms.ApiKey,
             provider.GetRequiredService<FoundryDeploymentDiscoveryClient>()
                 .CredentialMechanismId);
     }

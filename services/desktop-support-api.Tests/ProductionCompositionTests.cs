@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Sapphirus.DesktopSupportApi;
 using Sapphirus.DesktopSupportApi.Configuration;
 using Xunit;
+using FoundryNamespace = Sapphirus.DesktopSupportApi.Foundry;
 
 namespace Sapphirus.DesktopSupportApi.Tests;
 
@@ -12,10 +13,9 @@ public sealed class ProductionCompositionTests
     private const string Hash =
         "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     private const string RuntimeIdentity = "44444444-4444-4444-4444-444444444444";
-    private const string FoundryIdentity = "66666666-6666-6666-6666-666666666666";
-    private const string MigrationIdentity = "55555555-5555-5555-5555-555555555555";
     private const string ProjectEndpoint =
         "https://account.services.ai.azure.com/api/projects/forge-project";
+    private const string FoundryApiKey = "test-foundry-project-key-0001";
 
     [Fact]
     public void Production_options_validate_private_service_endpoints_and_profile_bindings()
@@ -223,46 +223,51 @@ public sealed class ProductionCompositionTests
                 && property.SetMethod is { IsPublic: true });
     }
 
-    [Fact]
-    public void Foundry_model_identity_must_be_present_and_distinct_from_the_other_identities()
+    [Theory]
+    [InlineData("")]
+    [InlineData("short")]
+    [InlineData("has a space in it 12345")]
+    [InlineData("has\ttab-and-more-characters")]
+    public void Production_options_reject_a_missing_or_malformed_foundry_api_key(string apiKey)
     {
-        Assert.Throws<InvalidOperationException>(() =>
-            CreateProductionOptions(foundryModelIdentity: Guid.Empty)
-                .Validate(CreateSupportPlane()));
-        Assert.Throws<InvalidOperationException>(() =>
-            CreateProductionOptions(foundryModelIdentity: Guid.Parse(RuntimeIdentity))
-                .Validate(CreateSupportPlane()));
-        Assert.Throws<InvalidOperationException>(() =>
-            CreateProductionOptions(
-                foundryModelIdentity: Guid.Parse(MigrationIdentity),
-                sqlMigrationIdentity: Guid.Parse(MigrationIdentity))
-                .Validate(CreateSupportPlane()));
+        ProductionOptions options = CreateProductionOptions(foundryApiKey: apiKey);
 
-        CreateProductionOptions(sqlMigrationIdentity: Guid.Parse(MigrationIdentity))
-            .Validate(CreateSupportPlane());
+        Assert.Throws<InvalidOperationException>(() =>
+            options.Validate(CreateSupportPlane()));
     }
 
     [Fact]
-    public void A_shared_foundry_identity_needs_an_explicit_flag_and_the_pilot_channel()
+    public void Production_options_reject_an_undefined_foundry_inventory_mode()
     {
-        ProductionOptions shared = CreateProductionOptions(
-            foundryModelIdentity: Guid.Parse(RuntimeIdentity),
-            allowSharedPilotIdentity: true);
+        ProductionOptions options = CreateProductionOptions(
+            inventoryMode: (FoundryNamespace.FoundryInventoryMode)99);
 
-        shared.Validate(CreateSupportPlane("beta"));
+        Assert.Throws<InvalidOperationException>(() =>
+            options.Validate(CreateSupportPlane()));
+    }
 
-        Assert.False(CreateProductionOptions().AllowSharedPilotIdentity);
+    [Fact]
+    public void Production_options_reject_a_non_sha256_prerequisite_evidence_hash()
+    {
+        ProductionOptions options = CreateProductionOptions(
+            prerequisiteEvidenceHash: "not-a-hash");
+
         Assert.Throws<InvalidOperationException>(() =>
-            CreateProductionOptions(
-                foundryModelIdentity: Guid.Parse(RuntimeIdentity),
-                allowSharedPilotIdentity: true)
-                .Validate(CreateSupportPlane("stable")));
-        Assert.Throws<InvalidOperationException>(() =>
-            CreateProductionOptions(
-                foundryModelIdentity: Guid.Parse(MigrationIdentity),
-                sqlMigrationIdentity: Guid.Parse(MigrationIdentity),
-                allowSharedPilotIdentity: true)
-                .Validate(CreateSupportPlane("beta")));
+            options.Validate(CreateSupportPlane()));
+    }
+
+    [Theory]
+    [InlineData(FoundryNamespace.FoundryInventoryMode.ConfiguredAndProbed)]
+    [InlineData(FoundryNamespace.FoundryInventoryMode.OpenAiModels)]
+    [InlineData(FoundryNamespace.FoundryInventoryMode.ProjectDeploymentsApiKey)]
+    public void Production_options_accept_each_explicit_foundry_inventory_mode(
+        FoundryNamespace.FoundryInventoryMode mode)
+    {
+        ProductionOptions options = CreateProductionOptions(inventoryMode: mode);
+
+        options.Validate(CreateSupportPlane());
+
+        Assert.Equal(mode, options.FoundryInventoryMode);
     }
 
     [Theory]
@@ -336,13 +341,28 @@ public sealed class ProductionCompositionTests
         Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credentials.AppConfiguration);
         Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credentials.KeyVault);
         Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credentials.Model);
-        Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credentials.FoundryModel);
         Assert.NotSame(credentials.AppConfiguration, credentials.KeyVault);
         Assert.NotSame(credentials.KeyVault, credentials.Model);
         Assert.NotSame(credentials.AppConfiguration, credentials.Model);
-        Assert.NotSame(credentials.Model, credentials.FoundryModel);
-        Assert.NotSame(credentials.AppConfiguration, credentials.FoundryModel);
-        Assert.NotSame(credentials.KeyVault, credentials.FoundryModel);
+    }
+
+    [Fact]
+    public void Foundry_discovery_transport_is_authenticated_with_the_backend_api_key_only()
+    {
+        SupportPlaneOptions supportPlane = CreateSupportPlane();
+        ProductionOptions options = CreateProductionOptions();
+        options.Validate(supportPlane);
+        ServiceCollection services = new();
+        services.AddProductionAzureClients(options);
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        FoundryNamespace.IFoundryRequestAuthenticator authenticator =
+            provider.GetRequiredService<FoundryNamespace.IFoundryRequestAuthenticator>();
+
+        Assert.IsType<FoundryNamespace.FoundryApiKeyAuthenticator>(authenticator);
+        Assert.Equal(
+            FoundryNamespace.FoundryCredentialMechanisms.ApiKey,
+            authenticator.CredentialMechanismId);
     }
 
     private static SupportPlaneOptions CreateSupportPlane(string releaseChannel = "beta") => new()
@@ -362,9 +382,11 @@ public sealed class ProductionCompositionTests
         string modelDeployment = "desktop-planner",
         string deploymentHash = Hash,
         string foundryProjectEndpoint = ProjectEndpoint,
-        Guid? foundryModelIdentity = null,
         Guid? sqlMigrationIdentity = null,
-        bool allowSharedPilotIdentity = false,
+        string? foundryApiKey = null,
+        FoundryNamespace.FoundryInventoryMode inventoryMode =
+            FoundryNamespace.FoundryInventoryMode.ConfiguredAndProbed,
+        string? prerequisiteEvidenceHash = null,
         int refreshSeconds = 300,
         int maximumStaleSeconds = 1_800,
         string modelProfilePrefix = "desktop-support:model-profiles:") => new()
@@ -383,9 +405,9 @@ public sealed class ProductionCompositionTests
         ModelCapabilityHash = Hash,
         DeploymentHash = deploymentHash,
         FoundryProjectEndpoint = foundryProjectEndpoint,
-        FoundryModelIdentityClientId =
-            foundryModelIdentity ?? Guid.Parse(FoundryIdentity),
-        AllowSharedPilotIdentity = allowSharedPilotIdentity,
+        FoundryApiKey = foundryApiKey ?? FoundryApiKey,
+        FoundryInventoryMode = inventoryMode,
+        FoundryPrerequisiteEvidenceHash = prerequisiteEvidenceHash ?? Hash,
         FoundryDeploymentRefreshSeconds = refreshSeconds,
         FoundryCatalogMaximumStaleSeconds = maximumStaleSeconds,
         ModelProfileConfigurationPrefix = modelProfilePrefix,

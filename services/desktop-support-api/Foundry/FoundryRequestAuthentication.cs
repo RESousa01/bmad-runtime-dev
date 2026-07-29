@@ -14,8 +14,19 @@ namespace Sapphirus.DesktopSupportApi.Foundry;
 /// </summary>
 public static class FoundryCredentialMechanisms
 {
-    /// <summary>The only production mechanism.</summary>
+    /// <summary>
+    /// Retained only so historical V1 receipts signed under managed identity
+    /// still verify. No composition path builds
+    /// <see cref="ManagedIdentityFoundryAuthenticator"/> for Foundry anymore;
+    /// the production mechanism is <see cref="ApiKey"/>.
+    /// </summary>
     public const string ManagedIdentity = "managed_identity";
+
+    /// <summary>
+    /// The production mechanism: a backend-only, secret-injected API key sent
+    /// as an <c>api-key</c> header. No Entra token acquisition is involved.
+    /// </summary>
+    public const string ApiKey = "foundry_api_key";
 
     /// <summary>
     /// Development and Test only. Structurally unreachable elsewhere: the
@@ -255,6 +266,77 @@ public sealed class DevelopmentFoundryApiKeyAuthenticator : IFoundryRequestAuthe
         }
         return true;
     }
+
+    public ValueTask ApplyAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!request.Headers.TryAddWithoutValidation(ApiKeyHeaderName, _apiKey))
+        {
+            // Fail closed. An unauthenticated request is never sent.
+            throw new InvalidOperationException(ApiKeyNotAppliedCode);
+        }
+        return ValueTask.CompletedTask;
+    }
+
+    /// <summary>
+    /// Nothing to acquire: the key was validated at construction. The
+    /// operation authenticator is this instance.
+    /// </summary>
+    public ValueTask<IFoundryRequestAuthenticator> BeginOperationAsync(
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ValueTask.FromResult<IFoundryRequestAuthenticator>(this);
+    }
+
+    /// <summary>The mechanism name, never the key.</summary>
+    public override string ToString() => CredentialMechanismId;
+}
+
+/// <summary>
+/// The production Foundry mechanism. It sends the backend-only, secret
+/// injected project API key in an <c>api-key</c> header. This is the same
+/// header shape measured against the real project (200 on
+/// <c>GET &lt;projectEndpoint&gt;/deployments</c>, auth-passed 400 on an empty
+/// <c>POST &lt;projectEndpoint&gt;/openai/v1/responses</c> body); the only
+/// difference from <see cref="DevelopmentFoundryApiKeyAuthenticator"/> is that
+/// this mechanism is not environment-gated, because it is the one Production
+/// composes.
+///
+/// The key is validated once at construction (shape only, never logged), and
+/// rotation is handled by building a new application revision with a new
+/// instance rather than mutating a live one mid-request.
+/// </summary>
+public sealed class FoundryApiKeyAuthenticator : IFoundryRequestAuthenticator
+{
+    /// <summary>The header the measured project accepted. Not <c>Authorization</c>.</summary>
+    public const string ApiKeyHeaderName = DevelopmentFoundryApiKeyAuthenticator.ApiKeyHeaderName;
+
+    /// <summary>
+    /// A blank, over-long, or non-printable key fails closed here rather than
+    /// producing an unauthenticated request later.
+    /// </summary>
+    public const string ApiKeyInvalidCode = "foundry_api_key_invalid";
+
+    /// <summary>Raised when the transport refused to carry the header at all.</summary>
+    public const string ApiKeyNotAppliedCode = "foundry_api_key_not_applied";
+
+    private readonly string _apiKey;
+
+    public FoundryApiKeyAuthenticator(string? apiKey)
+    {
+        if (!DevelopmentFoundryApiKeyAuthenticator.IsWellFormedApiKey(apiKey))
+        {
+            // The message never quotes the supplied value.
+            throw new InvalidOperationException(ApiKeyInvalidCode);
+        }
+        _apiKey = apiKey!;
+    }
+
+    public string CredentialMechanismId => FoundryCredentialMechanisms.ApiKey;
 
     public ValueTask ApplyAsync(
         HttpRequestMessage request,
