@@ -310,9 +310,8 @@ describe("BmadWorkflowPanel", () => {
   /// matrix records one row per upstream directory, so the action has to come
   /// off before the matrix is asked. Otherwise every multi-action step of the
   /// graph reads as a skill nobody recorded.
-  it("asks the coverage matrix about the skill behind a multi-action step key", async () => {
+  it("asks the coverage matrix about the skill behind a multi-action step key", () => {
     const onStartStep = vi.fn();
-    const user = userEvent.setup();
     render(
       <BmadWorkflowPanel
         error={null}
