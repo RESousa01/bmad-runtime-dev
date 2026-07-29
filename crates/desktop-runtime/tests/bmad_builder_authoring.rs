@@ -381,23 +381,22 @@ fn future_targets_effects_and_authority_fields_fail_during_strict_parsing() {
 }
 
 #[test]
-fn builder_authority_surface_has_no_future_lifecycle_operations() {
-    let surface = include_str!("../src/bmad/builder_ports.rs").to_ascii_lowercase();
-    for operation in [
-        "register",
-        "evaluate",
-        "publish",
-        "promote",
-        "activate",
-        "rollback",
-        "materialize",
-        "execute",
-        "convert",
-        "install",
-    ] {
+fn builder_authority_surface_has_no_undesigned_lifecycle_operations() {
+    // ENG-15 gives the promotion lifecycle its designed operations
+    // (evaluate/promote/install/activate/rollback), so those are no longer
+    // forbidden. What stays forbidden is surface this task never designed:
+    // a package could not legally register, publish, materialize, execute,
+    // or convert itself without a promotion record backing the move.
+    let surface = [
+        include_str!("../src/bmad/builder/service.rs"),
+        include_str!("../src/bmad/builder/model.rs"),
+    ]
+    .join("\n")
+    .to_ascii_lowercase();
+    for operation in ["register", "publish", "materialize", "execute", "convert"] {
         assert!(
             !surface.contains(&format!("pub fn {operation}")),
-            "future lifecycle operation leaked into Builder authority: {operation}"
+            "undesigned lifecycle operation leaked into Builder authority: {operation}"
         );
     }
 }

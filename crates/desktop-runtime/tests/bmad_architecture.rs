@@ -107,6 +107,21 @@ const DOMAIN_BOUNDARIES: &[DomainBoundary] = &[
         allowed_body_path_roots: &["serde"],
     },
     DomainBoundary {
+        module: "review",
+        allowed_uses: &["usestd::{collections::BTreeSet,num::NonZeroU64};", "useserde_json::Value;", "usethiserror::Error;", "usecrate::generated_contracts::{BmadReviewResult,BmadReviewResultDisposition,BmadReviewResultEvidenceLocation,BmadReviewResultFinding,BmadReviewResultFindingOrigin,BmadReviewResultFindingSeverity,BmadReviewResultFindingVerificationState,BmadReviewResultLens,BmadReviewResultTargetKind,BmadReviewResultVerification,CommonContractId,CommonSha256,};", "usecrate::{canonical_hash_without_field,sha256_bytes,Sha256Digest};"],
+        allowed_body_path_roots: &["serde_json"],
+    },
+    DomainBoundary {
+        module: "failure",
+        allowed_uses: &["useserde_json::json;", "usecrate::generated_contracts::{BmadProblem,BmadProblemCancellation,BmadProblemCode,BmadProblemDetail,BmadProblemFailureClass,BmadProblemPreservedState,BmadProblemRecoveryAction,BmadProblemRecoveryActionAction,BmadProblemRecoveryActionReason,BmadProblemRetry,CommonContractId,CommonSha256,};", "usecrate::{canonical_hash,Sha256Digest};", "useBmadProblemRecoveryActionAction::{Abandon,Reauthorize,Repair,Resume,Retry,Rollback};"],
+        allowed_body_path_roots: &["parse", "str"],
+    },
+    DomainBoundary {
+        module: "context_projection",
+        allowed_uses: &["useserde::Serialize;", "useserde_json::json;", "usecrate::generated_contracts::{BmadContextContribution,BmadContextContributionContribution,BmadContextContributionContributionInclusionReason,BmadContextContributionContributionKind,BmadContextContributionContributionTransformation,BmadContextContributionIdentities,BmadContextContributionPurpose,BmadContextContributionReportedUsage,CommonContractId,CommonSha256,};", "usecrate::{canonical_hash_without_field,Sha256Digest};"],
+        allowed_body_path_roots: &["collect", "i64", "serde_json"],
+    },
+    DomainBoundary {
         module: "invocation",
         allowed_uses: &[
             "useserde_json::Value;",

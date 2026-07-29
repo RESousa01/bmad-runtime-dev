@@ -18,6 +18,8 @@ DROP TABLE bmad_memory_entries;
  DROP TABLE bmad_artifacts;
  DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
  DROP TABLE model_catalog_snapshots;
  DROP TABLE payload_quarantine;
@@ -887,7 +889,7 @@ fn released_v8_help_history_migrates_without_inventing_a_projection(
     restore_released_v8_help_run_table(&database_path)?;
 
     let migrated = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(migrated.schema_version()?, 22);
+    assert_eq!(migrated.schema_version()?, 23);
     migrated.verify_integrity()?;
     assert!(matches!(
         migrated.replay_bmad_help_run(&replay_request(&legacy)),
@@ -922,7 +924,7 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
-    assert_eq!(fresh.schema_version()?, 22);
+    assert_eq!(fresh.schema_version()?, 23);
     let expected = fresh.schema_catalog()?;
 
     let upgrade_directory = tempfile::tempdir()?;
@@ -936,6 +938,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
          DROP TABLE model_catalog_snapshots;
          DROP TABLE chat_messages;
@@ -955,7 +959,7 @@ DROP TABLE bmad_session_events;
     )?;
     drop(connection);
     let upgraded = LocalStore::open(upgrade_directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 22);
+    assert_eq!(upgraded.schema_version()?, 23);
     assert_eq!(upgraded.schema_catalog()?, expected);
 
     let interrupted_directory = tempfile::tempdir()?;
@@ -969,6 +973,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
          DROP TABLE model_catalog_snapshots;
          DROP TABLE chat_messages;
@@ -990,7 +996,7 @@ DROP TABLE bmad_session_events;
     )?;
     drop(connection);
     let resumed = LocalStore::open(interrupted_directory.path(), &TestProtector)?;
-    assert_eq!(resumed.schema_version()?, 22);
+    assert_eq!(resumed.schema_version()?, 23);
     assert_eq!(resumed.schema_catalog()?, expected);
     Ok(())
 }

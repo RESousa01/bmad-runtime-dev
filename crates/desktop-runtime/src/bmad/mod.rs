@@ -8,12 +8,11 @@ pub mod capability;
 mod catalog;
 mod completion;
 mod config;
-mod customization;
-mod review;
-mod failure;
 mod context_projection;
+mod customization;
 mod dependencies;
 mod error;
+mod failure;
 mod help;
 mod help_binding;
 mod help_materialization;
@@ -29,6 +28,7 @@ mod orchestrator;
 mod package;
 mod ports;
 mod resources;
+mod review;
 mod service;
 mod session;
 mod source;
@@ -57,15 +57,21 @@ pub use builder::{
     BmadUtcInstant, BuilderActionName, BuilderAnalysisContextDecision,
     BuilderAnalysisDecisionConsumption, BuilderAnalysisDecisionInvalidation,
     BuilderAnalysisDecisionInvalidationReason, BuilderAnalysisKind, BuilderAnalysisModelBinding,
-    BuilderAnalysisRun, BuilderAuthoringAction, BuilderCapabilityFact, BuilderDeterministicFinding,
-    BuilderDraft, BuilderDraftRecord, BuilderDraftRevision, BuilderDraftScope, BuilderDraftState,
-    BuilderError, BuilderErrorCode, BuilderFindingSeverity, BuilderKind, BuilderLensVerdict,
-    BuilderModelAnalysisDecisionInput, BuilderModelFinding, BuilderModelLens,
-    BuilderModelLensResult, BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent,
+    BuilderAnalysisRun, BuilderApprovalDecision, BuilderAuthoringAction, BuilderCapabilityFact,
+    BuilderDeterministicFinding, BuilderDraft, BuilderDraftRecord, BuilderDraftRevision,
+    BuilderDraftScope, BuilderDraftState, BuilderError, BuilderErrorCode, BuilderFindingSeverity,
+    BuilderKind, BuilderLensVerdict, BuilderLifecycle, BuilderLifecycleEvent,
+    BuilderLifecycleReferences, BuilderLifecycleState, BuilderModelAnalysisDecisionInput,
+    BuilderModelFinding, BuilderModelLens, BuilderModelLensResult,
+    BuilderModelLensesNotPerformedReason, BuilderPersistenceEvent, BuilderPromotion,
+    BuilderPromotionApproval, BuilderPromotionInstallation, BuilderPromotionStage,
     BuilderProposedFile, BuilderProposedFileSet, BuilderRendererProjection,
     BuilderValidationProfile,
 };
-pub use builder_ports::{BuilderAuthoringService, BuilderDraftRepository, BuilderServiceError};
+pub use builder_ports::{
+    BuilderAuthoringService, BuilderDraftRepository, BuilderLifecycleRepository,
+    BuilderLifecycleService, BuilderServiceError,
+};
 pub use capability::{
     BmadBuilderDraftFile, BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
     BmadCapabilityRun, BmadCapabilityRunError, BmadCapabilityRunParams, BmadClosureCapabilityId,
@@ -84,6 +90,10 @@ pub use config::{
     BmadConfigGraph, BmadConfigGraphKind, BmadConfigLayer, BmadConfigResolution,
     BmadConfigResolver, BmadConfigWarning, BmadResolvedConfig,
 };
+pub use context_projection::{
+    attach_reported_usage, project as project_context, BmadContextProjectionError,
+    BmadContextProjectionIdentities, BmadContextProjectionItem, BmadContextProjectionRequest,
+};
 pub use customization::{
     BmadCustomizationAvailability, BmadCustomizationConflict, BmadCustomizationDeclaration,
     BmadCustomizationDeclarationKind, BmadCustomizationError, BmadCustomizationLayer,
@@ -91,11 +101,12 @@ pub use customization::{
     BmadCustomizationRequest, BmadCustomizationResolution, BmadCustomizationResolver,
     BmadCustomizationStatus, BmadCustomizationTextOverlay,
 };
-pub use review::BmadReviewError;
-pub use failure::BmadFailureError;
-pub use context_projection::BmadContextProjectionError;
 pub use dependencies::BmadDependencyError;
 pub use error::{MethodError, MethodErrorCode};
+pub use failure::{
+    build_problem, BmadFailureCancellation, BmadFailureError, BmadFailureOperation,
+    BmadFailureRequest,
+};
 pub use help::{
     BmadArtifactEvidence, BmadArtifactEvidenceKind, BmadHelpAdvisor, BmadHelpConfidence,
     BmadHelpIntent, BmadHelpRecommendation, BmadHelpSourceRef,
@@ -154,6 +165,9 @@ pub use resources::{
     BmadResourceEdgeDisposition, BmadResourceEdgeDispositionKind, BmadResourceInput,
     BmadResourceProvenance, BmadResourceReferenceKind, BmadResourceRequirement,
     BmadResourceResolver, BmadResourceResolverError, BmadResourceSet,
+};
+pub use review::{
+    blocks_completion, review, BmadReviewError, BmadReviewFindingInput, BmadReviewRequest,
 };
 pub use service::{MethodServiceError, MethodSessionService};
 pub use session::{BmadSessionIntent, BmadSessionTransitionError};

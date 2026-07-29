@@ -5,7 +5,8 @@ use desktop_runtime::{
     BuilderAnalysisDecisionConsumption, BuilderAnalysisDecisionInvalidation,
     BuilderAnalysisDecisionInvalidationReason, BuilderAnalysisKind, BuilderAnalysisRun,
     BuilderDraft, BuilderDraftRepository, BuilderDraftRevision, BuilderDraftScope,
-    BuilderDraftState, BuilderPersistenceEvent, ContractId,
+    BuilderDraftState, BuilderLifecycle, BuilderLifecycleEvent, BuilderLifecycleRepository,
+    BuilderPersistenceEvent, BuilderPromotion, ContractId,
 };
 use rusqlite::{params, OptionalExtension, TransactionBehavior};
 
@@ -962,4 +963,252 @@ fn builder_event_matches_state(event: BuilderPersistenceEvent, state: BuilderDra
                 BuilderDraftState::Abandoned
             )
     )
+}
+
+// --- Package promotion lifecycle (ENG-15) -------------------------------
+//
+// `bmad_builder_lifecycles` holds the accepted state, advanced the same way
+// `bmad_sessions` is: an optimistic compare-and-swap on `version`, with the
+// promotion's event appended in the same `Immediate` transaction, so a crash
+// between the two is not representable. Restart recovery never replays a
+// promotion — it loads the row the store already agreed to.
+
+const BUILDER_LIFECYCLE_KIND: &str = "bmad_builder_lifecycle";
+const BUILDER_LIFECYCLE_SCHEMA: &str = "sapphirus.bmad-builder-lifecycle-state.v1";
+
+#[derive(Debug)]
+struct BuilderLifecycleRef {
+    version: u64,
+    state: String,
+    payload: PayloadRef,
+}
+
+impl BuilderLifecycleRepository for LocalStore {
+    type Error = StoreError;
+
+    fn create_builder_lifecycle(
+        &self,
+        lifecycle: &BuilderLifecycle,
+        now_ms: u64,
+    ) -> Result<(), StoreError> {
+        if lifecycle.version() != 1 || !lifecycle.promotions().is_empty() {
+            return Err(StoreError::Inconsistent);
+        }
+        let state_json = lifecycle.to_persisted_json()?;
+        let payload = self.put_payload(
+            BUILDER_LIFECYCLE_KIND,
+            BUILDER_LIFECYCLE_SCHEMA,
+            state_json.as_bytes(),
+        )?;
+        let occurred_at = canonical_now();
+        let event = lifecycle_event(
+            lifecycle.lifecycle_id().as_str(),
+            "bmad.builder.lifecycle_opened",
+            &payload,
+            None,
+        )?;
+        let now = i64::try_from(now_ms).map_err(|_| StoreError::Inconsistent)?;
+        let mut connection = self.connection.lock();
+        let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        let inserted = transaction.execute(
+            "INSERT INTO bmad_builder_lifecycles
+             (lifecycle_id, draft_id, subject_hash, state, version, state_content_hash,
+              state_kind, state_schema_version, state_byte_count, state_key_version,
+              created_at_ms, updated_at_ms)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?11)",
+            params![
+                lifecycle.lifecycle_id().as_str(),
+                lifecycle.draft_id().as_str(),
+                lifecycle.subject_hash().to_string(),
+                lifecycle.state().to_string(),
+                lifecycle.version(),
+                payload.content_hash,
+                payload.kind,
+                payload.schema_version,
+                payload.byte_count,
+                payload.key_version,
+                now,
+            ],
+        );
+        match inserted {
+            Ok(1) => {}
+            Ok(_) => return Err(StoreError::Inconsistent),
+            Err(error) if is_unique_violation(&error) => return Err(StoreError::StateConflict),
+            Err(error) => return Err(StoreError::Sqlite(error)),
+        }
+        let _ = append_evidence_in_transaction(&transaction, &event, &occurred_at)?;
+        transaction.commit()?;
+        Ok(())
+    }
+
+    fn load_builder_lifecycle(
+        &self,
+        lifecycle_id: &ContractId,
+    ) -> Result<Option<BuilderLifecycle>, StoreError> {
+        let reference = {
+            let connection = self.connection.lock();
+            connection
+                .query_row(
+                    "SELECT version, state, state_content_hash, state_kind,
+                            state_schema_version, state_byte_count, state_key_version
+                     FROM bmad_builder_lifecycles WHERE lifecycle_id = ?1",
+                    params![lifecycle_id.as_str()],
+                    |row| {
+                        Ok(BuilderLifecycleRef {
+                            version: row.get(0)?,
+                            state: row.get(1)?,
+                            payload: PayloadRef {
+                                content_hash: row.get(2)?,
+                                kind: row.get(3)?,
+                                schema_version: row.get(4)?,
+                                byte_count: row.get(5)?,
+                                key_version: row.get(6)?,
+                            },
+                        })
+                    },
+                )
+                .optional()?
+        };
+        let Some(reference) = reference else {
+            return Ok(None);
+        };
+        let bytes = self.get_payload(&reference.payload)?;
+        let source = std::str::from_utf8(&bytes).map_err(|_| StoreError::Inconsistent)?;
+        let lifecycle = BuilderLifecycle::from_persisted_json(source)?;
+        if lifecycle.version() != reference.version
+            || lifecycle.state().to_string() != reference.state
+            || lifecycle.lifecycle_id() != lifecycle_id
+        {
+            return Err(StoreError::Inconsistent);
+        }
+        Ok(Some(lifecycle))
+    }
+
+    fn commit_builder_lifecycle_transition(
+        &self,
+        lifecycle: &BuilderLifecycle,
+        promotion: &BuilderPromotion,
+        event: &BuilderLifecycleEvent,
+        now_ms: u64,
+    ) -> Result<(), StoreError> {
+        if lifecycle.lifecycle_id() != &event.lifecycle_id
+            || promotion.promotion_id != event.promotion_id
+            || lifecycle.version() != event.to_version
+        {
+            return Err(StoreError::Inconsistent);
+        }
+        let state_json = lifecycle.to_persisted_json()?;
+        let payload = self.put_payload(
+            BUILDER_LIFECYCLE_KIND,
+            BUILDER_LIFECYCLE_SCHEMA,
+            state_json.as_bytes(),
+        )?;
+        let occurred_at = canonical_now();
+        let evidence = lifecycle_event(
+            lifecycle.lifecycle_id().as_str(),
+            "bmad.builder.lifecycle_promoted",
+            &payload,
+            Some(promotion.promotion_id.to_string()),
+        )?;
+        let now = i64::try_from(now_ms).map_err(|_| StoreError::Inconsistent)?;
+        let mut connection = self.connection.lock();
+        let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        let updated = transaction.execute(
+            "UPDATE bmad_builder_lifecycles
+             SET version = ?1, state = ?2, state_content_hash = ?3, state_kind = ?4,
+                 state_schema_version = ?5, state_byte_count = ?6, state_key_version = ?7,
+                 updated_at_ms = ?8
+             WHERE lifecycle_id = ?9 AND version = ?10",
+            params![
+                lifecycle.version(),
+                lifecycle.state().to_string(),
+                payload.content_hash,
+                payload.kind,
+                payload.schema_version,
+                payload.byte_count,
+                payload.key_version,
+                now,
+                lifecycle.lifecycle_id().as_str(),
+                event.from_version,
+            ],
+        )?;
+        if updated != 1 {
+            // Two different causes look identical here, and treating them the
+            // same is how a redelivered command becomes a corruption report.
+            // If the receipt for this exact version is already logged, the
+            // transition was accepted before and this is a replay: converge.
+            // Anything else is a writer working from a version the store has
+            // already moved past.
+            return if replayed_lifecycle_transition(&transaction, event)? {
+                Ok(())
+            } else {
+                Err(StoreError::Inconsistent)
+            };
+        }
+        let appended = transaction.execute(
+            "INSERT INTO bmad_builder_lifecycle_events
+             (lifecycle_id, to_version, from_version, promotion_id, from_state, to_state,
+              stage, receipt_hash, event_hash, recorded_at_ms)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            params![
+                event.lifecycle_id.as_str(),
+                event.to_version,
+                event.from_version,
+                event.promotion_id.as_str(),
+                event.from_state.to_string(),
+                event.to_state.to_string(),
+                event.stage.to_string(),
+                event.receipt_hash.to_string(),
+                event.event_hash.to_string(),
+                now,
+            ],
+        );
+        match appended {
+            Ok(1) => {}
+            Ok(_) => return Err(StoreError::Inconsistent),
+            Err(error) if is_unique_violation(&error) => return Err(StoreError::StateConflict),
+            Err(error) => return Err(StoreError::Sqlite(error)),
+        }
+        let _ = append_evidence_in_transaction(&transaction, &evidence, &occurred_at)?;
+        transaction.commit()?;
+        Ok(())
+    }
+}
+
+/// Reports whether this exact transition receipt is already in the log.
+///
+/// Matched on the event hash rather than on the version alone: a second,
+/// different promotion claiming the same target version is a conflict, not a
+/// replay, and must not be waved through as one.
+fn replayed_lifecycle_transition(
+    transaction: &rusqlite::Transaction<'_>,
+    event: &BuilderLifecycleEvent,
+) -> Result<bool, StoreError> {
+    let logged: Option<String> = transaction
+        .query_row(
+            "SELECT event_hash FROM bmad_builder_lifecycle_events
+             WHERE lifecycle_id = ?1 AND to_version = ?2",
+            params![event.lifecycle_id.as_str(), event.to_version],
+            |row| row.get(0),
+        )
+        .optional()?;
+    Ok(logged.is_some_and(|hash| hash == event.event_hash.to_string()))
+}
+
+fn lifecycle_event(
+    lifecycle_id: &str,
+    event_type: &str,
+    payload: &PayloadRef,
+    causation_id: Option<String>,
+) -> Result<EvidenceAppend, StoreError> {
+    Ok(EvidenceAppend {
+        stream_id: format!("bmad-builder-lifecycle:{lifecycle_id}"),
+        event_type: event_type.to_owned(),
+        payload_hash: payload.content_hash.clone(),
+        payload_ref: Some(payload_uri(payload)?),
+        correlation_id: lifecycle_id.to_owned(),
+        causation_id,
+        redaction_level: "summary".to_owned(),
+        retention_class: "authority".to_owned(),
+    })
 }

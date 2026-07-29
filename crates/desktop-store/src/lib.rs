@@ -26,7 +26,7 @@ use thiserror::Error;
 /// destroys the whole database regardless, but a user asking what is retained
 /// is entitled to see their conversations and capability results counted —
 /// this list silently fell behind two migrations and reported neither.
-pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 29] = [
+pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 31] = [
     ("workspace_and_authority_records", "aggregates"),
     ("evidence_events", "evidence_events"),
     ("stored_payloads", "payloads"),
@@ -65,6 +65,8 @@ pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 29] = [
     ("bmad_artifacts", "bmad_artifacts"),
     ("bmad_artifact_events", "bmad_artifact_events"),
     ("memory_entries", "bmad_memory_entries"),
+    ("builder_lifecycles", "bmad_builder_lifecycles"),
+    ("builder_lifecycle_events", "bmad_builder_lifecycle_events"),
 ];
 use time::OffsetDateTime;
 use ulid::Ulid;
@@ -2586,6 +2588,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
                  DROP TABLE model_catalog_snapshots;
                  DROP TABLE payload_quarantine;
@@ -2987,6 +2991,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
@@ -3048,6 +3054,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
@@ -3162,6 +3170,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;

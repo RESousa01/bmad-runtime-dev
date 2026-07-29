@@ -1,9 +1,12 @@
 #![allow(clippy::expect_used)]
 
 use desktop_runtime::{
-    canonical_hash_without_field, AuthorityRef, BuilderAnalysisRun, BuilderAuthoringService,
-    BuilderDraft, BuilderDraftRecord, BuilderDraftRepository, BuilderDraftRevision,
-    BuilderDraftState, BuilderModelAnalysisDecisionInput, BuilderPersistenceEvent, ContractId,
+    canonical_hash_without_field, sha256_bytes, AuthorityRef, BuilderAnalysisRun,
+    BuilderApprovalDecision, BuilderAuthoringService, BuilderDraft, BuilderDraftRecord,
+    BuilderDraftRepository, BuilderDraftRevision, BuilderDraftState, BuilderLifecycle,
+    BuilderLifecycleRepository, BuilderLifecycleState, BuilderModelAnalysisDecisionInput,
+    BuilderPersistenceEvent, BuilderPromotion, BuilderPromotionApproval,
+    BuilderPromotionInstallation, BuilderPromotionStage, ContractId, Sha256Digest,
 };
 use desktop_store::{KeyProtector, LocalStore, StoreError};
 use sha2::{Digest, Sha256};
@@ -471,7 +474,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
     let expected = fresh.schema_catalog()?;
-    assert_eq!(fresh.schema_version()?, 22);
+    assert_eq!(fresh.schema_version()?, 23);
 
     for interrupted in [false, true] {
         let directory = tempfile::tempdir()?;
@@ -486,6 +489,8 @@ DROP TABLE bmad_memory_entries;
              DROP TABLE bmad_artifacts;
              DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
@@ -517,7 +522,7 @@ DROP TABLE bmad_memory_entries;
         drop(connection);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 22);
+        assert_eq!(reopened.schema_version()?, 23);
         assert_eq!(reopened.schema_catalog()?, expected);
     }
     Ok(())
@@ -601,8 +606,8 @@ fn concurrent_builder_revisions_use_optimistic_projection_version(
 }
 
 #[test]
-fn v10_schema_contains_no_future_builder_lifecycle_tables() -> Result<(), Box<dyn std::error::Error>>
-{
+fn v23_schema_carries_promotion_lifecycle_but_no_undesigned_surface(
+) -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
     let catalog = store
@@ -612,15 +617,389 @@ fn v10_schema_contains_no_future_builder_lifecycle_tables() -> Result<(), Box<dy
         .collect::<Vec<_>>()
         .join("\n")
         .to_ascii_lowercase();
+    // ENG-15 adds the promotion lifecycle (validate/evaluate/promote/install/
+    // activate/rollback) as `bmad_builder_lifecycles` and its event log, so
+    // those substrings are now expected. What stays forbidden is surface this
+    // task never designed: standalone evaluation/publication/registration
+    // tables that would let a package activate without going through the
+    // one promotion record this migration adds.
     for forbidden in [
-        "builder_activation",
         "builder_evaluation",
-        "builder_promotion",
         "builder_publication",
         "builder_registration",
-        "builder_rollback",
     ] {
         assert!(!catalog.contains(forbidden));
     }
+    assert!(catalog.contains("bmad_builder_lifecycles"));
+    Ok(())
+}
+
+fn subject_hash() -> Sha256Digest {
+    sha256_bytes(b"builder-package-subject")
+}
+
+fn promotion_approval(decision: BuilderApprovalDecision) -> BuilderPromotionApproval {
+    BuilderPromotionApproval {
+        approval_id: None,
+        decision,
+        required: true,
+    }
+}
+
+fn promotion_installation() -> BuilderPromotionInstallation {
+    BuilderPromotionInstallation {
+        atomic: serde_json::Value::Bool(true),
+        catalog_generation: std::num::NonZeroU64::new(1).expect("catalog generation"),
+        live_conformance_hash: desktop_runtime::generated_contracts::CommonSha256::try_from(
+            sha256_bytes(b"live-conformance").to_string(),
+        )
+        .expect("conformance digest"),
+    }
+}
+
+fn promotion(
+    suffix: &str,
+    from: BuilderLifecycleState,
+    to: BuilderLifecycleState,
+    stage: BuilderPromotionStage,
+    decision: BuilderApprovalDecision,
+) -> BuilderPromotion {
+    let needs_install = matches!(
+        to,
+        BuilderLifecycleState::Installed | BuilderLifecycleState::Active
+    );
+    BuilderPromotion {
+        promotion_id: id(&format!("promotion_01J0000000000000000000000{suffix}")),
+        lifecycle_id: id("lifecycle_01J00000000000000000000000"),
+        subject_hash: subject_hash(),
+        from_state: from,
+        to_state: to,
+        stage,
+        approval: promotion_approval(decision),
+        installation: needs_install.then(promotion_installation),
+        receipt_hash: sha256_bytes(b"unsealed"),
+    }
+    .seal()
+    .expect("sealed promotion")
+}
+
+fn open_lifecycle(store: &LocalStore) -> Result<BuilderLifecycle, StoreError> {
+    let lifecycle = BuilderLifecycle::open(
+        id("lifecycle_01J00000000000000000000000"),
+        id("agentdraft_01J00000000000000000000000"),
+        subject_hash(),
+    );
+    store.create_builder_lifecycle(&lifecycle, 1_000)?;
+    Ok(lifecycle)
+}
+
+const LIFECYCLE_WALK: [(
+    &str,
+    BuilderLifecycleState,
+    BuilderLifecycleState,
+    BuilderPromotionStage,
+); 7] = [
+    (
+        "1",
+        BuilderLifecycleState::Draft,
+        BuilderLifecycleState::Validated,
+        BuilderPromotionStage::Validation,
+    ),
+    (
+        "2",
+        BuilderLifecycleState::Validated,
+        BuilderLifecycleState::Analysed,
+        BuilderPromotionStage::Analysis,
+    ),
+    (
+        "3",
+        BuilderLifecycleState::Analysed,
+        BuilderLifecycleState::Evaluated,
+        BuilderPromotionStage::Evaluation,
+    ),
+    (
+        "4",
+        BuilderLifecycleState::Evaluated,
+        BuilderLifecycleState::Reviewed,
+        BuilderPromotionStage::Review,
+    ),
+    (
+        "5",
+        BuilderLifecycleState::Reviewed,
+        BuilderLifecycleState::Approved,
+        BuilderPromotionStage::Approval,
+    ),
+    (
+        "6",
+        BuilderLifecycleState::Approved,
+        BuilderLifecycleState::Staged,
+        BuilderPromotionStage::Staging,
+    ),
+    (
+        "7",
+        BuilderLifecycleState::Staged,
+        BuilderLifecycleState::Installed,
+        BuilderPromotionStage::Installation,
+    ),
+];
+
+fn walk_to_installed(
+    store: &LocalStore,
+    lifecycle: &mut BuilderLifecycle,
+    approval: BuilderApprovalDecision,
+) -> Result<(), Box<dyn std::error::Error>> {
+    for (index, (suffix, from, to, stage)) in LIFECYCLE_WALK.into_iter().enumerate() {
+        let decision = if to == BuilderLifecycleState::Approved {
+            approval
+        } else {
+            BuilderApprovalDecision::NotRequired
+        };
+        let step = promotion(suffix, from, to, stage, decision);
+        let version = lifecycle.version();
+        let event = lifecycle.promote(version, step.clone())?;
+        store.commit_builder_lifecycle_transition(
+            lifecycle,
+            &step,
+            &event,
+            2_000 + index as u64,
+        )?;
+    }
+    Ok(())
+}
+
+// Break caught: a store migration that added the promotion lifecycle rewrote
+// the draft rows it passed over, so a draft authored before the upgrade came
+// back with a different revision hash and its analysis history no longer
+// verified. The migration must only ever add tables.
+#[test]
+fn drafts_written_before_the_v23_migration_survive_it_byte_for_byte(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let (scope, draft_id, before) = {
+        let store = LocalStore::open(directory.path(), &TestProtector)?;
+        let service = BuilderAuthoringService::new(store);
+        let created = service.create_draft(fixture("builder-agent-draft.json"), authority())?;
+        let scope = created.scope().expect("scope");
+        let draft_id = created.record().draft_id.clone();
+        service.append_revision(&scope, &draft_id, 1, fixture("builder-agent-revision.json"))?;
+        let analysed = service.record_analysis(
+            &scope,
+            &draft_id,
+            2,
+            fixture("builder-agent-analysis-deterministic.json"),
+        )?;
+        (scope, draft_id, analysed)
+    };
+    let revision_hash_before = before
+        .current_revision()
+        .expect("revision")
+        .revision_hash
+        .to_string();
+    let analysis_hash_before = before.analyses()[0].analysis_hash.to_string();
+
+    // Wind the store back to a genuine v22: drop only what v23 added, so the
+    // reopen below can be satisfied by nothing except the v22 -> v23 step.
+    let database_path = directory.path().join("authority.sqlite3");
+    let connection = rusqlite::Connection::open(&database_path)?;
+    connection.execute_batch(
+        "PRAGMA foreign_keys = OFF;
+         DROP TABLE bmad_builder_lifecycle_events;
+         DROP TABLE bmad_builder_lifecycles;
+         PRAGMA user_version = 22;",
+    )?;
+    let wound_back: u32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
+    assert_eq!(wound_back, 22);
+    drop(connection);
+
+    let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+    assert_eq!(reopened.schema_version()?, 23);
+    let after = reopened
+        .load_builder_draft(&scope, &draft_id)?
+        .expect("draft survives the migration");
+    assert_eq!(after, before);
+    assert_eq!(
+        after
+            .current_revision()
+            .expect("revision")
+            .revision_hash
+            .to_string(),
+        revision_hash_before
+    );
+    assert_eq!(
+        after.analyses()[0].analysis_hash.to_string(),
+        analysis_hash_before
+    );
+    reopened.verify_integrity()?;
+    Ok(())
+}
+
+// Break caught: the analysis decision was consumed by one analysis and then
+// consumed again by a second one, because the single-use guard lived only in
+// the in-memory aggregate. The v23 tables must not have loosened it.
+#[test]
+fn the_single_use_analysis_decision_survives_the_lifecycle_migration(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    assert_eq!(store.schema_version()?, 23);
+    let service = BuilderAuthoringService::new(store);
+    let issued = issued_builder(&service)?;
+    let scope = issued.scope().expect("scope");
+    let draft_id = issued.record().draft_id.clone();
+    let analysis: BuilderAnalysisRun = fixture("builder-agent-analysis-model-lens.json");
+    let consumed =
+        service.record_analysis(&scope, &draft_id, issued.version(), analysis.clone())?;
+    assert_eq!(consumed.analysis_consumptions().len(), 1);
+
+    let mut replay = analysis;
+    replay.analysis_id = id("agentanalysis_01J99999999999999999999999");
+    assert!(service
+        .record_analysis(&scope, &draft_id, consumed.version(), replay)
+        .is_err());
+    let reloaded = service
+        .repository()
+        .load_builder_draft(&scope, &draft_id)?
+        .expect("draft");
+    assert_eq!(reloaded.analysis_consumptions().len(), 1);
+    assert!(reloaded.pending_analysis_decision().is_none());
+    service.repository().verify_integrity()?;
+    Ok(())
+}
+
+// Break caught: the lifecycle state advanced without its receipt, because the
+// row update and the event append were two transactions. A crash between them
+// left a package `active` with nothing on record explaining why, and a stale
+// writer silently overwrote the winner instead of losing.
+#[test]
+fn lifecycle_transitions_are_atomic_version_guarded_and_replay_safe(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let mut lifecycle = open_lifecycle(&store)?;
+    let step = promotion(
+        "1",
+        BuilderLifecycleState::Draft,
+        BuilderLifecycleState::Validated,
+        BuilderPromotionStage::Validation,
+        BuilderApprovalDecision::NotRequired,
+    );
+    let event = lifecycle.promote(1, step.clone())?;
+    store.commit_builder_lifecycle_transition(&lifecycle, &step, &event, 2_000)?;
+
+    // Replay of the exact accepted transition converges instead of erroring,
+    // and leaves exactly one row behind it.
+    store.commit_builder_lifecycle_transition(&lifecycle, &step, &event, 2_001)?;
+
+    // A second writer holding the pre-transition snapshot must lose.
+    let mut stale = BuilderLifecycle::open(
+        id("lifecycle_01J00000000000000000000000"),
+        id("agentdraft_01J00000000000000000000000"),
+        subject_hash(),
+    );
+    let other = promotion(
+        "9",
+        BuilderLifecycleState::Draft,
+        BuilderLifecycleState::Validated,
+        BuilderPromotionStage::Validation,
+        BuilderApprovalDecision::NotRequired,
+    );
+    let stale_event = stale.promote(1, other.clone())?;
+    assert!(matches!(
+        store.commit_builder_lifecycle_transition(&stale, &other, &stale_event, 2_002),
+        Err(StoreError::Inconsistent)
+    ));
+
+    let reopened = LocalStore::open(directory.path(), &TestProtector)?;
+    let restored = reopened
+        .load_builder_lifecycle(&id("lifecycle_01J00000000000000000000000"))?
+        .expect("lifecycle survives restart");
+    assert_eq!(restored.state(), BuilderLifecycleState::Validated);
+    assert_eq!(restored.version(), 2);
+    assert_eq!(restored.promotions().len(), 1);
+
+    let connection = rusqlite::Connection::open(directory.path().join("authority.sqlite3"))?;
+    let events: u64 = connection.query_row(
+        "SELECT COUNT(*) FROM bmad_builder_lifecycle_events WHERE lifecycle_id = ?1",
+        rusqlite::params!["lifecycle_01J00000000000000000000000"],
+        |row| row.get(0),
+    )?;
+    assert_eq!(events, 1);
+    let receipts: u64 = connection.query_row(
+        "SELECT COUNT(*) FROM evidence_events WHERE stream_id = ?1",
+        rusqlite::params!["bmad-builder-lifecycle:lifecycle_01J00000000000000000000000"],
+        |row| row.get(0),
+    )?;
+    // One receipt for the open, one for the accepted transition, none for the
+    // replay: the outbox row rides the same transaction as each of them.
+    assert_eq!(receipts, 2);
+    let queued: u64 = connection.query_row("SELECT COUNT(*) FROM outbox", [], |row| row.get(0))?;
+    assert!(queued >= receipts);
+    Ok(())
+}
+
+// Break caught: a package was activated with no approved promotion on record,
+// so `active` meant only that someone had asked. Both the write path and the
+// restore path must refuse it, and the durable row must not move.
+#[test]
+fn no_package_reaches_active_without_an_approved_promotion(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let directory = tempfile::tempdir()?;
+    let store = LocalStore::open(directory.path(), &TestProtector)?;
+    let mut lifecycle = open_lifecycle(&store)?;
+    walk_to_installed(&store, &mut lifecycle, BuilderApprovalDecision::Denied)?;
+    assert_eq!(lifecycle.state(), BuilderLifecycleState::Installed);
+
+    let activation = promotion(
+        "8",
+        BuilderLifecycleState::Installed,
+        BuilderLifecycleState::Active,
+        BuilderPromotionStage::Activation,
+        BuilderApprovalDecision::NotRequired,
+    );
+    let version = lifecycle.version();
+    assert!(lifecycle.promote(version, activation).is_err());
+
+    let restored = store
+        .load_builder_lifecycle(&id("lifecycle_01J00000000000000000000000"))?
+        .expect("lifecycle");
+    assert_eq!(restored.state(), BuilderLifecycleState::Installed);
+    assert!(restored.approved_promotion().is_none());
+
+    let connection = rusqlite::Connection::open(directory.path().join("authority.sqlite3"))?;
+    let active_rows: u64 = connection.query_row(
+        "SELECT COUNT(*) FROM bmad_builder_lifecycles WHERE state = 'active'",
+        [],
+        |row| row.get(0),
+    )?;
+    assert_eq!(active_rows, 0);
+    drop(connection);
+
+    // The same walk with a real approval does reach active, so the refusal
+    // above is the approval gate and not an unrelated failure.
+    let approved_directory = tempfile::tempdir()?;
+    let approved_store = LocalStore::open(approved_directory.path(), &TestProtector)?;
+    let mut approved = open_lifecycle(&approved_store)?;
+    walk_to_installed(
+        &approved_store,
+        &mut approved,
+        BuilderApprovalDecision::Approved,
+    )?;
+    let activation = promotion(
+        "8",
+        BuilderLifecycleState::Installed,
+        BuilderLifecycleState::Active,
+        BuilderPromotionStage::Activation,
+        BuilderApprovalDecision::NotRequired,
+    );
+    let version = approved.version();
+    let event = approved.promote(version, activation.clone())?;
+    approved_store.commit_builder_lifecycle_transition(&approved, &activation, &event, 9_000)?;
+    assert_eq!(
+        approved_store
+            .load_builder_lifecycle(&id("lifecycle_01J00000000000000000000000"))?
+            .expect("lifecycle")
+            .state(),
+        BuilderLifecycleState::Active
+    );
     Ok(())
 }

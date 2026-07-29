@@ -256,6 +256,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
          DROP TABLE model_catalog_snapshots;
          DROP TABLE bmad_architecture_session_steps;
@@ -292,6 +294,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
          DROP TABLE model_catalog_snapshots;
          DROP TABLE bmad_architecture_session_steps;
@@ -311,7 +315,7 @@ DROP TABLE bmad_session_events;
     drop(connection);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 22);
+    assert_eq!(reopened.schema_version()?, 23);
     assert_eq!(reopened.schema_catalog()?, expected);
     assert_eq!(
         sequence_of(reopened.append_memlog_entry(append("e1", "docs/prd", "after recovery"))?),
@@ -337,6 +341,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
          DROP TABLE model_catalog_snapshots;
          DROP TABLE bmad_architecture_session_steps;
@@ -422,6 +428,8 @@ DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
+             DROP TABLE bmad_builder_lifecycle_events;
+             DROP TABLE bmad_builder_lifecycles;
              DROP TABLE model_profile_selections;
          DROP TABLE model_catalog_snapshots;
          DROP TABLE bmad_architecture_session_steps;
@@ -452,7 +460,7 @@ DROP TABLE bmad_session_events;
     drop(connection);
 
     let upgraded = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 22);
+    assert_eq!(upgraded.schema_version()?, 23);
     assert_eq!(memlog_columns(&database_path)?, expected_columns);
     assert!(expected_columns.iter().any(|column| column == "subject"));
 

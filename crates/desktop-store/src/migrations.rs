@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 22;
+pub(crate) const LATEST_STORE_VERSION: u32 = 23;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -576,6 +576,103 @@ pub(crate) const V22_TABLES: [&str; 33] = [
     "bmad_builder_analyses",
     "bmad_builder_analysis_decisions",
     "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_memlog_entries",
+    "bmad_memory_entries",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "bmad_session_events",
+    "bmad_sessions",
+    "chat_messages",
+    "chat_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "model_catalog_snapshots",
+    "model_profile_selections",
+    "outbox",
+    "payload_quarantine",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+
+/// The package promotion lifecycle (ENG-15): validated through uninstalled.
+///
+/// `bmad_builder_lifecycles` is the accepted-state row, one per package
+/// identity (`subject_hash`), advanced the same way `bmad_sessions` is — an
+/// optimistic compare-and-swap on `version` that appends the transition's
+/// receipt in the same immediate transaction, so a crash between the two
+/// never leaves a lifecycle without the evidence that explains its state.
+/// `bmad_builder_lifecycle_events` is that append-only receipt log; it
+/// exists so "why is this package active" is answered by a row, not by
+/// trusting the current state column.
+pub(crate) const V22_TO_V23_SQL: &str = "\
+ BEGIN IMMEDIATE;
+ CREATE TABLE bmad_builder_lifecycles (
+   lifecycle_id TEXT PRIMARY KEY,
+   draft_id TEXT NOT NULL,
+   subject_hash TEXT NOT NULL
+     CHECK(length(subject_hash) = 71 AND subject_hash GLOB 'sha256:*'),
+   state TEXT NOT NULL CHECK(state IN (
+     'draft', 'validated', 'analysed', 'evaluated', 'reviewed', 'approved',
+     'staged', 'installed', 'active', 'superseded', 'rolled_back',
+     'uninstalled')),
+   version INTEGER NOT NULL CHECK(version >= 1),
+   state_content_hash TEXT NOT NULL
+     CHECK(length(state_content_hash) = 71 AND state_content_hash GLOB 'sha256:*'),
+   state_kind TEXT NOT NULL CHECK(length(state_kind) > 0),
+   state_schema_version TEXT NOT NULL CHECK(length(state_schema_version) > 0),
+   state_byte_count INTEGER NOT NULL CHECK(state_byte_count >= 0),
+   state_key_version INTEGER NOT NULL CHECK(state_key_version >= 0),
+   created_at_ms INTEGER NOT NULL
+     CHECK(created_at_ms >= 0 AND created_at_ms <= 9007199254740991),
+   updated_at_ms INTEGER NOT NULL
+     CHECK(updated_at_ms >= 0 AND updated_at_ms <= 9007199254740991)
+ ) STRICT;
+ CREATE UNIQUE INDEX bmad_builder_lifecycles_by_subject
+   ON bmad_builder_lifecycles(subject_hash);
+ CREATE TABLE bmad_builder_lifecycle_events (
+   lifecycle_id TEXT NOT NULL REFERENCES bmad_builder_lifecycles(lifecycle_id),
+   to_version INTEGER NOT NULL CHECK(to_version >= 2),
+   from_version INTEGER NOT NULL CHECK(from_version >= 1),
+   promotion_id TEXT NOT NULL,
+   from_state TEXT NOT NULL,
+   to_state TEXT NOT NULL,
+   stage TEXT NOT NULL CHECK(stage IN (
+     'validation', 'analysis', 'evaluation', 'review', 'approval', 'staging',
+     'installation', 'activation', 'rollback', 'uninstallation')),
+   receipt_hash TEXT NOT NULL
+     CHECK(length(receipt_hash) = 71 AND receipt_hash GLOB 'sha256:*'),
+   event_hash TEXT NOT NULL
+     CHECK(length(event_hash) = 71 AND event_hash GLOB 'sha256:*'),
+   recorded_at_ms INTEGER NOT NULL
+     CHECK(recorded_at_ms >= 0 AND recorded_at_ms <= 9007199254740991),
+   CHECK(to_version = from_version + 1),
+   PRIMARY KEY(lifecycle_id, to_version)
+ ) STRICT;
+ CREATE INDEX bmad_builder_lifecycle_events_by_promotion
+   ON bmad_builder_lifecycle_events(promotion_id);
+ PRAGMA user_version = 23;
+ COMMIT;";
+
+pub(crate) const V23_TABLES: [&str; 35] = [
+    "aggregates",
+    "bmad_architecture_session_steps",
+    "bmad_architecture_sessions",
+    "bmad_artifact_events",
+    "bmad_artifacts",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_lifecycle_events",
+    "bmad_builder_lifecycles",
     "bmad_builder_revisions",
     "bmad_capability_results",
     "bmad_capability_runs",
@@ -1335,8 +1432,9 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
             19 => run_migration_step(connection, &V19_TABLES, V19_TO_V20_SQL)?,
             20 => run_migration_step(connection, &V20_TABLES, V20_TO_V21_SQL)?,
             21 => run_migration_step(connection, &V21_TABLES, V21_TO_V22_SQL)?,
+            22 => run_migration_step(connection, &V22_TABLES, V22_TO_V23_SQL)?,
             LATEST_STORE_VERSION => {
-                require_store_tables(connection, &V22_TABLES)?;
+                require_store_tables(connection, &V23_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }
