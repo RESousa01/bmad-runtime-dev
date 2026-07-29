@@ -1,6 +1,6 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
-  "packageVersionId": "pkgver_748DAC9356AF06D555B6821B955C45EC52D3BF1D04BC0D1013DE344E45F65D52",
+  "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
   "lifecycleState": "sealed_read_only",
   "capability": {
     "moduleCode": "bmm",
@@ -8,23 +8,48 @@
     "normalizedAction": null
   },
   "instructionProjection": {
-    "projectionId": "projection_6637CB307ED27FBF9BD87795A9F140E97135307D211988FD14D4C40788069B68",
-    "sourceIdentityHash": "sha256:748dac9356af06d555b6821b955c45ec52d3bf1d04bc0d1013de344e45f65d52",
+    "projectionId": "projection_85906CC9A544ADEDCA6B00FA383C222D169F7E324E42F3905002A9430BBF30FB",
+    "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
     "sourceEntrypoint": {
       "path": "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
-      "contentHash": "sha256:85f0a3ea5fee06fcaef5ff34d6b194b265fe0d31ffd7610a9c9a0134bf0b21ce",
+      "contentHash": "sha256:5d7b4719a1fa9e4f7d4cbeeb4a412c79e141bc77e8e25ba442b85e1c5c587f3f",
       "treatment": "adapt"
     },
     "sourceResources": [
       {
         "path": "src/bmm-skills/2-plan-workflows/bmad-prd/customize.toml",
-        "contentHash": "sha256:5da1c87df2022c3e31f2c8e343dbead23356fbc5f5e9169eccd3102577ba295f",
+        "contentHash": "sha256:7f9a3a3503a3f758003ce2f1de59c31cc53658223e355fc76055f3140ef34e90",
         "treatment": "adapt"
       },
       {
-        "path": "src/bmm-skills/module.yaml",
-        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
-        "treatment": "adopt"
+        "path": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/headless-schemas.md",
+        "contentHash": "sha256:8d3621333a72400512bd62511bc4c73fc745711505e1f852c697ff8c5fa2de93",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/prd-template.md",
+        "contentHash": "sha256:41e77bd5c4ee81c3f383b55d6f515147afc9c4bd1a3317ddf55a9282deae495c",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/prd-validation-checklist.md",
+        "contentHash": "sha256:41d9f09064772a92ec908d970618e47ba63dc86b5c5a1a21d5a2c676d3ba8e3f",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-prd/assets/validation-report-template.html",
+        "contentHash": "sha256:a80becdd8205d2d7c18738855830b096172a496b96b5ca8a0820ec55c9bb8bf9",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-prd/references/headless.md",
+        "contentHash": "sha256:4dad58ebee63933a53179016513ff94d143ce9f68e226489d390e2c36bf1d848",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-prd/references/validate.md",
+        "contentHash": "sha256:71f28774e85c673a5c48af607af541e6a08e10076a2d46d0763885fafc74f201",
+        "treatment": "adapt"
       }
     ],
     "sourceSections": [],
@@ -34,16 +59,46 @@
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
-      "file_read"
+      "external_handoff",
+      "file_read",
+      "file_write",
+      "process",
+      "subagent",
+      "web"
     ],
     "hostInputReplacements": [
       {
+        "toolIntent": "external_handoff",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
         "toolIntent": "file_read",
-        "inputKind": "resolved_config",
-        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        "inputKind": "bounded_resource_set",
+        "inputSchemaHash": "sha256:877f8d441a8a7309ac142dec2e6b7a0686fbef21d66683d64a9f2e9db1af7ec9"
+      },
+      {
+        "toolIntent": "file_write",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "process",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "subagent",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "web",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
       }
     ],
-    "projectionHash": "sha256:7c7de9a0209a89cdace4a28d549345d900ced9af0d5331128611c2cffbc1da39"
+    "projectionHash": "sha256:020773a36111d798aaadbed06a1aaa40ae4c830140ebcd2b4f035245beb29d17"
   },
-  "projectionEnvelopeHash": "sha256:fc9fe6dd9cd99e431cb03f39445e917b58b5e2aca34dd64b2478706fff3e3922"
+  "projectionEnvelopeHash": "sha256:b3d3a62bee24df5565de4182f4774765c3abb5d829e05e3c72f362ae823601bc"
 }

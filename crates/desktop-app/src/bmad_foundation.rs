@@ -17,9 +17,9 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:faa344b229f06070544edeb2e8cf7a6a6f0c119b545c5265e7df843f6cf48094";
+    "sha256:f5599c0ccbd727472101aab6e27c269a0902c9a78d4e3b28c15ae110d7afae71";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:623b5d977c3db73ddd74d0b2e14403879cbbe63102f1883c4ceb4507ae178c11";
+    "sha256:eb83ab5bcec0bc5475b625fbfa57b31556f2a3373c0941556929ff09b8408595";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
@@ -64,7 +64,7 @@ const METHOD_RUNTIME_PATHS: [&str; 31] = [
 ];
 /// ADR-0008 adopted upstream bodies live only here.
 const ADOPTED_SOURCE_ROOT: &str = "source/method/6.10.0/";
-const EXPECTED_RESOURCE_PATHS: [&str; 76] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
     "NOTICE.md",
     "adoption-ledger.json",
     "licenses/BMAD-BUILDER-MIT.txt",
@@ -83,6 +83,7 @@ const EXPECTED_RESOURCE_PATHS: [&str; 76] = [
     "normalized/bmad-document-project.package.json",
     "normalized/bmad-domain-research.package.json",
     "normalized/bmad-help-action-graph.json",
+    "normalized/bmad-help-capability-graph.json",
     "normalized/bmad-help.package.json",
     "normalized/bmad-market-research.package.json",
     "normalized/bmad-pm.package.json",
@@ -103,6 +104,8 @@ const EXPECTED_RESOURCE_PATHS: [&str; 76] = [
     "normalized/bmad-ux.package.json",
     "normalized/bmm-agent-roster.json",
     "normalized/builder-agent.package.json",
+    "normalized/builder-alias-registry.json",
+    "normalized/builder-capability-catalog.json",
     "normalized/builder-workflow.package.json",
     "runtime/builder/2.1.0/agent-analyze.instructions.md",
     "runtime/builder/2.1.0/agent-create-rebuild.instructions.md",

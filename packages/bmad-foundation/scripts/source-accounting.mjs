@@ -21,6 +21,21 @@ const SEMANTIC_TEST_SET = [
   "output_conformance",
 ];
 
+// Phase 2 rows move here only after their executable adapter, canonical
+// projection, Help/UI topology, and required evidence have all qualified.
+// Keeping the state in the generator prevents a later accounting refresh from
+// silently reopening a completed row.
+const QUALIFIED_METHOD_ROWS = new Map([
+  [
+    "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+    {
+      supportState: "exact",
+      uiState: "runtime_available",
+      releaseState: "qualified",
+    },
+  ],
+]);
+
 const METHOD_TASK_NAMES = [
   "bmad-agent-analyst",
   "bmad-agent-tech-writer",
@@ -237,6 +252,9 @@ async function generateAccounting() {
 
     const isShim = member.path.includes("/v6-shims/");
     const canonical = capabilityId(member.source_id, member.path, name);
+    const qualifiedState = member.source_id === "method"
+      ? QUALIFIED_METHOD_ROWS.get(member.path)
+      : undefined;
     primaryRows.push({
       member_key: `${member.source_id}:${member.path}`,
       source_id: member.source_id,
@@ -259,9 +277,9 @@ async function generateAccounting() {
       source_alias: isShim ? canonical : null,
       target_package: `sapphirus.bmad.skill.${member.source_id}.${name}.v1`,
       semantic_test_set: SEMANTIC_TEST_SET,
-      support_state: "implementation_pending",
-      ui_state: "planned",
-      release_state: "blocked_pending_conformance",
+      support_state: qualifiedState?.supportState ?? "implementation_pending",
+      ui_state: qualifiedState?.uiState ?? "planned",
+      release_state: qualifiedState?.releaseState ?? "blocked_pending_conformance",
     });
   }
 

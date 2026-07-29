@@ -54,3 +54,37 @@ test("generated Rust and TypeScript projections are current", async () => {
   assert.match(typescript, /builderPublicActionRowCount = 9/);
   assert.match(typescript, /builderInternalActionRowCount = 1/);
 });
+
+// Break caught: a canonical row can be qualified in source accounting and the
+// compatibility ledger while presentation code still advertises every public
+// row, including pending legacy PRD shims.
+test("generated UI projections advertise only the qualified canonical PRD row", async () => {
+  const catalog = await readJson("capability-catalog.json");
+  const [rust, typescript] = await Promise.all([
+    readFile(new URL("../../crates/desktop-app/src/generated/bmad_capabilities.rs", root), "utf8"),
+    readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
+  ]);
+  const prdRows = catalog.capabilities.filter((row) => row.canonicalId === "bmm:bmad-prd");
+  const qualified = prdRows.filter(
+    (row) =>
+      row.visibility === "public"
+      && row.uiState === "runtime_available"
+      && row.supportState !== "unavailable",
+  );
+
+  assert.equal(prdRows.length, 4);
+  assert.deepEqual(
+    qualified.map((row) => row.rowId),
+    ["method:src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md"],
+  );
+  assert.match(
+    rust,
+    /pub const UI_ADVERTISED_CAPABILITIES[\s\S]*row_id: "method:src\/bmm-skills\/2-plan-workflows\/bmad-prd\/SKILL\.md"/,
+  );
+  assert.doesNotMatch(
+    rust.split("pub const UI_ADVERTISED_CAPABILITIES", 2)[1],
+    /v6-shims\/bmad-(create|edit|validate)-prd/,
+  );
+  assert.match(typescript, /row\.uiState === "runtime_available"/);
+  assert.match(typescript, /row\.supportState !== "unavailable"/);
+});

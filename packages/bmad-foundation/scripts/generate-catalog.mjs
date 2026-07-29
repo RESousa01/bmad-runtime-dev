@@ -13,8 +13,10 @@ const packageOnly = process.argv.includes("--package-only");
 
 const paths = {
   accounting: resolve(foundationRoot, "source-accounting.json"),
+  compatibilityLedger: resolve(foundationRoot, "compatibility-ledger.json"),
   catalog: resolve(foundationRoot, "capability-catalog.json"),
   aliases: resolve(foundationRoot, "compatibility-aliases.json"),
+  helpGraph: resolve(foundationRoot, "normalized/bmad-help-capability-graph.json"),
   rust: resolve(repositoryRoot, "crates/desktop-app/src/generated/bmad_capabilities.rs"),
   typescript: resolve(repositoryRoot, "apps/desktop-ui/src/generated/bmadCapabilities.ts"),
 };
@@ -27,6 +29,14 @@ function stableJson(value) {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
+function oneDerivedValue(values, location) {
+  const unique = [...new Set(values)];
+  if (unique.length !== 1) {
+    throw new Error(`Canonical capability ${location} has conflicting derived values`);
+  }
+  return unique[0];
+}
+
 function skillNameFromPath(path) {
   return path.split("/").at(-2);
 }
@@ -37,9 +47,19 @@ function methodAliasFor(member) {
   return `${namespace}:${skillNameFromPath(member.path)}`;
 }
 
-function methodRow(member, aliasesByTarget) {
+function methodRow(member, aliasesByTarget, ledgerByRowId) {
+  const rowId = `method:${member.path}`;
+  const ledgerRow = ledgerByRowId.get(rowId);
+  if (
+    ledgerRow === undefined
+    || ledgerRow.canonicalId !== member.target_capability
+    || ledgerRow.sourcePath !== member.path
+    || ledgerRow.sourceSha256 !== `sha256:${member.sha256}`
+  ) {
+    throw new Error(`Compatibility-ledger identity drift for ${rowId}`);
+  }
   return {
-    rowId: `method:${member.path}`,
+    rowId,
     source: {
       id: "method",
       version: member.version,
@@ -59,7 +79,7 @@ function methodRow(member, aliasesByTarget) {
       "durable_evidence",
     ],
     outputs: ["governed_artifact"],
-    supportState: member.support_state,
+    supportState: ledgerRow.supportState,
     uiState: member.ui_state,
     visibility: "public",
     evidence: [
@@ -169,9 +189,74 @@ export const builderActions = bmadCapabilities.filter(
 // Presentation code must consume this projection instead of advertising rows
 // whose native closure has not yet been proved.
 export const uiAdvertisedBmadCapabilities = bmadCapabilities.filter(
-  (row) => row.visibility === "public" && row.supportState === "runtime_available",
+  (row) =>
+    row.visibility === "public"
+    && row.uiState === "runtime_available"
+    && row.supportState !== "unavailable",
 );
 `;
+}
+
+function canonicalRuntimeRow(canonicalId, rows) {
+  const candidates = rows.filter((row) => !row.source.path.includes("/v6-shims/"));
+  if (candidates.length !== 1) {
+    throw new Error(
+      `Canonical capability ${canonicalId} has ${candidates.length} non-shim runtime rows`,
+    );
+  }
+  return candidates[0];
+}
+
+function phaseForRow(row) {
+  if (row.source.id === "builder" || row.source.path.includes("/core-skills/")) return "anytime";
+  if (row.source.path.includes("/1-analysis/")) return "analysis";
+  if (row.source.path.includes("/2-plan-workflows/")) return "planning";
+  if (row.source.path.includes("/3-solutioning/")) return "solutioning";
+  if (row.source.path.includes("/4-implementation/")) return "implementation";
+  throw new Error(`Cannot derive Help phase from ${row.source.path}`);
+}
+
+function buildHelpCapabilityGraph(catalog, aliasCatalog, catalogText, aliasCatalogText) {
+  const rowsByCanonicalId = new Map();
+  for (const row of catalog.capabilities) {
+    const rows = rowsByCanonicalId.get(row.canonicalId) ?? [];
+    rows.push(row);
+    rowsByCanonicalId.set(row.canonicalId, rows);
+  }
+  const nodes = [...rowsByCanonicalId.entries()]
+    .map(([id, rows]) => {
+      const canonical = canonicalRuntimeRow(id, rows);
+      const body = {
+        id,
+        sourceId: oneDerivedValue(rows.map((row) => row.source.id), `${id}.sourceId`),
+        phase: phaseForRow(canonical),
+        predecessorIds: [],
+        followerIds: [],
+        outputLocations: [...new Set(rows.flatMap((row) => row.outputs))].sort(),
+        supportState: canonical.supportState,
+        uiState: canonical.uiState,
+        rowIds: rows.map((row) => row.rowId).sort(),
+      };
+      return { ...body, nodeHash: `sha256:${sha256(stableJson(body))}` };
+    })
+    .sort((left, right) => left.id.localeCompare(right.id));
+  const aliasEdges = aliasCatalog.aliases
+    .map((alias) => ({
+      aliasId: alias.alias,
+      canonicalId: alias.target,
+      deprecated: alias.deprecatedSince !== undefined,
+    }))
+    .sort((left, right) => left.aliasId.localeCompare(right.aliasId));
+  const body = {
+    schemaVersion: "sapphirus.bmad-help-capability-graph.v1",
+    generatedBy: "packages/bmad-foundation/scripts/generate-catalog.mjs",
+    sourceCatalogSha256: sha256(catalogText),
+    sourceAliasCatalogSha256: sha256(aliasCatalogText),
+    nodeCount: nodes.length,
+    nodes,
+    aliasEdges,
+  };
+  return { ...body, graphHash: `sha256:${sha256(stableJson(body))}` };
 }
 
 function rustString(value) {
@@ -205,7 +290,10 @@ function renderRust(catalog, aliasCatalog) {
     .join("\n");
   const advertisedRows = catalog.capabilities
     .filter(
-      (row) => row.visibility === "public" && row.supportState === "runtime_available",
+      (row) =>
+        row.visibility === "public"
+        && row.uiState === "runtime_available"
+        && row.supportState !== "unavailable",
     )
     .map(
       (row) => `    GeneratedBmadCapability {
@@ -223,8 +311,9 @@ function renderRust(catalog, aliasCatalog) {
     .join("\n");
   const advertisedProjection =
     advertisedRows.length === 0
-      ? "pub const UI_ADVERTISED_CAPABILITIES: &[GeneratedBmadCapability] = &[];"
-      : `pub const UI_ADVERTISED_CAPABILITIES: &[GeneratedBmadCapability] = &[
+      ? "#[rustfmt::skip]\npub const UI_ADVERTISED_CAPABILITIES: &[GeneratedBmadCapability] = &[];"
+      : `#[rustfmt::skip]
+pub const UI_ADVERTISED_CAPABILITIES: &[GeneratedBmadCapability] = &[
 ${advertisedRows}
 ];`;
 
@@ -269,8 +358,15 @@ ${advertisedProjection}
 }
 
 async function buildOutputs() {
-  const accountingText = await readFile(paths.accounting, "utf8");
+  const [accountingText, compatibilityLedgerText] = await Promise.all([
+    readFile(paths.accounting, "utf8"),
+    readFile(paths.compatibilityLedger, "utf8"),
+  ]);
   const accounting = JSON.parse(accountingText);
+  const compatibilityLedger = JSON.parse(compatibilityLedgerText);
+  const ledgerByRowId = new Map(
+    compatibilityLedger.rows.map((row) => [row.rowId, row]),
+  );
   const methodMembers = accounting.members.filter(
     (member) => member.source_id === "method" && member.class === "primary_method_skill",
   );
@@ -290,7 +386,8 @@ async function buildOutputs() {
     aliasesByTarget.set(alias.target, targetAliases);
   }
 
-  const methodRows = methodMembers.map((member) => methodRow(member, aliasesByTarget));
+  const methodRows = methodMembers.map((member) =>
+    methodRow(member, aliasesByTarget, ledgerByRowId));
   const builderRows = accounting.builder_actions.map((action) => {
     const skillMember = builderSkillMembers.get(action.source_skill);
     if (!skillMember) {
@@ -332,6 +429,7 @@ async function buildOutputs() {
       builder: { version: "2.1.0" },
     },
     sourceAccountingSha256: sha256(accountingText),
+    compatibilityLedgerSha256: sha256(compatibilityLedgerText),
     counts,
     capabilities,
   };
@@ -351,10 +449,13 @@ async function buildOutputs() {
     ...aliasBody,
     aliasCatalogSha256: sha256(stableJson(aliasBody)),
   };
+  const aliasCatalogText = stableJson(aliasCatalog);
+  const helpGraph = buildHelpCapabilityGraph(catalog, aliasCatalog, catalogText, aliasCatalogText);
 
   return new Map([
     [paths.catalog, catalogText],
-    [paths.aliases, stableJson(aliasCatalog)],
+    [paths.aliases, aliasCatalogText],
+    [paths.helpGraph, stableJson(helpGraph)],
     [paths.rust, renderRust(catalog, aliasCatalog)],
     [paths.typescript, renderTypescript(catalog, aliasCatalog)],
   ]);
@@ -364,7 +465,12 @@ async function main() {
   const outputs = await buildOutputs();
   const stale = [];
   for (const [path, expected] of outputs) {
-    if (packageOnly && path !== paths.catalog && path !== paths.aliases) {
+    if (
+      packageOnly
+      && path !== paths.catalog
+      && path !== paths.aliases
+      && path !== paths.helpGraph
+    ) {
       continue;
     }
     if (checkOnly) {

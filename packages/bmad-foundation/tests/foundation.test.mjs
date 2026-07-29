@@ -74,6 +74,7 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-document-project.package.json",
   "normalized/bmad-domain-research.package.json",
   "normalized/bmad-help-action-graph.json",
+  "normalized/bmad-help-capability-graph.json",
   "normalized/bmad-help.package.json",
   "normalized/bmad-market-research.package.json",
   "normalized/bmad-pm.package.json",
@@ -94,6 +95,8 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-ux.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",
+  "normalized/builder-alias-registry.json",
+  "normalized/builder-capability-catalog.json",
   "normalized/builder-workflow.package.json",
 ]);
 
@@ -675,6 +678,9 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
       "capability-catalog.json",
       "capability-closure-ledger.json",
       "compatibility-aliases.json",
+      "compatibility-ledger.json",
+      "dependency-graph.json",
+      "ledger-fragments",
       "licenses",
       "normalized",
       "package.json",
@@ -699,26 +705,34 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
   assert.deepEqual(await readdir(path.join(packageRoot, "scripts")), [
     "builder-resource-closure.mjs",
     "classify-scripts.mjs",
+    "conformance.mjs",
+    "generate-builder-catalog.mjs",
     "generate-catalog.mjs",
     "import-source.mjs",
     "intake.mjs",
+    "merge-ledger-fragments.mjs",
     "reseal.mjs",
     "resource-closure.mjs",
     "source-accounting.mjs",
+    "verify-dependency-graph.mjs",
     "verify-source-identities.mjs",
     "verify-source-notes.mjs",
     "verify.mjs",
   ]);
   assert.deepEqual(await readdir(path.join(packageRoot, "tests")), [
     "bmad-capability-catalog.test.mjs",
+    "builder-catalog.test.mjs",
     "builder-source-closure.test.mjs",
+    "compatibility-ledger.test.mjs",
     "fixtures",
     "foundation.test.mjs",
+    "help-catalog.test.mjs",
     "import-source.test.mjs",
     // Fidelity conformance over the vendored corpus (ADR-0010). Pinned here as
     // well as in `verify.mjs` so adding a file to the sealed package stays a
     // two-place, deliberate act rather than something a stray write can do.
     "method-fidelity.test.mjs",
+    "method-task-verification.test.mjs",
     "resource-closure.test.mjs",
     "script-inventory.test.mjs",
     "source-accounting.test.mjs",

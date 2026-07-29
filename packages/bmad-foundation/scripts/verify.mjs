@@ -69,6 +69,7 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-document-project.package.json",
   "normalized/bmad-domain-research.package.json",
   "normalized/bmad-help-action-graph.json",
+  "normalized/bmad-help-capability-graph.json",
   "normalized/bmad-help.package.json",
   "normalized/bmad-market-research.package.json",
   "normalized/bmad-pm.package.json",
@@ -89,6 +90,8 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-ux.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",
+  "normalized/builder-alias-registry.json",
+  "normalized/builder-capability-catalog.json",
   "normalized/builder-workflow.package.json",
 ]);
 const runtimeResourcePaths = Object.freeze([
@@ -122,6 +125,10 @@ const packageFiles = Object.freeze([
   "capability-catalog.json",
   "capability-closure-ledger.json",
   "compatibility-aliases.json",
+  // Phase 2 decision records are development evidence only. package.json
+  // deliberately excludes them from the runtime distribution.
+  "compatibility-ledger.json",
+  "dependency-graph.json",
   "licenses/BMAD-BUILDER-MIT.txt",
   "licenses/BMAD-METHOD-MIT.txt",
   ...normalizedPaths,
@@ -129,21 +136,27 @@ const packageFiles = Object.freeze([
   ...runtimePaths,
   "runtime-manifest.json",
   "script-inventory.json",
-  "scripts/classify-scripts.mjs",
   "scripts/builder-resource-closure.mjs",
+  "scripts/classify-scripts.mjs",
+  "scripts/conformance.mjs",
+  "scripts/generate-builder-catalog.mjs",
   "scripts/generate-catalog.mjs",
   "scripts/import-source.mjs",
   "scripts/intake.mjs",
+  "scripts/merge-ledger-fragments.mjs",
   "scripts/reseal.mjs",
   "scripts/resource-closure.mjs",
   "scripts/source-accounting.mjs",
+  "scripts/verify-dependency-graph.mjs",
   "scripts/verify-source-notes.mjs",
   "scripts/verify-source-identities.mjs",
   "scripts/verify.mjs",
   "semantic-source-ledger.json",
   "tests/foundation.test.mjs",
-  "tests/builder-source-closure.test.mjs",
   "tests/bmad-capability-catalog.test.mjs",
+  "tests/builder-catalog.test.mjs",
+  "tests/builder-source-closure.test.mjs",
+  "tests/compatibility-ledger.test.mjs",
   "tests/fixtures/builder-source-closure/drifted-ledger.json",
   "tests/fixtures/builder-source-closure/omitted-member-ledger.json",
   // Fidelity conformance over the vendored corpus. Added deliberately with
@@ -152,6 +165,8 @@ const packageFiles = Object.freeze([
   // a regression net. `verify.mjs` checks the seal — that the bytes are the
   // bytes; this checks the semantics those bytes have to keep.
   "tests/method-fidelity.test.mjs",
+  "tests/method-task-verification.test.mjs",
+  "tests/help-catalog.test.mjs",
   "tests/resource-closure.test.mjs",
   "tests/script-inventory.test.mjs",
   "tests/source-accounting.test.mjs",
@@ -177,6 +192,72 @@ const packageDirectories = Object.freeze([
   "tests/fixtures",
   "tests/fixtures/builder-source-closure",
 ].sort());
+
+const methodDevelopmentStaticFiles = new Set([
+  "tests/fixtures/method__src__bmm-skills__3-solutioning__bmad-architecture__SKILL.md/source-derived-cases.json",
+]);
+
+function reviewedMethodFixtureNames(catalog) {
+  if (
+    catalog === null
+    || typeof catalog !== "object"
+    || Array.isArray(catalog)
+    || !Array.isArray(catalog.capabilities)
+    || catalog.counts?.method !== 48
+  ) {
+    fail("foundation_hash_mismatch", "capability-catalog.json", "method development topology lacks the reviewed 48-row catalog");
+  }
+  const fixtureNames = new Set();
+  const fragmentNames = new Set();
+  for (const capability of catalog.capabilities) {
+    if (capability?.source?.class !== "primary_method_skill") continue;
+    const { rowId, source } = capability;
+    if (
+      typeof rowId !== "string"
+      || source === null
+      || typeof source !== "object"
+      || source.id !== "method"
+      || typeof source.path !== "string"
+      || rowId !== `method:${source.path}`
+    ) {
+      fail("foundation_hash_mismatch", "capability-catalog.json", "method development row is not a canonical source identity");
+    }
+    assertSafeRelativePath(source.path, `capability-catalog.json.${rowId}.source.path`);
+    const fixtureName = rowId.replaceAll(/[/:]/gu, "__");
+    const sourceParts = source.path.split("/");
+    const fragmentName = sourceParts[1] === "core-skills"
+      ? `method__${sourceParts.slice(1, -1).join("__")}`
+      : `method__${sourceParts.at(-2)}`;
+    if (
+      !/^method__(?:[A-Za-z0-9._-]+__)+SKILL\.md$/u.test(fixtureName)
+      || !/^method__(?:[A-Za-z0-9._-]+__)*[A-Za-z0-9._-]+$/u.test(fragmentName)
+      || fixtureNames.has(fixtureName)
+      || fragmentNames.has(fragmentName)
+    ) {
+      fail("foundation_reference_escape", `capability-catalog.json.${rowId}`, "method development fixture name is unsafe or duplicated");
+    }
+    fixtureNames.add(fixtureName);
+    fragmentNames.add(fragmentName);
+  }
+  if (fixtureNames.size !== 48 || fragmentNames.size !== 48) {
+    fail("foundation_hash_mismatch", "capability-catalog.json", "method development topology requires exactly 48 unique row identities");
+  }
+  return { fixtureNames, fragmentNames };
+}
+
+function isReviewedMethodDevelopmentFile(relativePath, methodDevelopmentNames) {
+  if (methodDevelopmentStaticFiles.has(relativePath)) return true;
+  const fragment = /^ledger-fragments\/([^/]+)\.json$/u.exec(relativePath);
+  if (fragment) return methodDevelopmentNames.fragmentNames.has(fragment[1]);
+  const fixture = /^tests\/fixtures\/([^/]+)\/(interactive|headless)\/run\.json$/u.exec(relativePath);
+  return fixture !== null && methodDevelopmentNames.fixtureNames.has(fixture[1]);
+}
+
+function isReviewedMethodDevelopmentDirectory(relativePath, methodDevelopmentNames) {
+  if (relativePath === "ledger-fragments") return true;
+  const fixture = /^tests\/fixtures\/([^/]+)(?:\/(interactive|headless))?$/u.exec(relativePath);
+  return fixture !== null && methodDevelopmentNames.fixtureNames.has(fixture[1]);
+}
 /// ADR-0008 adopted upstream bodies. Their allowlist is the runtime manifest,
 /// whose own hash is a hand-reviewed pin (`manifestHash`, mirrored in the Rust
 /// loader): every adopted byte is still pinned, without transcribing 228 paths
@@ -729,13 +810,13 @@ async function verifyTree() {
     await readRegularBytes("source-manifest.json"),
     "source-manifest.json",
   );
+  const capabilityCatalog = parseJson(
+    await readRegularBytes("capability-catalog.json"),
+    "capability-catalog.json",
+  );
+  const methodDevelopmentNames = reviewedMethodFixtureNames(capabilityCatalog);
   const retainedPaths = retainedSourcePaths(sourceManifest);
   const sourcePaths = [...new Set([...adoptedPaths, ...retainedPaths])].sort();
-  const expectedFiles = [...packageFiles, ...sourcePaths].sort();
-  const expectedDirectories = [
-    ...packageDirectories,
-    ...adoptedSourceDirectories(sourcePaths),
-  ].sort();
   const files = [];
   const directories = [];
   const resolvedRoot = await realpath(packageRoot);
@@ -767,6 +848,16 @@ async function verifyTree() {
   await walk(packageRoot);
   files.sort();
   directories.sort();
+  const developmentFiles = files.filter((relativePath) =>
+    isReviewedMethodDevelopmentFile(relativePath, methodDevelopmentNames));
+  const developmentDirectories = directories.filter((relativePath) =>
+    isReviewedMethodDevelopmentDirectory(relativePath, methodDevelopmentNames));
+  const expectedFiles = [...packageFiles, ...developmentFiles, ...sourcePaths].sort();
+  const expectedDirectories = [
+    ...packageDirectories,
+    ...developmentDirectories,
+    ...adoptedSourceDirectories(sourcePaths),
+  ].sort();
 
   for (const licensePath of [
     "licenses/BMAD-BUILDER-MIT.txt",

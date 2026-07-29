@@ -30,6 +30,32 @@ test("every pinned source member has one governed source-accounting treatment", 
   );
 });
 
+// Break caught: leaving the first completed Phase 2 Method row in the
+// generator's blanket pending state makes every downstream projection stale
+// again the next time source-accounting.json is regenerated.
+test("the canonical PRD source row is runtime-qualified while other rows stay pending", async () => {
+  const accounting = JSON.parse(await readFile(accountingPath, "utf8"));
+  const prd = accounting.members.find(
+    (member) => member.path === "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+  );
+
+  assert.equal(prd?.support_state, "exact");
+  assert.equal(prd?.ui_state, "runtime_available");
+  assert.equal(prd?.release_state, "qualified");
+  assert.deepEqual(accounting.totals.runtime_support, {
+    exact: 1,
+    implementation_pending: 52,
+  });
+  assert.deepEqual(accounting.totals.ui_support, {
+    planned: 52,
+    runtime_available: 1,
+  });
+  assert.deepEqual(accounting.totals.release_state, {
+    blocked_pending_conformance: 52,
+    qualified: 1,
+  });
+});
+
 test("missing and contradictory accounting rows fail closed", async () => {
   const temporaryRoot = await mkdtemp(resolve(tmpdir(), "bmad-source-accounting-"));
   try {

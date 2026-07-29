@@ -1,8 +1,8 @@
 {
   "schemaVersion": "sapphirus.bmad-help-capability-graph.v1",
-  "generatedBy": "packages/bmad-foundation (hand-authored for ENG-11, derived from capability-catalog.json + compatibility-aliases.json)",
-  "sourceCatalogSha256": "80af8969ee6546d2f482d145d6011135795ae54626707f9ce3ca547fcb77906e",
-  "sourceAliasCatalogSha256": "5e4f258c2516ff48a48658ce58b98059d08c788e8dc44c19229dd2902e846d6d",
+  "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
+  "sourceCatalogSha256": "56e4a4583b6e35790afbe8f968b2cc5f78d6d8baee54ec5167a8bf4db03b1875",
+  "sourceAliasCatalogSha256": "d0e7ea9d2caf0c1a72afcebe658213a69b485ef6ddda3ef5c83668de2c31287e",
   "nodeCount": 45,
   "nodes": [
     {
@@ -14,11 +14,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/1-analysis/bmad-agent-analyst/SKILL.md"
       ],
-      "nodeHash": "sha256:53ef8b6d79c4e26bd29bdc0d8df81f069615bac8ac709e2e45e2ad8699e01ddc"
+      "nodeHash": "sha256:a270d6ad983094e272b9eb551e80a13ea0498002861fc27f5427382c23730eb1"
     },
     {
       "id": "bmm:bmad-agent-architect",
@@ -29,11 +30,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md"
       ],
-      "nodeHash": "sha256:ea9c48adf95e8c57f091bdf87a9d8f4f5043d9052d520d0fcb9d816287b2443b"
+      "nodeHash": "sha256:7903930838aa9f8d3498bf2c88d10b582ac59b98de416e4e145378a7831eae86"
     },
     {
       "id": "bmm:bmad-agent-dev",
@@ -44,11 +46,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-agent-dev/SKILL.md"
       ],
-      "nodeHash": "sha256:cd4d0765bf9e140bfc5d27c7642fa1c661ddd77903300560981707d388a0d119"
+      "nodeHash": "sha256:8fa044f670999abc38be08f0444dd4ae4bc6e25540699a8d7f4be1911bd2576d"
     },
     {
       "id": "bmm:bmad-agent-pm",
@@ -59,11 +62,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/2-plan-workflows/bmad-agent-pm/SKILL.md"
       ],
-      "nodeHash": "sha256:064ff72f5439f534f0552a67bb18c1246e587c56fc7d13e98d43904ea28109d6"
+      "nodeHash": "sha256:648d4fcf35e0ff3dd7b6f37453ae3025b2bc684893a03c7caec6fef3c97643e9"
     },
     {
       "id": "bmm:bmad-agent-tech-writer",
@@ -74,11 +78,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/1-analysis/bmad-agent-tech-writer/SKILL.md"
       ],
-      "nodeHash": "sha256:1e3572d33c149e62373caff21e3ddfb9ce6b15eb4d10fa45b3d372fec1768200"
+      "nodeHash": "sha256:bb2deb0fa67d7f451ccb68b72d5763d15bb5ac26d74941b25088087b606894ba"
     },
     {
       "id": "bmm:bmad-agent-ux-designer",
@@ -89,11 +94,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/SKILL.md"
       ],
-      "nodeHash": "sha256:5c45f62fb1ce44c46a35bf9a33be86c3c732fbdd3f2169bd918f93db1e578eb0"
+      "nodeHash": "sha256:5689dc99744f90373fd1152c291d6cd63108ebea08a8305cc918278e751949d5"
     },
     {
       "id": "bmm:bmad-architecture",
@@ -104,12 +110,13 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-create-architecture/SKILL.md"
       ],
-      "nodeHash": "sha256:cae5d006b9c479758e5f68812ac6d904c882fc7eb24161648046ce7a6ac08781"
+      "nodeHash": "sha256:f12c5067decfb3f49c320405d96121cff832ed76d381bf9cd2527bb5fecbe74c"
     },
     {
       "id": "bmm:bmad-check-implementation-readiness",
@@ -120,11 +127,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md"
       ],
-      "nodeHash": "sha256:79d4651bb5eda1d3d8092dd17d1ed8e7989fa2771dca9986d4281c2a41398502"
+      "nodeHash": "sha256:976c507704d4f1ba376e33e318f9a76a13f75571ba8db90b459aae538b20f286"
     },
     {
       "id": "bmm:bmad-checkpoint-preview",
@@ -135,11 +143,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-checkpoint-preview/SKILL.md"
       ],
-      "nodeHash": "sha256:f527e63c0b50b7626b92d856b0ebb03672bdc83593e8445379abca07950df02d"
+      "nodeHash": "sha256:7a20d4423b4c8168c80d54960a8ddc37ee81237b082d202a8b1fef1550380793"
     },
     {
       "id": "bmm:bmad-code-review",
@@ -150,11 +159,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-code-review/SKILL.md"
       ],
-      "nodeHash": "sha256:8bab5faa2b1f813b69c595b5cb68fc44da832ee0a53a8bcce1d1936a159e04d4"
+      "nodeHash": "sha256:458d83d04b992bfcabb0b9f820723d7e15e2a0841aed2bc25b7db3e5c320dbaf"
     },
     {
       "id": "bmm:bmad-correct-course",
@@ -165,11 +175,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-correct-course/SKILL.md"
       ],
-      "nodeHash": "sha256:bb1efe13970f38f127b915c15596c3b635d79daac3406cfaed087844d772ecd7"
+      "nodeHash": "sha256:37ebaaf73bf72af065bf520ea0841a24cc4af773c4455cb92d97fae1a2e20b00"
     },
     {
       "id": "bmm:bmad-create-epics-and-stories",
@@ -180,11 +191,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/SKILL.md"
       ],
-      "nodeHash": "sha256:feaf49b138c36d9690fa66ebbfce94d5090a0818ef596165e348b0f73f395602"
+      "nodeHash": "sha256:c92330178993637a1d44f1d87295123a24350c6606bb0e15b48945399b0e0403"
     },
     {
       "id": "bmm:bmad-create-story",
@@ -195,11 +207,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-create-story/SKILL.md"
       ],
-      "nodeHash": "sha256:23e803866197509e49af6ef7b80b5cffbd4dc70cc4fffdd585bd475fa07d59b3"
+      "nodeHash": "sha256:aac79e5cccbe770c7c9588a09cc936d23e33c75aa86cf359eaabefc7c07a136a"
     },
     {
       "id": "bmm:bmad-dev-auto",
@@ -210,11 +223,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-dev-auto/SKILL.md"
       ],
-      "nodeHash": "sha256:8ba2c09d0189ec207beff4ed1beb8cdb0d35a61de47dd05a667f62e9ffa069a8"
+      "nodeHash": "sha256:0f36196b49a951758b23fe14f7cf1e271c56cd65a7ab63a798539ca0860d58f5"
     },
     {
       "id": "bmm:bmad-dev-story",
@@ -225,11 +239,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-dev-story/SKILL.md"
       ],
-      "nodeHash": "sha256:2aae49adb469b648cefac6157c7d44ca295e40d702e23c65a4f47a4100f89aa4"
+      "nodeHash": "sha256:e57da014e93cdcc12859d011031d69e6c0c4f5de54d2a6538dc294790f333327"
     },
     {
       "id": "bmm:bmad-document-project",
@@ -240,11 +255,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/1-analysis/bmad-document-project/SKILL.md"
       ],
-      "nodeHash": "sha256:653ed39e34616899fd008fa017bb9b86bfdb40fa2e7933d563c4f7b76152e454"
+      "nodeHash": "sha256:737e4d7db7c7ba1cd04c89237e50942d0b92ba98b2bdfe7833b502ae2b357f94"
     },
     {
       "id": "bmm:bmad-generate-project-context",
@@ -255,11 +271,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/3-solutioning/bmad-generate-project-context/SKILL.md"
       ],
-      "nodeHash": "sha256:4f28d0aef0d36266a403484acea4703d4059e5b5c9e9aab36487054689a658a5"
+      "nodeHash": "sha256:efef40e741601b6d537a53d0bf0b6cecbdab3753ca4d0334c9d06d52b7d2b4be"
     },
     {
       "id": "bmm:bmad-prd",
@@ -270,14 +287,15 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "runtime_available",
       "rowIds": [
         "method:src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-create-prd/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-edit-prd/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-validate-prd/SKILL.md"
       ],
-      "nodeHash": "sha256:888935bb1091bff5d02d0a7e0873c0f98e8930ffef4493b7ab9bd15045efa86a"
+      "nodeHash": "sha256:048ef6ceec1f28b690a55b10394132579ec9881d4f64b1c42904c8ac07da7232"
     },
     {
       "id": "bmm:bmad-prfaq",
@@ -288,11 +306,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/1-analysis/bmad-prfaq/SKILL.md"
       ],
-      "nodeHash": "sha256:13292e84bcc5c23db0b0d37f62c55ff2a16a4b1770aa258d9fe7f1d823e7aa1d"
+      "nodeHash": "sha256:028452b9c278fd015390ab19cdd2ca2c752c3099a46cb61e23cbd8ef06c00174"
     },
     {
       "id": "bmm:bmad-product-brief",
@@ -303,11 +322,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/1-analysis/bmad-product-brief/SKILL.md"
       ],
-      "nodeHash": "sha256:0827a3b5d906ba9139e1ad27637c87d55323d8693f295b511f54e99c87aaf0ae"
+      "nodeHash": "sha256:22c55692c2627a0274753483b4c374affdcc531808a41a5cf1321d2d99a48a1b"
     },
     {
       "id": "bmm:bmad-qa-generate-e2e-tests",
@@ -318,11 +338,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/SKILL.md"
       ],
-      "nodeHash": "sha256:f9ad2dd6498ab60cd005c8155bfb9eeefa0b7b9182da7754e4bbc129f2cf1f81"
+      "nodeHash": "sha256:de0c44be97a8dc2d6c7172a7b3e7d8a7379bcb3f4af159315121fefa1bebf2c2"
     },
     {
       "id": "bmm:bmad-quick-dev",
@@ -333,11 +354,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-quick-dev/SKILL.md"
       ],
-      "nodeHash": "sha256:029cf5d5c9b076cd826cc8c55d30463fe11c59dce6345fbebbcdc2526b4838aa"
+      "nodeHash": "sha256:b0d069996de8cac6b2a3426d099fb7a68ef341b92c20cb41e19b290b7a8d35a8"
     },
     {
       "id": "bmm:bmad-retrospective",
@@ -348,11 +370,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-retrospective/SKILL.md"
       ],
-      "nodeHash": "sha256:8124d0516dfdb5afd99fcd5d0d848056b7d22b46fefe085d695192043d0c615e"
+      "nodeHash": "sha256:847377f426211706e981451f458bd87e670cf22ed4104c3e22d7fb82e707ba75"
     },
     {
       "id": "bmm:bmad-spec",
@@ -363,11 +386,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md"
       ],
-      "nodeHash": "sha256:2241893b50529158d2b7b627ed2f609ae412ba1f8e194f2e7208718794f952e2"
+      "nodeHash": "sha256:ff703467572499567a52e86547d2e4a50933ee10da7b97f4b7bec4bc7edddaaa"
     },
     {
       "id": "bmm:bmad-sprint-planning",
@@ -378,11 +402,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-sprint-planning/SKILL.md"
       ],
-      "nodeHash": "sha256:b218b463704ee92e8ce8652a22b371c5bd24b9258c6d0f357dd4832d51f8ffbb"
+      "nodeHash": "sha256:3a9062f9c4805e3751ed06da6062987286c8848923079abdcb3a24e7f3fd4da2"
     },
     {
       "id": "bmm:bmad-sprint-status",
@@ -393,11 +418,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "unavailable",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/4-implementation/bmad-sprint-status/SKILL.md"
       ],
-      "nodeHash": "sha256:69b6b773980b3b3a23ecaac2afcb2978d2408424d0f394485910c9667eeb431c"
+      "nodeHash": "sha256:733c13b29e0cbb916ec2a7b1aba8257103db98dddf2f952a93b4db183c0af74b"
     },
     {
       "id": "bmm:bmad-ux",
@@ -408,11 +434,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md"
       ],
-      "nodeHash": "sha256:bf1e7fb51d85517bfc8455039f753a52f01f3ebd0a040ea77c0c4c7be67d018e"
+      "nodeHash": "sha256:1448129e9ebf52419fd85d89f89c8c7aaba74595780d6b202f4bd431266eb66d"
     },
     {
       "id": "builder:bmad-agent-builder:build-process",
@@ -423,11 +450,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "adapted",
+      "supportState": "implementation_pending",
+      "uiState": "planned",
       "rowIds": [
         "builder:bmad-agent-builder:build-process"
       ],
-      "nodeHash": "sha256:9c8e09077ff716b7afcac7e5ab86a279bb48653fa4f95c633d3abb5e0403232f"
+      "nodeHash": "sha256:4d3e8f148e9e017cafe17c61efe36fefed8bb942042de1c974afb410975e0bf7"
     },
     {
       "id": "builder:bmad-agent-builder:quality-analysis",
@@ -438,11 +466,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "adapted",
+      "supportState": "implementation_pending",
+      "uiState": "planned",
       "rowIds": [
         "builder:bmad-agent-builder:quality-analysis"
       ],
-      "nodeHash": "sha256:441c42258a8e92119cece226c1cfb7b84a0e2fd424294b31cfc4db8f8b34aa31"
+      "nodeHash": "sha256:2885a2686adbf8ffb2edbf8c5c4ed68de4388f7bb3f0d2c7a804c642239591ee"
     },
     {
       "id": "builder:bmad-bmb-setup:configure",
@@ -453,11 +482,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "adapted",
+      "supportState": "implementation_pending",
+      "uiState": "planned",
       "rowIds": [
         "builder:bmad-bmb-setup:configure"
       ],
-      "nodeHash": "sha256:f5e2635072613362e0858eb495ee1b9e05f0a1075b9a4a0b4f0b6450285e5553"
+      "nodeHash": "sha256:c0a4ba286bfde496d071ad01e7a9baae3354232c6a95cc54f9d02661ec34c129"
     },
     {
       "id": "builder:bmad-eval-runner:run-evals",
@@ -468,11 +498,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "shim",
+      "supportState": "implementation_pending",
+      "uiState": "internal",
       "rowIds": [
         "builder:bmad-eval-runner:run-evals"
       ],
-      "nodeHash": "sha256:f646dc07e75087807f8d7c32dd68929ff8989f8f4267f2547813e965dce120e2"
+      "nodeHash": "sha256:2172962547464d4d37e1b7118b631551f99809a6d0fe6b1187acc150127de032"
     },
     {
       "id": "builder:bmad-module-builder:create-module",
@@ -483,11 +514,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "adapted",
+      "supportState": "implementation_pending",
+      "uiState": "planned",
       "rowIds": [
         "builder:bmad-module-builder:create-module"
       ],
-      "nodeHash": "sha256:add624261ab5796ed5c84e855646503fe6fef956a1aa42bc315fd3f6da055c52"
+      "nodeHash": "sha256:ff88e279e25c877a6f8459ca2af6e2ef77bc849b30a1090670945ec246958412"
     },
     {
       "id": "builder:bmad-module-builder:ideate-module",
@@ -498,11 +530,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "adapted",
+      "supportState": "implementation_pending",
+      "uiState": "planned",
       "rowIds": [
         "builder:bmad-module-builder:ideate-module"
       ],
-      "nodeHash": "sha256:28942fcc54a4b102b682bc002be2f5b62cd80ef80ae01948331660c2791c9ea1"
+      "nodeHash": "sha256:ee8b9861b0d7a68c402259722c0f0b5c76689e7d169fd04b75444257ca5034df"
     },
     {
       "id": "builder:bmad-module-builder:validate-module",
@@ -513,11 +546,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "adapted",
+      "supportState": "implementation_pending",
+      "uiState": "planned",
       "rowIds": [
         "builder:bmad-module-builder:validate-module"
       ],
-      "nodeHash": "sha256:23317150638657372237175830ee5e5448ef1af54b58c12c282b171237e238b8"
+      "nodeHash": "sha256:35368fb08738b274d183246b7ee9e70bf573255cbd9b8fc97687e1d2e239ecf1"
     },
     {
       "id": "builder:bmad-workflow-builder:build-process",
@@ -528,11 +562,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "adapted",
+      "supportState": "implementation_pending",
+      "uiState": "planned",
       "rowIds": [
         "builder:bmad-workflow-builder:build-process"
       ],
-      "nodeHash": "sha256:cd69e5602acc7a6afbc9e4a531e207d0e4928e0356f4ea1bc9167de1b6d28468"
+      "nodeHash": "sha256:ab9937166be2a38f1a54d1932ed84d13c74f9d75eba6a0ec0e7630d77c4d1022"
     },
     {
       "id": "builder:bmad-workflow-builder:convert-process",
@@ -543,11 +578,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "adapted",
+      "supportState": "implementation_pending",
+      "uiState": "planned",
       "rowIds": [
         "builder:bmad-workflow-builder:convert-process"
       ],
-      "nodeHash": "sha256:c313775ccc9356fadb1416cd7509d058f31c133c1c7ab95f54a48f3cecb7f9ab"
+      "nodeHash": "sha256:2c06cb36fff8f3ee75f91101990e4c43a5f1a4da477261c980aaa6f2032d9aad"
     },
     {
       "id": "builder:bmad-workflow-builder:quality-analysis",
@@ -558,11 +594,12 @@
       "outputLocations": [
         "inactive_builder_draft"
       ],
-      "supportState": "adapted",
+      "supportState": "implementation_pending",
+      "uiState": "planned",
       "rowIds": [
         "builder:bmad-workflow-builder:quality-analysis"
       ],
-      "nodeHash": "sha256:a2bd0b50039a57b625759c10c86a277e820f590eae47ba5578283759ae7a9fe8"
+      "nodeHash": "sha256:bbdd605432f978428fb873fc5c071adb891263fc7cf6e5c061a1f922399ba456"
     },
     {
       "id": "core:bmad-advanced-elicitation",
@@ -573,11 +610,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/core-skills/bmad-advanced-elicitation/SKILL.md"
       ],
-      "nodeHash": "sha256:fffef6b518c5c7680f2d653e842923147c281a613a656ec75207bd926479aa46"
+      "nodeHash": "sha256:df3946ab05b3033f17e09bc55f702827cc62226c075db65646631a4bccc8976f"
     },
     {
       "id": "core:bmad-brainstorming",
@@ -588,11 +626,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/core-skills/bmad-brainstorming/SKILL.md"
       ],
-      "nodeHash": "sha256:6cb117418fec939a133e3401cf87f2305a4edb5eb588702288ea7eeb5a9784ce"
+      "nodeHash": "sha256:9975f6a7215cf3ae842d232441bfbc31d3b08d9d8b3edecfd305576fc135a9f4"
     },
     {
       "id": "core:bmad-customize",
@@ -603,11 +642,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/core-skills/bmad-customize/SKILL.md"
       ],
-      "nodeHash": "sha256:dda8c5c0abf0d7d505b444e1c74197695e059d242da963f6a870dd5d7c8fdcde"
+      "nodeHash": "sha256:4102c03a40ceec9de92b263550a2b863528d8d693f9c731dac85f88ef59d22df"
     },
     {
       "id": "core:bmad-deep-recon",
@@ -618,14 +658,15 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/v6-shims/bmad-domain-research/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-market-research/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-technical-research/SKILL.md",
         "method:src/core-skills/bmad-deep-recon/SKILL.md"
       ],
-      "nodeHash": "sha256:ed70b7c5afebd716655ffb95d6f24048a3c32a12b2f2c8e6565c1caacd9101aa"
+      "nodeHash": "sha256:1d9186d4ec9ee4160ecbbea02ac8351599e80b6f18d8df880bc62a87f7d8ba49"
     },
     {
       "id": "core:bmad-forge-idea",
@@ -636,11 +677,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/core-skills/bmad-forge-idea/SKILL.md"
       ],
-      "nodeHash": "sha256:880957aca9afa03267cacefcac336d51d6a69e4075a6f45519982978cd6cb5f3"
+      "nodeHash": "sha256:7eb9da60e6957ec20bc60e3468281cd509258d3710a24bffecfc1ee4bed8a382"
     },
     {
       "id": "core:bmad-help",
@@ -652,10 +694,11 @@
         "governed_artifact"
       ],
       "supportState": "adapted",
+      "uiState": "planned",
       "rowIds": [
         "method:src/core-skills/bmad-help/SKILL.md"
       ],
-      "nodeHash": "sha256:128eb4b19e7a8120ff3af8c579c2114c33849d26d8bb2cf38ba41d5eaf490934"
+      "nodeHash": "sha256:d743d4e3a1d84a8194592b0efdb1bcc02c7ff367f5617f663f7d2a70c6fb0013"
     },
     {
       "id": "core:bmad-party-mode",
@@ -666,11 +709,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/core-skills/bmad-party-mode/SKILL.md"
       ],
-      "nodeHash": "sha256:4646d338a3511c52d170ec7d1d2bf6537627dca1ab0d6833430cf603228430b3"
+      "nodeHash": "sha256:d61954adeb7ad80ab2283fc4067ba94ee9e10ad8e3430987fe4a45edd1727308"
     },
     {
       "id": "core:bmad-review",
@@ -681,7 +725,8 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "adapted",
+      "supportState": "exact",
+      "uiState": "planned",
       "rowIds": [
         "method:src/core-skills/bmad-review/SKILL.md",
         "method:src/core-skills/v6-shims/bmad-editorial-review-prose/SKILL.md",
@@ -691,7 +736,7 @@
         "method:src/core-skills/v6-shims/bmad-review-edge-case-hunter/SKILL.md",
         "method:src/core-skills/v6-shims/bmad-review-verification-gap/SKILL.md"
       ],
-      "nodeHash": "sha256:48bf6ca9640b90c4c54cde8f47387853e8c116cc16ff904ac2cde75c9ee64124"
+      "nodeHash": "sha256:47b11346981772ea42792d33b7177b19ea829c0df2939b8f78da90e360c8683e"
     }
   ],
   "aliasEdges": [
@@ -786,5 +831,5 @@
       "deprecated": true
     }
   ],
-  "graphHash": "sha256:471be22d70e0301db9b4ba6d9e163d65cf3f96ea96446bcdb869db8bb6519b9f"
+  "graphHash": "sha256:d6b774a77181addc64c428a136881a6340b0af8ac699263ad9e2eab3bf76da14"
 }

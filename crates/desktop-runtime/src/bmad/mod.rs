@@ -191,9 +191,13 @@ pub use skills::{
     BmadBrainstormingSkill, BmadCheckImplementationReadinessSkill, BmadCreateEpicsAndStoriesSkill,
     BmadCustomizeSkill, BmadDeepReconSkill, BmadDocumentProjectSkill, BmadForgeIdeaSkill,
     BmadGenerateProjectContextSkill, BmadHelpSkill, BmadMethodSkill, BmadPartyModeSkill,
-    BmadPrdSkill, BmadPrfaqSkill, BmadProductBriefSkill, BmadReviewSkill, BmadSkillDescriptor,
-    BmadSkillDescriptorInput, BmadSkillHarnessError, BmadSkillSupportState, BmadSpecSkill,
-    BmadUxSkill, BMAD_SKILL_HARNESS_SCHEMA,
+    BmadPrdSkill, BmadPreparedSkillExecution, BmadPrfaqSkill, BmadProductBriefSkill,
+    BmadReviewSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillExecutionCompiler,
+    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
+    BmadSkillExecutionPreparedPlan, BmadSkillExecutionRequest, BmadSkillExecutionStep,
+    BmadSkillExecutionWorkflow, BmadSkillHarnessError, BmadSkillRecoverySemantics,
+    BmadSkillSupportState, BmadSkillToolIntent, BmadSpecSkill, BmadUxSkill,
+    BMAD_SKILL_HARNESS_SCHEMA,
 };
 pub use source::{BmadSourcePackage, BmadSourceService};
 pub use state_machine::{
@@ -244,6 +248,21 @@ pub trait BmadRuntimePort {
         session: &crate::generated_contracts::BmadSession,
         artifacts: &[crate::generated_contracts::BmadArtifact],
     ) -> Result<Vec<BmadCompletionIntent>, BmadCompletionError>;
+
+    /// Prepares the supplied skill's [`BmadSkillDescriptor`]-bound Method
+    /// execution without invoking a persistence, Airlock, model, artifact,
+    /// filesystem, process, network, or scheduler port.
+    ///
+    /// # Errors
+    ///
+    /// Returns a closed error when the adapter has no explicit execution
+    /// contract or any source, resource, invocation, config, customization,
+    /// or exact-binding input is stale or mismatched.
+    fn prepare_skill_execution(
+        &self,
+        skill: &dyn BmadMethodSkill,
+        request: BmadSkillExecutionRequest,
+    ) -> Result<BmadPreparedSkillExecution, BmadSkillExecutionError>;
 }
 
 /// Stateless implementation of the generated-contract intent boundary.
@@ -276,5 +295,13 @@ impl BmadRuntimePort for BmadDomainRuntime {
         artifacts: &[crate::generated_contracts::BmadArtifact],
     ) -> Result<Vec<BmadCompletionIntent>, BmadCompletionError> {
         completion::plan_completion(session, artifacts)
+    }
+
+    fn prepare_skill_execution(
+        &self,
+        skill: &dyn BmadMethodSkill,
+        request: BmadSkillExecutionRequest,
+    ) -> Result<BmadPreparedSkillExecution, BmadSkillExecutionError> {
+        BmadSkillExecutionCompiler::prepare(skill, request)
     }
 }

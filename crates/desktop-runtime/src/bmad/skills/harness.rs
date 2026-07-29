@@ -39,6 +39,7 @@
 //! handle a state Help can never actually observe, so this module defines its
 //! own four-way enum and is the one place `Unavailable` is representable.
 
+use super::execution::{BmadSkillExecutionContract, BmadSkillExecutionError};
 use crate::bmad::BmadResource;
 use crate::generated_contracts::{
     BmadArtifactCompletionHookRunHook, BmadArtifactKind, BmadInvocationDeclaredAction,
@@ -253,19 +254,31 @@ fn valid_id(value: &str) -> bool {
     !value.is_empty() && value.len() <= MAX_ID_BYTES && !value.chars().any(char::is_control)
 }
 
-/// The contract every per-skill adapter implements.
+/// The descriptor contract every per-skill adapter implements.
 ///
-/// One method, one already-validated return value. Nothing on this trait
-/// accepts a workspace path, a process handle, a network client, a model
-/// port, or a scheduler -- an implementor can describe a skill's declared
-/// shape and nothing else. Running the skill, resolving its invocation,
+/// Nothing on this trait accepts a workspace path, a process handle, a
+/// network client, a model port, or a scheduler. Implementors can describe a
+/// skill and explicitly offer inert execution metadata; running the skill,
 /// advancing its session, and writing its artifact all remain the engine's
-/// job (`invocation.rs`, `state_machine.rs`, `artifacts.rs`); this trait
-/// never gains a method that would let an adapter reach for one of those
-/// itself.
+/// job (`invocation.rs`, `state_machine.rs`, `artifacts.rs`).
 pub trait BmadMethodSkill {
     /// Returns this skill's declared descriptor.
     fn descriptor(&self) -> BmadSkillDescriptor;
+
+    /// Returns an explicit inert execution contract when this adapter is ready
+    /// for the shared Method bridge.
+    ///
+    /// Descriptor-only adapters fail closed by default. This preserves their
+    /// ability to compile and appear in static projections without allowing a
+    /// pending adapter to enter the Method execution lifecycle.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`BmadSkillExecutionError::ContractUnavailable`] unless the
+    /// adapter explicitly supplies a validated production execution contract.
+    fn execution_contract(&self) -> Result<BmadSkillExecutionContract, BmadSkillExecutionError> {
+        Err(BmadSkillExecutionError::ContractUnavailable)
+    }
 }
 
 #[cfg(test)]

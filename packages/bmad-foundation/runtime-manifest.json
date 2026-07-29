@@ -23,13 +23,13 @@
     },
     {
       "path": "capability-catalog.json",
-      "contentHash": "sha256:5e4f258c2516ff48a48658ce58b98059d08c788e8dc44c19229dd2902e846d6d",
-      "byteLength": 68578,
+      "contentHash": "sha256:56e4a4583b6e35790afbe8f968b2cc5f78d6d8baee54ec5167a8bf4db03b1875",
+      "byteLength": 68023,
       "contentKind": "normalized_contract"
     },
     {
       "path": "compatibility-aliases.json",
-      "contentHash": "sha256:8f06c63442b4cc37f4451d6a94fb7e90e595eb7665fcdefb71dd140370e10563",
+      "contentHash": "sha256:d0e7ea9d2caf0c1a72afcebe658213a69b485ef6ddda3ef5c83668de2c31287e",
       "byteLength": 6715,
       "contentKind": "normalized_contract"
     },
@@ -59,8 +59,8 @@
     },
     {
       "path": "normalized/bmad-architecture.package.json",
-      "contentHash": "sha256:3e91280ee9bc7fdfe3bc9a9067fefa207d4ea1260d805435f9fb7e72486d1881",
-      "byteLength": 4713,
+      "contentHash": "sha256:2788cec68aaa22f299b2c075dae806cc9dac805be4ec804514b4eccba5d17dee",
+      "byteLength": 4047,
       "contentKind": "normalized_contract"
     },
     {
@@ -130,6 +130,12 @@
       "contentKind": "normalized_contract"
     },
     {
+      "path": "normalized/bmad-help-capability-graph.json",
+      "contentHash": "sha256:c6767abe4092e18918c698737ae4b27949a7ac081aec9949fd177c5b938a9adb",
+      "byteLength": 25498,
+      "contentKind": "normalized_contract"
+    },
+    {
       "path": "normalized/bmad-help.package.json",
       "contentHash": "sha256:db10c735500110d971229aa0c5c09a5320ffcf290abdd3bba7118979e84dd95d",
       "byteLength": 84226,
@@ -149,8 +155,8 @@
     },
     {
       "path": "normalized/bmad-prd.package.json",
-      "contentHash": "sha256:afbff204632f109d43a57e39d3f6f75b2a1c0d2c3bec20a2a72d0be39fb54fff",
-      "byteLength": 1947,
+      "contentHash": "sha256:d36df94631dbaaa2ca8465c92ca82928c75f617ee1b734a65bd1720dd200aeb1",
+      "byteLength": 4219,
       "contentKind": "normalized_contract"
     },
     {
@@ -247,6 +253,18 @@
       "path": "normalized/builder-agent.package.json",
       "contentHash": "sha256:9ee163d13df2020d4b351b376ee41fa615e6d770e67fb61af125a13353c46add",
       "byteLength": 2437,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/builder-alias-registry.json",
+      "contentHash": "sha256:3050d01b8a630522a898c3e08866e5ea2e2351046748000be7ec5e851fda7568",
+      "byteLength": 2063,
+      "contentKind": "normalized_contract"
+    },
+    {
+      "path": "normalized/builder-capability-catalog.json",
+      "contentHash": "sha256:dc276ed4fa984c0fb14a0306a70817ca72bb989df37784b048adc537bcc1fdc5",
+      "byteLength": 17198,
       "contentKind": "normalized_contract"
     },
     {
@@ -479,8 +497,8 @@
     },
     {
       "path": "source-accounting.json",
-      "contentHash": "sha256:ff4c0d670244fdcb5ea5bf0ac8dcbc3c333135fe71efd16e536e37865c5b10e2",
-      "byteLength": 756729,
+      "contentHash": "sha256:a65f5d4b2861a9d3d18faa28dee148227abef71c0f6d437b1e9574ede312ad44",
+      "byteLength": 756774,
       "contentKind": "provenance_ledger"
     },
     {
@@ -496,5 +514,5 @@
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:bf09737d117f0c2f8ab08da62e7ddfb879f0962a1f2755e65c9ee7acf223be30"
+  "manifestHash": "sha256:eb83ab5bcec0bc5475b625fbfa57b31556f2a3373c0941556929ff09b8408595"
 }
