@@ -894,6 +894,21 @@ export function run(argv = process.argv.slice(2)) {
         })),
         member_accounting: closure.members.filter((member) => {
           if (!flags.skill) return true;
+          if (flags.skill === "bmad-help") {
+            const descriptor = readJson(
+              resolve(packageRoot, "normalized", "bmad-help.package.json"),
+            );
+            const projection = descriptor.instructionProjections.find(
+              (candidate) =>
+                candidate.sourceEntrypoint?.path ===
+                "src/core-skills/bmad-help/SKILL.md",
+            );
+            const paths = new Set([
+              projection?.sourceEntrypoint?.path,
+              ...(projection?.sourceResources ?? []).map((resource) => resource.path),
+            ]);
+            return paths.has(member.path);
+          }
           return closure.skills.some((skill) =>
             member.path.startsWith(skill.root.slice(0, -"SKILL.md".length)),
           );

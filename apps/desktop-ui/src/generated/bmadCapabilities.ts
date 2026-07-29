@@ -1504,11 +1504,9 @@ export const bmadCapabilities = [
       "post_validation",
       "durable_evidence"
     ],
-    "outputs": [
-      "governed_artifact"
-    ],
+    "outputs": [],
     "supportState": "adapted",
-    "uiState": "planned",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {

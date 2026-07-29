@@ -1496,7 +1496,17 @@ fn bmad_library_snapshot(
     cursor: Option<&str>,
 ) -> Result<HostCommandData, LocalError> {
     #[cfg(any(feature = "deterministic-help", feature = "direct-model-providers"))]
-    let activations = &[("core", "bmad-help")][..];
+    let activations = if crate::generated::bmad_capabilities::UI_ADVERTISED_CAPABILITIES
+        .iter()
+        .any(|row| {
+            row.canonical_id == "core:bmad-help"
+                && row.support_state == "adapted"
+                && row.ui_state == "runtime_available"
+        }) {
+        &[("core", "bmad-help")][..]
+    } else {
+        &[][..]
+    };
     #[cfg(not(any(feature = "deterministic-help", feature = "direct-model-providers")))]
     let activations = &[][..];
     let runtime_menu_bindings =

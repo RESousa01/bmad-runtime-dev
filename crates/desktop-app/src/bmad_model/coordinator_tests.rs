@@ -232,6 +232,11 @@ mod prepare {
             .expect("retained Method session");
         assert_eq!(retained.state(), MethodState::ContextReviewRequired);
         assert_eq!(retained.version(), 3);
+        let persisted_binding = retained
+            .current_binding()
+            .expect("CapabilityBound exact binding remains persisted");
+        assert_eq!(persisted_binding.capability_key.module_code, "core");
+        assert_eq!(persisted_binding.capability_key.skill_name, "bmad-help");
     }
 
     #[cfg(feature = "deterministic-help")]

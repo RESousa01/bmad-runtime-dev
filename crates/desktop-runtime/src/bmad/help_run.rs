@@ -611,13 +611,19 @@ fn validate_help_skill(
         .as_object_mut()
         .ok_or(BmadKernelErrorCode::SealedHelpMismatch)?
         .remove("profileHash");
-    let resource_preimage = json!({
-        "sourceEntrypoint": projection["sourceEntrypoint"].clone(),
-        "sourceResources": projection["sourceResources"].clone(),
-        "managedInstruction": projection["managedInstruction"].clone()
-    });
+    let mut resources = vec![(
+        string_field(descriptor_object(&projection["sourceEntrypoint"])?, "path")?,
+        digest_field(&projection["sourceEntrypoint"], "contentHash")?,
+    )];
+    for resource in array_field(projection, "sourceResources")? {
+        resources.push((
+            string_field(descriptor_object(resource)?, "path")?,
+            digest_field(resource, "contentHash")?,
+        ));
+    }
+    resources.sort_by(|left, right| left.0.cmp(right.0));
     let computed_resource_set_hash =
-        canonical_hash("bmad-skill-resource-set", 1, &resource_preimage)
+        canonical_hash("bmad-skill-execution-resource-set", 1, &resources)
             .map_err(|_| BmadKernelErrorCode::SealedHelpMismatch)?;
     let source_entrypoint_hash = digest_field(skill, "sourceEntrypointHash")?;
     let resource_set_hash = digest_field(skill, "resourceSetHash")?;
@@ -696,17 +702,17 @@ fn validate_central_config(
 fn expected_source_entrypoint() -> Value {
     json!({
         "path": "src/core-skills/bmad-help/SKILL.md",
-        "contentHash": "sha256:718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
+        "contentHash": "sha256:970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
         "treatment": "adapt"
     })
 }
 
 fn expected_source_resources() -> Value {
     json!([
-        {"path": "src/bmm-skills/module-help.csv", "contentHash": "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf", "treatment": "adopt"},
-        {"path": "src/bmm-skills/module.yaml", "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100", "treatment": "adopt"},
-        {"path": "src/core-skills/module-help.csv", "contentHash": "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d", "treatment": "adopt"},
-        {"path": "src/core-skills/module.yaml", "contentHash": "sha256:46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479", "treatment": "adopt"}
+        {"path": "src/bmm-skills/module-help.csv", "contentHash": "sha256:77f8c08d6230b291aa056d21a66566932ad374c944289eca6798e1bd5b6fd677", "treatment": "adopt"},
+        {"path": "src/bmm-skills/module.yaml", "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659", "treatment": "adopt"},
+        {"path": "src/core-skills/module-help.csv", "contentHash": "sha256:95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3", "treatment": "adopt"},
+        {"path": "src/core-skills/module.yaml", "contentHash": "sha256:75cb5eccdd193b3282a948f57b27273112aabd619eb29fcca442d33003a914fb", "treatment": "adopt"}
     ])
 }
 
@@ -720,10 +726,15 @@ fn expected_host_replacements() -> Value {
 fn expected_execution_profile() -> Value {
     json!({
         "entrypointKind": "direct",
-        "invocationModes": {"interactive": true, "headless": false, "actions": []},
+        "invocationModes": {"interactive": true, "headless": true, "actions": []},
         "requiredRuntimes": [{"runtime": "node", "versionRange": ">=20.12.0", "required": true}],
-        "resourcePolicy": {"entrypointTiming": "invocation_start", "resourceTiming": "all_declared_at_start", "declaredResourcePaths": []},
-        "declaredToolIntents": [], "stateHints": [], "completionEvidence": ["artifact"],
+        "resourcePolicy": {"entrypointTiming": "invocation_start", "resourceTiming": "all_declared_at_start", "declaredResourcePaths": [
+            "src/core-skills/bmad-help/SKILL.md", "src/bmm-skills/module-help.csv",
+            "src/bmm-skills/module.yaml", "src/core-skills/module-help.csv",
+            "src/core-skills/module.yaml"
+        ]},
+        "declaredToolIntents": ["file_read", "process", "web", "subagent"],
+        "stateHints": [], "completionEvidence": ["event", "status_evidence"],
         "customizationProfile": "method_skill_toml", "validationProfile": "MethodOfficialSkillV6"
     })
 }
@@ -732,8 +743,8 @@ fn expected_core_module() -> Value {
     json!({
         "moduleCode": "core", "moduleName": "Core", "moduleVersion": null,
         "metadataOrigin": "source",
-        "metadataSourceHash": "sha256:46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479",
-        "helpCatalogSourceHash": "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+        "metadataSourceHash": "sha256:75cb5eccdd193b3282a948f57b27273112aabd619eb29fcca442d33003a914fb",
+        "helpCatalogSourceHash": "sha256:95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3",
         "agentRosterSourceHash": null
     })
 }
@@ -828,27 +839,27 @@ fn verify_ledger_closure(
         (
             "method-001",
             "src/core-skills/bmad-help/SKILL.md",
-            "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
+            "970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
         ),
         (
             "method-002",
             "src/core-skills/module.yaml",
-            "46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479",
+            "75cb5eccdd193b3282a948f57b27273112aabd619eb29fcca442d33003a914fb",
         ),
         (
             "method-003",
             "src/core-skills/module-help.csv",
-            "e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+            "95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3",
         ),
         (
             "method-004",
             "src/bmm-skills/module.yaml",
-            "5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+            "de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
         ),
         (
             "method-005",
             "src/bmm-skills/module-help.csv",
-            "ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
+            "77f8c08d6230b291aa056d21a66566932ad374c944289eca6798e1bd5b6fd677",
         ),
     ];
     for (id, path, hash) in expected_members {

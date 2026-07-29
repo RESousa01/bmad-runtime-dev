@@ -269,23 +269,23 @@ fn assert_package_identity(package: &BmadLoadedPackage, help: &BmadSealedHelpInv
     );
     assert_eq!(
         help.source_entrypoint_hash(),
-        digest("sha256:718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642")
+        digest("sha256:970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2")
     );
     assert_eq!(
         help.resource_set_hash(),
-        digest("sha256:cc52d4eaa9c81f268dbec83dd56b4dfd1c983765e83b588b33f2c34908a57b94")
+        digest("sha256:95f7f1b8631f422bc2d037a64e501471e13fadebaf95b575d4a4fb2de88f5b81")
     );
     assert_eq!(
         help.projection_hash(),
-        digest("sha256:8b33eab28f8518af84da7801178a21bc5e2bedf3c66b960eabf9c760e2bac838")
+        digest("sha256:483d33cdeaea3ce95f48741380190baf2a85bdb40007d487f23c7c67b56567e5")
     );
     assert_eq!(
         help.skill_descriptor_hash(),
-        digest("sha256:8ff723060d7dee20e5f9aa45c02c386a7baf25037a3463081524ffc0d40195da")
+        digest("sha256:09c90ebbbc66b9c5b43e902350555acaea2f0892708a8b947521bb3902d4eb4d")
     );
     assert_eq!(
         help.execution_profile_hash(),
-        digest("sha256:02b16af451ee6b4a60d0e446f0ea911b6b57f0c646845ed8bdd81ce09f2e1485")
+        digest("sha256:eab6bd03e6ec5fa86f52f2386ac504979f8159352b09896ee14221ac15a23245")
     );
 }
 
@@ -336,11 +336,11 @@ fn assert_policy_and_lineage_identity(
     assert_eq!(help.adoption_ledger_hash(), adoption_hash);
     assert_eq!(
         help.module_metadata_hash(),
-        digest("sha256:46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479")
+        digest("sha256:75cb5eccdd193b3282a948f57b27273112aabd619eb29fcca442d33003a914fb")
     );
     assert_eq!(
         help.module_help_catalog_hash(),
-        digest("sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d")
+        digest("sha256:95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3")
     );
     assert_eq!(
         help.central_config_graph_hash(),
@@ -517,7 +517,7 @@ fn loader_rejects_adoption_ledger_substitution() {
 }
 
 #[test]
-fn compiler_derives_the_exact_non_runnable_no_agent_help_binding() {
+fn compiler_derives_the_exact_pre_review_no_agent_help_binding() {
     let (loaded, catalog) = loaded_method_and_catalog();
     let model = trusted_model_profile();
     let compiled = BmadHelpBindingCompiler::compile(loaded.help_invocation(), &catalog, &model)
@@ -538,20 +538,21 @@ fn compiler_derives_the_exact_non_runnable_no_agent_help_binding() {
     assert_eq!(binding.agent_binding_hash, None);
     assert_eq!(binding.agent_binding, None);
     assert_eq!(binding.entrypoint_kind, "direct");
+    assert!(binding.execution_profile.data.invocation_modes.interactive);
+    assert!(binding.execution_profile.data.invocation_modes.headless);
     assert!(binding
         .execution_profile
         .data
         .invocation_modes
         .actions
         .is_empty());
-    assert!(binding
-        .execution_profile
-        .data
-        .declared_tool_intents
-        .is_empty());
+    assert_eq!(
+        binding.execution_profile.data.declared_tool_intents,
+        ["file_read", "process", "web", "subagent"]
+    );
     assert_eq!(
         binding.execution_profile.data.completion_evidence,
-        ["artifact"]
+        ["event", "status_evidence"]
     );
     assert_eq!(binding.model_binding_hash, model.model_binding_hash());
     assert_eq!(binding.egress_profile_hash, model.egress_profile_hash());

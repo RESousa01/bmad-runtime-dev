@@ -78,7 +78,7 @@ function methodRow(member, aliasesByTarget, ledgerByRowId) {
       "post_validation",
       "durable_evidence",
     ],
-    outputs: ["governed_artifact"],
+    outputs: member.skill_name === "bmad-help" ? [] : ["governed_artifact"],
     supportState: ledgerRow.supportState,
     uiState: member.ui_state,
     visibility: "public",

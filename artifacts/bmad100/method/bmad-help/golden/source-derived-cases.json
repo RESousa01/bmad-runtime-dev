@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "sapphirus.bmad100.method-golden.v1",
+  "taskId": "MTH-40",
+  "canonicalId": "core:bmad-help",
+  "sourceEntrypoint": "src/core-skills/bmad-help/SKILL.md",
+  "sourceSha256": "970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
+  "declaredModes": [
+    "interactive",
+    "headless"
+  ],
+  "sourceClosure": [
+    "src/core-skills/bmad-help/SKILL.md",
+    "src/bmm-skills/module-help.csv",
+    "src/bmm-skills/module.yaml",
+    "src/core-skills/module-help.csv",
+    "src/core-skills/module.yaml"
+  ],
+  "execution": {
+    "step": "recommend",
+    "planKinds": [
+      "read",
+      "command_proposal",
+      "read",
+      "model_call"
+    ],
+    "completionEvidence": [
+      "event",
+      "status_evidence"
+    ],
+    "outputLocations": [],
+    "followerIds": []
+  },
+  "cases": [
+    {
+      "id": "availability",
+      "input": "Can I run bmad-prd?",
+      "route": "deterministic_catalog",
+      "expected": "invocability plus exact unmet prerequisite and blocker ids"
+    },
+    {
+      "id": "next-step",
+      "input": "What should I do next?",
+      "route": "deterministic_catalog",
+      "expected": "completed capabilities omitted; incomplete candidates retain blocked state and unmet ids"
+    },
+    {
+      "id": "alias",
+      "input": "Run bmad-create-prd",
+      "route": "generated_compatibility_alias",
+      "expected": "bmm:bmad-prd with explicit deprecation state"
+    },
+    {
+      "id": "general-question",
+      "input": "Explain the Method workflow that fits my current project",
+      "route": "generic_method_execution",
+      "expected": "source-grounded recommendation from bounded catalog/config/project inputs"
+    }
+  ],
+  "modeParity": {
+    "interactive": "same exact binding, source closure, step table, and no-artifact output topology",
+    "headless": "same exact binding, source closure, step table, and no-artifact output topology"
+  },
+  "lifecycleCases": [
+    "cancel",
+    "fail",
+    "retry",
+    "repair",
+    "restart",
+    "resume",
+    "upgrade"
+  ],
+  "authority": {
+    "sourceIntents": [
+      "file_read",
+      "process",
+      "web",
+      "subagent"
+    ],
+    "runtimeAuthority": "host_governed_only",
+    "separateAuthorities": [
+      "network",
+      "browser",
+      "external_handoff"
+    ]
+  }
+}

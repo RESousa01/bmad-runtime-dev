@@ -552,7 +552,7 @@ const expectedProjectionSourceMemberIds = Object.freeze({
 
 const criticalMembers = Object.freeze({
   "method:src/core-skills/bmad-help/SKILL.md":
-    "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
+    "970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
   "method:src/bmm-skills/1-analysis/bmad-agent-tech-writer/write-document.md":
     "c0ddfd981f765b82cba0921dad331cd1fa32bacdeea1f02320edfd60a0ae7e6f",
   "method:src/bmm-skills/1-analysis/bmad-agent-tech-writer/mermaid-gen.md":

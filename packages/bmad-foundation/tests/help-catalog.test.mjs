@@ -142,6 +142,66 @@ test("BMAD Help exposes canonical PRD exact runtime availability without promoti
   );
 });
 
+// Break caught: Help can be promoted in the catalog while the generated Help
+// graph still carries a universal artifact output or an invented follower.
+test("canonical Help projects adapted runtime availability and source-derived terminal topology", async () => {
+  const [catalog, graph] = await Promise.all([
+    readJson("capability-catalog.json"),
+    readJson("normalized/bmad-help-capability-graph.json"),
+  ]);
+  const row = catalog.capabilities.find(
+    (capability) => capability.rowId === "method:src/core-skills/bmad-help/SKILL.md",
+  );
+  const node = graph.nodes.find((candidate) => candidate.id === "core:bmad-help");
+
+  assert.equal(row?.canonicalId, "core:bmad-help");
+  assert.equal(row?.supportState, "adapted");
+  assert.equal(row?.uiState, "runtime_available");
+  assert.deepEqual(row?.outputs, []);
+  assert.equal(node?.supportState, "adapted");
+  assert.equal(node?.uiState, "runtime_available");
+  assert.deepEqual(node?.outputLocations, []);
+  assert.deepEqual(node?.followerIds, []);
+});
+
+test("canonical Help source-derived golden records mode parity and lifecycle recovery", async () => {
+  const golden = await readJson(
+    "../../artifacts/bmad100/method/bmad-help/golden/source-derived-cases.json",
+  );
+
+  assert.deepEqual(golden.declaredModes, ["interactive", "headless"]);
+  assert.equal(golden.cases.length, 4);
+  assert.deepEqual(golden.execution.outputLocations, []);
+  assert.deepEqual(golden.execution.followerIds, []);
+  assert.deepEqual(golden.lifecycleCases, [
+    "cancel",
+    "fail",
+    "retry",
+    "repair",
+    "restart",
+    "resume",
+    "upgrade",
+  ]);
+});
+
+test("MTH-40 receipt is bound to its baseline tree and canonical evidence tree", async () => {
+  const receipt = await readJson("../../artifacts/bmad100/tasks/MTH-40.json");
+  assert.match(receipt.baseline.commit, /^[0-9a-f]{40}$/);
+  assert.match(receipt.baseline.tree, /^[0-9a-f]{40}$/);
+  const rows = [];
+  for (const member of receipt.evidenceTree.members) {
+    const bytes = await readFile(new URL(`../../${member.path}`, root));
+    const hash = sha256(bytes);
+    assert.equal(member.sha256, hash, member.path);
+    rows.push(`${member.path}\0${hash}`);
+  }
+  assert.deepEqual(
+    receipt.evidenceTree.members.map(({ path }) => path),
+    receipt.evidenceTree.members.map(({ path }) => path).toSorted(),
+  );
+  assert.equal(receipt.evidenceTree.sha256, sha256(`${rows.join("\n")}\n`));
+});
+
 test("BMAD Help action graph nodes are unique and canonically ordered", async () => {
   const graph = await readJson("normalized/bmad-help-capability-graph.json");
   const ids = graph.nodes.map((node) => node.id);

@@ -17,11 +17,12 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:f5599c0ccbd727472101aab6e27c269a0902c9a78d4e3b28c15ae110d7afae71";
+    "sha256:74fd11d3823bbc703a4cd22e296050ca7534bc3ffaaf54e5a2fc8770aa90984d";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:eb83ab5bcec0bc5475b625fbfa57b31556f2a3373c0941556929ff09b8408595";
+    "sha256:a7d5f0d0430ff69613b2119ec65fae6392b0619cd0130b6bfd42e6b3e7993583";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
+const HELP_CAPABILITY_GRAPH_PATH: &str = "normalized/bmad-help-capability-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
 /// The adopted upstream method graph (ADR-0008).
 const WORKFLOW_GRAPH_PATH: &str = "source/method/6.10.0/src/bmm-skills/module-help.csv";
@@ -64,9 +65,12 @@ const METHOD_RUNTIME_PATHS: [&str; 31] = [
 ];
 /// ADR-0008 adopted upstream bodies live only here.
 const ADOPTED_SOURCE_ROOT: &str = "source/method/6.10.0/";
-const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 85] = [
     "NOTICE.md",
     "adoption-ledger.json",
+    "builder-source-ledger.json",
+    "capability-catalog.json",
+    "compatibility-aliases.json",
     "licenses/BMAD-BUILDER-MIT.txt",
     "licenses/BMAD-METHOD-MIT.txt",
     "normalized/bmad-analyst.package.json",
@@ -144,6 +148,9 @@ const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
     "runtime/method/6.10.0/validate-doc.instructions.md",
     "runtime/method/6.10.0/write-document.instructions.md",
     "semantic-source-ledger.json",
+    "source-accounting.json",
+    "source-lock.json",
+    "source-manifest.json",
 ];
 
 /// Every sealed persona projection envelope, joined to the roster by
@@ -736,6 +743,29 @@ fn load_help_catalog(
     resources: &FoundationResources,
     package: &BmadLoadedPackage,
 ) -> Result<BmadCatalog, BmadFoundationError> {
+    let capability_graph: serde_json::Value =
+        deserialize_strict(required_bytes(resources, HELP_CAPABILITY_GRAPH_PATH)?)
+            .map_err(|_| BmadFoundationError::ResourceMismatch)?;
+    let generated_help = capability_graph
+        .get("nodes")
+        .and_then(serde_json::Value::as_array)
+        .and_then(|rows| {
+            rows.iter().find(|row| {
+                row.get("id").and_then(serde_json::Value::as_str) == Some("core:bmad-help")
+            })
+        })
+        .ok_or(BmadFoundationError::ResourceMismatch)?;
+    if generated_help
+        .get("supportState")
+        .and_then(serde_json::Value::as_str)
+        != Some("adapted")
+        || generated_help
+            .get("uiState")
+            .and_then(serde_json::Value::as_str)
+            != Some("runtime_available")
+    {
+        return Err(BmadFoundationError::ResourceMismatch);
+    }
     let graph: FoundationHelpActionGraph =
         deserialize_strict(required_bytes(resources, HELP_ACTION_GRAPH_PATH)?)
             .map_err(|_| BmadFoundationError::ResourceMismatch)?;
@@ -745,11 +775,11 @@ fn load_help_catalog(
     let expected_sources = [
         (
             "bmm",
-            "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
+            "sha256:77f8c08d6230b291aa056d21a66566932ad374c944289eca6798e1bd5b6fd677",
         ),
         (
             "core",
-            "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+            "sha256:95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3",
         ),
     ];
     if graph.schema_version != "sapphirus.bmad-foundation-help-action-graph.v1"
@@ -895,6 +925,7 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
     ) || matches!(
         (kind, path),
         (RuntimeContentKind::NormalizedContract, value) if value.starts_with("normalized/")
+            || matches!(value, "capability-catalog.json" | "compatibility-aliases.json")
     ) || matches!((kind, path), (RuntimeContentKind::LegalNotice, "NOTICE.md"))
         || matches!(
             (kind, path),
@@ -904,7 +935,12 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
             (kind, path),
             (
                 RuntimeContentKind::ProvenanceLedger,
-                "adoption-ledger.json" | "semantic-source-ledger.json"
+                "adoption-ledger.json"
+                    | "builder-source-ledger.json"
+                    | "semantic-source-ledger.json"
+                    | "source-accounting.json"
+                    | "source-lock.json"
+                    | "source-manifest.json"
             )
         )
         || matches!(

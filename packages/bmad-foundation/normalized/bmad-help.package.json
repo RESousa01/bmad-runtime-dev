@@ -38,17 +38,17 @@
       "moduleName": "BMad Method",
       "moduleVersion": null,
       "metadataOrigin": "source",
-      "metadataSourceHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
-      "helpCatalogSourceHash": "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
-      "agentRosterSourceHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100"
+      "metadataSourceHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
+      "helpCatalogSourceHash": "sha256:77f8c08d6230b291aa056d21a66566932ad374c944289eca6798e1bd5b6fd677",
+      "agentRosterSourceHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659"
     },
     {
       "moduleCode": "core",
       "moduleName": "Core",
       "moduleVersion": null,
       "metadataOrigin": "source",
-      "metadataSourceHash": "sha256:46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479",
-      "helpCatalogSourceHash": "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+      "metadataSourceHash": "sha256:75cb5eccdd193b3282a948f57b27273112aabd619eb29fcca442d33003a914fb",
+      "helpCatalogSourceHash": "sha256:95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3",
       "agentRosterSourceHash": null
     }
   ],
@@ -172,7 +172,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -192,35 +192,35 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:e5090da3280f47e796f41dc30de53d5bca6dea9e2dd0cc9da98be3301f6aa734"
+      "projectionHash": "sha256:5c97efe0ec32c9fc075ecee5b37860936d76466820d9af079ada0740b077c116"
     },
     {
       "projectionId": "projection_D3D3C91D516D32546C446503D88957F6E499C504370B6749B5936F786643DF66",
       "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
       "sourceEntrypoint": {
         "path": "src/core-skills/bmad-help/SKILL.md",
-        "contentHash": "sha256:718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
+        "contentHash": "sha256:970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
         "treatment": "adapt"
       },
       "sourceResources": [
         {
           "path": "src/bmm-skills/module-help.csv",
-          "contentHash": "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
+          "contentHash": "sha256:77f8c08d6230b291aa056d21a66566932ad374c944289eca6798e1bd5b6fd677",
           "treatment": "adopt"
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         },
         {
           "path": "src/core-skills/module-help.csv",
-          "contentHash": "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+          "contentHash": "sha256:95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3",
           "treatment": "adopt"
         },
         {
           "path": "src/core-skills/module.yaml",
-          "contentHash": "sha256:46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479",
+          "contentHash": "sha256:75cb5eccdd193b3282a948f57b27273112aabd619eb29fcca442d33003a914fb",
           "treatment": "adopt"
         }
       ],
@@ -246,7 +246,7 @@
           "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
         }
       ],
-      "projectionHash": "sha256:8b33eab28f8518af84da7801178a21bc5e2bedf3c66b960eabf9c760e2bac838"
+      "projectionHash": "sha256:483d33cdeaea3ce95f48741380190baf2a85bdb40007d487f23c7c67b56567e5"
     },
     {
       "projectionId": "projection_08A661A1ECB51B97A5F1236EE00F9A3F4A1C8E2C83B24203C88D7169F5B16099",
@@ -264,7 +264,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -284,7 +284,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:62c16900ede7546d9769bb307400952dcefbe7323e16df1baa4beb87bdd1d92a"
+      "projectionHash": "sha256:8a369976a46f92f71982395af06e91504408240c701b805191b877d684330d6c"
     },
     {
       "projectionId": "projection_CACF80429F3223860453B8D74541B4AFFF565115BF307C69801022FFD1754588",
@@ -302,7 +302,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -322,7 +322,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:f53a04bbfd93f867c63d6ddaa6ec30e1dab53d66cd1109e7256b179f09fa5ef8"
+      "projectionHash": "sha256:656cd9d71caf8aa88f7658fd6d887cc66c5b240c3132324915cf3ad61bf90600"
     },
     {
       "projectionId": "projection_D0721B37F735AFDBC439073D962C83FB66EDB3F92498CA6786FD8393B51DEC07",
@@ -340,7 +340,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -360,7 +360,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:b2c3226c993ca3ec801757e87ccabe2bc79dda608d28d18b2b5085e61ac7ccfc"
+      "projectionHash": "sha256:b4110d934998b169dfa537e0309df9373dc40ad7fdab437c5bc87b00d8a398b7"
     },
     {
       "projectionId": "projection_46414D6421B90258DF0FF8949F02A251E9F12F25AA062DA8F52B8C312CEB21BB",
@@ -378,7 +378,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -398,7 +398,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:b7cdf3387cd7ee44988c09a67dbb8a05ca7ef91c3431eada04cb2e907d78a161"
+      "projectionHash": "sha256:6bf681a65590e748f509529785b00e6656845cb85b7070028c530ae99682a539"
     },
     {
       "projectionId": "projection_B6A21CBB4648BFB588094100AC5CF0B07EEBC64B850B7CCBC1255DA470974D92",
@@ -416,7 +416,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -436,7 +436,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:d034ba6ead98bb572bf9fe71e48ead30d92239baa331c7221fb943d368118c3c"
+      "projectionHash": "sha256:8ad85c9a3ad24b68d2cc113937b8b7c99487ec4000af05b3f5ed5a6cfaa99ac5"
     },
     {
       "projectionId": "projection_B001D1063F0F7ED71A00106ED448ECD71ED1DBDB263E5D618A83E3BB72F29CEE",
@@ -454,7 +454,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -474,7 +474,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:6e45d104cfd814566716052aa89d13504c1788b958f3eea32b1090cedc0e1512"
+      "projectionHash": "sha256:0067f0201ea31fdad10ba5a40b4db52c3ca50a8df5e2f9efe0a18926ebce54b6"
     },
     {
       "projectionId": "projection_70FC5F6E6ABC469564D03EB9ACE223F212FECA587935FAF2FBE49B4BB3D535D7",
@@ -492,7 +492,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -512,7 +512,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:2c8ec63feca0d091a63af88f5f018cc4fa00e62c90f108b0cbd2f4af1d5fd63e"
+      "projectionHash": "sha256:972a4e6890559f2680addfa68b5d9b3d4a49cce20c83b00e7ef6910d3b7232f3"
     },
     {
       "projectionId": "projection_537BA4190B88C50B548ADAE2ABD3B744ED85851A83DB61094B913A6622EDB59E",
@@ -530,7 +530,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -550,7 +550,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:9e4fdc28395afc111ca8fbd122c2fc9c1861877486674ec999e7e3b8c09ca8c9"
+      "projectionHash": "sha256:965551c307741c31e75bf0b17e846d34a69cf0b30c1a3560fb60850c3a0e1a2c"
     },
     {
       "projectionId": "projection_E2214BC1FE98B95E074BF36D27F7A47FBE7C448C0320E247999F2FE15C5D734A",
@@ -568,7 +568,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -588,7 +588,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:92db9d98401ef4f6f24f3044a8dd676ab883241ee806af99d61503e5f41e2efb"
+      "projectionHash": "sha256:c0399289f9cf46ae9af0e009d984d0ba48c1db72adc0a7e64dc55bce32054378"
     },
     {
       "projectionId": "projection_F0C1167165988C7ED9CE7390CF1F0B72F373F607C2BE42A2AA09DA59B7F0CD72",
@@ -606,7 +606,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -626,7 +626,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:b8c0d84a7140447bc9b5b91c92a6a3621e7ee558d5d1116004827fc7a143801d"
+      "projectionHash": "sha256:3b012811fd4e30111d29fc86dbbdb9386671d2ad41776e266e772fe04bce9a37"
     },
     {
       "projectionId": "projection_59C843CBD1724500E0ABB5AB8D1799FD22B1036DDD948B953C9A32589F8E4C84",
@@ -644,7 +644,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -664,7 +664,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:f97078dbc41b1542ccc86f51d2bc94e67724d83c469908e730e4501300ae2d36"
+      "projectionHash": "sha256:84a47b072e9d69c5eff6a74f7f388167896169b4fcc62ef1cb5b1085ea19812b"
     },
     {
       "projectionId": "projection_DDA703745ECD3F6EDE34D1990E1DF7E82C15AD3ED3A58062021337535713C05A",
@@ -682,7 +682,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -702,7 +702,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:66f10e0a827fe639773fe17cf73679766750029e7dfad398d84c84304ed55bad"
+      "projectionHash": "sha256:803f67ad3749489634ab3a91480380e029af1e9a86e4bf0acb03752de95032ff"
     },
     {
       "projectionId": "projection_607D41AA394103CBF082F7BDF573CA8431D0EA4540F7B2ACC3A96351C924809A",
@@ -720,7 +720,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -740,7 +740,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:c5c7cf1bbd7027a329c15c1ca2aa8cfd7c3a25ad5123da350f0ad17570d1c912"
+      "projectionHash": "sha256:4b3af31289a30fa9617b719fad8bd30830fb65abcf630330d5eda3c336d05ea6"
     },
     {
       "projectionId": "projection_45C4020D678AF7A22DDD45E498D6088AD9A3304B1E0502A94598FA31516899DA",
@@ -758,7 +758,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -778,7 +778,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:617e6be690e741c80f996a61e1e1f6a31ff5c37d63b6789eb0549b61ca8a66bd"
+      "projectionHash": "sha256:e0cb2175144f8cff58e3f74090a33c0d0fb178f338b021414fc01d2ec0d3b726"
     },
     {
       "projectionId": "projection_878B19C0EF7FDB061BF108B5827B5DC1AEDAF998ACDDEE4AA028E983E5506B88",
@@ -796,7 +796,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -816,7 +816,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:9559ee42895cb2a070182d785c38d7aaef14e2e50c687892aec3495e7583d920"
+      "projectionHash": "sha256:76815160d3b71cf33a8065511aac7f90be248d0748c52591551bd0c327ca4bdb"
     },
     {
       "projectionId": "projection_4084DBDA3B919635D560DEB4E386A72254DB257CA9A3CF8A07763362CD41FE3A",
@@ -834,7 +834,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -854,7 +854,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:4b7b88e6240280b3ce98d818358e5fd6c03bc1fe84cb134375e12c0df6d4630c"
+      "projectionHash": "sha256:a0a7778733ae0efec7d79de8fdb633cbf16c0ef09349fab06b5d592a9173bff0"
     },
     {
       "projectionId": "projection_2C309DCF47F3F1E7F010424E1F087449E33C0666A2C196C89A168DAF6B5C51A5",
@@ -872,7 +872,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -892,7 +892,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:23a951c44a1b26534a1772c15be11f1c0183c69c212b5ad93b375dd4f3fa2580"
+      "projectionHash": "sha256:19fca6e9fdec8a18149c0ab518f4140d85e1f3c299b03b2df78fa67431109804"
     },
     {
       "projectionId": "projection_A607AC6B0F220948344B6C46A91F22106CCAA9F2E0D4C3CD2767F1EFE2F66555",
@@ -910,7 +910,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -930,7 +930,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:fbd257ef24de4b49dd3b27b910efba309ccdd3ace8816dd61b3e356893e2ffd3"
+      "projectionHash": "sha256:d08a9c1f34f4a04c9eec65a3d567902a87ad08f0d27562ac46360c9addfc1f8a"
     },
     {
       "projectionId": "projection_EE1AD6089707619362EF5F6B73C4A7C3116F2DE3A381EF6A15CACFAE1829C96A",
@@ -948,7 +948,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -968,7 +968,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:a30c1f8d1c5f833c12c9f2f0e22d6dc2d17c1bc3b82c1a5fef009c2ba2689c8b"
+      "projectionHash": "sha256:766b0b672429692b8423d6bb219c733e9bd6ea6b2a7b00f315e0dd01cfc83a68"
     },
     {
       "projectionId": "projection_9525D61C8154B6A19CE3F10629CE6A9773555B380797B534515258CBFCADFD72",
@@ -986,7 +986,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -1006,7 +1006,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:2752ab6f5de9098a6e840756d9315f99e262864efdc001fcf850396a67c2e240"
+      "projectionHash": "sha256:a60558c8b08e2660dc3fc6ebbae5d4cc1020c8a189a03d3eb4a78c34d96cbba1"
     },
     {
       "projectionId": "projection_C604C6997F1ABDEE5627BDBDC75297D75E236D71B91EC9194927A8EAA21AD792",
@@ -1024,7 +1024,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -1044,7 +1044,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:8eb88c54b9ff8bd74def13a7716c81f3771147380a5f4ff433eed1f616d86825"
+      "projectionHash": "sha256:b3c4d9d6a13cf54205a85082a793b45bae4361e6f809847b5a4a8396d29cebe2"
     },
     {
       "projectionId": "projection_0C38F80466D60843ECE1E39598ABE69BA8BF5B02C424F75A5865422889083DEF",
@@ -1062,7 +1062,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -1082,7 +1082,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:00a52e92ecf50336f67dc7684789e58ca70ec2fedc2bf7c5bb434f588c3a08ea"
+      "projectionHash": "sha256:f7a0891e03bf2d27d92bb8eb4234f84a3b31e76e0d84ed67bd4d422345c03b20"
     },
     {
       "projectionId": "projection_F0397CED48A617CF302F18407719950B106A27B86E15E51EC0F352F632186DEE",
@@ -1100,7 +1100,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -1120,7 +1120,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:28ff4a37687d3c58bf9a3f13451136f4b9cbced41272afa5c5dd44a884e4901f"
+      "projectionHash": "sha256:777d1da729c0a83db78739a2d8ead4106c392cefc8c1e24ccc039098835aee12"
     },
     {
       "projectionId": "projection_85906CC9A544ADEDCA6B00FA383C222D169F7E324E42F3905002A9430BBF30FB",
@@ -1138,7 +1138,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -1158,7 +1158,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:a94b0d6deea3751def59e573a012ae778f9b9965b0bdfa1fd83a6aeef447e057"
+      "projectionHash": "sha256:14281667dd53c2ab1bb94e4b9543c3f0202e43fe5469044a24a6741a8bd45ddd"
     },
     {
       "projectionId": "projection_F793679356A0C05B302DEE6ED46EAC3AEEAFAD78FD36CA8EFFCDB8DCBC63B8D0",
@@ -1176,7 +1176,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -1196,7 +1196,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:0998641fa3d38003439864e37b260af6521a253ef2048883690be68611fe910f"
+      "projectionHash": "sha256:b165571d5d3e6db18e2afbcaa549337a6ce7fd63e646e148c8c63592024bc499"
     },
     {
       "projectionId": "projection_7F8EF9F3D488B7A126EDCB30A89C3355F868C88185A65482EB98A9394062E915",
@@ -1214,7 +1214,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -1234,7 +1234,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:fc961bc3c9916c03d4bf437bdeb0be7d988dea530ae36b6adcb69b47a0fd465d"
+      "projectionHash": "sha256:9ca51ce6be17c7058aef8273c090553b658bca2de4ac794c28a4c8bf9bee77bc"
     },
     {
       "projectionId": "projection_41D8F8EA2C259956F9C7BC94FF1E63334B6EBC9520EFF799B874BE6361241D65",
@@ -1252,7 +1252,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -1272,7 +1272,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:00dd7b22ac902b4b67823b164496e1e5f858e0c296a0f24381c4fe6c18d99a44"
+      "projectionHash": "sha256:2d2cd06041367d684b3748edde5158ff1514955e2e9502a1ad998d0b6597802a"
     },
     {
       "projectionId": "projection_1923063B398F5C386D615C2368B2A768A56842219FDACBBD5078993B904FBA68",
@@ -1290,7 +1290,7 @@
         },
         {
           "path": "src/bmm-skills/module.yaml",
-          "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+          "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
           "treatment": "adopt"
         }
       ],
@@ -1310,7 +1310,7 @@
           "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
         }
       ],
-      "projectionHash": "sha256:28b507757d3280ca45859f1db720ce8fbcfda73834a55491e9600bd46c19fee0"
+      "projectionHash": "sha256:b0886ec87626ea937c6bba5e1d4fb9ffe2968e70146ac974a7569b40b72e0e4f"
     }
   ],
   "resourceInventory": [
@@ -1813,8 +1813,8 @@
       "path": "src/bmm-skills/module-help.csv",
       "locationKind": "source_tree",
       "contentRole": "help_catalog",
-      "contentHash": "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
-      "byteLength": 6989,
+      "contentHash": "sha256:77f8c08d6230b291aa056d21a66566932ad374c944289eca6798e1bd5b6fd677",
+      "byteLength": 6872,
       "treatment": "adopt",
       "runtimeUse": "reference_data"
     },
@@ -1822,8 +1822,8 @@
       "path": "src/bmm-skills/module.yaml",
       "locationKind": "source_tree",
       "contentRole": "metadata",
-      "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
-      "byteLength": 4485,
+      "contentHash": "sha256:de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
+      "byteLength": 4469,
       "treatment": "adopt",
       "runtimeUse": "descriptive_evidence"
     },
@@ -1831,8 +1831,8 @@
       "path": "src/core-skills/bmad-help/SKILL.md",
       "locationKind": "source_tree",
       "contentRole": "entrypoint",
-      "contentHash": "sha256:718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
-      "byteLength": 4617,
+      "contentHash": "sha256:970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
+      "byteLength": 4603,
       "treatment": "adapt",
       "runtimeUse": "descriptive_evidence"
     },
@@ -1840,8 +1840,8 @@
       "path": "src/core-skills/module-help.csv",
       "locationKind": "source_tree",
       "contentRole": "help_catalog",
-      "contentHash": "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
-      "byteLength": 2911,
+      "contentHash": "sha256:95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3",
+      "byteLength": 2878,
       "treatment": "adopt",
       "runtimeUse": "reference_data"
     },
@@ -1849,8 +1849,8 @@
       "path": "src/core-skills/module.yaml",
       "locationKind": "source_tree",
       "contentRole": "metadata",
-      "contentHash": "sha256:46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479",
-      "byteLength": 904,
+      "contentHash": "sha256:75cb5eccdd193b3282a948f57b27273112aabd619eb29fcca442d33003a914fb",
+      "byteLength": 1104,
       "treatment": "adopt",
       "runtimeUse": "descriptive_evidence"
     }
@@ -1872,7 +1872,7 @@
         "entrypointKind": "step_jit",
         "invocationModes": {
           "interactive": true,
-          "headless": false,
+          "headless": true,
           "actions": [
             "create"
           ]
@@ -1910,16 +1910,16 @@
       "description": "Provide source-grounded Method guidance from the installed catalog.",
       "metadataOrigin": "source",
       "sourceEntrypointPath": "src/core-skills/bmad-help/SKILL.md",
-      "sourceEntrypointHash": "sha256:718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
-      "resourceSetHash": "sha256:cc52d4eaa9c81f268dbec83dd56b4dfd1c983765e83b588b33f2c34908a57b94",
-      "instructionProjectionHash": "sha256:8b33eab28f8518af84da7801178a21bc5e2bedf3c66b960eabf9c760e2bac838",
+      "sourceEntrypointHash": "sha256:970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
+      "resourceSetHash": "sha256:95f7f1b8631f422bc2d037a64e501471e13fadebaf95b575d4a4fb2de88f5b81",
+      "instructionProjectionHash": "sha256:483d33cdeaea3ce95f48741380190baf2a85bdb40007d487f23c7c67b56567e5",
       "distributionProfile": "sapphirus_package",
       "installProfile": "SapphirusManagedV1",
       "executionProfile": {
         "entrypointKind": "direct",
         "invocationModes": {
           "interactive": true,
-          "headless": false,
+          "headless": true,
           "actions": []
         },
         "requiredRuntimes": [
@@ -1932,18 +1932,30 @@
         "resourcePolicy": {
           "entrypointTiming": "invocation_start",
           "resourceTiming": "all_declared_at_start",
-          "declaredResourcePaths": []
+          "declaredResourcePaths": [
+            "src/core-skills/bmad-help/SKILL.md",
+            "src/bmm-skills/module-help.csv",
+            "src/bmm-skills/module.yaml",
+            "src/core-skills/module-help.csv",
+            "src/core-skills/module.yaml"
+          ]
         },
-        "declaredToolIntents": [],
+        "declaredToolIntents": [
+          "file_read",
+          "process",
+          "web",
+          "subagent"
+        ],
         "stateHints": [],
         "completionEvidence": [
-          "artifact"
+          "event",
+          "status_evidence"
         ],
         "customizationProfile": "method_skill_toml",
         "validationProfile": "MethodOfficialSkillV6",
-        "profileHash": "sha256:02b16af451ee6b4a60d0e446f0ea911b6b57f0c646845ed8bdd81ce09f2e1485"
+        "profileHash": "sha256:eab6bd03e6ec5fa86f52f2386ac504979f8159352b09896ee14221ac15a23245"
       },
-      "skillDescriptorHash": "sha256:8ff723060d7dee20e5f9aa45c02c386a7baf25037a3463081524ffc0d40195da"
+      "skillDescriptorHash": "sha256:09c90ebbbc66b9c5b43e902350555acaea2f0892708a8b947521bb3902d4eb4d"
     }
   ],
   "configGraphs": [
@@ -2041,5 +2053,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:655a9e17813f44261d7b027c8306a43ee6181949e3aa75634c7ef48df6dc5d13"
+  "descriptorHash": "sha256:2ec79c3da90bfc30030f15d902d776202c7ac91ed7cf7dc8fa8adbf85cb9cf6a"
 }

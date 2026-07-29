@@ -13,7 +13,7 @@ use super::{
 };
 
 const HELP_ACTION_GRAPH_HASH: &str =
-    "sha256:bf744053f998e035b9a9013f158e2a89db26a6cb59b2d4b2574cdeb33bbc16aa";
+    "sha256:c13263a75e494c25923280f7691bc9deeb3ee9d879366b6718c578b59f82d02e";
 const HELP_CUSTOMIZATION_HASH: &str =
     "sha256:41d2f0d68d0a47e8fb9eeccd89f0409f2ab08a72eb1a76500d87a0919ecb9c8a";
 const HELP_VALIDATION_PROFILE_HASH: &str =
@@ -441,7 +441,7 @@ fn verify_exact_catalog(
             BmadEntrypointKind::Direct,
             &[],
             "MethodOfficialSkillV6",
-            "sha256:02b16af451ee6b4a60d0e446f0ea911b6b57f0c646845ed8bdd81ce09f2e1485",
+            "sha256:eab6bd03e6ec5fa86f52f2386ac504979f8159352b09896ee14221ac15a23245",
             true,
         )?
         || !help_action_matches(
@@ -532,7 +532,7 @@ fn help_execution_profile() -> MethodExecutionProfileData {
         entrypoint_kind: "direct".to_owned(),
         invocation_modes: MethodInvocationModes {
             interactive: true,
-            headless: false,
+            headless: true,
             actions: Vec::new(),
         },
         required_runtimes: vec![MethodRuntimeRequirement {
@@ -543,11 +543,22 @@ fn help_execution_profile() -> MethodExecutionProfileData {
         resource_policy: MethodResourcePolicy {
             entrypoint_timing: "invocation_start".to_owned(),
             resource_timing: "all_declared_at_start".to_owned(),
-            declared_resource_paths: Vec::new(),
+            declared_resource_paths: vec![
+                "src/core-skills/bmad-help/SKILL.md".to_owned(),
+                "src/bmm-skills/module-help.csv".to_owned(),
+                "src/bmm-skills/module.yaml".to_owned(),
+                "src/core-skills/module-help.csv".to_owned(),
+                "src/core-skills/module.yaml".to_owned(),
+            ],
         },
-        declared_tool_intents: Vec::new(),
+        declared_tool_intents: vec![
+            "file_read".to_owned(),
+            "process".to_owned(),
+            "web".to_owned(),
+            "subagent".to_owned(),
+        ],
         state_hints: Vec::new(),
-        completion_evidence: vec!["artifact".to_owned()],
+        completion_evidence: vec!["event".to_owned(), "status_evidence".to_owned()],
         customization_profile: "method_skill_toml".to_owned(),
         validation_profile: "MethodOfficialSkillV6".to_owned(),
     }

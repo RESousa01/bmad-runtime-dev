@@ -10,8 +10,8 @@
       "version": "2.1.0"
     }
   },
-  "sourceAccountingSha256": "ddece27db6324b869374e729f0fa0dd643f3b1ad7ef19328fe3eec7b86eadf10",
-  "compatibilityLedgerSha256": "d18849dd9fb6a99c9804e430dcf7f9fe87bd68082a9dd00068aef2ef3d886a53",
+  "sourceAccountingSha256": "f301e3d7214e5b4564fc1fbbcb0b3e70c43c7377dae33896f297c74c2869ce3c",
+  "compatibilityLedgerSha256": "162153fad11131ceec939076761aaba1e4a970af964a3e88bbc62a98fa98d2c2",
   "counts": {
     "method": 48,
     "builderPublic": 9,
@@ -1521,11 +1521,9 @@
         "post_validation",
         "durable_evidence"
       ],
-      "outputs": [
-        "governed_artifact"
-      ],
+      "outputs": [],
       "supportState": "adapted",
-      "uiState": "planned",
+      "uiState": "runtime_available",
       "visibility": "public",
       "evidence": [
         {
@@ -2289,5 +2287,5 @@
       ]
     }
   ],
-  "catalogSha256": "4aa54a86e1bd868cb84cfcdb4d790a088dd0d2f370ac230c1082092acb5be60f"
+  "catalogSha256": "20f023bae0d7656bd2d4e15ae35b1d7b0886c236e63d370124a1b8f65d3514a0"
 }
