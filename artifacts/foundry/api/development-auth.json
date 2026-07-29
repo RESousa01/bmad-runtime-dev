@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "forge.foundry-task-evidence.v1",
+  "taskId": "static-desktop-token-auth",
+  "title": "Static desktop bearer-token authentication for the inbound boundary (desktop -> plane), mirroring the outbound Foundry development API key",
+  "state": "complete_local",
+  "completedAt": "2026-07-29T00:00:00Z",
+  "supersedesEarlierDesign": {
+    "note": "An earlier draft of this task restricted the scheme to Development and Test, mirroring DevelopmentFoundryApiKeyAuthenticator exactly. The operator redirected mid-task: this application will never have an Entra app registration in ANY environment, so the mechanism had to be a real, explicitly opt-in PRODUCTION path rather than a development-only stand-in. The implementation below reflects the corrected design; the environment-guard constructor and its tests were replaced, not layered on top of."
+  },
+  "changedFiles": [
+    "services/desktop-support-api/Security/DevelopmentDesktopAuthentication.cs",
+    "services/desktop-support-api/Program.cs",
+    "services/desktop-support-api/SupportPlaneOptions.cs",
+    "services/desktop-support-api/Configuration/ProductionComposition.cs",
+    "services/desktop-support-api/appsettings.Development.json",
+    "services/desktop-support-api.Tests/Security/DevelopmentDesktopAuthenticationTests.cs",
+    "docs/operations/foundry-development-mode.md",
+    "artifacts/foundry/api/development-auth.json"
+  ],
+  "mechanism": {
+    "optInGate": "SupportPlaneOptions.StaticDesktopTokenEnabled (config key Sapphirus:StaticDesktopTokenEnabled), defaults to false in every environment including Production.",
+    "whenFalse": "AddJwtBearer is the only registered scheme and the default authenticate scheme, byte-identical to the behaviour before this feature existed.",
+    "whenTrue": "DesktopAuthenticationComposition additionally registers StaticDesktopAuthenticationHandler under scheme name SapphirusStaticDesktopToken and makes it the default authenticate scheme. AddJwtBearer stays registered, unconditionally, alongside it -- Program.cs never conditionally skips it.",
+    "environmentGuard": "None. This is the deliberate change from the superseded design: the mechanism must be usable in Production because this operator will never hold Entra app-registration rights in any environment for this application.",
+    "failClosedBoundary": "StaticDesktopTokenAuthenticator is constructed eagerly and synchronously inside AddDesktopAuthentication -- not behind a lazily-resolved DI factory -- so a missing, too-short, too-long, denylisted-placeholder, or all-one-character token throws static_desktop_token_invalid immediately at host composition, before WebApplication.Build() returns.",
+    "startupLog": "Program.cs logs a single warning after builder.Build() when options.StaticDesktopTokenEnabled is true: the fact that the mechanism is active, and the two words identifying it (Sapphirus:StaticDesktopTokenEnabled=true), never the token, never any claim value."
+  },
+  "tokenHardening": {
+    "minimumLength": 32,
+    "maximumLength": 512,
+    "characterRule": "bounded printable ASCII, 0x21-0x7E, identical rule to DevelopmentFoundryApiKeyAuthenticator",
+    "denylist": ["changeme", "change-me", "token", "test", "password", "secret", "default", "admin", "placeholder"],
+    "repeatedCharacterRejection": "A token of one character repeated across its full length is rejected even at a legal length (e.g. 40 copies of 'a').",
+    "comparison": "CryptographicOperations.FixedTimeEquals over UTF-8 bytes; a length mismatch is rejected before that call, which the API requires (FixedTimeEquals needs equal-length spans) and which leaks nothing about content, only that lengths differed.",
+    "neverExposed": [
+      "Not logged: HandleAuthenticateAsync's failure path uses a fixed string, 'The static desktop token was not accepted.', never the presented or configured value.",
+      "Not in telemetry: no telemetry call site in this feature references the token or the authenticator.",
+      "Not in a problem document: the 401 challenge produced by ASP.NET Core's authentication middleware carries no application-authored body from this feature.",
+      "Not in a health response: no health check in this repository was changed or references this mechanism.",
+      "Not in a receipt: ModelResultGuards and the receipt types were not touched by this feature."
+    ]
+  },
+  "subjectDesign": {
+    "chosen": "Prefer an explicitly configured Sapphirus:StaticDesktopSubjectId (a Guid in 'D' format, validated at SupportPlaneOptions.Validate time). When absent, derive deterministically: \"static-\" + SHA256(\"sapphirus:static-desktop-subject:v1\\n\" + token)[..32] (hex).",
+    "why": "The rate limiter partition, IIdempotencyStore.ExecuteAsync(subject, key, ...), per-subject consent consumption, IDeviceRegistry.FindActiveAsync(subject, registrationId), and the receipt SubjectHash ModelResultGuards checks all require a subject stable across requests and restarts. An explicit id gives an operator direct control in a multi-desktop deployment; the fallback keeps single-desktop deployments working with zero extra configuration.",
+    "nonReversibility": "SHA-256 is one-way; the token cannot be recovered from the derived subject.",
+    "stability": "Depends only on the configured token, which does not change between restarts of the same deployment, so the derived subject -- and therefore every partition and idempotency key built from it -- is stable across restarts.",
+    "neverTheTokenItself": "Verified by test (Two_authenticators_built_from_the_same_token_derive_the_same_subject asserts the derived oid never contains the token as a substring)."
+  },
+  "evidenceDistinguishability": {
+    "requestTimePrincipal": "Every principal built by this mechanism carries claim sapphirus_static_token_principal = \"true\", which a real Entra token never has. The derived subject additionally carries a static- prefix, which can never collide with a real Entra oid (always a bare GUID).",
+    "namedGap": "There is no equivalent of the outbound CredentialMechanismId-folded-into-CredentialBindingHash (FND-030) on the inbound side. ModelAccessReceiptV2's TenantHash and SubjectHash are opaque SHA-256 digests of the tenant and subject (ScopeAuthorization.SubjectPartition), computed identically regardless of which authentication mechanism produced the principal. Folding the inbound mechanism into the receipt would require adding a field to ModelAccessReceiptV2, updating ModelResultGuards.ValidateReceiptV2, and moving the cross-language receipt digest fixture in lockstep -- a receipt-schema change outside this task's lease and outside its scope (authentication, not receipt shape). Recorded here rather than attempted speculatively."
+  },
+  "authorizationUnchanged": {
+    "claim": "ScopeAuthorization.IsApprovedDesktopPrincipal is byte-identical to before this feature. Confirmed by diff and by test: the static principal is checked against it directly, with no override, no bypass, and no widened predicate.",
+    "provenGenuine": "StaticDesktopTokenAuthenticator.GrantedScopes deliberately withholds DesktopScopes.DiagnosticsUpload. The_principal_is_refused_a_scope_it_was_not_granted asserts IsApprovedDesktopPrincipal returns false for that scope against the real static principal, and A_principal_from_an_unapproved_client_is_still_refused asserts the azp/appid check is genuinely evaluated by rebuilding the principal against a support-plane configuration with a different approved client."
+  },
+  "requiredEnvironmentVariablesForAWorkingProductionRunWithNoEntraAtAll": [
+    "Sapphirus__Authority = https://login.microsoftonline.com/<any syntactically valid tenant GUID>/v2.0 -- required because AddJwtBearer is always registered and SupportPlaneOptions.Validate demands a well-formed Authority regardless of which scheme is default; it never needs to be a real, reachable tenant when the static mechanism is what actually authenticates requests.",
+    "Sapphirus__Audience = api://<any syntactically valid GUID>",
+    "Sapphirus__ApprovedDesktopClientId = <any syntactically valid GUID> -- becomes the azp/appid the static principal presents, so it is also the value ScopeAuthorization.IsApprovedDesktopPrincipal checks against.",
+    "Sapphirus__StaticDesktopTokenEnabled = true",
+    "Sapphirus__StaticDesktopToken = <a long, random, operator-generated token, at least 32 printable ASCII characters, not a placeholder, not a single repeated character>",
+    "Sapphirus__StaticDesktopSubjectId = <optional Guid 'D' format; omit to use the deterministic derivation>"
+  ],
+  "commands": [
+    {
+      "command": "dotnet build services/desktop-support-api/Sapphirus.DesktopSupportApi.csproj -c Release",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "0 warnings, 0 errors under TreatWarningsAsErrors and Nullable=enable."
+    },
+    {
+      "command": "dotnet build Sapphirus.slnx -c Release",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Whole solution builds; 0 errors."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release -- --filter-class \"*DevelopmentDesktopAuthentication*\"",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "26 passed, 0 failed, 0 skipped."
+    },
+    {
+      "command": "dotnet test services/desktop-support-api.Tests/Sapphirus.DesktopSupportApi.Tests.csproj -c Release",
+      "phase": "final",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "776 passed, 0 failed, 0 skipped. Baseline was 750; 26 tests added; no regression."
+    },
+    {
+      "command": "dotnet restore Sapphirus.slnx --locked-mode",
+      "exitCode": 0,
+      "classification": "passed",
+      "result": "Locked restore succeeded; no PackageReference added, packages.lock.json untouched."
+    },
+    {
+      "command": "node tools/check-secrets.mjs",
+      "exitCode": 1,
+      "classification": "blocked_external",
+      "result": "All findings are pre-existing and outside this lease: crates/desktop-ipc/tests/foundry_model_ipc.rs, crates/desktop-runtime/tests/bmad_config.rs, crates/desktop-runtime/tests/bmad_customization.rs, crates/desktop-store/tests/bmad_config.rs, packages/bmad-foundation/scripts/verify-dependency-graph.mjs, packages/bmad-foundation/source/method/6.10.0/test/test-installer-channels.js. Zero findings in any services/** path this task touched."
+    }
+  ],
+  "unverifiable": [
+    "No live desktop client build was run against this mechanism end-to-end; the end-to-end proof is the in-process WebApplicationFactory<Program> test hitting the real ASP.NET Core pipeline (real authentication middleware, real DesktopAuthenticationComposition, real ScopeAuthorization), not the packaged Windows desktop app.",
+    "The claim that a future Entra rollout needs zero code changes beyond leaving the flag false is a structural argument (AddJwtBearer's registration and options never depend on StaticDesktopTokenEnabled), not something a test can execute without a real Entra tenant."
+  ]
+}

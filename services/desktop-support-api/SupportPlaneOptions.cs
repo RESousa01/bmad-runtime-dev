@@ -14,6 +14,32 @@ public sealed class SupportPlaneOptions
     public bool DevelopmentSigningEnabled { get; init; }
     public bool DevelopmentModelEnabled { get; init; }
     public string DevelopmentConsentStorePath { get; init; } = "";
+
+    /// <summary>
+    /// Opt-in gate for the static desktop bearer-token authentication
+    /// mechanism (see
+    /// <c>Sapphirus.DesktopSupportApi.Security.DesktopAuthenticationComposition</c>).
+    /// Defaults to <see langword="false"/>, in which case
+    /// <c>AddJwtBearer</c> is the only registered scheme, exactly as before
+    /// this feature existed. This is not restricted to Development or Test:
+    /// it is a legitimate production mechanism for an operator who will
+    /// never hold Entra app-registration rights for this internal
+    /// application, so it must be explicit and never a silent default in any
+    /// environment.
+    /// </summary>
+    public bool StaticDesktopTokenEnabled { get; init; }
+
+    /// <summary>
+    /// Optional explicit subject identifier for the static-token principal,
+    /// expected in <c>Guid</c> <c>"D"</c> format when supplied. When left
+    /// blank, the subject is instead derived deterministically from the
+    /// configured token itself (see
+    /// <c>Security.StaticDesktopTokenAuthenticator</c>), which keeps it
+    /// stable across restarts without needing extra configuration and
+    /// without ever exposing the token.
+    /// </summary>
+    public string StaticDesktopSubjectId { get; init; } = "";
+
     public Guid TenantId { get; private set; }
     public Guid ApprovedDesktopClient { get; private set; }
 
@@ -60,6 +86,12 @@ public sealed class SupportPlaneOptions
         {
             throw new InvalidOperationException(
                 "The development consent store path must be fully qualified.");
+        }
+        if (!string.IsNullOrWhiteSpace(StaticDesktopSubjectId)
+            && !Guid.TryParseExact(StaticDesktopSubjectId, "D", out Guid _))
+        {
+            throw new InvalidOperationException(
+                "Sapphirus:StaticDesktopSubjectId must be a lowercase 'D'-format GUID when supplied.");
         }
         TenantId = tenantId;
         ApprovedDesktopClient = approvedDesktopClient;

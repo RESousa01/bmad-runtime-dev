@@ -1,11 +1,11 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.IdentityModel.Tokens;
 using Sapphirus.DesktopSupportApi;
 using Sapphirus.DesktopSupportApi.Configuration;
 using Sapphirus.DesktopSupportApi.Model;
+using Sapphirus.DesktopSupportApi.Security;
 using Sapphirus.DesktopSupportApi.Sql;
 
 SqlMigrationCommandSelection command = SqlMigrationCommand.Select(args);
@@ -50,9 +50,27 @@ builder.Services.Configure<JsonOptions>(json =>
 });
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<SafeApiExceptionHandler>();
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(jwt =>
+
+// Desktop-facing authentication. AddJwtBearer below is registered
+// unconditionally, in every environment, unchanged: it is, and remains, the
+// default path and the seam a future Entra rollout uses without touching
+// this file. The static desktop bearer-token scheme is registered alongside
+// it, never instead of it, and only when the operator explicitly sets
+// Sapphirus:StaticDesktopTokenEnabled (see Sapphirus.DesktopSupportApi.
+// Security.DesktopAuthenticationComposition) — this is a real production
+// mechanism for an operator who will never hold Entra app-registration
+// rights for this internal application, not a Development-only stand-in, so
+// there is deliberately no environment gate here. Only the *default* scheme
+// differs by that flag; every /desktop/v1 route already requires a named
+// scope policy below.
+//
+// TODO(entra-rollout): once a real Entra app registration and tenant exist,
+// leave Sapphirus:StaticDesktopTokenEnabled false (its default) and no code
+// here needs to change; AddJwtBearer already handles the rest.
+builder.Services.AddDesktopAuthentication(
+    builder.Configuration,
+    options,
+    jwt =>
     {
         jwt.Authority = options.Authority;
         jwt.Audience = options.Audience;
@@ -222,6 +240,16 @@ else
 }
 
 WebApplication app = builder.Build();
+
+// Loud, not silent: an active static-token run must be obvious from the
+// startup log, never merely inferable from behavior. The fact is logged,
+// never the token, never the subject, never any claim value.
+if (options.StaticDesktopTokenEnabled)
+{
+    app.Logger.LogWarning(
+        "Static desktop token authentication is active. Sapphirus:StaticDesktopTokenEnabled=true replaces Entra JWT validation as the desktop authentication mechanism for this run.");
+}
+
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseAuthentication();

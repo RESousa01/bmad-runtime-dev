@@ -122,6 +122,13 @@ public sealed class SupportPlaneTelemetry : IDisposable
             "sapphirus.support.usage.cache_read_tokens");
     }
 
+    /// <summary>
+    /// This instance's meter. Every instance shares <see cref="MeterName"/>, so
+    /// a name comparison cannot tell two instances apart; a listener that wants
+    /// one instance's measurements and no other's must compare this reference.
+    /// </summary>
+    internal Meter MeterInstance => _meter;
+
     public void RecordAuthenticationOutcome(bool succeeded) =>
         _authenticationOutcomes.Add(1, SafeTag("outcome", succeeded ? "ok" : "denied"));
 

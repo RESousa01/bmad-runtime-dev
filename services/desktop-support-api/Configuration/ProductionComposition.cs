@@ -83,6 +83,16 @@ public static class ProductionComposition
         // Test. The assertion below is a third, structural net.
         AssertNoDevelopmentFoundryCredential(builder.Services);
 
+        // Note on the *inbound* boundary (desktop -> plane): unlike the
+        // Foundry credential above, the static desktop token is not
+        // forbidden here. It is a legitimate, explicitly opt-in production
+        // mechanism (SupportPlaneOptions.StaticDesktopTokenEnabled) for an
+        // operator who will never hold Entra app-registration rights for
+        // this internal application. See
+        // Sapphirus.DesktopSupportApi.Security.DesktopAuthenticationComposition
+        // for the opt-in gate and Program.cs for the one-time startup log
+        // that makes an active static-token run loud rather than silent.
+
         builder.Services.AddSingleton(provider => new FoundryDeploymentCatalogCache(
             provider.GetRequiredService<IFoundryDeploymentDiscovery>(),
             TimeProvider.System,

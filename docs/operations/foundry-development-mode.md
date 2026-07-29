@@ -181,9 +181,11 @@ Consequently:
 - Substituting a development-mode result for real deployed proof is prohibited
   by the same policy that prohibits substituting fake-server evidence.
 
-The desktop-to-support-API leg is unaffected by this extension. It still needs
-an app registration for production; locally it continues to use the existing
-development authentication adapters.
+The desktop-to-support-API leg used to be described here as unaffected by
+this extension, needing an app registration for production. That is no
+longer accurate for this deployment: see
+[Static desktop token authentication](#static-desktop-token-authentication)
+below for the inbound mechanism this operator uses instead of Entra.
 
 ## Follow-ups
 
@@ -203,6 +205,215 @@ development authentication adapters.
 
 2. **FND-030 credential binding.** Fold `CredentialMechanismId` into the
    receipt's credential-binding hash.
+
+## Static desktop token authentication
+
+Date: 2026-07-29
+
+**This is a production mechanism, not a development stand-in.** Unlike the
+Foundry credential above, it is not restricted to Development or Test, and a
+run under it is a real production run of the desktop-facing surface, subject
+to the same caveats an operator with no Entra rights already accepts for
+everything else in this repository.
+
+### Why this mechanism exists
+
+`Program.cs` registered desktop authentication unconditionally against Entra:
+
+```csharp
+.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(jwt => { jwt.Authority = options.Authority; jwt.Audience = options.Audience; ... })
+```
+
+and every `/desktop/v1` route requires
+`ScopeAuthorization.IsApprovedDesktopPrincipal`, which demands a real Entra
+`tid`/`azp` claim shape. The operator running this service has no Entra app
+registration for it and will not get one: this is an internal application,
+and the managed-identity precedent above (RBAC role assignment) does not
+apply to app registrations, which require a different kind of directory
+access this operator also lacks. Without an alternative, nothing could ever
+call `/desktop/v1` at all.
+
+The static token is the desktop-side mirror of the Foundry API key above: one
+operator-supplied credential stands in for the mechanism the operator cannot
+obtain. The two differ in one important way. The Foundry key is restricted to
+Development and Test because a real managed identity is *installed in
+production by the platform*, so there is no reason a production process would
+ever need the substitute. The static desktop token has no such alternative
+waiting in production: this operator will never hold Entra app-registration
+rights for this application in any environment, so the substitute has to be
+usable in production, and is designed to be exactly that — explicit,
+auditable, and no weaker than the path it replaces.
+
+### It is opt-in and loud, in every environment
+
+`Program.cs` always registers `AddJwtBearer`, in every environment,
+unconditionally and unchanged — it remains the default authentication path.
+`SupportPlaneOptions.StaticDesktopTokenEnabled` (config key
+`Sapphirus:StaticDesktopTokenEnabled`) defaults to `false`. With it `false`,
+nothing about authentication differs from before this feature existed. Only
+when an operator explicitly sets it to `true` does
+`Sapphirus.DesktopSupportApi.Security.DesktopAuthenticationComposition`
+additionally register the static-token scheme and make it the *default*
+scheme (the one selected when a route names no scheme explicitly, which every
+`/desktop/v1` route relies on, since they authorize by named scope policy
+rather than by scheme).
+
+There is no environment gate around this flag: it can be `true` in
+Production, because that is precisely the case this mechanism exists for.
+
+An active run logs the fact once, at startup, and nothing else:
+
+```
+warn: Static desktop token authentication is active. Sapphirus:StaticDesktopTokenEnabled=true replaces Entra JWT validation as the desktop authentication mechanism for this run.
+```
+
+### What the operator sets
+
+| Environment variable | Configuration key | Value |
+|---|---|---|
+| `Sapphirus__StaticDesktopTokenEnabled` | `Sapphirus:StaticDesktopTokenEnabled` | `true` to activate the mechanism. Omit or `false` for Entra-only, the default. |
+| `Sapphirus__StaticDesktopToken` | `Sapphirus:StaticDesktopToken` | The bearer token the desktop client must present as `Authorization: Bearer <token>`. Required when the flag is `true`; ignored otherwise. |
+| `Sapphirus__StaticDesktopSubjectId` | `Sapphirus:StaticDesktopSubjectId` | Optional. A `Guid` in `"D"` format to use as the principal's stable subject. If omitted, the subject is derived deterministically from the token itself (see below). |
+
+`Sapphirus:Authority`, `Sapphirus:Audience`, and
+`Sapphirus:ApprovedDesktopClientId` are still required regardless of this
+flag — `AddJwtBearer` is always registered and needs them, and the static
+principal's `tid`/`azp` claims are built from the same
+`SupportPlaneOptions.TenantId`/`ApprovedDesktopClient` values so that
+`ScopeAuthorization.IsApprovedDesktopPrincipal` runs unmodified against
+either mechanism. An operator with no Entra tenant at all still names *some*
+syntactically valid tenant GUID, audience, and client GUID here; they anchor
+the authorization check and the rate-limit/idempotency partitioning, and
+never need to correspond to a real, reachable Entra tenant when the static
+mechanism is what's actually authenticating requests.
+
+A complete local run with no Entra access at all:
+
+```powershell
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+$env:Sapphirus__Authority = "https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0"
+$env:Sapphirus__Audience = "api://22222222-2222-2222-2222-222222222222"
+$env:Sapphirus__ApprovedDesktopClientId = "33333333-3333-3333-3333-333333333333"
+$env:Sapphirus__StaticDesktopTokenEnabled = "true"
+$env:Sapphirus__StaticDesktopToken = "<a long, random, operator-generated token>"
+dotnet run --project services/desktop-support-api
+```
+
+The desktop client then presents `Authorization: Bearer <that same token>` on
+every `/desktop/v1` request in place of an Entra-issued JWT.
+
+### The token is a production credential
+
+Because this can be the *only* thing authenticating every request in a real
+deployment, it is held to a materially higher bar than the outbound
+development Foundry key:
+
+- **Minimum length 32**, maximum 512, bounded printable ASCII (mirroring the
+  Foundry key's character rule, for the same reason: a token carrying a space,
+  control character, or line break could otherwise split the request or make
+  the header library raise an exception that quotes the token back).
+- **Denylisted placeholder values** (`changeme`, `token`, `test`, `password`,
+  `secret`, `default`, `admin`, `placeholder`, and variants) are refused even
+  if they happened to be padded to a legal length, and a token consisting of
+  one character repeated across its whole length is refused outright.
+- **Fixed-time comparison.** `CryptographicOperations.FixedTimeEquals` compares
+  the presented token to the configured one; a length mismatch is rejected
+  before that comparison (an unavoidable precondition of the API, and it
+  leaks nothing about the token's content, only that the lengths differed).
+- **Fails closed at composition, not at the first request.** A missing,
+  malformed, or denylisted token throws `static_desktop_token_invalid`
+  immediately when `Sapphirus:StaticDesktopTokenEnabled` is `true`, during
+  host startup (`DesktopAuthenticationComposition.AddDesktopAuthentication`
+  constructs `StaticDesktopTokenAuthenticator` eagerly, not behind a lazily
+  resolved factory). A host that fails to start is far easier to diagnose
+  than one that starts and answers every request `401`.
+- **Never logged, never in telemetry, never in a problem document, never in
+  a health response, never in a receipt.** The authentication failure message
+  is a fixed string (`"The static desktop token was not accepted."`) that
+  never quotes the presented or configured value.
+
+### The subject, and why it still works
+
+The rate limiter partition, `IIdempotencyStore.ExecuteAsync(subject, key, …)`,
+per-subject consent consumption, `IDeviceRegistry.FindActiveAsync(subject,
+registrationId)`, and the `SubjectHash` a receipt is checked against in
+`ModelResultGuards` all depend on a stable subject claim. None of that code
+was touched. Instead, the static principal is shaped to satisfy it exactly as
+a real Entra principal would:
+
+- If `Sapphirus:StaticDesktopSubjectId` is configured, that GUID is used as
+  the `oid` claim verbatim.
+- Otherwise, the subject is derived as `"static-" +`
+  `SHA256("sapphirus:static-desktop-subject:v1\n" + token)[..32]` (hex). This
+  is **one-way** — the token cannot be recovered from it — and **stable**
+  across restarts, because it depends only on the configured token, which
+  does not change between restarts of the same deployment. The `static-`
+  prefix is deliberate: the derived subject can never be mistaken for a real
+  Entra `oid` (which is always a bare GUID), which is a second, independent
+  signal alongside the marker claim below.
+
+### The principal is identifiable as static-token-authenticated
+
+Every principal this mechanism builds carries
+`sapphirus_static_token_principal = "true"`, a claim a real Entra token never
+has. Combined with the never-GUID-shaped derived subject above, evidence
+produced while this mechanism is active — logs, or anything that inspects the
+authenticated `ClaimsPrincipal` directly — is never mistakable for a real
+Entra principal.
+
+**Named gap.** Unlike the outbound Foundry credential, whose
+`CredentialMechanismId` is folded directly into the receipt's
+`CredentialBindingHash` (FND-030), there is no equivalent seam on the inbound
+side today. A model-access receipt's `TenantHash` and `SubjectHash` are opaque
+SHA-256 digests of the tenant and subject (see
+`ScopeAuthorization.SubjectPartition`), computed identically regardless of
+which authentication mechanism produced the underlying principal. Folding the
+inbound mechanism into that hash, or into a new receipt field, was not
+attempted here because `ModelResultGuards.ValidateReceiptV2` and the
+cross-language receipt digest fixture would all need to move together with
+it (see `services/desktop-support-api/Security.cs`), and that is a
+receipt-schema change, not an authentication change. Until that exists, the
+`sapphirus_static_token_principal` claim on the request-time principal is the
+only mechanism-identifying signal; it does not persist into the receipt
+itself.
+
+### What a run under this mechanism proves, and does not
+
+**Proved:** that the desktop client can reach every `/desktop/v1` route with
+a real, bounded-strength, fixed-time-compared credential, and that
+`ScopeAuthorization.IsApprovedDesktopPrincipal` — the same method a real Entra
+principal is checked against — genuinely refuses a scope this credential was
+not granted (`DesktopScopes.DiagnosticsUpload` is deliberately withheld from
+the granted set for exactly this reason).
+
+**Not proved:** anything about Entra JWT validation, issuer/audience
+signature checking, token expiry handling, or any behavior specific to
+`AddJwtBearer`. That path is exercised by nothing running under this
+mechanism, because nothing running under this mechanism presents an Entra
+token.
+
+### What a future Entra rollout replaces
+
+If this operator (or a successor) later gains Entra app-registration rights
+for this application, turning Entra on requires no code change:
+
+1. Leave `Sapphirus:StaticDesktopTokenEnabled` `false` (its default). This
+   alone makes `AddJwtBearer` the sole scheme again, exactly as before this
+   feature existed.
+2. Supply a real `Sapphirus:Authority` (the tenant's issuer), a real
+   `Sapphirus:Audience`, and the real `Sapphirus:ApprovedDesktopClientId`
+   from the app registration.
+3. Point the desktop client at that tenant for token acquisition.
+
+At that point, `Sapphirus.DesktopSupportApi.Security.
+StaticDesktopTokenAuthenticator`, `StaticDesktopAuthenticationHandler`,
+`StaticDesktopAuthenticationOptions`, `StaticDesktopAuthenticationDefaults`,
+`StaticDesktopSubjectConfiguration`, and
+`SupportPlaneOptions.StaticDesktopTokenEnabled`/`StaticDesktopSubjectId` are
+exactly what an Entra rollout deletes — every one of them is marked with a
+`TODO(entra-rollout)` comment at its point of composition in
+`Program.cs`/`DevelopmentDesktopAuthentication.cs` naming this.
 
 ## Related documents
 

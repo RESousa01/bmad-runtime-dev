@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using System.Text.Json;
 using Sapphirus.DesktopSupportApi.Model;
@@ -62,9 +63,9 @@ public sealed class SupportPlaneModelTelemetryTests
     [Fact]
     public void Unavailable_usage_records_nothing_rather_than_a_free_zero()
     {
-        List<(string Instrument, long Value)> measurements = [];
-        using MeterListener listener = CreateListener(measurements);
         using SupportPlaneTelemetry telemetry = new();
+        ConcurrentQueue<(string Instrument, long Value)> measurements = new();
+        using MeterListener listener = CreateListener(telemetry, measurements);
         listener.Start();
 
         telemetry.RecordUsageV2(
@@ -82,9 +83,9 @@ public sealed class SupportPlaneModelTelemetryTests
     [Fact]
     public void Reported_usage_records_only_the_categories_the_provider_named()
     {
-        List<(string Instrument, long Value)> measurements = [];
-        using MeterListener listener = CreateListener(measurements);
         using SupportPlaneTelemetry telemetry = new();
+        ConcurrentQueue<(string Instrument, long Value)> measurements = new();
+        using MeterListener listener = CreateListener(telemetry, measurements);
         listener.Start();
 
         telemetry.RecordUsageV2(
@@ -191,13 +192,25 @@ public sealed class SupportPlaneModelTelemetryTests
             document.RootElement.GetProperty("code").GetString());
     }
 
-    private static MeterListener CreateListener(List<(string, long)> measurements)
+    /// <summary>
+    /// A listener bound to exactly one <see cref="SupportPlaneTelemetry"/>.
+    /// Every instance publishes under the same meter name, so matching on the
+    /// name would also enable the instruments of instances built by test
+    /// classes xUnit is running in parallel with this one, and their
+    /// measurements would arrive here on another thread and be read as ours.
+    /// Comparing the meter reference admits this instance alone; the queue then
+    /// keeps the sink safe against any callback the runtime may deliver
+    /// concurrently.
+    /// </summary>
+    private static MeterListener CreateListener(
+        SupportPlaneTelemetry telemetry,
+        ConcurrentQueue<(string Instrument, long Value)> measurements)
     {
         MeterListener listener = new()
         {
             InstrumentPublished = (instrument, activeListener) =>
             {
-                if (instrument.Meter.Name == SupportPlaneTelemetry.MeterName)
+                if (ReferenceEquals(instrument.Meter, telemetry.MeterInstance))
                 {
                     activeListener.EnableMeasurementEvents(instrument);
                 }
@@ -205,7 +218,7 @@ public sealed class SupportPlaneModelTelemetryTests
         };
         listener.SetMeasurementEventCallback<long>(
             (instrument, measurement, _, _) =>
-                measurements.Add((instrument.Name, measurement)));
+                measurements.Enqueue((instrument.Name, measurement)));
         return listener;
     }
 }
