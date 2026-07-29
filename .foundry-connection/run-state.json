@@ -551,6 +551,22 @@
       "scopeDiscipline": "Move only model-related code. Opportunistic refactoring of unrelated parts of these modules collides with the concurrent BMAD lane and makes review much harder. Anything model-related that is deeply entangled with non-model code should be left in place and reported instead."
     },
     {
+      "id": "DEV-DESKTOP-AUTHENTICATION",
+      "decidedAt": "2026-07-29T05:00:00Z",
+      "decidedBy": "operator",
+      "question": "The support plane authenticates every route against Entra unconditionally, so with no app registration nothing can call it, and the entire managed chain is built, tested, and unreachable. What makes the application actually runnable?",
+      "decision": "Add a development authentication scheme accepting an operator-supplied local token instead of an Entra JWT, registered only in Development and Test. It is the mirror of DEV-FOUNDRY-CREDENTIAL: that seam solved the outbound identity boundary from the plane to Foundry, this one solves the inbound boundary from the desktop to the plane.",
+      "planExtension": true,
+      "whyItWasNeeded": "An earlier status of mine claimed the support API could be driven over HTTP with the development credential. That was wrong. The credential seam solved only the outbound leg. Program.cs registers JwtBearer unconditionally, outside the Development branch, and every route requires IsApprovedDesktopPrincipal, which demands a matching tenant and exactly one approved client id. Without an app registration there is no token that passes, so neither the desktop nor curl could reach the plane.",
+      "invariantsThatMustHold": [
+        "Production must be structurally unable to select it, guarded three ways: the handler constructor refuses any environment but Development and Test, the scheme is registered only inside the Development branch, and production composition asserts no development scheme is in the graph.",
+        "IsApprovedDesktopPrincipal must not be weakened. The development handler produces a principal with the same claim shape a real token would, so authorization runs unchanged and a scope or client-id bug still surfaces locally. The development path exercises the real gate rather than bypassing it.",
+        "The token is operator-supplied through an environment variable, never hardcoded, never logged, and compared in fixed time. Blank or missing in Development fails closed.",
+        "A development principal must be identifiable in evidence, so a locally produced receipt can never be mistaken for a production one."
+      ],
+      "whatItDoesNotChange": "Production remains Entra-only. This does not clear FND-002, FND-064, or FND-065, which require a real app registration, a managed identity, and a role assignment. It makes the architecture runnable and provable locally; it is not a deployed qualification."
+    },
+    {
       "id": "DEV-FOUNDRY-CREDENTIAL",
       "decidedAt": "2026-07-28T20:05:00Z",
       "decidedBy": "operator",
