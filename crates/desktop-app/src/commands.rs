@@ -52,7 +52,7 @@ mod model;
 
 use model::{
     model_catalog_data, model_selection_data, refresh_model_catalog, send_model_response,
-    stop_model_response,
+    set_model_profile_selection, stop_model_response,
 };
 
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
@@ -709,6 +709,19 @@ fn execute_command(
             state.set_model_selection(provider_id, model_id, accepted_at)?;
             model_auth_status_data(state)
         }
+        LocalCommand::SetModelProfileSelection {
+            workspace_id,
+            workspace_grant_epoch,
+            profile_id,
+            variant_id,
+        } => set_model_profile_selection(
+            state,
+            &workspace_id,
+            workspace_grant_epoch,
+            &profile_id,
+            variant_id.as_deref(),
+            accepted_at,
+        ),
         LocalCommand::GetModelCatalog {
             workspace_id,
             workspace_grant_epoch,
@@ -725,10 +738,15 @@ fn execute_command(
         // envelope and then deliberately dropped here: the dispatch seam below
         // is closed in this build, so nothing consumes them yet. Destructuring
         // them away is how that stays visible — a handler that took them and
-        // ignored them would read as if the prompt were being used.
+        // ignored them would read as if the prompt were being used. The
+        // caller-chosen profile and variant are the exception: they steer
+        // which selection gets resolved even while the dispatch seam itself
+        // stays closed.
         LocalCommand::SendModelResponse {
             workspace_id,
             workspace_grant_epoch,
+            profile_id,
+            variant_id,
             ..
         } => {
             let renderer_session = pin_renderer_session(state, window_label, renderer_session_id)?;
@@ -737,6 +755,8 @@ fn execute_command(
                 &renderer_session,
                 &workspace_id,
                 workspace_grant_epoch,
+                profile_id.as_deref(),
+                variant_id.as_deref(),
                 accepted_at,
             )
         }

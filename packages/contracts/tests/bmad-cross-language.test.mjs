@@ -25,7 +25,7 @@ test("SRC-08 generated surfaces cover every canonical BMAD schema version", asyn
   // Reviewed count. Seven BMAD schemas were added by ENG-06, ENG-08, ENG-12,
   // ENG-13, ENG-14, ENG-16 and BLD-02; this guard exists so an addition is a
   // deliberate act rather than a silent one.
-  assert.equal(catalog.schemas.length, 22);
+  assert.equal(catalog.schemas.length, 23);
   for (const schema of catalog.schemas) {
     assert.match(typescript, new RegExp(schema.protocolVersion.replaceAll(".", "\\."), "u"));
     assert.match(rust, new RegExp(schema.rustType, "u"));

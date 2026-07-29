@@ -240,11 +240,37 @@ struct PreferencesPayload {
     density: desktop_runtime::DensityPreference,
 }
 
+/// The catalog-backed shape of `model.selection.set`: a profile, and
+/// optionally one of its variants. A profile has a default variant, so
+/// `variantId` may be omitted.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct ModelSelectionPayload {
+struct ManagedModelSelectionPayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    profile_id: String,
+    variant_id: Option<String>,
+}
+
+/// The legacy direct-provider shape of `model.selection.set`, unchanged.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct DirectModelSelectionPayload {
     provider_id: ModelProviderId,
     model_id: String,
+}
+
+/// `model.selection.set` carries one of two completely disjoint field sets.
+/// Because each variant is `deny_unknown_fields`, no payload can match both,
+/// so the untagged match is unambiguous. Order matters: [`Self::Managed`]
+/// must be tried first so a catalog-backed payload is never mistakenly
+/// coerced into the legacy shape (it can't be, since the field sets are
+/// disjoint, but trying it first keeps the failure mode simple).
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum ModelSelectionPayload {
+    Managed(ManagedModelSelectionPayload),
+    DirectProvider(DirectModelSelectionPayload),
 }
 
 /// The whole renderer vocabulary for the three catalog and selection reads.
@@ -274,6 +300,11 @@ struct SendModelResponsePayload {
     task_id: ContractId,
     client_session_ref: String,
     prompt: String,
+    /// An explicit caller-chosen profile. Optional: when absent, the host
+    /// falls back to its existing resolution order.
+    profile_id: Option<String>,
+    /// The variant of `profile_id`. Ignored unless `profile_id` is present.
+    variant_id: Option<String>,
 }
 
 /// Stopping one task-bound response. Naming both the task and the run is what
@@ -534,13 +565,34 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
         }
         "model.selection.set" => {
             let input: ModelSelectionPayload = parse_payload(payload)?;
-            if !valid_model_identifier(&input.model_id) {
-                return Err(IpcValidationError::InvalidPayload);
+            match input {
+                ModelSelectionPayload::Managed(managed) => {
+                    validate_workspace_grant_epoch(managed.workspace_grant_epoch)?;
+                    if !valid_model_profile_id(&managed.profile_id)
+                        || managed
+                            .variant_id
+                            .as_deref()
+                            .is_some_and(|variant_id| !valid_model_variant_id(variant_id))
+                    {
+                        return Err(IpcValidationError::InvalidPayload);
+                    }
+                    Ok(LocalCommand::SetModelProfileSelection {
+                        workspace_id: managed.workspace_id,
+                        workspace_grant_epoch: managed.workspace_grant_epoch,
+                        profile_id: managed.profile_id,
+                        variant_id: managed.variant_id,
+                    })
+                }
+                ModelSelectionPayload::DirectProvider(direct) => {
+                    if !valid_model_identifier(&direct.model_id) {
+                        return Err(IpcValidationError::InvalidPayload);
+                    }
+                    Ok(LocalCommand::SetModelSelection {
+                        provider_id: direct.provider_id,
+                        model_id: direct.model_id,
+                    })
+                }
             }
-            Ok(LocalCommand::SetModelSelection {
-                provider_id: input.provider_id,
-                model_id: input.model_id,
-            })
         }
         "model.catalog.get" => {
             let input = parse_model_catalog_scope(payload)?;
@@ -916,13 +968,73 @@ fn parse_send_model_response(payload: Value) -> Result<LocalCommand, IpcValidati
     {
         return Err(IpcValidationError::InvalidPayload);
     }
+    if !input
+        .profile_id
+        .as_deref()
+        .is_none_or(valid_model_profile_id)
+        || !input
+            .variant_id
+            .as_deref()
+            .is_none_or(valid_model_variant_id)
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
     Ok(LocalCommand::SendModelResponse {
         workspace_id: input.workspace_id,
         workspace_grant_epoch: input.workspace_grant_epoch,
         task_id: input.task_id,
         client_session_ref: input.client_session_ref,
         prompt: input.prompt,
+        profile_id: input.profile_id,
+        variant_id: input.variant_id,
     })
+}
+
+/// Validates a hyphen-segmented identifier: a lowercase-first segment, then up
+/// to `max_groups` more `-`-joined alphanumeric segments, bounded to
+/// `[min_len, max_len]` bytes. Mirrors, without a regex dependency, the
+/// `ModelProfileId`/`ModelVariantId` patterns in
+/// `packages/contracts/schemas/model-profile.schema.json`.
+fn valid_hyphenated_identifier(
+    value: &str,
+    min_len: usize,
+    max_len: usize,
+    max_groups: usize,
+) -> bool {
+    if value.len() < min_len || value.len() > max_len {
+        return false;
+    }
+    let segments: Vec<&str> = value.split('-').collect();
+    if segments.len() > max_groups + 1 {
+        return false;
+    }
+    for (index, segment) in segments.iter().enumerate() {
+        let mut characters = segment.chars();
+        let Some(first) = characters.next() else {
+            return false;
+        };
+        let first_is_valid = if index == 0 {
+            first.is_ascii_lowercase()
+        } else {
+            first.is_ascii_lowercase() || first.is_ascii_digit()
+        };
+        if !first_is_valid
+            || !characters.all(|character| character.is_ascii_lowercase() || character.is_ascii_digit())
+        {
+            return false;
+        }
+    }
+    true
+}
+
+/// `^[a-z][a-z0-9]*(-[a-z0-9]+){0,7}$`, 3-64 bytes.
+fn valid_model_profile_id(value: &str) -> bool {
+    valid_hyphenated_identifier(value, 3, 64, 7)
+}
+
+/// `^[a-z][a-z0-9]*(-[a-z0-9]+){0,3}$`, 2-32 bytes.
+fn valid_model_variant_id(value: &str) -> bool {
+    valid_hyphenated_identifier(value, 2, 32, 3)
 }
 
 fn parse_stop_model_response(payload: Value) -> Result<LocalCommand, IpcValidationError> {

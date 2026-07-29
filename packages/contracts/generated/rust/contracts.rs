@@ -28586,6 +28586,1417 @@ impl<'de> ::serde::Deserialize<'de> for BmadScriptPlanPlanStepStepId {
             })
     }
 }
+#[doc = "`BmadScriptResult`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-script-result.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"cleanup\","]
+#[doc = "    \"controls\","]
+#[doc = "    \"exitReason\","]
+#[doc = "    \"planHash\","]
+#[doc = "    \"resultHash\","]
+#[doc = "    \"resultId\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"streams\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"cleanup\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadScriptResultCleanup\""]
+#[doc = "    },"]
+#[doc = "    \"controls\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadScriptResultControlOutcome\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 32"]
+#[doc = "    },"]
+#[doc = "    \"exitReason\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadScriptResultExitReason\""]
+#[doc = "    },"]
+#[doc = "    \"networkAttempts\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadScriptResultNetworkAttempt\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256"]
+#[doc = "    },"]
+#[doc = "    \"planHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"resourceUsage\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadScriptResultResourceUsage\""]
+#[doc = "    },"]
+#[doc = "    \"resultHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"resultId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-script-result.v1\""]
+#[doc = "    },"]
+#[doc = "    \"streams\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadScriptResultStreams\""]
+#[doc = "    },"]
+#[doc = "    \"structuredOutputHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"touchedFiles\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadScriptResultTouchedFile\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 1024"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptResult {
+    pub cleanup: BmadScriptResultCleanup,
+    pub controls: ::std::vec::Vec<BmadScriptResultControlOutcome>,
+    #[serde(rename = "exitReason")]
+    pub exit_reason: BmadScriptResultExitReason,
+    #[serde(
+        rename = "networkAttempts",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub network_attempts: ::std::vec::Vec<BmadScriptResultNetworkAttempt>,
+    #[serde(rename = "planHash")]
+    pub plan_hash: CommonSha256,
+    #[serde(
+        rename = "resourceUsage",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub resource_usage: ::std::option::Option<BmadScriptResultResourceUsage>,
+    #[serde(rename = "resultHash")]
+    pub result_hash: CommonSha256,
+    #[serde(rename = "resultId")]
+    pub result_id: CommonContractId,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub streams: BmadScriptResultStreams,
+    #[serde(
+        rename = "structuredOutputHash",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub structured_output_hash: ::std::option::Option<CommonSha256>,
+    #[serde(
+        rename = "touchedFiles",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub touched_files: ::std::vec::Vec<BmadScriptResultTouchedFile>,
+}
+impl BmadScriptResult {
+    pub fn builder() -> builder::BmadScriptResult {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptResultCleanup`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"status\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"quarantinePath\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1024,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "    },"]
+#[doc = "    \"restartRecovered\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"status\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"clean\","]
+#[doc = "        \"quarantined\","]
+#[doc = "        \"incomplete\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptResultCleanup {
+    #[serde(
+        rename = "quarantinePath",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub quarantine_path: ::std::option::Option<BmadScriptResultCleanupQuarantinePath>,
+    #[serde(
+        rename = "restartRecovered",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub restart_recovered: ::std::option::Option<bool>,
+    pub status: BmadScriptResultCleanupStatus,
+}
+impl BmadScriptResultCleanup {
+    pub fn builder() -> builder::BmadScriptResultCleanup {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptResultCleanupQuarantinePath`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1024,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadScriptResultCleanupQuarantinePath(::std::string::String);
+impl ::std::ops::Deref for BmadScriptResultCleanupQuarantinePath {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadScriptResultCleanupQuarantinePath> for ::std::string::String {
+    fn from(value: BmadScriptResultCleanupQuarantinePath) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultCleanupQuarantinePath {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1024usize {
+            return Err("longer than 1024 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultCleanupQuarantinePath {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultCleanupQuarantinePath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultCleanupQuarantinePath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadScriptResultCleanupQuarantinePath {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadScriptResultCleanupStatus`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"clean\","]
+#[doc = "    \"quarantined\","]
+#[doc = "    \"incomplete\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadScriptResultCleanupStatus {
+    #[serde(rename = "clean")]
+    Clean,
+    #[serde(rename = "quarantined")]
+    Quarantined,
+    #[serde(rename = "incomplete")]
+    Incomplete,
+}
+impl ::std::fmt::Display for BmadScriptResultCleanupStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Clean => f.write_str("clean"),
+            Self::Quarantined => f.write_str("quarantined"),
+            Self::Incomplete => f.write_str("incomplete"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultCleanupStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "clean" => Ok(Self::Clean),
+            "quarantined" => Ok(Self::Quarantined),
+            "incomplete" => Ok(Self::Incomplete),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultCleanupStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultCleanupStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultCleanupStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadScriptResultControlOutcome`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"control\","]
+#[doc = "    \"state\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"control\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"process_isolation\","]
+#[doc = "        \"filesystem\","]
+#[doc = "        \"environment\","]
+#[doc = "        \"network\","]
+#[doc = "        \"cpu\","]
+#[doc = "        \"memory\","]
+#[doc = "        \"process_count\","]
+#[doc = "        \"output_bytes\","]
+#[doc = "        \"wall_clock\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"detail\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 2048,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"state\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"enforced\","]
+#[doc = "        \"decided\","]
+#[doc = "        \"unavailable\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptResultControlOutcome {
+    pub control: BmadScriptResultControlOutcomeControl,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub detail: ::std::option::Option<BmadScriptResultControlOutcomeDetail>,
+    pub state: BmadScriptResultControlOutcomeState,
+}
+impl BmadScriptResultControlOutcome {
+    pub fn builder() -> builder::BmadScriptResultControlOutcome {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptResultControlOutcomeControl`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"process_isolation\","]
+#[doc = "    \"filesystem\","]
+#[doc = "    \"environment\","]
+#[doc = "    \"network\","]
+#[doc = "    \"cpu\","]
+#[doc = "    \"memory\","]
+#[doc = "    \"process_count\","]
+#[doc = "    \"output_bytes\","]
+#[doc = "    \"wall_clock\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadScriptResultControlOutcomeControl {
+    #[serde(rename = "process_isolation")]
+    ProcessIsolation,
+    #[serde(rename = "filesystem")]
+    Filesystem,
+    #[serde(rename = "environment")]
+    Environment,
+    #[serde(rename = "network")]
+    Network,
+    #[serde(rename = "cpu")]
+    Cpu,
+    #[serde(rename = "memory")]
+    Memory,
+    #[serde(rename = "process_count")]
+    ProcessCount,
+    #[serde(rename = "output_bytes")]
+    OutputBytes,
+    #[serde(rename = "wall_clock")]
+    WallClock,
+}
+impl ::std::fmt::Display for BmadScriptResultControlOutcomeControl {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::ProcessIsolation => f.write_str("process_isolation"),
+            Self::Filesystem => f.write_str("filesystem"),
+            Self::Environment => f.write_str("environment"),
+            Self::Network => f.write_str("network"),
+            Self::Cpu => f.write_str("cpu"),
+            Self::Memory => f.write_str("memory"),
+            Self::ProcessCount => f.write_str("process_count"),
+            Self::OutputBytes => f.write_str("output_bytes"),
+            Self::WallClock => f.write_str("wall_clock"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultControlOutcomeControl {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "process_isolation" => Ok(Self::ProcessIsolation),
+            "filesystem" => Ok(Self::Filesystem),
+            "environment" => Ok(Self::Environment),
+            "network" => Ok(Self::Network),
+            "cpu" => Ok(Self::Cpu),
+            "memory" => Ok(Self::Memory),
+            "process_count" => Ok(Self::ProcessCount),
+            "output_bytes" => Ok(Self::OutputBytes),
+            "wall_clock" => Ok(Self::WallClock),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultControlOutcomeControl {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultControlOutcomeControl {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultControlOutcomeControl {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadScriptResultControlOutcomeDetail`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 2048,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadScriptResultControlOutcomeDetail(::std::string::String);
+impl ::std::ops::Deref for BmadScriptResultControlOutcomeDetail {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadScriptResultControlOutcomeDetail> for ::std::string::String {
+    fn from(value: BmadScriptResultControlOutcomeDetail) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultControlOutcomeDetail {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 2048usize {
+            return Err("longer than 2048 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultControlOutcomeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultControlOutcomeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultControlOutcomeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadScriptResultControlOutcomeDetail {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadScriptResultControlOutcomeState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"enforced\","]
+#[doc = "    \"decided\","]
+#[doc = "    \"unavailable\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadScriptResultControlOutcomeState {
+    #[serde(rename = "enforced")]
+    Enforced,
+    #[serde(rename = "decided")]
+    Decided,
+    #[serde(rename = "unavailable")]
+    Unavailable,
+}
+impl ::std::fmt::Display for BmadScriptResultControlOutcomeState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Enforced => f.write_str("enforced"),
+            Self::Decided => f.write_str("decided"),
+            Self::Unavailable => f.write_str("unavailable"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultControlOutcomeState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "enforced" => Ok(Self::Enforced),
+            "decided" => Ok(Self::Decided),
+            "unavailable" => Ok(Self::Unavailable),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultControlOutcomeState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultControlOutcomeState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultControlOutcomeState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadScriptResultExitReason`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"kind\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"denialCode\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "    },"]
+#[doc = "    \"exitCode\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 2147483647.0,"]
+#[doc = "      \"minimum\": -2147483648.0"]
+#[doc = "    },"]
+#[doc = "    \"kind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"completed\","]
+#[doc = "        \"denied\","]
+#[doc = "        \"timeout\","]
+#[doc = "        \"cancelled\","]
+#[doc = "        \"killed\","]
+#[doc = "        \"quota_exceeded\","]
+#[doc = "        \"unavailable\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptResultExitReason {
+    #[serde(
+        rename = "denialCode",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub denial_code: ::std::option::Option<BmadScriptResultExitReasonDenialCode>,
+    #[serde(
+        rename = "exitCode",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub exit_code: ::std::option::Option<i32>,
+    pub kind: BmadScriptResultExitReasonKind,
+}
+impl BmadScriptResultExitReason {
+    pub fn builder() -> builder::BmadScriptResultExitReason {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptResultExitReasonDenialCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadScriptResultExitReasonDenialCode(::std::string::String);
+impl ::std::ops::Deref for BmadScriptResultExitReasonDenialCode {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadScriptResultExitReasonDenialCode> for ::std::string::String {
+    fn from(value: BmadScriptResultExitReasonDenialCode) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultExitReasonDenialCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultExitReasonDenialCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultExitReasonDenialCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultExitReasonDenialCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadScriptResultExitReasonDenialCode {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadScriptResultExitReasonKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"completed\","]
+#[doc = "    \"denied\","]
+#[doc = "    \"timeout\","]
+#[doc = "    \"cancelled\","]
+#[doc = "    \"killed\","]
+#[doc = "    \"quota_exceeded\","]
+#[doc = "    \"unavailable\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadScriptResultExitReasonKind {
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "denied")]
+    Denied,
+    #[serde(rename = "timeout")]
+    Timeout,
+    #[serde(rename = "cancelled")]
+    Cancelled,
+    #[serde(rename = "killed")]
+    Killed,
+    #[serde(rename = "quota_exceeded")]
+    QuotaExceeded,
+    #[serde(rename = "unavailable")]
+    Unavailable,
+}
+impl ::std::fmt::Display for BmadScriptResultExitReasonKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Completed => f.write_str("completed"),
+            Self::Denied => f.write_str("denied"),
+            Self::Timeout => f.write_str("timeout"),
+            Self::Cancelled => f.write_str("cancelled"),
+            Self::Killed => f.write_str("killed"),
+            Self::QuotaExceeded => f.write_str("quota_exceeded"),
+            Self::Unavailable => f.write_str("unavailable"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultExitReasonKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "completed" => Ok(Self::Completed),
+            "denied" => Ok(Self::Denied),
+            "timeout" => Ok(Self::Timeout),
+            "cancelled" => Ok(Self::Cancelled),
+            "killed" => Ok(Self::Killed),
+            "quota_exceeded" => Ok(Self::QuotaExceeded),
+            "unavailable" => Ok(Self::Unavailable),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultExitReasonKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultExitReasonKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultExitReasonKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadScriptResultNetworkAttempt`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"allowed\","]
+#[doc = "    \"target\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"allowed\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"denialCode\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "    },"]
+#[doc = "    \"target\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 512,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptResultNetworkAttempt {
+    pub allowed: bool,
+    #[serde(
+        rename = "denialCode",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub denial_code: ::std::option::Option<BmadScriptResultNetworkAttemptDenialCode>,
+    pub target: BmadScriptResultNetworkAttemptTarget,
+}
+impl BmadScriptResultNetworkAttempt {
+    pub fn builder() -> builder::BmadScriptResultNetworkAttempt {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptResultNetworkAttemptDenialCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadScriptResultNetworkAttemptDenialCode(::std::string::String);
+impl ::std::ops::Deref for BmadScriptResultNetworkAttemptDenialCode {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadScriptResultNetworkAttemptDenialCode> for ::std::string::String {
+    fn from(value: BmadScriptResultNetworkAttemptDenialCode) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultNetworkAttemptDenialCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultNetworkAttemptDenialCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultNetworkAttemptDenialCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultNetworkAttemptDenialCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadScriptResultNetworkAttemptDenialCode {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadScriptResultNetworkAttemptTarget`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 512,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadScriptResultNetworkAttemptTarget(::std::string::String);
+impl ::std::ops::Deref for BmadScriptResultNetworkAttemptTarget {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadScriptResultNetworkAttemptTarget> for ::std::string::String {
+    fn from(value: BmadScriptResultNetworkAttemptTarget) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultNetworkAttemptTarget {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 512usize {
+            return Err("longer than 512 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultNetworkAttemptTarget {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultNetworkAttemptTarget {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultNetworkAttemptTarget {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadScriptResultNetworkAttemptTarget {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadScriptResultResourceUsage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"measured\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"cpuTimeMs\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 86400000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"measured\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"peakMemoryBytes\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1099511627776.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"peakProcessCount\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 65536.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"wallClockMs\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 86400000.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptResultResourceUsage {
+    #[serde(
+        rename = "cpuTimeMs",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub cpu_time_ms: ::std::option::Option<i64>,
+    pub measured: bool,
+    #[serde(
+        rename = "peakMemoryBytes",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub peak_memory_bytes: ::std::option::Option<i64>,
+    #[serde(
+        rename = "peakProcessCount",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub peak_process_count: ::std::option::Option<i64>,
+    #[serde(
+        rename = "wallClockMs",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub wall_clock_ms: ::std::option::Option<i64>,
+}
+impl BmadScriptResultResourceUsage {
+    pub fn builder() -> builder::BmadScriptResultResourceUsage {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptResultStreams`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"stderrHash\","]
+#[doc = "    \"stdoutHash\","]
+#[doc = "    \"truncated\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"capturedBytes\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1073741824.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"stderrHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"stdoutHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"truncated\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptResultStreams {
+    #[serde(
+        rename = "capturedBytes",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub captured_bytes: ::std::option::Option<i64>,
+    #[serde(rename = "stderrHash")]
+    pub stderr_hash: CommonSha256,
+    #[serde(rename = "stdoutHash")]
+    pub stdout_hash: CommonSha256,
+    pub truncated: bool,
+}
+impl BmadScriptResultStreams {
+    pub fn builder() -> builder::BmadScriptResultStreams {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptResultTouchedFile`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"operation\","]
+#[doc = "    \"relativePath\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"contentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"operation\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"read\","]
+#[doc = "        \"write\","]
+#[doc = "        \"create\","]
+#[doc = "        \"remove\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"relativePath\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1024,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadScriptResultTouchedFile {
+    #[serde(
+        rename = "contentHash",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub content_hash: ::std::option::Option<CommonSha256>,
+    pub operation: BmadScriptResultTouchedFileOperation,
+    #[serde(rename = "relativePath")]
+    pub relative_path: BmadScriptResultTouchedFileRelativePath,
+}
+impl BmadScriptResultTouchedFile {
+    pub fn builder() -> builder::BmadScriptResultTouchedFile {
+        Default::default()
+    }
+}
+#[doc = "`BmadScriptResultTouchedFileOperation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"read\","]
+#[doc = "    \"write\","]
+#[doc = "    \"create\","]
+#[doc = "    \"remove\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadScriptResultTouchedFileOperation {
+    #[serde(rename = "read")]
+    Read,
+    #[serde(rename = "write")]
+    Write,
+    #[serde(rename = "create")]
+    Create,
+    #[serde(rename = "remove")]
+    Remove,
+}
+impl ::std::fmt::Display for BmadScriptResultTouchedFileOperation {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Read => f.write_str("read"),
+            Self::Write => f.write_str("write"),
+            Self::Create => f.write_str("create"),
+            Self::Remove => f.write_str("remove"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultTouchedFileOperation {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "read" => Ok(Self::Read),
+            "write" => Ok(Self::Write),
+            "create" => Ok(Self::Create),
+            "remove" => Ok(Self::Remove),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultTouchedFileOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultTouchedFileOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultTouchedFileOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadScriptResultTouchedFileRelativePath`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1024,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadScriptResultTouchedFileRelativePath(::std::string::String);
+impl ::std::ops::Deref for BmadScriptResultTouchedFileRelativePath {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadScriptResultTouchedFileRelativePath> for ::std::string::String {
+    fn from(value: BmadScriptResultTouchedFileRelativePath) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadScriptResultTouchedFileRelativePath {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1024usize {
+            return Err("longer than 1024 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadScriptResultTouchedFileRelativePath {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadScriptResultTouchedFileRelativePath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadScriptResultTouchedFileRelativePath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadScriptResultTouchedFileRelativePath {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`BmadSession`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -73205,6 +74616,9 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"bmadScriptPlan\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadScriptPlan\""]
 #[doc = "    },"]
+#[doc = "    \"bmadScriptResult\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadScriptResult\""]
+#[doc = "    },"]
 #[doc = "    \"bmadSession\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadSession\""]
 #[doc = "    },"]
@@ -73441,6 +74855,12 @@ pub struct SapphirusContractsCatalog {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub bmad_script_plan: ::std::option::Option<BmadScriptPlan>,
+    #[serde(
+        rename = "bmadScriptResult",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_script_result: ::std::option::Option<BmadScriptResult>,
     #[serde(
         rename = "bmadSession",
         default,
@@ -73681,6 +75101,7 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             bmad_problem: Default::default(),
             bmad_review_result: Default::default(),
             bmad_script_plan: Default::default(),
+            bmad_script_result: Default::default(),
             bmad_session: Default::default(),
             bmad_skill_package: Default::default(),
             bmad_source_accounting: Default::default(),
@@ -86312,6 +87733,784 @@ pub mod builder {
                 arguments_hash: Ok(value.arguments_hash),
                 operation: Ok(value.operation),
                 step_id: Ok(value.step_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadScriptResult {
+        cleanup: ::std::result::Result<super::BmadScriptResultCleanup, ::std::string::String>,
+        controls: ::std::result::Result<
+            ::std::vec::Vec<super::BmadScriptResultControlOutcome>,
+            ::std::string::String,
+        >,
+        exit_reason:
+            ::std::result::Result<super::BmadScriptResultExitReason, ::std::string::String>,
+        network_attempts: ::std::result::Result<
+            ::std::vec::Vec<super::BmadScriptResultNetworkAttempt>,
+            ::std::string::String,
+        >,
+        plan_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        resource_usage: ::std::result::Result<
+            ::std::option::Option<super::BmadScriptResultResourceUsage>,
+            ::std::string::String,
+        >,
+        result_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        result_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        streams: ::std::result::Result<super::BmadScriptResultStreams, ::std::string::String>,
+        structured_output_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
+            ::std::string::String,
+        >,
+        touched_files: ::std::result::Result<
+            ::std::vec::Vec<super::BmadScriptResultTouchedFile>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadScriptResult {
+        fn default() -> Self {
+            Self {
+                cleanup: Err("no value supplied for cleanup".to_string()),
+                controls: Err("no value supplied for controls".to_string()),
+                exit_reason: Err("no value supplied for exit_reason".to_string()),
+                network_attempts: Ok(Default::default()),
+                plan_hash: Err("no value supplied for plan_hash".to_string()),
+                resource_usage: Ok(Default::default()),
+                result_hash: Err("no value supplied for result_hash".to_string()),
+                result_id: Err("no value supplied for result_id".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                streams: Err("no value supplied for streams".to_string()),
+                structured_output_hash: Ok(Default::default()),
+                touched_files: Ok(Default::default()),
+            }
+        }
+    }
+    impl BmadScriptResult {
+        pub fn cleanup<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultCleanup>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cleanup = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for cleanup: {e}"));
+            self
+        }
+        pub fn controls<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadScriptResultControlOutcome>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.controls = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for controls: {e}"));
+            self
+        }
+        pub fn exit_reason<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultExitReason>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.exit_reason = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for exit_reason: {e}"));
+            self
+        }
+        pub fn network_attempts<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadScriptResultNetworkAttempt>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.network_attempts = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for network_attempts: {e}"));
+            self
+        }
+        pub fn plan_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.plan_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for plan_hash: {e}"));
+            self
+        }
+        pub fn resource_usage<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadScriptResultResourceUsage>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resource_usage = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for resource_usage: {e}"));
+            self
+        }
+        pub fn result_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.result_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for result_hash: {e}"));
+            self
+        }
+        pub fn result_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.result_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for result_id: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn streams<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultStreams>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.streams = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for streams: {e}"));
+            self
+        }
+        pub fn structured_output_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.structured_output_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for structured_output_hash: {e}")
+            });
+            self
+        }
+        pub fn touched_files<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadScriptResultTouchedFile>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.touched_files = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for touched_files: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptResult> for super::BmadScriptResult {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptResult,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                cleanup: value.cleanup?,
+                controls: value.controls?,
+                exit_reason: value.exit_reason?,
+                network_attempts: value.network_attempts?,
+                plan_hash: value.plan_hash?,
+                resource_usage: value.resource_usage?,
+                result_hash: value.result_hash?,
+                result_id: value.result_id?,
+                schema_version: value.schema_version?,
+                streams: value.streams?,
+                structured_output_hash: value.structured_output_hash?,
+                touched_files: value.touched_files?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptResult> for BmadScriptResult {
+        fn from(value: super::BmadScriptResult) -> Self {
+            Self {
+                cleanup: Ok(value.cleanup),
+                controls: Ok(value.controls),
+                exit_reason: Ok(value.exit_reason),
+                network_attempts: Ok(value.network_attempts),
+                plan_hash: Ok(value.plan_hash),
+                resource_usage: Ok(value.resource_usage),
+                result_hash: Ok(value.result_hash),
+                result_id: Ok(value.result_id),
+                schema_version: Ok(value.schema_version),
+                streams: Ok(value.streams),
+                structured_output_hash: Ok(value.structured_output_hash),
+                touched_files: Ok(value.touched_files),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadScriptResultCleanup {
+        quarantine_path: ::std::result::Result<
+            ::std::option::Option<super::BmadScriptResultCleanupQuarantinePath>,
+            ::std::string::String,
+        >,
+        restart_recovered:
+            ::std::result::Result<::std::option::Option<bool>, ::std::string::String>,
+        status: ::std::result::Result<super::BmadScriptResultCleanupStatus, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadScriptResultCleanup {
+        fn default() -> Self {
+            Self {
+                quarantine_path: Ok(Default::default()),
+                restart_recovered: Ok(Default::default()),
+                status: Err("no value supplied for status".to_string()),
+            }
+        }
+    }
+    impl BmadScriptResultCleanup {
+        pub fn quarantine_path<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadScriptResultCleanupQuarantinePath>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.quarantine_path = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for quarantine_path: {e}"));
+            self
+        }
+        pub fn restart_recovered<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<bool>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.restart_recovered = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for restart_recovered: {e}"));
+            self
+        }
+        pub fn status<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultCleanupStatus>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.status = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for status: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptResultCleanup> for super::BmadScriptResultCleanup {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptResultCleanup,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                quarantine_path: value.quarantine_path?,
+                restart_recovered: value.restart_recovered?,
+                status: value.status?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptResultCleanup> for BmadScriptResultCleanup {
+        fn from(value: super::BmadScriptResultCleanup) -> Self {
+            Self {
+                quarantine_path: Ok(value.quarantine_path),
+                restart_recovered: Ok(value.restart_recovered),
+                status: Ok(value.status),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadScriptResultControlOutcome {
+        control: ::std::result::Result<
+            super::BmadScriptResultControlOutcomeControl,
+            ::std::string::String,
+        >,
+        detail: ::std::result::Result<
+            ::std::option::Option<super::BmadScriptResultControlOutcomeDetail>,
+            ::std::string::String,
+        >,
+        state: ::std::result::Result<
+            super::BmadScriptResultControlOutcomeState,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadScriptResultControlOutcome {
+        fn default() -> Self {
+            Self {
+                control: Err("no value supplied for control".to_string()),
+                detail: Ok(Default::default()),
+                state: Err("no value supplied for state".to_string()),
+            }
+        }
+    }
+    impl BmadScriptResultControlOutcome {
+        pub fn control<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultControlOutcomeControl>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.control = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for control: {e}"));
+            self
+        }
+        pub fn detail<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadScriptResultControlOutcomeDetail>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.detail = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for detail: {e}"));
+            self
+        }
+        pub fn state<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultControlOutcomeState>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.state = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for state: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptResultControlOutcome>
+        for super::BmadScriptResultControlOutcome
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptResultControlOutcome,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                control: value.control?,
+                detail: value.detail?,
+                state: value.state?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptResultControlOutcome>
+        for BmadScriptResultControlOutcome
+    {
+        fn from(value: super::BmadScriptResultControlOutcome) -> Self {
+            Self {
+                control: Ok(value.control),
+                detail: Ok(value.detail),
+                state: Ok(value.state),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadScriptResultExitReason {
+        denial_code: ::std::result::Result<
+            ::std::option::Option<super::BmadScriptResultExitReasonDenialCode>,
+            ::std::string::String,
+        >,
+        exit_code: ::std::result::Result<::std::option::Option<i32>, ::std::string::String>,
+        kind: ::std::result::Result<super::BmadScriptResultExitReasonKind, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadScriptResultExitReason {
+        fn default() -> Self {
+            Self {
+                denial_code: Ok(Default::default()),
+                exit_code: Ok(Default::default()),
+                kind: Err("no value supplied for kind".to_string()),
+            }
+        }
+    }
+    impl BmadScriptResultExitReason {
+        pub fn denial_code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadScriptResultExitReasonDenialCode>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.denial_code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for denial_code: {e}"));
+            self
+        }
+        pub fn exit_code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<i32>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.exit_code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for exit_code: {e}"));
+            self
+        }
+        pub fn kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultExitReasonKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kind: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptResultExitReason> for super::BmadScriptResultExitReason {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptResultExitReason,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                denial_code: value.denial_code?,
+                exit_code: value.exit_code?,
+                kind: value.kind?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptResultExitReason> for BmadScriptResultExitReason {
+        fn from(value: super::BmadScriptResultExitReason) -> Self {
+            Self {
+                denial_code: Ok(value.denial_code),
+                exit_code: Ok(value.exit_code),
+                kind: Ok(value.kind),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadScriptResultNetworkAttempt {
+        allowed: ::std::result::Result<bool, ::std::string::String>,
+        denial_code: ::std::result::Result<
+            ::std::option::Option<super::BmadScriptResultNetworkAttemptDenialCode>,
+            ::std::string::String,
+        >,
+        target: ::std::result::Result<
+            super::BmadScriptResultNetworkAttemptTarget,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadScriptResultNetworkAttempt {
+        fn default() -> Self {
+            Self {
+                allowed: Err("no value supplied for allowed".to_string()),
+                denial_code: Ok(Default::default()),
+                target: Err("no value supplied for target".to_string()),
+            }
+        }
+    }
+    impl BmadScriptResultNetworkAttempt {
+        pub fn allowed<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.allowed = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for allowed: {e}"));
+            self
+        }
+        pub fn denial_code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadScriptResultNetworkAttemptDenialCode>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.denial_code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for denial_code: {e}"));
+            self
+        }
+        pub fn target<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultNetworkAttemptTarget>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.target = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for target: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptResultNetworkAttempt>
+        for super::BmadScriptResultNetworkAttempt
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptResultNetworkAttempt,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                allowed: value.allowed?,
+                denial_code: value.denial_code?,
+                target: value.target?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptResultNetworkAttempt>
+        for BmadScriptResultNetworkAttempt
+    {
+        fn from(value: super::BmadScriptResultNetworkAttempt) -> Self {
+            Self {
+                allowed: Ok(value.allowed),
+                denial_code: Ok(value.denial_code),
+                target: Ok(value.target),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadScriptResultResourceUsage {
+        cpu_time_ms: ::std::result::Result<::std::option::Option<i64>, ::std::string::String>,
+        measured: ::std::result::Result<bool, ::std::string::String>,
+        peak_memory_bytes: ::std::result::Result<::std::option::Option<i64>, ::std::string::String>,
+        peak_process_count:
+            ::std::result::Result<::std::option::Option<i64>, ::std::string::String>,
+        wall_clock_ms: ::std::result::Result<::std::option::Option<i64>, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadScriptResultResourceUsage {
+        fn default() -> Self {
+            Self {
+                cpu_time_ms: Ok(Default::default()),
+                measured: Err("no value supplied for measured".to_string()),
+                peak_memory_bytes: Ok(Default::default()),
+                peak_process_count: Ok(Default::default()),
+                wall_clock_ms: Ok(Default::default()),
+            }
+        }
+    }
+    impl BmadScriptResultResourceUsage {
+        pub fn cpu_time_ms<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<i64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.cpu_time_ms = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for cpu_time_ms: {e}"));
+            self
+        }
+        pub fn measured<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.measured = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for measured: {e}"));
+            self
+        }
+        pub fn peak_memory_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<i64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.peak_memory_bytes = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for peak_memory_bytes: {e}"));
+            self
+        }
+        pub fn peak_process_count<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<i64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.peak_process_count = value.try_into().map_err(|e| {
+                format!("error converting supplied value for peak_process_count: {e}")
+            });
+            self
+        }
+        pub fn wall_clock_ms<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<i64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.wall_clock_ms = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for wall_clock_ms: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptResultResourceUsage>
+        for super::BmadScriptResultResourceUsage
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptResultResourceUsage,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                cpu_time_ms: value.cpu_time_ms?,
+                measured: value.measured?,
+                peak_memory_bytes: value.peak_memory_bytes?,
+                peak_process_count: value.peak_process_count?,
+                wall_clock_ms: value.wall_clock_ms?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptResultResourceUsage> for BmadScriptResultResourceUsage {
+        fn from(value: super::BmadScriptResultResourceUsage) -> Self {
+            Self {
+                cpu_time_ms: Ok(value.cpu_time_ms),
+                measured: Ok(value.measured),
+                peak_memory_bytes: Ok(value.peak_memory_bytes),
+                peak_process_count: Ok(value.peak_process_count),
+                wall_clock_ms: Ok(value.wall_clock_ms),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadScriptResultStreams {
+        captured_bytes: ::std::result::Result<::std::option::Option<i64>, ::std::string::String>,
+        stderr_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        stdout_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        truncated: ::std::result::Result<bool, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadScriptResultStreams {
+        fn default() -> Self {
+            Self {
+                captured_bytes: Ok(Default::default()),
+                stderr_hash: Err("no value supplied for stderr_hash".to_string()),
+                stdout_hash: Err("no value supplied for stdout_hash".to_string()),
+                truncated: Err("no value supplied for truncated".to_string()),
+            }
+        }
+    }
+    impl BmadScriptResultStreams {
+        pub fn captured_bytes<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<i64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.captured_bytes = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for captured_bytes: {e}"));
+            self
+        }
+        pub fn stderr_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.stderr_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for stderr_hash: {e}"));
+            self
+        }
+        pub fn stdout_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.stdout_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for stdout_hash: {e}"));
+            self
+        }
+        pub fn truncated<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.truncated = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for truncated: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptResultStreams> for super::BmadScriptResultStreams {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptResultStreams,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                captured_bytes: value.captured_bytes?,
+                stderr_hash: value.stderr_hash?,
+                stdout_hash: value.stdout_hash?,
+                truncated: value.truncated?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptResultStreams> for BmadScriptResultStreams {
+        fn from(value: super::BmadScriptResultStreams) -> Self {
+            Self {
+                captured_bytes: Ok(value.captured_bytes),
+                stderr_hash: Ok(value.stderr_hash),
+                stdout_hash: Ok(value.stdout_hash),
+                truncated: Ok(value.truncated),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadScriptResultTouchedFile {
+        content_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
+            ::std::string::String,
+        >,
+        operation: ::std::result::Result<
+            super::BmadScriptResultTouchedFileOperation,
+            ::std::string::String,
+        >,
+        relative_path: ::std::result::Result<
+            super::BmadScriptResultTouchedFileRelativePath,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadScriptResultTouchedFile {
+        fn default() -> Self {
+            Self {
+                content_hash: Ok(Default::default()),
+                operation: Err("no value supplied for operation".to_string()),
+                relative_path: Err("no value supplied for relative_path".to_string()),
+            }
+        }
+    }
+    impl BmadScriptResultTouchedFile {
+        pub fn content_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content_hash: {e}"));
+            self
+        }
+        pub fn operation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultTouchedFileOperation>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.operation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for operation: {e}"));
+            self
+        }
+        pub fn relative_path<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadScriptResultTouchedFileRelativePath>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.relative_path = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for relative_path: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadScriptResultTouchedFile> for super::BmadScriptResultTouchedFile {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadScriptResultTouchedFile,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                content_hash: value.content_hash?,
+                operation: value.operation?,
+                relative_path: value.relative_path?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadScriptResultTouchedFile> for BmadScriptResultTouchedFile {
+        fn from(value: super::BmadScriptResultTouchedFile) -> Self {
+            Self {
+                content_hash: Ok(value.content_hash),
+                operation: Ok(value.operation),
+                relative_path: Ok(value.relative_path),
             }
         }
     }
@@ -112073,6 +114272,10 @@ pub mod builder {
             ::std::option::Option<super::BmadScriptPlan>,
             ::std::string::String,
         >,
+        bmad_script_result: ::std::result::Result<
+            ::std::option::Option<super::BmadScriptResult>,
+            ::std::string::String,
+        >,
         bmad_session:
             ::std::result::Result<::std::option::Option<super::BmadSession>, ::std::string::String>,
         bmad_skill_package: ::std::result::Result<
@@ -112237,6 +114440,7 @@ pub mod builder {
                 bmad_problem: Ok(Default::default()),
                 bmad_review_result: Ok(Default::default()),
                 bmad_script_plan: Ok(Default::default()),
+                bmad_script_result: Ok(Default::default()),
                 bmad_session: Ok(Default::default()),
                 bmad_skill_package: Ok(Default::default()),
                 bmad_source_accounting: Ok(Default::default()),
@@ -112475,6 +114679,16 @@ pub mod builder {
             self.bmad_script_plan = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for bmad_script_plan: {e}"));
+            self
+        }
+        pub fn bmad_script_result<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadScriptResult>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_script_result = value.try_into().map_err(|e| {
+                format!("error converting supplied value for bmad_script_result: {e}")
+            });
             self
         }
         pub fn bmad_session<T>(mut self, value: T) -> Self
@@ -112864,6 +115078,7 @@ pub mod builder {
                 bmad_problem: value.bmad_problem?,
                 bmad_review_result: value.bmad_review_result?,
                 bmad_script_plan: value.bmad_script_plan?,
+                bmad_script_result: value.bmad_script_result?,
                 bmad_session: value.bmad_session?,
                 bmad_skill_package: value.bmad_skill_package?,
                 bmad_source_accounting: value.bmad_source_accounting?,
@@ -112926,6 +115141,7 @@ pub mod builder {
                 bmad_problem: Ok(value.bmad_problem),
                 bmad_review_result: Ok(value.bmad_review_result),
                 bmad_script_plan: Ok(value.bmad_script_plan),
+                bmad_script_result: Ok(value.bmad_script_result),
                 bmad_session: Ok(value.bmad_session),
                 bmad_skill_package: Ok(value.bmad_skill_package),
                 bmad_source_accounting: Ok(value.bmad_source_accounting),

@@ -14,7 +14,7 @@
 use desktop_runtime::{ContractId, LocalError, LocalErrorCode, UnixMillis};
 
 use super::map_workspace_error;
-use crate::state::{HostState, RendererSessionGuard};
+use crate::state::{HostState, ReadyAuthorityGuard, RendererSessionGuard};
 use crate::wire::HostCommandData;
 
 /// Turns the held catalog into the renderer projection.
@@ -283,6 +283,106 @@ fn map_selection_blocked(
     }
 }
 
+/// Sets an explicit catalog-backed selection for one workspace.
+///
+/// The chosen profile is validated against the catalog the host currently
+/// holds -- never a catalog epoch the renderer might have cached -- so a
+/// profile that is absent, listed only as unavailable, or gone since a stale
+/// client last read the catalog is rejected rather than silently persisted.
+/// A validated pick is written as the current selection and then re-resolved
+/// through the same path every other read uses, so the response is the one
+/// true confirmed projection rather than a bespoke echo of the request.
+pub(super) fn set_model_profile_selection(
+    state: &HostState,
+    workspace_id: &ContractId,
+    workspace_grant_epoch: u64,
+    profile_id: &str,
+    variant_id: Option<&str>,
+    accepted_at: UnixMillis,
+) -> Result<HostCommandData, LocalError> {
+    let authority = state.ready_authority()?;
+    let _workspace_authority = state
+        .workspace
+        .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
+        .map_err(|error| map_workspace_error(&error))?;
+    let Some(()) = record_explicit_selection(
+        state,
+        &authority,
+        workspace_id,
+        profile_id,
+        variant_id,
+        accepted_at,
+    )?
+    else {
+        return Ok(HostCommandData::ModelCatalogUnavailable);
+    };
+    let outcome = state.resolve_catalog_selection(&authority, workspace_id)?;
+    selection_data(state, workspace_id, workspace_grant_epoch, outcome)
+}
+
+/// Validates `profile_id` (and `variant_id`, when named) against the
+/// currently held catalog and, if valid, persists it as the workspace's
+/// current selection.
+///
+/// Returns `Ok(None)` when no catalog is held at all, `Ok(Some(()))` once the
+/// pick is recorded, and an error for a profile that is not currently
+/// selectable (absent from the catalog entirely, or listed only as
+/// unavailable) or a named variant the profile does not have.
+fn record_explicit_selection(
+    state: &HostState,
+    authority: &ReadyAuthorityGuard<'_>,
+    workspace_id: &ContractId,
+    profile_id: &str,
+    variant_id: Option<&str>,
+    accepted_at: UnixMillis,
+) -> Result<Option<()>, LocalError> {
+    let Some(held) = state.held_model_catalog() else {
+        return Ok(None);
+    };
+    let verified = held.cached.catalog();
+    let catalog = verified.catalog();
+    let profile = catalog
+        .profiles
+        .iter()
+        .find(|profile| profile.profile_id.as_str() == profile_id)
+        .ok_or_else(invalid_model_profile_selection)?;
+    let resolved_variant_id = match variant_id {
+        Some(variant_id) => {
+            if !profile
+                .variants
+                .iter()
+                .any(|variant| variant.variant_id.as_str() == variant_id)
+            {
+                return Err(invalid_model_profile_selection());
+            }
+            variant_id.to_owned()
+        }
+        None => profile.default_variant_id.to_string(),
+    };
+    state.record_catalog_selection(
+        authority,
+        workspace_id,
+        &desktop_store::StoredModelSelection {
+            profile_id: profile_id.to_owned(),
+            variant_id: resolved_variant_id,
+            catalog_version: verified.catalog_version().to_owned(),
+            catalog_hash: verified.catalog_hash().to_owned(),
+            selected_at_ms: accepted_at.0,
+            is_current: true,
+        },
+        accepted_at,
+    )?;
+    Ok(Some(()))
+}
+
+fn invalid_model_profile_selection() -> LocalError {
+    LocalError::new(
+        LocalErrorCode::InvalidRequest,
+        "Choose a profile the model catalog currently offers.",
+        true,
+    )
+}
+
 /// Starts one task-bound model response.
 ///
 /// The order matters. Authority is proven, then the selection is resolved, and
@@ -295,6 +395,8 @@ pub(super) fn send_model_response(
     _renderer_session: &RendererSessionGuard<'_>,
     workspace_id: &ContractId,
     workspace_grant_epoch: u64,
+    explicit_profile_id: Option<&str>,
+    explicit_variant_id: Option<&str>,
     accepted_at: UnixMillis,
 ) -> Result<HostCommandData, LocalError> {
     let authority = state.ready_authority()?;
@@ -302,6 +404,24 @@ pub(super) fn send_model_response(
         .workspace
         .authorize_scope(workspace_id.as_str(), workspace_grant_epoch)
         .map_err(|error| map_workspace_error(&error))?;
+    // An explicit caller-chosen profile is validated and committed before
+    // resolution runs, so the resolution below reads it back as the current
+    // selection rather than needing a second, parallel notion of "the model
+    // the renderer just asked for."
+    if let Some(profile_id) = explicit_profile_id {
+        if record_explicit_selection(
+            state,
+            &authority,
+            workspace_id,
+            profile_id,
+            explicit_variant_id,
+            accepted_at,
+        )?
+        .is_none()
+        {
+            return Ok(HostCommandData::ModelCatalogUnavailable);
+        }
+    }
     let outcome = state.resolve_catalog_selection(&authority, workspace_id)?;
     match outcome {
         crate::state::CatalogSelectionOutcome::Selected {

@@ -473,6 +473,81 @@ fn the_catalog_gained_no_generic_http_path_shell_or_secret_command() {
     std::fs::write(destination.join("ipc.json"), encoded).expect("evidence file");
 }
 
+/// `model.selection.set` now carries either the catalog-backed pick or the
+/// legacy direct-provider shape, and the two are mutually exclusive because
+/// each variant is `deny_unknown_fields` over a disjoint field set.
+#[test]
+fn model_selection_set_admits_a_managed_profile_pick_and_still_the_legacy_shape() {
+    let mut selection_context = context();
+    selection_context
+        .allowed_commands
+        .push("model.selection.set".to_owned());
+
+    assert!(matches!(
+        CommandEnvelopeValidator::parse(
+            &envelope(
+                "request_managed",
+                "model.selection.set",
+                &json!({
+                    "workspaceId": "workspace_1",
+                    "workspaceGrantEpoch": 3,
+                    "profileId": "balanced-reasoning",
+                    "variantId": "standard",
+                }),
+            ),
+            &selection_context,
+        )
+        .expect("valid managed selection")
+        .command(),
+        LocalCommand::SetModelProfileSelection {
+            profile_id,
+            variant_id: Some(variant_id),
+            ..
+        } if profile_id == "balanced-reasoning" && variant_id == "standard"
+    ));
+
+    // The variant is optional: a profile has its own default.
+    assert!(matches!(
+        CommandEnvelopeValidator::parse(
+            &envelope(
+                "request_managed_default",
+                "model.selection.set",
+                &json!({
+                    "workspaceId": "workspace_1",
+                    "workspaceGrantEpoch": 3,
+                    "profileId": "balanced",
+                }),
+            ),
+            &selection_context,
+        )
+        .expect("valid managed selection without a variant")
+        .command(),
+        LocalCommand::SetModelProfileSelection {
+            variant_id: None,
+            ..
+        }
+    ));
+
+    for bad_payload in [
+        json!({ "workspaceId": "workspace_1", "workspaceGrantEpoch": 3, "profileId": "Bad" }),
+        json!({ "workspaceId": "workspace_1", "workspaceGrantEpoch": 3, "profileId": "ok", "variantId": "Bad" }),
+        json!({ "workspaceId": "workspace_1", "workspaceGrantEpoch": 0, "profileId": "balanced" }),
+        json!({ "workspaceId": "workspace_1", "workspaceGrantEpoch": 3, "profileId": "balanced", "modelId": "gpt-5" }),
+    ] {
+        assert!(
+            matches!(
+                CommandEnvelopeValidator::parse(
+                    &envelope("request_managed_bad", "model.selection.set", &bad_payload),
+                    &selection_context,
+                )
+                .err(),
+                Some(IpcValidationError::InvalidPayload)
+            ),
+            "accepted invalid managed selection: {bad_payload}"
+        );
+    }
+}
+
 #[test]
 fn the_ready_catalog_holds_the_five_new_commands_in_reviewed_order() {
     let start = READY_COMMANDS

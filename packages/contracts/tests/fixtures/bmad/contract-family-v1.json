@@ -217,6 +217,39 @@
       }
     },
     {
+      "schema": "bmad-script-result.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-script-result.v1",
+        "resultId": "result_01J00000000000000000000000",
+        "planHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "exitReason": {
+          "kind": "denied",
+          "denialCode": "path_escape"
+        },
+        "controls": [
+          {
+            "control": "process_isolation",
+            "state": "unavailable",
+            "detail": "No isolation port is bound in this crate."
+          },
+          {
+            "control": "filesystem",
+            "state": "enforced"
+          }
+        ],
+        "streams": {
+          "stdoutHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "stderrHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "truncated": false
+        },
+        "cleanup": {
+          "status": "clean",
+          "restartRecovered": false
+        },
+        "resultHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    },
+    {
       "schema": "bmad-config.schema.json",
       "value": {
         "schemaVersion": "sapphirus.bmad-config.v1",

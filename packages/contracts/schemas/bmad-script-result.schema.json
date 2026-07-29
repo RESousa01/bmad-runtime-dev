@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-script-result.schema.json",
+  "title": "sapphirus.bmad-script-result.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "resultId", "planHash", "exitReason", "controls", "streams", "cleanup", "resultHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-script-result.v1" },
+    "resultId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "planHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "exitReason": { "$ref": "#/$defs/ExitReason" },
+    "controls": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/ControlOutcome" }
+    },
+    "streams": { "$ref": "#/$defs/Streams" },
+    "structuredOutputHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "resourceUsage": { "$ref": "#/$defs/ResourceUsage" },
+    "touchedFiles": {
+      "type": "array",
+      "maxItems": 1024,
+      "items": { "$ref": "#/$defs/TouchedFile" }
+    },
+    "networkAttempts": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "$ref": "#/$defs/NetworkAttempt" }
+    },
+    "cleanup": { "$ref": "#/$defs/Cleanup" },
+    "resultHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "ExitReason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["completed", "denied", "timeout", "cancelled", "killed", "quota_exceeded", "unavailable"] },
+        "exitCode": { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 },
+        "denialCode": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" }
+      }
+    },
+    "ControlOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["control", "state"],
+      "properties": {
+        "control": { "enum": ["process_isolation", "filesystem", "environment", "network", "cpu", "memory", "process_count", "output_bytes", "wall_clock"] },
+        "state": { "enum": ["enforced", "decided", "unavailable"] },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    },
+    "Streams": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stdoutHash", "stderrHash", "truncated"],
+      "properties": {
+        "stdoutHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "stderrHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "truncated": { "type": "boolean" },
+        "capturedBytes": { "type": "integer", "minimum": 0, "maximum": 1073741824 }
+      }
+    },
+    "ResourceUsage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["measured"],
+      "properties": {
+        "measured": { "type": "boolean" },
+        "wallClockMs": { "type": "integer", "minimum": 0, "maximum": 86400000 },
+        "cpuTimeMs": { "type": "integer", "minimum": 0, "maximum": 86400000 },
+        "peakMemoryBytes": { "type": "integer", "minimum": 0, "maximum": 1099511627776 },
+        "peakProcessCount": { "type": "integer", "minimum": 0, "maximum": 65536 }
+      }
+    },
+    "TouchedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relativePath", "operation"],
+      "properties": {
+        "relativePath": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$" },
+        "operation": { "enum": ["read", "write", "create", "remove"] },
+        "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "NetworkAttempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "allowed"],
+      "properties": {
+        "target": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "allowed": { "type": "boolean" },
+        "denialCode": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" }
+      }
+    },
+    "Cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["clean", "quarantined", "incomplete"] },
+        "quarantinePath": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$" },
+        "restartRecovered": { "type": "boolean" }
+      }
+    }
+  }
+}

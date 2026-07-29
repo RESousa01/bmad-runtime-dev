@@ -179,6 +179,16 @@ pub enum LocalCommand {
         provider_id: ModelProviderId,
         model_id: String,
     },
+    /// Sets an explicit catalog-backed selection: a profile, and optionally one
+    /// of its variants. `model.selection.set` maps both this and
+    /// [`Self::SetModelSelection`] to the same wire command, so which one
+    /// results is decided purely by which disjoint field set the renderer sent.
+    SetModelProfileSelection {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        profile_id: String,
+        variant_id: Option<String>,
+    },
     /// Reads the catalog the host already holds. Never reaches the network.
     GetModelCatalog {
         workspace_id: ContractId,
@@ -206,6 +216,14 @@ pub enum LocalCommand {
         task_id: ContractId,
         client_session_ref: String,
         prompt: String,
+        /// An explicit caller-chosen profile, when the renderer sent one. When
+        /// absent, the host falls back to its existing resolution order
+        /// (current, then recent, then catalog default, then first
+        /// selectable).
+        profile_id: Option<String>,
+        /// The variant of `profile_id`, when the renderer named one. Ignored
+        /// unless `profile_id` is also present.
+        variant_id: Option<String>,
     },
     /// Stops one task-bound model response the user started.
     StopModelResponse {
@@ -378,7 +396,9 @@ impl LocalCommand {
             Self::ModelAuthStatus => "model.auth.status",
             Self::ModelAuthSignIn { .. } => "model.auth.sign_in",
             Self::ModelAuthSignOut => "model.auth.sign_out",
-            Self::SetModelSelection { .. } => "model.selection.set",
+            Self::SetModelSelection { .. } | Self::SetModelProfileSelection { .. } => {
+                "model.selection.set"
+            }
             Self::GetModelCatalog { .. } => "model.catalog.get",
             Self::RefreshModelCatalog { .. } => "model.catalog.refresh",
             Self::GetModelSelection { .. } => "model.selection.get",

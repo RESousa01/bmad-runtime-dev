@@ -100,6 +100,7 @@ export type ModelCatalogClient = Pick<DesktopHostClient,
   | "getModelCatalog"
   | "refreshModelCatalog"
   | "getModelSelection"
+  | "setModelProfileSelection"
   | "sendModelResponse"
   | "stopModelResponse"
 >;

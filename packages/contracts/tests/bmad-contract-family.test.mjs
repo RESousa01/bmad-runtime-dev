@@ -22,6 +22,7 @@ const requiredSchemas = [
   "bmad-eval.schema.json",
   "bmad-module.schema.json",
   "bmad-script-plan.schema.json",
+  "bmad-script-result.schema.json",
   "bmad-config.schema.json",
   "bmad-customization.schema.json",
   "bmad-invocation.schema.json",

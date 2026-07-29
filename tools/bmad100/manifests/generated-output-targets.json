@@ -1,0 +1,170 @@
+{
+  "schema_version": "sapphirus.bmad100.generated-output-target-inventory/v1",
+  "identity_algorithm": "sha256(canonical target URI UTF-8 bytes)",
+  "authority": "These rows are reviewed exclusions for unmaterialized generated-package paths only. They grant no authority and assert no generated package bytes.",
+  "allowed_scheme": "generated-package",
+  "disposition": "reviewed_unmaterialized_authoring_target",
+  "consumer_contract": {
+    "id": "builder_generated_package_validator",
+    "validator": "packages/bmad-foundation/scripts/builder-resource-closure.mjs",
+    "promotion_rule": "A generated package must materialize every referenced target and bind its content hash before validation, promotion, staging, installation, or catalog activation.",
+    "exclusion_reason": "The target names a path in a future inert Builder output package, not a member of either pinned source archive. No package bytes are asserted by this inventory."
+  },
+  "targets": [
+    {
+      "target_uri": "generated-package://bmad-agent-builder/assets/bar.csv",
+      "target_kind": "file",
+      "target_identity_sha256": "f04b01e6f3dca5c72ee3989375c1418dde3838a490e095224497344b7ac24eb0"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/assets/template.md",
+      "target_kind": "file",
+      "target_identity_sha256": "1e98ef07604cc604acf3dd75fe9599f4e34375998a707def06543303b814f635"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/references/brainstorm-techniques.md",
+      "target_kind": "file",
+      "target_identity_sha256": "cd372e68aedc52706bdc1138fa08e25a6f8317a73a6275406d810bb1151a4718"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/references/capability-authoring.md",
+      "target_kind": "file",
+      "target_identity_sha256": "436666210b5b0b8de96f8d037f6d0353c6782b01241504472a230bb95a273515"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/references/first-breath.md",
+      "target_kind": "file",
+      "target_identity_sha256": "2c50493dcb39def5b20332e77d2b49152a186d5dff922212268699a0b0c97bec"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/references/foo.md",
+      "target_kind": "file",
+      "target_identity_sha256": "6b226cb5ac473d7be291c40442cb3bc1b431a4da57b326d3a554f9c5f872f923"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/references/guide.md",
+      "target_kind": "file",
+      "target_identity_sha256": "7d5b0b336547c8838c0830a39e3d4de9ec474754ac8fce29a1b4c8fc9fe1cd09"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/references/memory-guidance.md",
+      "target_kind": "file",
+      "target_identity_sha256": "882a14365e6f6e56d148ccd85cbbe2f7a2db0b800fc1c3901fa517f16081ab0d"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/references/memory-system.md",
+      "target_kind": "file",
+      "target_identity_sha256": "1418f094291fad43bcb1e0675231924b07fb01ebcb2808dd1cb1f3a2722831de"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/scripts/calculate-metrics.py",
+      "target_kind": "file",
+      "target_identity_sha256": "66a3114f90fc072de3316983b41ee4446942fd8e5d3883da5d12898371db3467"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/scripts/foo.py",
+      "target_kind": "file",
+      "target_identity_sha256": "13463b24d8e5356bfeca3f05bf5fa07129b29b7a307b7ed0cddfe1a12bfd8d07"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/scripts/init-sanctum.py",
+      "target_kind": "file",
+      "target_identity_sha256": "eea905d9119f08ae9aef86fabb8ac06ab9c445d8e0f67f574f659e710eb5f5de"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/scripts/scan.py",
+      "target_kind": "file",
+      "target_identity_sha256": "c73a215e3553cb8c6f6acc55fcac6c680154648d226c1ba647c4c178f0bf5338"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/scripts/tests/",
+      "target_kind": "directory",
+      "target_identity_sha256": "1f9ea8f9f92a9fab2a2f8316966abae254a4f8fba09f03ff6769f94b1b25aaa3"
+    },
+    {
+      "target_uri": "generated-package://bmad-agent-builder/scripts/wake.py",
+      "target_kind": "file",
+      "target_identity_sha256": "09742d8d575ceded179b8f50d8e3a403534b01a386b9e189e8c4041da26f5055"
+    },
+    {
+      "target_uri": "generated-package://bmad-module-builder/assets/module-help.csv",
+      "target_kind": "file",
+      "target_identity_sha256": "95b6562071884d6da425a2c9620aa0201121923fcc45229ff1a0a4302fdb1928"
+    },
+    {
+      "target_uri": "generated-package://bmad-module-builder/assets/module-setup.md",
+      "target_kind": "file",
+      "target_identity_sha256": "3c0516108517796dce2d2fec2e5daa275bb0887daa104f492634072cfd7235dc"
+    },
+    {
+      "target_uri": "generated-package://bmad-module-builder/assets/module.yaml",
+      "target_kind": "file",
+      "target_identity_sha256": "a2a41efd05ee0a7de7f58c2241d93464ab7b524a2fd458050500314fb5be95ee"
+    },
+    {
+      "target_uri": "generated-package://bmad-module-builder/scripts/cleanup-legacy.py",
+      "target_kind": "file",
+      "target_identity_sha256": "00381f6e8896afa356c0ee8419ee776149f31b56b094121723624dffb9ee4383"
+    },
+    {
+      "target_uri": "generated-package://bmad-module-builder/scripts/merge_config.py",
+      "target_kind": "file",
+      "target_identity_sha256": "aefef0a622d29c761e0841a9b861b4cce03a62c8707957f2ef7bafde1b68bde0"
+    },
+    {
+      "target_uri": "generated-package://bmad-module-builder/scripts/merge_help_csv.py",
+      "target_kind": "file",
+      "target_identity_sha256": "654e22240eacc3a2b71deea1cf321e850b203b884eb5cbf1b9ea8be7956d2da0"
+    },
+    {
+      "target_uri": "generated-package://bmad-module-builder/scripts/merge-config.py",
+      "target_kind": "file",
+      "target_identity_sha256": "5aa61702284284450053836965b0058a2289149be82c187c33c0134cdb210b1a"
+    },
+    {
+      "target_uri": "generated-package://bmad-module-builder/scripts/merge-help-csv.py",
+      "target_kind": "file",
+      "target_identity_sha256": "e047db03887758b3a548e2ddc2faebc35a14395cd2065fdeb898573cd37f31f1"
+    },
+    {
+      "target_uri": "generated-package://bmad-workflow-builder/assets/bar.csv",
+      "target_kind": "file",
+      "target_identity_sha256": "582ad9cfe63518af4361c304dfe5a345e80e58e9862bf0a6a79625a2a83455a9"
+    },
+    {
+      "target_uri": "generated-package://bmad-workflow-builder/assets/template.md",
+      "target_kind": "file",
+      "target_identity_sha256": "6e53bf8eecf8a7fc4d4b87b0eb6b07aa034ceaa30d2d71acf21a9962b4fb11e2"
+    },
+    {
+      "target_uri": "generated-package://bmad-workflow-builder/references/customer-faq.md",
+      "target_kind": "file",
+      "target_identity_sha256": "70f8939714a60a236f9efec57c14f4b0ff533b7ecc453d6240d7cf3d8ddd13f9"
+    },
+    {
+      "target_uri": "generated-package://bmad-workflow-builder/references/foo.md",
+      "target_kind": "file",
+      "target_identity_sha256": "b86b0233edc8f66cdef2554dfb55be86585f81e8998fd37554a1cd1f6baa7d95"
+    },
+    {
+      "target_uri": "generated-package://bmad-workflow-builder/references/guide.md",
+      "target_kind": "file",
+      "target_identity_sha256": "4a485499a9b9bcb155c209aea2268baeaaf30f2045455a6883e2cc3e931d49cf"
+    },
+    {
+      "target_uri": "generated-package://bmad-workflow-builder/references/press-release.md",
+      "target_kind": "file",
+      "target_identity_sha256": "d054791eb61970bab468238961121f1703dc135be01a62de27766dcad7d41bcb"
+    },
+    {
+      "target_uri": "generated-package://bmad-workflow-builder/scripts/foo.py",
+      "target_kind": "file",
+      "target_identity_sha256": "3a57137611c40bd787fee638ba9cb950cc264b961e545124986ed64977553cae"
+    },
+    {
+      "target_uri": "generated-package://bmad-workflow-builder/scripts/validate.py",
+      "target_kind": "file",
+      "target_identity_sha256": "a9d21e223e245dbde45223b87e31eb2a368972b4da1356248beaa3f17304ff0b"
+    }
+  ]
+}

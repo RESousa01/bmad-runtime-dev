@@ -86,6 +86,13 @@
       "csharpType": "BmadScriptPlan"
     },
     {
+      "name": "bmad-script-result",
+      "schemaId": "https://schemas.sapphirus.dev/v1/bmad-script-result.schema.json",
+      "protocolVersion": "sapphirus.bmad-script-result.v1",
+      "rustType": "BmadScriptResult",
+      "csharpType": "BmadScriptResult"
+    },
+    {
       "name": "bmad-config",
       "schemaId": "https://schemas.sapphirus.dev/v1/bmad-config.schema.json",
       "protocolVersion": "sapphirus.bmad-config.v1",
@@ -204,6 +211,7 @@
     "fixtures/bmad/valid/review-result.json",
     "fixtures/bmad/valid/sapphirus-builder-capability.json",
     "fixtures/bmad/valid/script-plan.json",
+    "fixtures/bmad/valid/script-result.json",
     "fixtures/bmad/valid/session.json",
     "fixtures/bmad/valid/skill-package.json",
     "fixtures/bmad/valid/source-accounting.json",
@@ -227,6 +235,7 @@
     "fixtures/bmad/rejected/bmad-problem-unknown-property.json",
     "fixtures/bmad/rejected/bmad-review-result-unknown-property.json",
     "fixtures/bmad/rejected/bmad-script-plan-unknown-property.json",
+    "fixtures/bmad/rejected/bmad-script-result-unknown-property.json",
     "fixtures/bmad/rejected/bmad-session-unknown-property.json",
     "fixtures/bmad/rejected/bmad-skill-package-unknown-property.json",
     "fixtures/bmad/rejected/bmad-source-accounting-unknown-property.json",

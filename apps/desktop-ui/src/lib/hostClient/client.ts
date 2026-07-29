@@ -69,6 +69,7 @@ import {
   buildChangesRecoveryPrepareEnvelope,
   buildBmadHelpRunEnvelope,
   buildBmadModelEnvelope,
+  buildModelProfileSelectionEnvelope,
   buildCapabilityDecisionEnvelope,
   buildCapabilityLatestEnvelope,
   buildCapabilityProposeChangesEnvelope,
@@ -1146,6 +1147,46 @@ export class DesktopHostClient {
   }
 
   /**
+   * Makes an explicit catalog-backed pick: a profile, and optionally one of
+   * its variants. Shares `model.selection.set` with {@link setModelSelection}
+   * -- which of the two results is decided host-side by which disjoint field
+   * set this sends. The host validates the pick against the catalog it
+   * currently holds and returns the confirmed projection, the same shape
+   * {@link getModelSelection} reads back.
+   */
+  async setModelProfileSelection(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+    profileId: string,
+    variantId?: string,
+  ): Promise<ModelSelectionProjection> {
+    if (
+      !/^[a-z][a-z0-9]*(?:-[a-z0-9]+){0,7}$/u.test(profileId)
+      || (variantId !== undefined && !/^[a-z][a-z0-9]*(?:-[a-z0-9]+){0,3}$/u.test(variantId))
+    ) {
+      throw new HostCapabilityError("Choose a profile the model catalog currently offers.");
+    }
+    const command = "model.selection.set" as const;
+    const bootstrap = this.requireModelWorkspaceCommand(command, workspaceId, workspaceGrantEpoch);
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildModelProfileSelectionEnvelope(
+      bootstrap,
+      requestId,
+      this.#now(),
+      workspaceId,
+      workspaceGrantEpoch,
+      profileId,
+      variantId ?? null,
+    );
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseModelSelectionReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  /**
    * Starts one task-bound model response.
    *
    * Three outcomes, not one: `started` names the run to subscribe the stream
@@ -1208,6 +1249,7 @@ export class DesktopHostClient {
       | "model.catalog.get"
       | "model.catalog.refresh"
       | "model.selection.get"
+      | "model.selection.set"
       | "model.response.send"
       | "model.response.stop",
     workspaceIdValue: string,

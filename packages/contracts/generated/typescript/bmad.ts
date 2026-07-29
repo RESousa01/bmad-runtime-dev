@@ -843,6 +843,77 @@ export interface BmadScriptPlanPlanStep {
   approval: "not_required" | "required" | "granted" | "denied";
 }
 
+export interface BmadScriptResultSapphirusBmadScriptResultV1 {
+  schemaVersion: "sapphirus.bmad-script-result.v1";
+  resultId: string;
+  planHash: string;
+  exitReason: BmadScriptResultExitReason;
+  /**
+   * @maxItems 32
+   */
+  controls: BmadScriptResultControlOutcome[];
+  streams: BmadScriptResultStreams;
+  structuredOutputHash?: string;
+  resourceUsage?: BmadScriptResultResourceUsage;
+  /**
+   * @maxItems 1024
+   */
+  touchedFiles?: BmadScriptResultTouchedFile[];
+  /**
+   * @maxItems 256
+   */
+  networkAttempts?: BmadScriptResultNetworkAttempt[];
+  cleanup: BmadScriptResultCleanup;
+  resultHash: string;
+}
+export interface BmadScriptResultExitReason {
+  kind: "completed" | "denied" | "timeout" | "cancelled" | "killed" | "quota_exceeded" | "unavailable";
+  exitCode?: number;
+  denialCode?: string;
+}
+export interface BmadScriptResultControlOutcome {
+  control:
+    | "process_isolation"
+    | "filesystem"
+    | "environment"
+    | "network"
+    | "cpu"
+    | "memory"
+    | "process_count"
+    | "output_bytes"
+    | "wall_clock";
+  state: "enforced" | "decided" | "unavailable";
+  detail?: string;
+}
+export interface BmadScriptResultStreams {
+  stdoutHash: string;
+  stderrHash: string;
+  truncated: boolean;
+  capturedBytes?: number;
+}
+export interface BmadScriptResultResourceUsage {
+  measured: boolean;
+  wallClockMs?: number;
+  cpuTimeMs?: number;
+  peakMemoryBytes?: number;
+  peakProcessCount?: number;
+}
+export interface BmadScriptResultTouchedFile {
+  relativePath: string;
+  operation: "read" | "write" | "create" | "remove";
+  contentHash?: string;
+}
+export interface BmadScriptResultNetworkAttempt {
+  target: string;
+  allowed: boolean;
+  denialCode?: string;
+}
+export interface BmadScriptResultCleanup {
+  status: "clean" | "quarantined" | "incomplete";
+  quarantinePath?: string;
+  restartRecovered?: boolean;
+}
+
 export interface BmadConfigSapphirusBmadConfigV1 {
   schemaVersion: "sapphirus.bmad-config.v1";
   configId: string;

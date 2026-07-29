@@ -32,6 +32,7 @@ mod resources;
 mod review;
 mod service;
 mod session;
+mod skills;
 mod source;
 mod state_machine;
 pub mod toml_subset;
@@ -184,6 +185,10 @@ pub use review::{
 };
 pub use service::{MethodServiceError, MethodSessionService};
 pub use session::{BmadSessionIntent, BmadSessionTransitionError};
+pub use skills::{
+    BmadMethodSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillHarnessError,
+    BmadSkillSupportState, BMAD_SKILL_HARNESS_SCHEMA,
+};
 pub use source::{BmadSourcePackage, BmadSourceService};
 pub use state_machine::{
     apply_command, is_terminal, project, BmadSessionCommand, BmadSessionCommandError,

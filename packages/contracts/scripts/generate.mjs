@@ -2050,6 +2050,7 @@ const typescriptSchemaTargets = [
   "bmad-problem",
   "bmad-review-result",
   "bmad-script-plan",
+  "bmad-script-result",
   "bmad-session",
   "bmad-skill-package",
   "bmad-source-accounting",

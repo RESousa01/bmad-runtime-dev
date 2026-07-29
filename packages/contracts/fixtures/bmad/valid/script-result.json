@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-script-result.schema.json",
+  "branch": "sapphirus.bmad-script-result.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-script-result.v1",
+    "resultId": "result_01J00000000000000000000000",
+    "planHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "exitReason": {
+      "kind": "denied",
+      "denialCode": "path_escape"
+    },
+    "controls": [
+      {
+        "control": "process_isolation",
+        "state": "unavailable",
+        "detail": "No isolation port is bound in this crate."
+      },
+      {
+        "control": "filesystem",
+        "state": "enforced"
+      }
+    ],
+    "streams": {
+      "stdoutHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "stderrHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "truncated": false
+    },
+    "cleanup": {
+      "status": "clean",
+      "restartRecovered": false
+    },
+    "resultHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "canonicalJson": "{\"cleanup\":{\"restartRecovered\":false,\"status\":\"clean\"},\"controls\":[{\"control\":\"process_isolation\",\"detail\":\"No isolation port is bound in this crate.\",\"state\":\"unavailable\"},{\"control\":\"filesystem\",\"state\":\"enforced\"}],\"exitReason\":{\"denialCode\":\"path_escape\",\"kind\":\"denied\"},\"planHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"resultHash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"resultId\":\"result_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-script-result.v1\",\"streams\":{\"stderrHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"stdoutHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"truncated\":false}}",
+  "expectedHash": "sha256:bbe77465c93b8c5e365ed3c7d963d4f7fa3db681732fb7efd08bce1b46793b81"
+}

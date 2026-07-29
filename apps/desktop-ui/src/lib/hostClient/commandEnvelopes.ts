@@ -450,6 +450,46 @@ export function buildLatestBmadHelpRunEnvelope(
   };
 }
 
+/**
+ * The catalog-backed shape of `model.selection.set`: a profile, and
+ * optionally one of its variants. Shares the wire command with the legacy
+ * direct-provider selection (see `buildBmadModelEnvelope`); which one results
+ * host-side is decided purely by which disjoint field set is sent.
+ */
+export function buildModelProfileSelectionEnvelope(
+  binding: HostBinding,
+  requestId: string,
+  issuedAt: number,
+  workspaceId: string,
+  workspaceGrantEpoch: number,
+  profileId: string,
+  variantId: string | null,
+): CommandEnvelope<
+  "model.selection.set",
+  {
+    workspaceId: string;
+    workspaceGrantEpoch: number;
+    profileId: string;
+    variantId: string | null;
+  }
+> {
+  return {
+    schemaVersion: COMMAND_SCHEMA,
+    requestId: asContractId(requestId),
+    command: "model.selection.set",
+    windowLabel: asContractId(binding.windowLabel),
+    rendererSessionId: asContractId(binding.rendererSessionId),
+    installationId: asContractId(binding.installationId),
+    issuedAt: asUnsignedInteger(issuedAt),
+    payload: {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asUnsignedInteger(workspaceGrantEpoch),
+      profileId,
+      variantId,
+    },
+  };
+}
+
 export function buildBmadModelEnvelope<
   TCommand extends
     | "model.auth.status"

@@ -153,6 +153,11 @@
           "typeName": "BmadScriptPlan"
         },
         {
+          "file": "bmad-script-result.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-script-result.schema.json",
+          "typeName": "BmadScriptResult"
+        },
+        {
           "file": "bmad-session.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-session.schema.json",
           "typeName": "BmadSession"
