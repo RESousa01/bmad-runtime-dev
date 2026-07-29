@@ -9816,14 +9816,33 @@ impl ::std::convert::TryFrom<::std::string::String> for BmadCapabilityRunOutputS
 #[doc = "  \"type\": \"object\","]
 #[doc = "  \"required\": ["]
 #[doc = "    \"configId\","]
+#[doc = "    \"conflicts\","]
+#[doc = "    \"effectiveValues\","]
 #[doc = "    \"layers\","]
 #[doc = "    \"provenanceHash\","]
+#[doc = "    \"requirements\","]
 #[doc = "    \"resolvedHash\","]
-#[doc = "    \"schemaVersion\""]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"secretReferences\","]
+#[doc = "    \"sessionConfigHash\""]
 #[doc = "  ],"]
 #[doc = "  \"properties\": {"]
 #[doc = "    \"configId\": {"]
 #[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"conflicts\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadConfigConflictDiagnostic\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 128"]
+#[doc = "    },"]
+#[doc = "    \"effectiveValues\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadConfigEffectiveValue\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 5"]
 #[doc = "    },"]
 #[doc = "    \"layers\": {"]
 #[doc = "      \"type\": \"array\","]
@@ -9836,11 +9855,28 @@ impl ::std::convert::TryFrom<::std::string::String> for BmadCapabilityRunOutputS
 #[doc = "    \"provenanceHash\": {"]
 #[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
 #[doc = "    },"]
+#[doc = "    \"requirements\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadConfigInputRequirement\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 5"]
+#[doc = "    },"]
 #[doc = "    \"resolvedHash\": {"]
 #[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
 #[doc = "    },"]
 #[doc = "    \"schemaVersion\": {"]
 #[doc = "      \"const\": \"sapphirus.bmad-config.v1\""]
+#[doc = "    },"]
+#[doc = "    \"secretReferences\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadConfigSecretReference\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64"]
+#[doc = "    },"]
+#[doc = "    \"sessionConfigHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
 #[doc = "    }"]
 #[doc = "  },"]
 #[doc = "  \"additionalProperties\": false"]
@@ -9852,13 +9888,21 @@ impl ::std::convert::TryFrom<::std::string::String> for BmadCapabilityRunOutputS
 pub struct BmadConfig {
     #[serde(rename = "configId")]
     pub config_id: CommonContractId,
+    pub conflicts: ::std::vec::Vec<BmadConfigConflictDiagnostic>,
+    #[serde(rename = "effectiveValues")]
+    pub effective_values: ::std::vec::Vec<BmadConfigEffectiveValue>,
     pub layers: ::std::vec::Vec<BmadConfigConfigLayer>,
     #[serde(rename = "provenanceHash")]
     pub provenance_hash: CommonSha256,
+    pub requirements: ::std::vec::Vec<BmadConfigInputRequirement>,
     #[serde(rename = "resolvedHash")]
     pub resolved_hash: CommonSha256,
     #[serde(rename = "schemaVersion")]
     pub schema_version: ::serde_json::Value,
+    #[serde(rename = "secretReferences")]
+    pub secret_references: ::std::vec::Vec<BmadConfigSecretReference>,
+    #[serde(rename = "sessionConfigHash")]
+    pub session_config_hash: CommonSha256,
 }
 impl BmadConfig {
     pub fn builder() -> builder::BmadConfig {
@@ -9875,7 +9919,8 @@ impl BmadConfig {
 #[doc = "  \"required\": ["]
 #[doc = "    \"contentHash\","]
 #[doc = "    \"kind\","]
-#[doc = "    \"ordinal\""]
+#[doc = "    \"ordinal\","]
+#[doc = "    \"version\""]
 #[doc = "  ],"]
 #[doc = "  \"properties\": {"]
 #[doc = "    \"contentHash\": {"]
@@ -9883,7 +9928,7 @@ impl BmadConfig {
 #[doc = "    },"]
 #[doc = "    \"kind\": {"]
 #[doc = "      \"enum\": ["]
-#[doc = "        \"central\","]
+#[doc = "        \"defaults\","]
 #[doc = "        \"bundled_module\","]
 #[doc = "        \"project\","]
 #[doc = "        \"user\","]
@@ -9894,6 +9939,11 @@ impl BmadConfig {
 #[doc = "      \"type\": \"integer\","]
 #[doc = "      \"maximum\": 4.0,"]
 #[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4294967295.0,"]
+#[doc = "      \"minimum\": 1.0"]
 #[doc = "    }"]
 #[doc = "  },"]
 #[doc = "  \"additionalProperties\": false"]
@@ -9907,6 +9957,7 @@ pub struct BmadConfigConfigLayer {
     pub content_hash: CommonSha256,
     pub kind: BmadConfigConfigLayerKind,
     pub ordinal: i64,
+    pub version: ::std::num::NonZeroU64,
 }
 impl BmadConfigConfigLayer {
     pub fn builder() -> builder::BmadConfigConfigLayer {
@@ -9920,7 +9971,7 @@ impl BmadConfigConfigLayer {
 #[doc = r" ```json"]
 #[doc = "{"]
 #[doc = "  \"enum\": ["]
-#[doc = "    \"central\","]
+#[doc = "    \"defaults\","]
 #[doc = "    \"bundled_module\","]
 #[doc = "    \"project\","]
 #[doc = "    \"user\","]
@@ -9942,8 +9993,8 @@ impl BmadConfigConfigLayer {
     PartialOrd,
 )]
 pub enum BmadConfigConfigLayerKind {
-    #[serde(rename = "central")]
-    Central,
+    #[serde(rename = "defaults")]
+    Defaults,
     #[serde(rename = "bundled_module")]
     BundledModule,
     #[serde(rename = "project")]
@@ -9956,7 +10007,7 @@ pub enum BmadConfigConfigLayerKind {
 impl ::std::fmt::Display for BmadConfigConfigLayerKind {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match *self {
-            Self::Central => f.write_str("central"),
+            Self::Defaults => f.write_str("defaults"),
             Self::BundledModule => f.write_str("bundled_module"),
             Self::Project => f.write_str("project"),
             Self::User => f.write_str("user"),
@@ -9968,7 +10019,7 @@ impl ::std::str::FromStr for BmadConfigConfigLayerKind {
     type Err = self::error::ConversionError;
     fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
         match value {
-            "central" => Ok(Self::Central),
+            "defaults" => Ok(Self::Defaults),
             "bundled_module" => Ok(Self::BundledModule),
             "project" => Ok(Self::Project),
             "user" => Ok(Self::User),
@@ -9997,6 +10048,2473 @@ impl ::std::convert::TryFrom<::std::string::String> for BmadConfigConfigLayerKin
         value: ::std::string::String,
     ) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
+    }
+}
+#[doc = "`BmadConfigConflictDiagnostic`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"code\","]
+#[doc = "    \"key\","]
+#[doc = "    \"nextSourceLayer\","]
+#[doc = "    \"previousSourceLayer\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"code\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"config_value_overridden\","]
+#[doc = "        \"config_secret_reference_overridden\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"key\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"nextSourceLayer\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"defaults\","]
+#[doc = "        \"bundled_module\","]
+#[doc = "        \"project\","]
+#[doc = "        \"user\","]
+#[doc = "        \"invocation\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"previousSourceLayer\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"defaults\","]
+#[doc = "        \"bundled_module\","]
+#[doc = "        \"project\","]
+#[doc = "        \"user\","]
+#[doc = "        \"invocation\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadConfigConflictDiagnostic {
+    pub code: BmadConfigConflictDiagnosticCode,
+    pub key: BmadConfigConflictDiagnosticKey,
+    #[serde(rename = "nextSourceLayer")]
+    pub next_source_layer: BmadConfigConflictDiagnosticNextSourceLayer,
+    #[serde(rename = "previousSourceLayer")]
+    pub previous_source_layer: BmadConfigConflictDiagnosticPreviousSourceLayer,
+}
+impl BmadConfigConflictDiagnostic {
+    pub fn builder() -> builder::BmadConfigConflictDiagnostic {
+        Default::default()
+    }
+}
+#[doc = "`BmadConfigConflictDiagnosticCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"config_value_overridden\","]
+#[doc = "    \"config_secret_reference_overridden\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadConfigConflictDiagnosticCode {
+    #[serde(rename = "config_value_overridden")]
+    ConfigValueOverridden,
+    #[serde(rename = "config_secret_reference_overridden")]
+    ConfigSecretReferenceOverridden,
+}
+impl ::std::fmt::Display for BmadConfigConflictDiagnosticCode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::ConfigValueOverridden => f.write_str("config_value_overridden"),
+            Self::ConfigSecretReferenceOverridden => {
+                f.write_str("config_secret_reference_overridden")
+            }
+        }
+    }
+}
+impl ::std::str::FromStr for BmadConfigConflictDiagnosticCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "config_value_overridden" => Ok(Self::ConfigValueOverridden),
+            "config_secret_reference_overridden" => Ok(Self::ConfigSecretReferenceOverridden),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigConflictDiagnosticCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadConfigConflictDiagnosticCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadConfigConflictDiagnosticCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadConfigConflictDiagnosticKey`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadConfigConflictDiagnosticKey(::std::string::String);
+impl ::std::ops::Deref for BmadConfigConflictDiagnosticKey {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadConfigConflictDiagnosticKey> for ::std::string::String {
+    fn from(value: BmadConfigConflictDiagnosticKey) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadConfigConflictDiagnosticKey {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigConflictDiagnosticKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadConfigConflictDiagnosticKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadConfigConflictDiagnosticKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadConfigConflictDiagnosticKey {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadConfigConflictDiagnosticNextSourceLayer`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"defaults\","]
+#[doc = "    \"bundled_module\","]
+#[doc = "    \"project\","]
+#[doc = "    \"user\","]
+#[doc = "    \"invocation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadConfigConflictDiagnosticNextSourceLayer {
+    #[serde(rename = "defaults")]
+    Defaults,
+    #[serde(rename = "bundled_module")]
+    BundledModule,
+    #[serde(rename = "project")]
+    Project,
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "invocation")]
+    Invocation,
+}
+impl ::std::fmt::Display for BmadConfigConflictDiagnosticNextSourceLayer {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Defaults => f.write_str("defaults"),
+            Self::BundledModule => f.write_str("bundled_module"),
+            Self::Project => f.write_str("project"),
+            Self::User => f.write_str("user"),
+            Self::Invocation => f.write_str("invocation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadConfigConflictDiagnosticNextSourceLayer {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "defaults" => Ok(Self::Defaults),
+            "bundled_module" => Ok(Self::BundledModule),
+            "project" => Ok(Self::Project),
+            "user" => Ok(Self::User),
+            "invocation" => Ok(Self::Invocation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigConflictDiagnosticNextSourceLayer {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadConfigConflictDiagnosticNextSourceLayer
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadConfigConflictDiagnosticNextSourceLayer
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadConfigConflictDiagnosticPreviousSourceLayer`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"defaults\","]
+#[doc = "    \"bundled_module\","]
+#[doc = "    \"project\","]
+#[doc = "    \"user\","]
+#[doc = "    \"invocation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadConfigConflictDiagnosticPreviousSourceLayer {
+    #[serde(rename = "defaults")]
+    Defaults,
+    #[serde(rename = "bundled_module")]
+    BundledModule,
+    #[serde(rename = "project")]
+    Project,
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "invocation")]
+    Invocation,
+}
+impl ::std::fmt::Display for BmadConfigConflictDiagnosticPreviousSourceLayer {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Defaults => f.write_str("defaults"),
+            Self::BundledModule => f.write_str("bundled_module"),
+            Self::Project => f.write_str("project"),
+            Self::User => f.write_str("user"),
+            Self::Invocation => f.write_str("invocation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadConfigConflictDiagnosticPreviousSourceLayer {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "defaults" => Ok(Self::Defaults),
+            "bundled_module" => Ok(Self::BundledModule),
+            "project" => Ok(Self::Project),
+            "user" => Ok(Self::User),
+            "invocation" => Ok(Self::Invocation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigConflictDiagnosticPreviousSourceLayer {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadConfigConflictDiagnosticPreviousSourceLayer
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadConfigConflictDiagnosticPreviousSourceLayer
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadConfigEffectiveValue`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"key\","]
+#[doc = "    \"redaction\","]
+#[doc = "    \"sourceHash\","]
+#[doc = "    \"sourceLayer\","]
+#[doc = "    \"validation\","]
+#[doc = "    \"value\","]
+#[doc = "    \"version\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"key\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"language\","]
+#[doc = "        \"personalization\","]
+#[doc = "        \"output_folder\","]
+#[doc = "        \"report_folder\","]
+#[doc = "        \"model_preference\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"redaction\": {"]
+#[doc = "      \"const\": \"none\""]
+#[doc = "    },"]
+#[doc = "    \"sourceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"sourceLayer\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"defaults\","]
+#[doc = "        \"bundled_module\","]
+#[doc = "        \"project\","]
+#[doc = "        \"user\","]
+#[doc = "        \"invocation\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"validation\": {"]
+#[doc = "      \"const\": \"valid\""]
+#[doc = "    },"]
+#[doc = "    \"value\": {},"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4294967295.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadConfigEffectiveValue {
+    pub key: BmadConfigEffectiveValueKey,
+    pub redaction: ::serde_json::Value,
+    #[serde(rename = "sourceHash")]
+    pub source_hash: CommonSha256,
+    #[serde(rename = "sourceLayer")]
+    pub source_layer: BmadConfigEffectiveValueSourceLayer,
+    pub validation: ::serde_json::Value,
+    pub value: ::serde_json::Value,
+    pub version: ::std::num::NonZeroU64,
+}
+impl BmadConfigEffectiveValue {
+    pub fn builder() -> builder::BmadConfigEffectiveValue {
+        Default::default()
+    }
+}
+#[doc = "`BmadConfigEffectiveValueKey`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"language\","]
+#[doc = "    \"personalization\","]
+#[doc = "    \"output_folder\","]
+#[doc = "    \"report_folder\","]
+#[doc = "    \"model_preference\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadConfigEffectiveValueKey {
+    #[serde(rename = "language")]
+    Language,
+    #[serde(rename = "personalization")]
+    Personalization,
+    #[serde(rename = "output_folder")]
+    OutputFolder,
+    #[serde(rename = "report_folder")]
+    ReportFolder,
+    #[serde(rename = "model_preference")]
+    ModelPreference,
+}
+impl ::std::fmt::Display for BmadConfigEffectiveValueKey {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Language => f.write_str("language"),
+            Self::Personalization => f.write_str("personalization"),
+            Self::OutputFolder => f.write_str("output_folder"),
+            Self::ReportFolder => f.write_str("report_folder"),
+            Self::ModelPreference => f.write_str("model_preference"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadConfigEffectiveValueKey {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "language" => Ok(Self::Language),
+            "personalization" => Ok(Self::Personalization),
+            "output_folder" => Ok(Self::OutputFolder),
+            "report_folder" => Ok(Self::ReportFolder),
+            "model_preference" => Ok(Self::ModelPreference),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigEffectiveValueKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadConfigEffectiveValueKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadConfigEffectiveValueKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadConfigEffectiveValueSourceLayer`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"defaults\","]
+#[doc = "    \"bundled_module\","]
+#[doc = "    \"project\","]
+#[doc = "    \"user\","]
+#[doc = "    \"invocation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadConfigEffectiveValueSourceLayer {
+    #[serde(rename = "defaults")]
+    Defaults,
+    #[serde(rename = "bundled_module")]
+    BundledModule,
+    #[serde(rename = "project")]
+    Project,
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "invocation")]
+    Invocation,
+}
+impl ::std::fmt::Display for BmadConfigEffectiveValueSourceLayer {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Defaults => f.write_str("defaults"),
+            Self::BundledModule => f.write_str("bundled_module"),
+            Self::Project => f.write_str("project"),
+            Self::User => f.write_str("user"),
+            Self::Invocation => f.write_str("invocation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadConfigEffectiveValueSourceLayer {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "defaults" => Ok(Self::Defaults),
+            "bundled_module" => Ok(Self::BundledModule),
+            "project" => Ok(Self::Project),
+            "user" => Ok(Self::User),
+            "invocation" => Ok(Self::Invocation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigEffectiveValueSourceLayer {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadConfigEffectiveValueSourceLayer {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadConfigEffectiveValueSourceLayer {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadConfigInputRequirement`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"key\","]
+#[doc = "    \"reason\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"key\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"language\","]
+#[doc = "        \"output_folder\","]
+#[doc = "        \"report_folder\","]
+#[doc = "        \"model_preference\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"reason\": {"]
+#[doc = "      \"const\": \"missing_required_headless_value\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadConfigInputRequirement {
+    pub key: BmadConfigInputRequirementKey,
+    pub reason: ::serde_json::Value,
+}
+impl BmadConfigInputRequirement {
+    pub fn builder() -> builder::BmadConfigInputRequirement {
+        Default::default()
+    }
+}
+#[doc = "`BmadConfigInputRequirementKey`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"language\","]
+#[doc = "    \"output_folder\","]
+#[doc = "    \"report_folder\","]
+#[doc = "    \"model_preference\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadConfigInputRequirementKey {
+    #[serde(rename = "language")]
+    Language,
+    #[serde(rename = "output_folder")]
+    OutputFolder,
+    #[serde(rename = "report_folder")]
+    ReportFolder,
+    #[serde(rename = "model_preference")]
+    ModelPreference,
+}
+impl ::std::fmt::Display for BmadConfigInputRequirementKey {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Language => f.write_str("language"),
+            Self::OutputFolder => f.write_str("output_folder"),
+            Self::ReportFolder => f.write_str("report_folder"),
+            Self::ModelPreference => f.write_str("model_preference"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadConfigInputRequirementKey {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "language" => Ok(Self::Language),
+            "output_folder" => Ok(Self::OutputFolder),
+            "report_folder" => Ok(Self::ReportFolder),
+            "model_preference" => Ok(Self::ModelPreference),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigInputRequirementKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadConfigInputRequirementKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadConfigInputRequirementKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadConfigSecretReference`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"key\","]
+#[doc = "    \"redaction\","]
+#[doc = "    \"reference\","]
+#[doc = "    \"sourceHash\","]
+#[doc = "    \"sourceLayer\","]
+#[doc = "    \"validation\","]
+#[doc = "    \"version\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"key\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "    },"]
+#[doc = "    \"redaction\": {"]
+#[doc = "      \"const\": \"reference_only\""]
+#[doc = "    },"]
+#[doc = "    \"reference\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 512,"]
+#[doc = "      \"minLength\": 10,"]
+#[doc = "      \"pattern\": \"^secret://[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*$\""]
+#[doc = "    },"]
+#[doc = "    \"sourceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"sourceLayer\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"defaults\","]
+#[doc = "        \"bundled_module\","]
+#[doc = "        \"project\","]
+#[doc = "        \"user\","]
+#[doc = "        \"invocation\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"validation\": {"]
+#[doc = "      \"const\": \"valid\""]
+#[doc = "    },"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4294967295.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadConfigSecretReference {
+    pub key: BmadConfigSecretReferenceKey,
+    pub redaction: ::serde_json::Value,
+    pub reference: BmadConfigSecretReferenceReference,
+    #[serde(rename = "sourceHash")]
+    pub source_hash: CommonSha256,
+    #[serde(rename = "sourceLayer")]
+    pub source_layer: BmadConfigSecretReferenceSourceLayer,
+    pub validation: ::serde_json::Value,
+    pub version: ::std::num::NonZeroU64,
+}
+impl BmadConfigSecretReference {
+    pub fn builder() -> builder::BmadConfigSecretReference {
+        Default::default()
+    }
+}
+#[doc = "`BmadConfigSecretReferenceKey`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9_-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadConfigSecretReferenceKey(::std::string::String);
+impl ::std::ops::Deref for BmadConfigSecretReferenceKey {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadConfigSecretReferenceKey> for ::std::string::String {
+    fn from(value: BmadConfigSecretReferenceKey) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadConfigSecretReferenceKey {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Za-z0-9_-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Za-z0-9_-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigSecretReferenceKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadConfigSecretReferenceKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadConfigSecretReferenceKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadConfigSecretReferenceKey {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadConfigSecretReferenceReference`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 512,"]
+#[doc = "  \"minLength\": 10,"]
+#[doc = "  \"pattern\": \"^secret://[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadConfigSecretReferenceReference(::std::string::String);
+impl ::std::ops::Deref for BmadConfigSecretReferenceReference {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadConfigSecretReferenceReference> for ::std::string::String {
+    fn from(value: BmadConfigSecretReferenceReference) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadConfigSecretReferenceReference {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 512usize {
+            return Err("longer than 512 characters".into());
+        }
+        if value.chars().count() < 10usize {
+            return Err("shorter than 10 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^secret://[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^secret://[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigSecretReferenceReference {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadConfigSecretReferenceReference {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadConfigSecretReferenceReference {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadConfigSecretReferenceReference {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadConfigSecretReferenceSourceLayer`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"defaults\","]
+#[doc = "    \"bundled_module\","]
+#[doc = "    \"project\","]
+#[doc = "    \"user\","]
+#[doc = "    \"invocation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadConfigSecretReferenceSourceLayer {
+    #[serde(rename = "defaults")]
+    Defaults,
+    #[serde(rename = "bundled_module")]
+    BundledModule,
+    #[serde(rename = "project")]
+    Project,
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "invocation")]
+    Invocation,
+}
+impl ::std::fmt::Display for BmadConfigSecretReferenceSourceLayer {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Defaults => f.write_str("defaults"),
+            Self::BundledModule => f.write_str("bundled_module"),
+            Self::Project => f.write_str("project"),
+            Self::User => f.write_str("user"),
+            Self::Invocation => f.write_str("invocation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadConfigSecretReferenceSourceLayer {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "defaults" => Ok(Self::Defaults),
+            "bundled_module" => Ok(Self::BundledModule),
+            "project" => Ok(Self::Project),
+            "user" => Ok(Self::User),
+            "invocation" => Ok(Self::Invocation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadConfigSecretReferenceSourceLayer {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadConfigSecretReferenceSourceLayer {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadConfigSecretReferenceSourceLayer {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadCustomization`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-customization.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"activationAllowed\","]
+#[doc = "    \"activationProposals\","]
+#[doc = "    \"capabilityId\","]
+#[doc = "    \"conflicts\","]
+#[doc = "    \"customizationId\","]
+#[doc = "    \"dependencies\","]
+#[doc = "    \"evidenceId\","]
+#[doc = "    \"forbiddenEffects\","]
+#[doc = "    \"layers\","]
+#[doc = "    \"mode\","]
+#[doc = "    \"outputProposals\","]
+#[doc = "    \"provenanceHash\","]
+#[doc = "    \"resolvedHash\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"sessionCustomizationHash\","]
+#[doc = "    \"sessionId\","]
+#[doc = "    \"textOverlays\","]
+#[doc = "    \"toolIntents\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"activationAllowed\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"activationProposals\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadCustomizationDeclaration\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 512"]
+#[doc = "    },"]
+#[doc = "    \"capabilityId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"conflicts\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadCustomizationConflict\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 512"]
+#[doc = "    },"]
+#[doc = "    \"customizationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"dependencies\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadCustomizationDeclaration\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 512"]
+#[doc = "    },"]
+#[doc = "    \"evidenceId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"forbiddenEffects\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadCustomizationDeclaration\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 512"]
+#[doc = "    },"]
+#[doc = "    \"layers\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadCustomizationLayer\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 4,"]
+#[doc = "      \"minItems\": 1"]
+#[doc = "    },"]
+#[doc = "    \"mode\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"interactive\","]
+#[doc = "        \"headless\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"outputProposals\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadCustomizationDeclaration\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 512"]
+#[doc = "    },"]
+#[doc = "    \"provenanceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-customization.v1\""]
+#[doc = "    },"]
+#[doc = "    \"sessionCustomizationHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"sessionId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"textOverlays\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadCustomizationTextOverlay\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 512"]
+#[doc = "    },"]
+#[doc = "    \"toolIntents\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadCustomizationDeclaration\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 512"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadCustomization {
+    #[serde(rename = "activationAllowed")]
+    pub activation_allowed: bool,
+    #[serde(rename = "activationProposals")]
+    pub activation_proposals: ::std::vec::Vec<BmadCustomizationDeclaration>,
+    #[serde(rename = "capabilityId")]
+    pub capability_id: CommonContractId,
+    pub conflicts: ::std::vec::Vec<BmadCustomizationConflict>,
+    #[serde(rename = "customizationId")]
+    pub customization_id: CommonContractId,
+    pub dependencies: ::std::vec::Vec<BmadCustomizationDeclaration>,
+    #[serde(rename = "evidenceId")]
+    pub evidence_id: CommonContractId,
+    #[serde(rename = "forbiddenEffects")]
+    pub forbidden_effects: ::std::vec::Vec<BmadCustomizationDeclaration>,
+    pub layers: ::std::vec::Vec<BmadCustomizationLayer>,
+    pub mode: BmadCustomizationMode,
+    #[serde(rename = "outputProposals")]
+    pub output_proposals: ::std::vec::Vec<BmadCustomizationDeclaration>,
+    #[serde(rename = "provenanceHash")]
+    pub provenance_hash: CommonSha256,
+    #[serde(rename = "resolvedHash")]
+    pub resolved_hash: CommonSha256,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "sessionCustomizationHash")]
+    pub session_customization_hash: CommonSha256,
+    #[serde(rename = "sessionId")]
+    pub session_id: CommonContractId,
+    #[serde(rename = "textOverlays")]
+    pub text_overlays: ::std::vec::Vec<BmadCustomizationTextOverlay>,
+    #[serde(rename = "toolIntents")]
+    pub tool_intents: ::std::vec::Vec<BmadCustomizationDeclaration>,
+}
+impl BmadCustomization {
+    pub fn builder() -> builder::BmadCustomization {
+        Default::default()
+    }
+}
+#[doc = "`BmadCustomizationConflict`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"code\","]
+#[doc = "    \"key\","]
+#[doc = "    \"nextSourceLayer\","]
+#[doc = "    \"previousSourceLayer\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"code\": {"]
+#[doc = "      \"const\": \"customization_value_overridden\""]
+#[doc = "    },"]
+#[doc = "    \"key\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 512,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"nextSourceLayer\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadCustomizationLayerKind\""]
+#[doc = "    },"]
+#[doc = "    \"previousSourceLayer\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadCustomizationLayerKind\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadCustomizationConflict {
+    pub code: ::serde_json::Value,
+    pub key: BmadCustomizationConflictKey,
+    #[serde(rename = "nextSourceLayer")]
+    pub next_source_layer: BmadCustomizationLayerKind,
+    #[serde(rename = "previousSourceLayer")]
+    pub previous_source_layer: BmadCustomizationLayerKind,
+}
+impl BmadCustomizationConflict {
+    pub fn builder() -> builder::BmadCustomizationConflict {
+        Default::default()
+    }
+}
+#[doc = "`BmadCustomizationConflictKey`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 512,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadCustomizationConflictKey(::std::string::String);
+impl ::std::ops::Deref for BmadCustomizationConflictKey {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadCustomizationConflictKey> for ::std::string::String {
+    fn from(value: BmadCustomizationConflictKey) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationConflictKey {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 512usize {
+            return Err("longer than 512 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationConflictKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationConflictKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationConflictKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadCustomizationConflictKey {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadCustomizationDeclaration`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"code\","]
+#[doc = "    \"declarationHash\","]
+#[doc = "    \"key\","]
+#[doc = "    \"kind\","]
+#[doc = "    \"literal\","]
+#[doc = "    \"provenanceLabel\","]
+#[doc = "    \"sourceHash\","]
+#[doc = "    \"sourceLayer\","]
+#[doc = "    \"status\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"code\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"customization_skill_dependency\","]
+#[doc = "        \"customization_skill_unavailable\","]
+#[doc = "        \"customization_file_dependency\","]
+#[doc = "        \"customization_tool_proposed\","]
+#[doc = "        \"customization_tool_unavailable\","]
+#[doc = "        \"customization_activation_proposed\","]
+#[doc = "        \"customization_output_proposed\","]
+#[doc = "        \"customization_path_escape\","]
+#[doc = "        \"customization_injection_forbidden\","]
+#[doc = "        \"customization_secret_forbidden\","]
+#[doc = "        \"customization_network_effect_forbidden\","]
+#[doc = "        \"customization_dependency_cycle\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"declarationHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"key\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 512,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"kind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"dependency\","]
+#[doc = "        \"tool_intent\","]
+#[doc = "        \"activation_proposal\","]
+#[doc = "        \"output_proposal\","]
+#[doc = "        \"forbidden_effect\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"literal\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 8192,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"provenanceLabel\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 512,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"sourceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"sourceLayer\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadCustomizationLayerKind\""]
+#[doc = "    },"]
+#[doc = "    \"status\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"available\","]
+#[doc = "        \"proposed\","]
+#[doc = "        \"unavailable\","]
+#[doc = "        \"forbidden\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadCustomizationDeclaration {
+    pub code: BmadCustomizationDeclarationCode,
+    #[serde(rename = "declarationHash")]
+    pub declaration_hash: CommonSha256,
+    pub key: BmadCustomizationDeclarationKey,
+    pub kind: BmadCustomizationDeclarationKind,
+    pub literal: BmadCustomizationDeclarationLiteral,
+    #[serde(rename = "provenanceLabel")]
+    pub provenance_label: BmadCustomizationDeclarationProvenanceLabel,
+    #[serde(rename = "sourceHash")]
+    pub source_hash: CommonSha256,
+    #[serde(rename = "sourceLayer")]
+    pub source_layer: BmadCustomizationLayerKind,
+    pub status: BmadCustomizationDeclarationStatus,
+}
+impl BmadCustomizationDeclaration {
+    pub fn builder() -> builder::BmadCustomizationDeclaration {
+        Default::default()
+    }
+}
+#[doc = "`BmadCustomizationDeclarationCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"customization_skill_dependency\","]
+#[doc = "    \"customization_skill_unavailable\","]
+#[doc = "    \"customization_file_dependency\","]
+#[doc = "    \"customization_tool_proposed\","]
+#[doc = "    \"customization_tool_unavailable\","]
+#[doc = "    \"customization_activation_proposed\","]
+#[doc = "    \"customization_output_proposed\","]
+#[doc = "    \"customization_path_escape\","]
+#[doc = "    \"customization_injection_forbidden\","]
+#[doc = "    \"customization_secret_forbidden\","]
+#[doc = "    \"customization_network_effect_forbidden\","]
+#[doc = "    \"customization_dependency_cycle\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadCustomizationDeclarationCode {
+    #[serde(rename = "customization_skill_dependency")]
+    CustomizationSkillDependency,
+    #[serde(rename = "customization_skill_unavailable")]
+    CustomizationSkillUnavailable,
+    #[serde(rename = "customization_file_dependency")]
+    CustomizationFileDependency,
+    #[serde(rename = "customization_tool_proposed")]
+    CustomizationToolProposed,
+    #[serde(rename = "customization_tool_unavailable")]
+    CustomizationToolUnavailable,
+    #[serde(rename = "customization_activation_proposed")]
+    CustomizationActivationProposed,
+    #[serde(rename = "customization_output_proposed")]
+    CustomizationOutputProposed,
+    #[serde(rename = "customization_path_escape")]
+    CustomizationPathEscape,
+    #[serde(rename = "customization_injection_forbidden")]
+    CustomizationInjectionForbidden,
+    #[serde(rename = "customization_secret_forbidden")]
+    CustomizationSecretForbidden,
+    #[serde(rename = "customization_network_effect_forbidden")]
+    CustomizationNetworkEffectForbidden,
+    #[serde(rename = "customization_dependency_cycle")]
+    CustomizationDependencyCycle,
+}
+impl ::std::fmt::Display for BmadCustomizationDeclarationCode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::CustomizationSkillDependency => f.write_str("customization_skill_dependency"),
+            Self::CustomizationSkillUnavailable => f.write_str("customization_skill_unavailable"),
+            Self::CustomizationFileDependency => f.write_str("customization_file_dependency"),
+            Self::CustomizationToolProposed => f.write_str("customization_tool_proposed"),
+            Self::CustomizationToolUnavailable => f.write_str("customization_tool_unavailable"),
+            Self::CustomizationActivationProposed => {
+                f.write_str("customization_activation_proposed")
+            }
+            Self::CustomizationOutputProposed => f.write_str("customization_output_proposed"),
+            Self::CustomizationPathEscape => f.write_str("customization_path_escape"),
+            Self::CustomizationInjectionForbidden => {
+                f.write_str("customization_injection_forbidden")
+            }
+            Self::CustomizationSecretForbidden => f.write_str("customization_secret_forbidden"),
+            Self::CustomizationNetworkEffectForbidden => {
+                f.write_str("customization_network_effect_forbidden")
+            }
+            Self::CustomizationDependencyCycle => f.write_str("customization_dependency_cycle"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationDeclarationCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "customization_skill_dependency" => Ok(Self::CustomizationSkillDependency),
+            "customization_skill_unavailable" => Ok(Self::CustomizationSkillUnavailable),
+            "customization_file_dependency" => Ok(Self::CustomizationFileDependency),
+            "customization_tool_proposed" => Ok(Self::CustomizationToolProposed),
+            "customization_tool_unavailable" => Ok(Self::CustomizationToolUnavailable),
+            "customization_activation_proposed" => Ok(Self::CustomizationActivationProposed),
+            "customization_output_proposed" => Ok(Self::CustomizationOutputProposed),
+            "customization_path_escape" => Ok(Self::CustomizationPathEscape),
+            "customization_injection_forbidden" => Ok(Self::CustomizationInjectionForbidden),
+            "customization_secret_forbidden" => Ok(Self::CustomizationSecretForbidden),
+            "customization_network_effect_forbidden" => {
+                Ok(Self::CustomizationNetworkEffectForbidden)
+            }
+            "customization_dependency_cycle" => Ok(Self::CustomizationDependencyCycle),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationDeclarationCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationDeclarationCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationDeclarationCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadCustomizationDeclarationKey`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 512,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadCustomizationDeclarationKey(::std::string::String);
+impl ::std::ops::Deref for BmadCustomizationDeclarationKey {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadCustomizationDeclarationKey> for ::std::string::String {
+    fn from(value: BmadCustomizationDeclarationKey) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationDeclarationKey {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 512usize {
+            return Err("longer than 512 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationDeclarationKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationDeclarationKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationDeclarationKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadCustomizationDeclarationKey {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadCustomizationDeclarationKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"dependency\","]
+#[doc = "    \"tool_intent\","]
+#[doc = "    \"activation_proposal\","]
+#[doc = "    \"output_proposal\","]
+#[doc = "    \"forbidden_effect\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadCustomizationDeclarationKind {
+    #[serde(rename = "dependency")]
+    Dependency,
+    #[serde(rename = "tool_intent")]
+    ToolIntent,
+    #[serde(rename = "activation_proposal")]
+    ActivationProposal,
+    #[serde(rename = "output_proposal")]
+    OutputProposal,
+    #[serde(rename = "forbidden_effect")]
+    ForbiddenEffect,
+}
+impl ::std::fmt::Display for BmadCustomizationDeclarationKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Dependency => f.write_str("dependency"),
+            Self::ToolIntent => f.write_str("tool_intent"),
+            Self::ActivationProposal => f.write_str("activation_proposal"),
+            Self::OutputProposal => f.write_str("output_proposal"),
+            Self::ForbiddenEffect => f.write_str("forbidden_effect"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationDeclarationKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "dependency" => Ok(Self::Dependency),
+            "tool_intent" => Ok(Self::ToolIntent),
+            "activation_proposal" => Ok(Self::ActivationProposal),
+            "output_proposal" => Ok(Self::OutputProposal),
+            "forbidden_effect" => Ok(Self::ForbiddenEffect),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationDeclarationKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationDeclarationKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationDeclarationKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadCustomizationDeclarationLiteral`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 8192,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadCustomizationDeclarationLiteral(::std::string::String);
+impl ::std::ops::Deref for BmadCustomizationDeclarationLiteral {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadCustomizationDeclarationLiteral> for ::std::string::String {
+    fn from(value: BmadCustomizationDeclarationLiteral) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationDeclarationLiteral {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 8192usize {
+            return Err("longer than 8192 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationDeclarationLiteral {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationDeclarationLiteral {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationDeclarationLiteral {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadCustomizationDeclarationLiteral {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadCustomizationDeclarationProvenanceLabel`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 512,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadCustomizationDeclarationProvenanceLabel(::std::string::String);
+impl ::std::ops::Deref for BmadCustomizationDeclarationProvenanceLabel {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadCustomizationDeclarationProvenanceLabel> for ::std::string::String {
+    fn from(value: BmadCustomizationDeclarationProvenanceLabel) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationDeclarationProvenanceLabel {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 512usize {
+            return Err("longer than 512 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationDeclarationProvenanceLabel {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadCustomizationDeclarationProvenanceLabel
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadCustomizationDeclarationProvenanceLabel
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadCustomizationDeclarationProvenanceLabel {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadCustomizationDeclarationStatus`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"available\","]
+#[doc = "    \"proposed\","]
+#[doc = "    \"unavailable\","]
+#[doc = "    \"forbidden\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadCustomizationDeclarationStatus {
+    #[serde(rename = "available")]
+    Available,
+    #[serde(rename = "proposed")]
+    Proposed,
+    #[serde(rename = "unavailable")]
+    Unavailable,
+    #[serde(rename = "forbidden")]
+    Forbidden,
+}
+impl ::std::fmt::Display for BmadCustomizationDeclarationStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Available => f.write_str("available"),
+            Self::Proposed => f.write_str("proposed"),
+            Self::Unavailable => f.write_str("unavailable"),
+            Self::Forbidden => f.write_str("forbidden"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationDeclarationStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "available" => Ok(Self::Available),
+            "proposed" => Ok(Self::Proposed),
+            "unavailable" => Ok(Self::Unavailable),
+            "forbidden" => Ok(Self::Forbidden),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationDeclarationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationDeclarationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationDeclarationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadCustomizationLayer`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"contentHash\","]
+#[doc = "    \"kind\","]
+#[doc = "    \"ordinal\","]
+#[doc = "    \"provenanceLabel\","]
+#[doc = "    \"version\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"contentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"kind\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadCustomizationLayerKind\""]
+#[doc = "    },"]
+#[doc = "    \"ordinal\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 3.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"provenanceLabel\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 512,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 4294967295.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadCustomizationLayer {
+    #[serde(rename = "contentHash")]
+    pub content_hash: CommonSha256,
+    pub kind: BmadCustomizationLayerKind,
+    pub ordinal: i64,
+    #[serde(rename = "provenanceLabel")]
+    pub provenance_label: BmadCustomizationLayerProvenanceLabel,
+    pub version: ::std::num::NonZeroU64,
+}
+impl BmadCustomizationLayer {
+    pub fn builder() -> builder::BmadCustomizationLayer {
+        Default::default()
+    }
+}
+#[doc = "`BmadCustomizationLayerKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"defaults\","]
+#[doc = "    \"team\","]
+#[doc = "    \"user\","]
+#[doc = "    \"invocation\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadCustomizationLayerKind {
+    #[serde(rename = "defaults")]
+    Defaults,
+    #[serde(rename = "team")]
+    Team,
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "invocation")]
+    Invocation,
+}
+impl ::std::fmt::Display for BmadCustomizationLayerKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Defaults => f.write_str("defaults"),
+            Self::Team => f.write_str("team"),
+            Self::User => f.write_str("user"),
+            Self::Invocation => f.write_str("invocation"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationLayerKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "defaults" => Ok(Self::Defaults),
+            "team" => Ok(Self::Team),
+            "user" => Ok(Self::User),
+            "invocation" => Ok(Self::Invocation),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationLayerKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationLayerKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationLayerKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadCustomizationLayerProvenanceLabel`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 512,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadCustomizationLayerProvenanceLabel(::std::string::String);
+impl ::std::ops::Deref for BmadCustomizationLayerProvenanceLabel {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadCustomizationLayerProvenanceLabel> for ::std::string::String {
+    fn from(value: BmadCustomizationLayerProvenanceLabel) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationLayerProvenanceLabel {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 512usize {
+            return Err("longer than 512 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationLayerProvenanceLabel {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationLayerProvenanceLabel {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationLayerProvenanceLabel {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadCustomizationLayerProvenanceLabel {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadCustomizationMode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"interactive\","]
+#[doc = "    \"headless\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadCustomizationMode {
+    #[serde(rename = "interactive")]
+    Interactive,
+    #[serde(rename = "headless")]
+    Headless,
+}
+impl ::std::fmt::Display for BmadCustomizationMode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Interactive => f.write_str("interactive"),
+            Self::Headless => f.write_str("headless"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationMode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "interactive" => Ok(Self::Interactive),
+            "headless" => Ok(Self::Headless),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationMode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadCustomizationTextOverlay`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"key\","]
+#[doc = "    \"overlayHash\","]
+#[doc = "    \"provenanceLabel\","]
+#[doc = "    \"sourceHash\","]
+#[doc = "    \"sourceLayer\","]
+#[doc = "    \"value\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"key\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 512,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"overlayHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"provenanceLabel\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 512,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"sourceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"sourceLayer\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadCustomizationLayerKind\""]
+#[doc = "    },"]
+#[doc = "    \"value\": {}"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadCustomizationTextOverlay {
+    pub key: BmadCustomizationTextOverlayKey,
+    #[serde(rename = "overlayHash")]
+    pub overlay_hash: CommonSha256,
+    #[serde(rename = "provenanceLabel")]
+    pub provenance_label: BmadCustomizationTextOverlayProvenanceLabel,
+    #[serde(rename = "sourceHash")]
+    pub source_hash: CommonSha256,
+    #[serde(rename = "sourceLayer")]
+    pub source_layer: BmadCustomizationLayerKind,
+    pub value: ::serde_json::Value,
+}
+impl BmadCustomizationTextOverlay {
+    pub fn builder() -> builder::BmadCustomizationTextOverlay {
+        Default::default()
+    }
+}
+#[doc = "`BmadCustomizationTextOverlayKey`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 512,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadCustomizationTextOverlayKey(::std::string::String);
+impl ::std::ops::Deref for BmadCustomizationTextOverlayKey {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadCustomizationTextOverlayKey> for ::std::string::String {
+    fn from(value: BmadCustomizationTextOverlayKey) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationTextOverlayKey {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 512usize {
+            return Err("longer than 512 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationTextOverlayKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadCustomizationTextOverlayKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadCustomizationTextOverlayKey {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadCustomizationTextOverlayKey {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadCustomizationTextOverlayProvenanceLabel`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 512,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadCustomizationTextOverlayProvenanceLabel(::std::string::String);
+impl ::std::ops::Deref for BmadCustomizationTextOverlayProvenanceLabel {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadCustomizationTextOverlayProvenanceLabel> for ::std::string::String {
+    fn from(value: BmadCustomizationTextOverlayProvenanceLabel) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadCustomizationTextOverlayProvenanceLabel {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 512usize {
+            return Err("longer than 512 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadCustomizationTextOverlayProvenanceLabel {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadCustomizationTextOverlayProvenanceLabel
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadCustomizationTextOverlayProvenanceLabel
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadCustomizationTextOverlayProvenanceLabel {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
     }
 }
 #[doc = "`BmadEval`"]
@@ -60412,6 +62930,9 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"bmadConfig\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadConfig\""]
 #[doc = "    },"]
+#[doc = "    \"bmadCustomization\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadCustomization\""]
+#[doc = "    },"]
 #[doc = "    \"bmadEval\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadEval\""]
 #[doc = "    },"]
@@ -60588,6 +63109,12 @@ pub struct SapphirusContractsCatalog {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub bmad_config: ::std::option::Option<BmadConfig>,
+    #[serde(
+        rename = "bmadCustomization",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_customization: ::std::option::Option<BmadCustomization>,
     #[serde(
         rename = "bmadEval",
         default,
@@ -60840,6 +63367,7 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             bmad_capability_result: Default::default(),
             bmad_capability_run: Default::default(),
             bmad_config: Default::default(),
+            bmad_customization: Default::default(),
             bmad_eval: Default::default(),
             bmad_memory: Default::default(),
             bmad_module: Default::default(),
@@ -64274,22 +66802,44 @@ pub mod builder {
     #[derive(Clone, Debug)]
     pub struct BmadConfig {
         config_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        conflicts: ::std::result::Result<
+            ::std::vec::Vec<super::BmadConfigConflictDiagnostic>,
+            ::std::string::String,
+        >,
+        effective_values: ::std::result::Result<
+            ::std::vec::Vec<super::BmadConfigEffectiveValue>,
+            ::std::string::String,
+        >,
         layers: ::std::result::Result<
             ::std::vec::Vec<super::BmadConfigConfigLayer>,
             ::std::string::String,
         >,
         provenance_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        requirements: ::std::result::Result<
+            ::std::vec::Vec<super::BmadConfigInputRequirement>,
+            ::std::string::String,
+        >,
         resolved_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
         schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        secret_references: ::std::result::Result<
+            ::std::vec::Vec<super::BmadConfigSecretReference>,
+            ::std::string::String,
+        >,
+        session_config_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
     }
     impl ::std::default::Default for BmadConfig {
         fn default() -> Self {
             Self {
                 config_id: Err("no value supplied for config_id".to_string()),
+                conflicts: Err("no value supplied for conflicts".to_string()),
+                effective_values: Err("no value supplied for effective_values".to_string()),
                 layers: Err("no value supplied for layers".to_string()),
                 provenance_hash: Err("no value supplied for provenance_hash".to_string()),
+                requirements: Err("no value supplied for requirements".to_string()),
                 resolved_hash: Err("no value supplied for resolved_hash".to_string()),
                 schema_version: Err("no value supplied for schema_version".to_string()),
+                secret_references: Err("no value supplied for secret_references".to_string()),
+                session_config_hash: Err("no value supplied for session_config_hash".to_string()),
             }
         }
     }
@@ -64302,6 +66852,26 @@ pub mod builder {
             self.config_id = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for config_id: {e}"));
+            self
+        }
+        pub fn conflicts<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadConfigConflictDiagnostic>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.conflicts = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for conflicts: {e}"));
+            self
+        }
+        pub fn effective_values<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadConfigEffectiveValue>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.effective_values = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for effective_values: {e}"));
             self
         }
         pub fn layers<T>(mut self, value: T) -> Self
@@ -64324,6 +66894,16 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for provenance_hash: {e}"));
             self
         }
+        pub fn requirements<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadConfigInputRequirement>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.requirements = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for requirements: {e}"));
+            self
+        }
         pub fn resolved_hash<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<super::CommonSha256>,
@@ -64344,6 +66924,26 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
             self
         }
+        pub fn secret_references<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadConfigSecretReference>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.secret_references = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for secret_references: {e}"));
+            self
+        }
+        pub fn session_config_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.session_config_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for session_config_hash: {e}")
+            });
+            self
+        }
     }
     impl ::std::convert::TryFrom<BmadConfig> for super::BmadConfig {
         type Error = super::error::ConversionError;
@@ -64352,10 +66952,15 @@ pub mod builder {
         ) -> ::std::result::Result<Self, super::error::ConversionError> {
             Ok(Self {
                 config_id: value.config_id?,
+                conflicts: value.conflicts?,
+                effective_values: value.effective_values?,
                 layers: value.layers?,
                 provenance_hash: value.provenance_hash?,
+                requirements: value.requirements?,
                 resolved_hash: value.resolved_hash?,
                 schema_version: value.schema_version?,
+                secret_references: value.secret_references?,
+                session_config_hash: value.session_config_hash?,
             })
         }
     }
@@ -64363,10 +66968,15 @@ pub mod builder {
         fn from(value: super::BmadConfig) -> Self {
             Self {
                 config_id: Ok(value.config_id),
+                conflicts: Ok(value.conflicts),
+                effective_values: Ok(value.effective_values),
                 layers: Ok(value.layers),
                 provenance_hash: Ok(value.provenance_hash),
+                requirements: Ok(value.requirements),
                 resolved_hash: Ok(value.resolved_hash),
                 schema_version: Ok(value.schema_version),
+                secret_references: Ok(value.secret_references),
+                session_config_hash: Ok(value.session_config_hash),
             }
         }
     }
@@ -64375,6 +66985,7 @@ pub mod builder {
         content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
         kind: ::std::result::Result<super::BmadConfigConfigLayerKind, ::std::string::String>,
         ordinal: ::std::result::Result<i64, ::std::string::String>,
+        version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
     }
     impl ::std::default::Default for BmadConfigConfigLayer {
         fn default() -> Self {
@@ -64382,6 +66993,7 @@ pub mod builder {
                 content_hash: Err("no value supplied for content_hash".to_string()),
                 kind: Err("no value supplied for kind".to_string()),
                 ordinal: Err("no value supplied for ordinal".to_string()),
+                version: Err("no value supplied for version".to_string()),
             }
         }
     }
@@ -64416,6 +67028,16 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for ordinal: {e}"));
             self
         }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
     }
     impl ::std::convert::TryFrom<BmadConfigConfigLayer> for super::BmadConfigConfigLayer {
         type Error = super::error::ConversionError;
@@ -64426,6 +67048,7 @@ pub mod builder {
                 content_hash: value.content_hash?,
                 kind: value.kind?,
                 ordinal: value.ordinal?,
+                version: value.version?,
             })
         }
     }
@@ -64435,6 +67058,1170 @@ pub mod builder {
                 content_hash: Ok(value.content_hash),
                 kind: Ok(value.kind),
                 ordinal: Ok(value.ordinal),
+                version: Ok(value.version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadConfigConflictDiagnostic {
+        code: ::std::result::Result<super::BmadConfigConflictDiagnosticCode, ::std::string::String>,
+        key: ::std::result::Result<super::BmadConfigConflictDiagnosticKey, ::std::string::String>,
+        next_source_layer: ::std::result::Result<
+            super::BmadConfigConflictDiagnosticNextSourceLayer,
+            ::std::string::String,
+        >,
+        previous_source_layer: ::std::result::Result<
+            super::BmadConfigConflictDiagnosticPreviousSourceLayer,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadConfigConflictDiagnostic {
+        fn default() -> Self {
+            Self {
+                code: Err("no value supplied for code".to_string()),
+                key: Err("no value supplied for key".to_string()),
+                next_source_layer: Err("no value supplied for next_source_layer".to_string()),
+                previous_source_layer: Err(
+                    "no value supplied for previous_source_layer".to_string()
+                ),
+            }
+        }
+    }
+    impl BmadConfigConflictDiagnostic {
+        pub fn code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigConflictDiagnosticCode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for code: {e}"));
+            self
+        }
+        pub fn key<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigConflictDiagnosticKey>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key: {e}"));
+            self
+        }
+        pub fn next_source_layer<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigConflictDiagnosticNextSourceLayer>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.next_source_layer = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for next_source_layer: {e}"));
+            self
+        }
+        pub fn previous_source_layer<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigConflictDiagnosticPreviousSourceLayer>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.previous_source_layer = value.try_into().map_err(|e| {
+                format!("error converting supplied value for previous_source_layer: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadConfigConflictDiagnostic> for super::BmadConfigConflictDiagnostic {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadConfigConflictDiagnostic,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                code: value.code?,
+                key: value.key?,
+                next_source_layer: value.next_source_layer?,
+                previous_source_layer: value.previous_source_layer?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadConfigConflictDiagnostic> for BmadConfigConflictDiagnostic {
+        fn from(value: super::BmadConfigConflictDiagnostic) -> Self {
+            Self {
+                code: Ok(value.code),
+                key: Ok(value.key),
+                next_source_layer: Ok(value.next_source_layer),
+                previous_source_layer: Ok(value.previous_source_layer),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadConfigEffectiveValue {
+        key: ::std::result::Result<super::BmadConfigEffectiveValueKey, ::std::string::String>,
+        redaction: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        source_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        source_layer: ::std::result::Result<
+            super::BmadConfigEffectiveValueSourceLayer,
+            ::std::string::String,
+        >,
+        validation: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        value: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadConfigEffectiveValue {
+        fn default() -> Self {
+            Self {
+                key: Err("no value supplied for key".to_string()),
+                redaction: Err("no value supplied for redaction".to_string()),
+                source_hash: Err("no value supplied for source_hash".to_string()),
+                source_layer: Err("no value supplied for source_layer".to_string()),
+                validation: Err("no value supplied for validation".to_string()),
+                value: Err("no value supplied for value".to_string()),
+                version: Err("no value supplied for version".to_string()),
+            }
+        }
+    }
+    impl BmadConfigEffectiveValue {
+        pub fn key<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigEffectiveValueKey>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key: {e}"));
+            self
+        }
+        pub fn redaction<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.redaction = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for redaction: {e}"));
+            self
+        }
+        pub fn source_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_hash: {e}"));
+            self
+        }
+        pub fn source_layer<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigEffectiveValueSourceLayer>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_layer = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_layer: {e}"));
+            self
+        }
+        pub fn validation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.validation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for validation: {e}"));
+            self
+        }
+        pub fn value<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.value = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for value: {e}"));
+            self
+        }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadConfigEffectiveValue> for super::BmadConfigEffectiveValue {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadConfigEffectiveValue,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                key: value.key?,
+                redaction: value.redaction?,
+                source_hash: value.source_hash?,
+                source_layer: value.source_layer?,
+                validation: value.validation?,
+                value: value.value?,
+                version: value.version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadConfigEffectiveValue> for BmadConfigEffectiveValue {
+        fn from(value: super::BmadConfigEffectiveValue) -> Self {
+            Self {
+                key: Ok(value.key),
+                redaction: Ok(value.redaction),
+                source_hash: Ok(value.source_hash),
+                source_layer: Ok(value.source_layer),
+                validation: Ok(value.validation),
+                value: Ok(value.value),
+                version: Ok(value.version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadConfigInputRequirement {
+        key: ::std::result::Result<super::BmadConfigInputRequirementKey, ::std::string::String>,
+        reason: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadConfigInputRequirement {
+        fn default() -> Self {
+            Self {
+                key: Err("no value supplied for key".to_string()),
+                reason: Err("no value supplied for reason".to_string()),
+            }
+        }
+    }
+    impl BmadConfigInputRequirement {
+        pub fn key<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigInputRequirementKey>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key: {e}"));
+            self
+        }
+        pub fn reason<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reason = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reason: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadConfigInputRequirement> for super::BmadConfigInputRequirement {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadConfigInputRequirement,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                key: value.key?,
+                reason: value.reason?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadConfigInputRequirement> for BmadConfigInputRequirement {
+        fn from(value: super::BmadConfigInputRequirement) -> Self {
+            Self {
+                key: Ok(value.key),
+                reason: Ok(value.reason),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadConfigSecretReference {
+        key: ::std::result::Result<super::BmadConfigSecretReferenceKey, ::std::string::String>,
+        redaction: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        reference:
+            ::std::result::Result<super::BmadConfigSecretReferenceReference, ::std::string::String>,
+        source_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        source_layer: ::std::result::Result<
+            super::BmadConfigSecretReferenceSourceLayer,
+            ::std::string::String,
+        >,
+        validation: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadConfigSecretReference {
+        fn default() -> Self {
+            Self {
+                key: Err("no value supplied for key".to_string()),
+                redaction: Err("no value supplied for redaction".to_string()),
+                reference: Err("no value supplied for reference".to_string()),
+                source_hash: Err("no value supplied for source_hash".to_string()),
+                source_layer: Err("no value supplied for source_layer".to_string()),
+                validation: Err("no value supplied for validation".to_string()),
+                version: Err("no value supplied for version".to_string()),
+            }
+        }
+    }
+    impl BmadConfigSecretReference {
+        pub fn key<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigSecretReferenceKey>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key: {e}"));
+            self
+        }
+        pub fn redaction<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.redaction = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for redaction: {e}"));
+            self
+        }
+        pub fn reference<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigSecretReferenceReference>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.reference = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for reference: {e}"));
+            self
+        }
+        pub fn source_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_hash: {e}"));
+            self
+        }
+        pub fn source_layer<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadConfigSecretReferenceSourceLayer>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_layer = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_layer: {e}"));
+            self
+        }
+        pub fn validation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.validation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for validation: {e}"));
+            self
+        }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadConfigSecretReference> for super::BmadConfigSecretReference {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadConfigSecretReference,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                key: value.key?,
+                redaction: value.redaction?,
+                reference: value.reference?,
+                source_hash: value.source_hash?,
+                source_layer: value.source_layer?,
+                validation: value.validation?,
+                version: value.version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadConfigSecretReference> for BmadConfigSecretReference {
+        fn from(value: super::BmadConfigSecretReference) -> Self {
+            Self {
+                key: Ok(value.key),
+                redaction: Ok(value.redaction),
+                reference: Ok(value.reference),
+                source_hash: Ok(value.source_hash),
+                source_layer: Ok(value.source_layer),
+                validation: Ok(value.validation),
+                version: Ok(value.version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadCustomization {
+        activation_allowed: ::std::result::Result<bool, ::std::string::String>,
+        activation_proposals: ::std::result::Result<
+            ::std::vec::Vec<super::BmadCustomizationDeclaration>,
+            ::std::string::String,
+        >,
+        capability_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        conflicts: ::std::result::Result<
+            ::std::vec::Vec<super::BmadCustomizationConflict>,
+            ::std::string::String,
+        >,
+        customization_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        dependencies: ::std::result::Result<
+            ::std::vec::Vec<super::BmadCustomizationDeclaration>,
+            ::std::string::String,
+        >,
+        evidence_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        forbidden_effects: ::std::result::Result<
+            ::std::vec::Vec<super::BmadCustomizationDeclaration>,
+            ::std::string::String,
+        >,
+        layers: ::std::result::Result<
+            ::std::vec::Vec<super::BmadCustomizationLayer>,
+            ::std::string::String,
+        >,
+        mode: ::std::result::Result<super::BmadCustomizationMode, ::std::string::String>,
+        output_proposals: ::std::result::Result<
+            ::std::vec::Vec<super::BmadCustomizationDeclaration>,
+            ::std::string::String,
+        >,
+        provenance_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        resolved_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        session_customization_hash:
+            ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        session_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        text_overlays: ::std::result::Result<
+            ::std::vec::Vec<super::BmadCustomizationTextOverlay>,
+            ::std::string::String,
+        >,
+        tool_intents: ::std::result::Result<
+            ::std::vec::Vec<super::BmadCustomizationDeclaration>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadCustomization {
+        fn default() -> Self {
+            Self {
+                activation_allowed: Err("no value supplied for activation_allowed".to_string()),
+                activation_proposals: Err("no value supplied for activation_proposals".to_string()),
+                capability_id: Err("no value supplied for capability_id".to_string()),
+                conflicts: Err("no value supplied for conflicts".to_string()),
+                customization_id: Err("no value supplied for customization_id".to_string()),
+                dependencies: Err("no value supplied for dependencies".to_string()),
+                evidence_id: Err("no value supplied for evidence_id".to_string()),
+                forbidden_effects: Err("no value supplied for forbidden_effects".to_string()),
+                layers: Err("no value supplied for layers".to_string()),
+                mode: Err("no value supplied for mode".to_string()),
+                output_proposals: Err("no value supplied for output_proposals".to_string()),
+                provenance_hash: Err("no value supplied for provenance_hash".to_string()),
+                resolved_hash: Err("no value supplied for resolved_hash".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                session_customization_hash: Err(
+                    "no value supplied for session_customization_hash".to_string()
+                ),
+                session_id: Err("no value supplied for session_id".to_string()),
+                text_overlays: Err("no value supplied for text_overlays".to_string()),
+                tool_intents: Err("no value supplied for tool_intents".to_string()),
+            }
+        }
+    }
+    impl BmadCustomization {
+        pub fn activation_allowed<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.activation_allowed = value.try_into().map_err(|e| {
+                format!("error converting supplied value for activation_allowed: {e}")
+            });
+            self
+        }
+        pub fn activation_proposals<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadCustomizationDeclaration>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.activation_proposals = value.try_into().map_err(|e| {
+                format!("error converting supplied value for activation_proposals: {e}")
+            });
+            self
+        }
+        pub fn capability_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.capability_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for capability_id: {e}"));
+            self
+        }
+        pub fn conflicts<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadCustomizationConflict>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.conflicts = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for conflicts: {e}"));
+            self
+        }
+        pub fn customization_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.customization_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for customization_id: {e}"));
+            self
+        }
+        pub fn dependencies<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadCustomizationDeclaration>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.dependencies = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for dependencies: {e}"));
+            self
+        }
+        pub fn evidence_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.evidence_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for evidence_id: {e}"));
+            self
+        }
+        pub fn forbidden_effects<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadCustomizationDeclaration>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.forbidden_effects = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for forbidden_effects: {e}"));
+            self
+        }
+        pub fn layers<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadCustomizationLayer>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.layers = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for layers: {e}"));
+            self
+        }
+        pub fn mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationMode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for mode: {e}"));
+            self
+        }
+        pub fn output_proposals<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadCustomizationDeclaration>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_proposals = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_proposals: {e}"));
+            self
+        }
+        pub fn provenance_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provenance_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for provenance_hash: {e}"));
+            self
+        }
+        pub fn resolved_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for resolved_hash: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn session_customization_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.session_customization_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for session_customization_hash: {e}")
+            });
+            self
+        }
+        pub fn session_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.session_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for session_id: {e}"));
+            self
+        }
+        pub fn text_overlays<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadCustomizationTextOverlay>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.text_overlays = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for text_overlays: {e}"));
+            self
+        }
+        pub fn tool_intents<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadCustomizationDeclaration>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_intents = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_intents: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadCustomization> for super::BmadCustomization {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadCustomization,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                activation_allowed: value.activation_allowed?,
+                activation_proposals: value.activation_proposals?,
+                capability_id: value.capability_id?,
+                conflicts: value.conflicts?,
+                customization_id: value.customization_id?,
+                dependencies: value.dependencies?,
+                evidence_id: value.evidence_id?,
+                forbidden_effects: value.forbidden_effects?,
+                layers: value.layers?,
+                mode: value.mode?,
+                output_proposals: value.output_proposals?,
+                provenance_hash: value.provenance_hash?,
+                resolved_hash: value.resolved_hash?,
+                schema_version: value.schema_version?,
+                session_customization_hash: value.session_customization_hash?,
+                session_id: value.session_id?,
+                text_overlays: value.text_overlays?,
+                tool_intents: value.tool_intents?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadCustomization> for BmadCustomization {
+        fn from(value: super::BmadCustomization) -> Self {
+            Self {
+                activation_allowed: Ok(value.activation_allowed),
+                activation_proposals: Ok(value.activation_proposals),
+                capability_id: Ok(value.capability_id),
+                conflicts: Ok(value.conflicts),
+                customization_id: Ok(value.customization_id),
+                dependencies: Ok(value.dependencies),
+                evidence_id: Ok(value.evidence_id),
+                forbidden_effects: Ok(value.forbidden_effects),
+                layers: Ok(value.layers),
+                mode: Ok(value.mode),
+                output_proposals: Ok(value.output_proposals),
+                provenance_hash: Ok(value.provenance_hash),
+                resolved_hash: Ok(value.resolved_hash),
+                schema_version: Ok(value.schema_version),
+                session_customization_hash: Ok(value.session_customization_hash),
+                session_id: Ok(value.session_id),
+                text_overlays: Ok(value.text_overlays),
+                tool_intents: Ok(value.tool_intents),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadCustomizationConflict {
+        code: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        key: ::std::result::Result<super::BmadCustomizationConflictKey, ::std::string::String>,
+        next_source_layer:
+            ::std::result::Result<super::BmadCustomizationLayerKind, ::std::string::String>,
+        previous_source_layer:
+            ::std::result::Result<super::BmadCustomizationLayerKind, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadCustomizationConflict {
+        fn default() -> Self {
+            Self {
+                code: Err("no value supplied for code".to_string()),
+                key: Err("no value supplied for key".to_string()),
+                next_source_layer: Err("no value supplied for next_source_layer".to_string()),
+                previous_source_layer: Err(
+                    "no value supplied for previous_source_layer".to_string()
+                ),
+            }
+        }
+    }
+    impl BmadCustomizationConflict {
+        pub fn code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for code: {e}"));
+            self
+        }
+        pub fn key<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationConflictKey>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key: {e}"));
+            self
+        }
+        pub fn next_source_layer<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationLayerKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.next_source_layer = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for next_source_layer: {e}"));
+            self
+        }
+        pub fn previous_source_layer<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationLayerKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.previous_source_layer = value.try_into().map_err(|e| {
+                format!("error converting supplied value for previous_source_layer: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadCustomizationConflict> for super::BmadCustomizationConflict {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadCustomizationConflict,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                code: value.code?,
+                key: value.key?,
+                next_source_layer: value.next_source_layer?,
+                previous_source_layer: value.previous_source_layer?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadCustomizationConflict> for BmadCustomizationConflict {
+        fn from(value: super::BmadCustomizationConflict) -> Self {
+            Self {
+                code: Ok(value.code),
+                key: Ok(value.key),
+                next_source_layer: Ok(value.next_source_layer),
+                previous_source_layer: Ok(value.previous_source_layer),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadCustomizationDeclaration {
+        code: ::std::result::Result<super::BmadCustomizationDeclarationCode, ::std::string::String>,
+        declaration_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        key: ::std::result::Result<super::BmadCustomizationDeclarationKey, ::std::string::String>,
+        kind: ::std::result::Result<super::BmadCustomizationDeclarationKind, ::std::string::String>,
+        literal: ::std::result::Result<
+            super::BmadCustomizationDeclarationLiteral,
+            ::std::string::String,
+        >,
+        provenance_label: ::std::result::Result<
+            super::BmadCustomizationDeclarationProvenanceLabel,
+            ::std::string::String,
+        >,
+        source_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        source_layer:
+            ::std::result::Result<super::BmadCustomizationLayerKind, ::std::string::String>,
+        status:
+            ::std::result::Result<super::BmadCustomizationDeclarationStatus, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadCustomizationDeclaration {
+        fn default() -> Self {
+            Self {
+                code: Err("no value supplied for code".to_string()),
+                declaration_hash: Err("no value supplied for declaration_hash".to_string()),
+                key: Err("no value supplied for key".to_string()),
+                kind: Err("no value supplied for kind".to_string()),
+                literal: Err("no value supplied for literal".to_string()),
+                provenance_label: Err("no value supplied for provenance_label".to_string()),
+                source_hash: Err("no value supplied for source_hash".to_string()),
+                source_layer: Err("no value supplied for source_layer".to_string()),
+                status: Err("no value supplied for status".to_string()),
+            }
+        }
+    }
+    impl BmadCustomizationDeclaration {
+        pub fn code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationDeclarationCode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for code: {e}"));
+            self
+        }
+        pub fn declaration_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.declaration_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for declaration_hash: {e}"));
+            self
+        }
+        pub fn key<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationDeclarationKey>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key: {e}"));
+            self
+        }
+        pub fn kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationDeclarationKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kind: {e}"));
+            self
+        }
+        pub fn literal<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationDeclarationLiteral>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.literal = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for literal: {e}"));
+            self
+        }
+        pub fn provenance_label<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationDeclarationProvenanceLabel>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provenance_label = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for provenance_label: {e}"));
+            self
+        }
+        pub fn source_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_hash: {e}"));
+            self
+        }
+        pub fn source_layer<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationLayerKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_layer = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_layer: {e}"));
+            self
+        }
+        pub fn status<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationDeclarationStatus>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.status = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for status: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadCustomizationDeclaration> for super::BmadCustomizationDeclaration {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadCustomizationDeclaration,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                code: value.code?,
+                declaration_hash: value.declaration_hash?,
+                key: value.key?,
+                kind: value.kind?,
+                literal: value.literal?,
+                provenance_label: value.provenance_label?,
+                source_hash: value.source_hash?,
+                source_layer: value.source_layer?,
+                status: value.status?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadCustomizationDeclaration> for BmadCustomizationDeclaration {
+        fn from(value: super::BmadCustomizationDeclaration) -> Self {
+            Self {
+                code: Ok(value.code),
+                declaration_hash: Ok(value.declaration_hash),
+                key: Ok(value.key),
+                kind: Ok(value.kind),
+                literal: Ok(value.literal),
+                provenance_label: Ok(value.provenance_label),
+                source_hash: Ok(value.source_hash),
+                source_layer: Ok(value.source_layer),
+                status: Ok(value.status),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadCustomizationLayer {
+        content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        kind: ::std::result::Result<super::BmadCustomizationLayerKind, ::std::string::String>,
+        ordinal: ::std::result::Result<i64, ::std::string::String>,
+        provenance_label: ::std::result::Result<
+            super::BmadCustomizationLayerProvenanceLabel,
+            ::std::string::String,
+        >,
+        version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadCustomizationLayer {
+        fn default() -> Self {
+            Self {
+                content_hash: Err("no value supplied for content_hash".to_string()),
+                kind: Err("no value supplied for kind".to_string()),
+                ordinal: Err("no value supplied for ordinal".to_string()),
+                provenance_label: Err("no value supplied for provenance_label".to_string()),
+                version: Err("no value supplied for version".to_string()),
+            }
+        }
+    }
+    impl BmadCustomizationLayer {
+        pub fn content_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content_hash: {e}"));
+            self
+        }
+        pub fn kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationLayerKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kind: {e}"));
+            self
+        }
+        pub fn ordinal<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.ordinal = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for ordinal: {e}"));
+            self
+        }
+        pub fn provenance_label<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationLayerProvenanceLabel>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provenance_label = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for provenance_label: {e}"));
+            self
+        }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadCustomizationLayer> for super::BmadCustomizationLayer {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadCustomizationLayer,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                content_hash: value.content_hash?,
+                kind: value.kind?,
+                ordinal: value.ordinal?,
+                provenance_label: value.provenance_label?,
+                version: value.version?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadCustomizationLayer> for BmadCustomizationLayer {
+        fn from(value: super::BmadCustomizationLayer) -> Self {
+            Self {
+                content_hash: Ok(value.content_hash),
+                kind: Ok(value.kind),
+                ordinal: Ok(value.ordinal),
+                provenance_label: Ok(value.provenance_label),
+                version: Ok(value.version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadCustomizationTextOverlay {
+        key: ::std::result::Result<super::BmadCustomizationTextOverlayKey, ::std::string::String>,
+        overlay_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        provenance_label: ::std::result::Result<
+            super::BmadCustomizationTextOverlayProvenanceLabel,
+            ::std::string::String,
+        >,
+        source_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        source_layer:
+            ::std::result::Result<super::BmadCustomizationLayerKind, ::std::string::String>,
+        value: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadCustomizationTextOverlay {
+        fn default() -> Self {
+            Self {
+                key: Err("no value supplied for key".to_string()),
+                overlay_hash: Err("no value supplied for overlay_hash".to_string()),
+                provenance_label: Err("no value supplied for provenance_label".to_string()),
+                source_hash: Err("no value supplied for source_hash".to_string()),
+                source_layer: Err("no value supplied for source_layer".to_string()),
+                value: Err("no value supplied for value".to_string()),
+            }
+        }
+    }
+    impl BmadCustomizationTextOverlay {
+        pub fn key<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationTextOverlayKey>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.key = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for key: {e}"));
+            self
+        }
+        pub fn overlay_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.overlay_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for overlay_hash: {e}"));
+            self
+        }
+        pub fn provenance_label<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationTextOverlayProvenanceLabel>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provenance_label = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for provenance_label: {e}"));
+            self
+        }
+        pub fn source_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_hash: {e}"));
+            self
+        }
+        pub fn source_layer<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadCustomizationLayerKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_layer = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_layer: {e}"));
+            self
+        }
+        pub fn value<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.value = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for value: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadCustomizationTextOverlay> for super::BmadCustomizationTextOverlay {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadCustomizationTextOverlay,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                key: value.key?,
+                overlay_hash: value.overlay_hash?,
+                provenance_label: value.provenance_label?,
+                source_hash: value.source_hash?,
+                source_layer: value.source_layer?,
+                value: value.value?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadCustomizationTextOverlay> for BmadCustomizationTextOverlay {
+        fn from(value: super::BmadCustomizationTextOverlay) -> Self {
+            Self {
+                key: Ok(value.key),
+                overlay_hash: Ok(value.overlay_hash),
+                provenance_label: Ok(value.provenance_label),
+                source_hash: Ok(value.source_hash),
+                source_layer: Ok(value.source_layer),
+                value: Ok(value.value),
             }
         }
     }
@@ -92750,6 +96537,10 @@ pub mod builder {
         >,
         bmad_config:
             ::std::result::Result<::std::option::Option<super::BmadConfig>, ::std::string::String>,
+        bmad_customization: ::std::result::Result<
+            ::std::option::Option<super::BmadCustomization>,
+            ::std::string::String,
+        >,
         bmad_eval:
             ::std::result::Result<::std::option::Option<super::BmadEval>, ::std::string::String>,
         bmad_memory:
@@ -92912,6 +96703,7 @@ pub mod builder {
                 bmad_capability_result: Ok(Default::default()),
                 bmad_capability_run: Ok(Default::default()),
                 bmad_config: Ok(Default::default()),
+                bmad_customization: Ok(Default::default()),
                 bmad_eval: Ok(Default::default()),
                 bmad_memory: Ok(Default::default()),
                 bmad_module: Ok(Default::default()),
@@ -93034,6 +96826,16 @@ pub mod builder {
             self.bmad_config = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for bmad_config: {e}"));
+            self
+        }
+        pub fn bmad_customization<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadCustomization>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_customization = value.try_into().map_err(|e| {
+                format!("error converting supplied value for bmad_customization: {e}")
+            });
             self
         }
         pub fn bmad_eval<T>(mut self, value: T) -> Self
@@ -93451,6 +97253,7 @@ pub mod builder {
                 bmad_capability_result: value.bmad_capability_result?,
                 bmad_capability_run: value.bmad_capability_run?,
                 bmad_config: value.bmad_config?,
+                bmad_customization: value.bmad_customization?,
                 bmad_eval: value.bmad_eval?,
                 bmad_memory: value.bmad_memory?,
                 bmad_module: value.bmad_module?,
@@ -93505,6 +97308,7 @@ pub mod builder {
                 bmad_capability_result: Ok(value.bmad_capability_result),
                 bmad_capability_run: Ok(value.bmad_capability_run),
                 bmad_config: Ok(value.bmad_config),
+                bmad_customization: Ok(value.bmad_customization),
                 bmad_eval: Ok(value.bmad_eval),
                 bmad_memory: Ok(value.bmad_memory),
                 bmad_module: Ok(value.bmad_module),

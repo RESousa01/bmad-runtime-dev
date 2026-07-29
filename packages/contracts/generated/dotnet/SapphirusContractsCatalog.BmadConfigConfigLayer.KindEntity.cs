@@ -554,7 +554,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// <typeparam name="TContext">The immutable context to pass in to the match function.</typeparam>
             /// <typeparam name="TResult">The result of calling the match function.</typeparam>
             /// <param name="context">The context to pass to the match function.</param>
-            /// <param name="matchCentral">Match 1st item.</param>
+            /// <param name="matchDefaults">Match 1st item.</param>
             /// <param name="matchBundledModule">Match 2nd item.</param>
             /// <param name="matchProject">Match 3rd item.</param>
             /// <param name="matchUser">Match 4th item.</param>
@@ -563,7 +563,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// <returns>An instance of the value returned by the match function.</returns>
             public TResult Match<TContext, TResult>(
                 in TContext context,
-                Func<TContext, TResult> matchCentral,
+                Func<TContext, TResult> matchDefaults,
                 Func<TContext, TResult> matchBundledModule,
                 Func<TContext, TResult> matchProject,
                 Func<TContext, TResult> matchUser,
@@ -575,7 +575,7 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 if (this.ValueEquals(Constants.Enum1))
                 {
-                    return matchCentral(context);
+                    return matchDefaults(context);
                 }
 
                 if (this.ValueEquals(Constants.Enum2))
@@ -605,7 +605,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// Matches the value against the constant values, and returns the result of calling the provided match function for the first match found.
             /// </summary>
             /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-            /// <param name="matchCentral">Match 1st item.</param>
+            /// <param name="matchDefaults">Match 1st item.</param>
             /// <param name="matchBundledModule">Match 2nd item.</param>
             /// <param name="matchProject">Match 3rd item.</param>
             /// <param name="matchUser">Match 4th item.</param>
@@ -613,7 +613,7 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="defaultMatch">Match any other value.</param>
             /// <returns>An instance of the value returned by the match function.</returns>
             public TResult Match<TResult>(
-                Func<TResult> matchCentral,
+                Func<TResult> matchDefaults,
                 Func<TResult> matchBundledModule,
                 Func<TResult> matchProject,
                 Func<TResult> matchUser,
@@ -622,7 +622,7 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 if (this.ValueEquals(Constants.Enum1))
                 {
-                    return matchCentral();
+                    return matchDefaults();
                 }
 
                 if (this.ValueEquals(Constants.Enum2))

@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-customization.schema.json",
+  "title": "sapphirus.bmad-customization.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "customizationId", "capabilityId", "sessionId", "evidenceId", "mode", "layers", "textOverlays", "dependencies", "toolIntents", "activationProposals", "outputProposals", "forbiddenEffects", "conflicts", "activationAllowed", "resolvedHash", "provenanceHash", "sessionCustomizationHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-customization.v1" },
+    "customizationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "capabilityId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "evidenceId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "mode": { "enum": ["interactive", "headless"] },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/Layer" }
+    },
+    "textOverlays": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/TextOverlay" }
+    },
+    "dependencies": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/Declaration" }
+    },
+    "toolIntents": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/Declaration" }
+    },
+    "activationProposals": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/Declaration" }
+    },
+    "outputProposals": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/Declaration" }
+    },
+    "forbiddenEffects": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/Declaration" }
+    },
+    "conflicts": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/Conflict" }
+    },
+    "activationAllowed": { "type": "boolean" },
+    "resolvedHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "provenanceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "sessionCustomizationHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "LayerKind": {
+      "enum": ["defaults", "team", "user", "invocation"]
+    },
+    "Layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ordinal", "provenanceLabel", "contentHash", "version"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/LayerKind" },
+        "ordinal": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "provenanceLabel": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "version": { "type": "integer", "minimum": 1, "maximum": 4294967295 }
+      }
+    },
+    "TextOverlay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "value", "sourceLayer", "provenanceLabel", "sourceHash", "overlayHash"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "value": {},
+        "sourceLayer": { "$ref": "#/$defs/LayerKind" },
+        "provenanceLabel": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "sourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "overlayHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "Declaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "status", "code", "key", "literal", "sourceLayer", "provenanceLabel", "sourceHash", "declarationHash"],
+      "properties": {
+        "kind": { "enum": ["dependency", "tool_intent", "activation_proposal", "output_proposal", "forbidden_effect"] },
+        "status": { "enum": ["available", "proposed", "unavailable", "forbidden"] },
+        "code": {
+          "enum": [
+            "customization_skill_dependency",
+            "customization_skill_unavailable",
+            "customization_file_dependency",
+            "customization_tool_proposed",
+            "customization_tool_unavailable",
+            "customization_activation_proposed",
+            "customization_output_proposed",
+            "customization_path_escape",
+            "customization_injection_forbidden",
+            "customization_secret_forbidden",
+            "customization_network_effect_forbidden",
+            "customization_dependency_cycle"
+          ]
+        },
+        "key": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "literal": { "type": "string", "minLength": 1, "maxLength": 8192 },
+        "sourceLayer": { "$ref": "#/$defs/LayerKind" },
+        "provenanceLabel": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "sourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "declarationHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "Conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "key", "previousSourceLayer", "nextSourceLayer"],
+      "properties": {
+        "code": { "const": "customization_value_overridden" },
+        "key": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "previousSourceLayer": { "$ref": "#/$defs/LayerKind" },
+        "nextSourceLayer": { "$ref": "#/$defs/LayerKind" }
+      }
+    }
+  }
+}

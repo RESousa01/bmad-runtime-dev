@@ -73,6 +73,11 @@
           "typeName": "BmadConfig"
         },
         {
+          "file": "bmad-customization.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-customization.schema.json",
+          "typeName": "BmadCustomization"
+        },
+        {
           "file": "bmad-eval.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-eval.schema.json",
           "typeName": "BmadEval"

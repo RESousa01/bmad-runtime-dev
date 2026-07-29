@@ -709,13 +709,151 @@ export interface BmadConfigSapphirusBmadConfigV1 {
    * @maxItems 5
    */
   layers: BmadConfigConfigLayer[];
+  /**
+   * @maxItems 5
+   */
+  effectiveValues: BmadConfigEffectiveValue[];
+  /**
+   * @maxItems 64
+   */
+  secretReferences: BmadConfigSecretReference[];
+  /**
+   * @maxItems 5
+   */
+  requirements: BmadConfigInputRequirement[];
+  /**
+   * @maxItems 128
+   */
+  conflicts: BmadConfigConflictDiagnostic[];
   resolvedHash: string;
   provenanceHash: string;
+  sessionConfigHash: string;
 }
 export interface BmadConfigConfigLayer {
-  kind: "central" | "bundled_module" | "project" | "user" | "invocation";
+  kind: "defaults" | "bundled_module" | "project" | "user" | "invocation";
   ordinal: number;
   contentHash: string;
+  version: number;
+}
+export interface BmadConfigEffectiveValue {
+  key: "language" | "personalization" | "output_folder" | "report_folder" | "model_preference";
+  value: unknown;
+  sourceLayer: "defaults" | "bundled_module" | "project" | "user" | "invocation";
+  sourceHash: string;
+  validation: "valid";
+  redaction: "none";
+  version: number;
+}
+export interface BmadConfigSecretReference {
+  key: string;
+  reference: string;
+  sourceLayer: "defaults" | "bundled_module" | "project" | "user" | "invocation";
+  sourceHash: string;
+  validation: "valid";
+  redaction: "reference_only";
+  version: number;
+}
+export interface BmadConfigInputRequirement {
+  key: "language" | "output_folder" | "report_folder" | "model_preference";
+  reason: "missing_required_headless_value";
+}
+export interface BmadConfigConflictDiagnostic {
+  code: "config_value_overridden" | "config_secret_reference_overridden";
+  key: string;
+  previousSourceLayer: "defaults" | "bundled_module" | "project" | "user" | "invocation";
+  nextSourceLayer: "defaults" | "bundled_module" | "project" | "user" | "invocation";
+}
+
+export type BmadCustomizationLayerKind = "defaults" | "team" | "user" | "invocation";
+
+export interface BmadCustomizationSapphirusBmadCustomizationV1 {
+  schemaVersion: "sapphirus.bmad-customization.v1";
+  customizationId: string;
+  capabilityId: string;
+  sessionId: string;
+  evidenceId: string;
+  mode: "interactive" | "headless";
+  /**
+   * @minItems 1
+   * @maxItems 4
+   */
+  layers: BmadCustomizationLayer[];
+  /**
+   * @maxItems 512
+   */
+  textOverlays: BmadCustomizationTextOverlay[];
+  /**
+   * @maxItems 512
+   */
+  dependencies: BmadCustomizationDeclaration[];
+  /**
+   * @maxItems 512
+   */
+  toolIntents: BmadCustomizationDeclaration[];
+  /**
+   * @maxItems 512
+   */
+  activationProposals: BmadCustomizationDeclaration[];
+  /**
+   * @maxItems 512
+   */
+  outputProposals: BmadCustomizationDeclaration[];
+  /**
+   * @maxItems 512
+   */
+  forbiddenEffects: BmadCustomizationDeclaration[];
+  /**
+   * @maxItems 512
+   */
+  conflicts: BmadCustomizationConflict[];
+  activationAllowed: boolean;
+  resolvedHash: string;
+  provenanceHash: string;
+  sessionCustomizationHash: string;
+}
+export interface BmadCustomizationLayer {
+  kind: BmadCustomizationLayerKind;
+  ordinal: number;
+  provenanceLabel: string;
+  contentHash: string;
+  version: number;
+}
+export interface BmadCustomizationTextOverlay {
+  key: string;
+  value: unknown;
+  sourceLayer: BmadCustomizationLayerKind;
+  provenanceLabel: string;
+  sourceHash: string;
+  overlayHash: string;
+}
+export interface BmadCustomizationDeclaration {
+  kind: "dependency" | "tool_intent" | "activation_proposal" | "output_proposal" | "forbidden_effect";
+  status: "available" | "proposed" | "unavailable" | "forbidden";
+  code:
+    | "customization_skill_dependency"
+    | "customization_skill_unavailable"
+    | "customization_file_dependency"
+    | "customization_tool_proposed"
+    | "customization_tool_unavailable"
+    | "customization_activation_proposed"
+    | "customization_output_proposed"
+    | "customization_path_escape"
+    | "customization_injection_forbidden"
+    | "customization_secret_forbidden"
+    | "customization_network_effect_forbidden"
+    | "customization_dependency_cycle";
+  key: string;
+  literal: string;
+  sourceLayer: BmadCustomizationLayerKind;
+  provenanceLabel: string;
+  sourceHash: string;
+  declarationHash: string;
+}
+export interface BmadCustomizationConflict {
+  code: "customization_value_overridden";
+  key: string;
+  previousSourceLayer: BmadCustomizationLayerKind;
+  nextSourceLayer: BmadCustomizationLayerKind;
 }
 
 export interface BmadMemorySapphirusBmadMemoryV1 {

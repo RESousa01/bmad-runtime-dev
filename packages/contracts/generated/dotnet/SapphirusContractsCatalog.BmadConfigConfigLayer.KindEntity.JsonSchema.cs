@@ -43,11 +43,11 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum1 = "central"u8.ToArray();
+                public static readonly byte[] Enum1 = "defaults"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly KindEntity EnumJson1 = ParsedJsonDocument<KindEntity>.StringConstant([.."\"central\""u8]);
+                public static readonly KindEntity EnumJson1 = ParsedJsonDocument<KindEntity>.StringConstant([.."\"defaults\""u8]);
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
@@ -88,15 +88,15 @@ public readonly partial struct SapphirusContractsCatalog
             public static class EnumValues
             {
                 /// <summary>
-                /// Gets the string "central"
+                /// Gets the string "defaults"
                 /// as a <see cref="KindEntity"/>.
                 /// </summary>
-                public static KindEntity Central { get; } = Constants.EnumJson1;
+                public static KindEntity Defaults { get; } = Constants.EnumJson1;
                 /// <summary>
-                /// Gets the string "central"
+                /// Gets the string "defaults"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> CentralUtf8 => Constants.Enum1;
+                public static ReadOnlySpan<byte> DefaultsUtf8 => Constants.Enum1;
 
                 /// <summary>
                 /// Gets the string "bundled_module"
@@ -148,7 +148,7 @@ public readonly partial struct SapphirusContractsCatalog
                 private static EnumStringSet BuildEnumStringSet()
                 {
                     return new EnumStringSet([
-                        static () => "central"u8,
+                        static () => "defaults"u8,
                         static () => "bundled_module"u8,
                         static () => "project"u8,
                         static () => "user"u8,

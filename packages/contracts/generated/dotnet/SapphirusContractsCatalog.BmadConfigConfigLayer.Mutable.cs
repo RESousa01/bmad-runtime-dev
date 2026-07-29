@@ -230,6 +230,27 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Gets the <c>version</c> property.
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+            /// </para>
+            /// </remarks>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Mutable Version
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.VersionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
             /// Gets the number of properties in the object.
             /// </summary>
             /// <exception cref="InvalidOperationException">The value is not an object.</exception>
@@ -344,6 +365,37 @@ public readonly partial struct SapphirusContractsCatalog
                 {
                     // We are going to insert the new value
                     value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Ordinal, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>version</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetVersion(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("version");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.VersionUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Version, ref cvb);
                     int endIndex = _idx + _parent.GetDbSize(_idx, false);
                     _parent.InsertAndDispose(_idx, endIndex, ref cvb);
                 }
@@ -508,6 +560,7 @@ public readonly partial struct SapphirusContractsCatalog
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg1;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source _createArg2;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Source _createArg4;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -522,11 +575,12 @@ public readonly partial struct SapphirusContractsCatalog
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
 
-            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source arg3)
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Source arg4)
             {
                 _createArg1 = arg1;
                 _createArg2 = arg2;
                 _createArg3 = arg3;
+                _createArg4 = arg4;
                 _kind = Kind.Create;
             }
 
@@ -547,7 +601,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -572,7 +626,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -597,7 +651,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -622,7 +676,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -647,7 +701,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, ref valueBuilder);
                             valueBuilder.EndItem(handle);
                             break;
                         }
@@ -802,11 +856,13 @@ public readonly partial struct SapphirusContractsCatalog
                 ref ComplexValueBuilder builder,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source kind,
-                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal)
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Source version)
             {
                 contentHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ContentHash, ref builder);
                 kind.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Kind, ref builder);
                 ordinal.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Ordinal, ref builder);
+                version.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Version, ref builder);
             }
 
             /// <summary>
@@ -815,9 +871,10 @@ public readonly partial struct SapphirusContractsCatalog
             public void Create(
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source kind,
-                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal)
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Source version)
             {
-                Create(ref _builder, contentHash, kind, ordinal);
+                Create(ref _builder, contentHash, kind, ordinal, version);
             }
 
             internal static void BuildValue(Build value, ref ComplexValueBuilder o)
@@ -849,11 +906,12 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="arg1">The value of the property.</param>
             /// <param name="arg2">The value of the property.</param>
             /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
             /// <param name="o">The complex value builder into which to write the object.</param>
-            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source arg3, ref ComplexValueBuilder o)
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Source arg4, ref ComplexValueBuilder o)
             {
                 o.StartObject();
-                Create(ref o, arg1, arg2, arg3);
+                Create(ref o, arg1, arg2, arg3, arg4);
                 o.EndObject();
             }
         }
@@ -893,10 +951,11 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="contentHash">The value of the <c>"contentHash"</c> property.</param>
         /// <param name="kind">The value of the <c>"kind"</c> property.</param>
         /// <param name="ordinal">The value of the <c>"ordinal"</c> property.</param>
+        /// <param name="version">The value of the <c>"version"</c> property.</param>
         /// <returns>The source from which to build the value.</returns>
-        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source kind, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal)
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source kind, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Source version)
         {
-            return new Source(contentHash, kind, ordinal);
+            return new Source(contentHash, kind, ordinal, version);
         }
 
         /// <summary>
@@ -972,15 +1031,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="contentHash">The value of the property.</param>
         /// <param name="kind">The value of the property.</param>
         /// <param name="ordinal">The value of the property.</param>
+        /// <param name="version">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal, int initialCapacity = 30)
+        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Source version, int initialCapacity = 30)
         {
             JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(contentHash, kind, ordinal);
+            ovb.Create(contentHash, kind, ordinal, version);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -1084,9 +1144,10 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="contentHash">The value of the property.</param>
         /// <param name="kind">The value of the property.</param>
         /// <param name="ordinal">The value of the property.</param>
+        /// <param name="version">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
-        public static ParsedJsonDocument<BmadConfigConfigLayer> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal, int initialCapacity = 30)
+        public static ParsedJsonDocument<BmadConfigConfigLayer> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.OrdinalEntity.Source ordinal, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.Source version, int initialCapacity = 30)
         {
             ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
             try
@@ -1094,7 +1155,7 @@ public readonly partial struct SapphirusContractsCatalog
                 ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
                 cvb.StartObject();
                 Builder ovb = new(cvb);
-                ovb.Create(contentHash, kind, ordinal);
+                ovb.Create(contentHash, kind, ordinal, version);
                 cvb = ovb._builder;
                 cvb.EndObject();
                 ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);

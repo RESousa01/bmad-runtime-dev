@@ -50,11 +50,18 @@ public readonly partial struct SapphirusContractsCatalog
             private const int RequiredOffsetForOrdinal = 0;
             private const uint RequiredBitForOrdinal = 0b00000000000000000000000000000100;
 
+            private static readonly JsonSchemaMessageProvider<int> RequiredPropertyVersionPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyPresent("version"u8, buffer, out written);
+            private static readonly JsonSchemaMessageProvider<int> RequiredPropertyVersionNotPresent = static (_, buffer, out written) => JsonSchemaEvaluation.RequiredPropertyNotPresent("version"u8, buffer, out written);
+
+            private const int RequiredOffsetForVersion = 0;
+            private const uint RequiredBitForVersion = 0b00000000000000000000000000001000;
+
             private const uint RequiredBitMask0 =
-                RequiredBitForContentHash | RequiredBitForKind | RequiredBitForOrdinal;
+                RequiredBitForContentHash | RequiredBitForKind | RequiredBitForOrdinal | RequiredBitForVersion;
             private static readonly JsonSchemaPathProvider ContentHashSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/contentHash/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider KindSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/kind"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider OrdinalSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/ordinal"u8, buffer, out written);
+            private static readonly JsonSchemaPathProvider VersionSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/version"u8, buffer, out written);
 
             private static void MatchContentHash(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
@@ -122,12 +129,35 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForOrdinal] |= RequiredBitForOrdinal;
             }
 
+            private static void MatchVersion(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
+            {
+                context.AddLocalEvaluatedProperty(propertyCount);
+                JsonSchemaContext childContext3 =
+                    Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.JsonSchema.PushChildContextUnescaped(
+                        parentDocument,
+                        parentDocumentIndex,
+                        ref context,
+                        JsonPropertyNames.VersionUtf8,
+                        evaluationPath: VersionSchemaEvaluationPath);
+
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfigConfigLayer.VersionEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext3);
+                context.CommitChildContext(childContext3.IsMatch, ref childContext3);
+
+                if (!context.HasCollector && !context.IsMatch)
+                {
+                    return;
+                }
+
+                requiredBitBuffer[RequiredOffsetForVersion] |= RequiredBitForVersion;
+            }
+
             private static PropertySchemaMatchers<Sapphirus.Contracts.Generated.PropertiesValidationHandler_NamedPropertyValidator1> MatchersBuilder()
             {
                 return new PropertySchemaMatchers<Sapphirus.Contracts.Generated.PropertiesValidationHandler_NamedPropertyValidator1>([
                     (static () => JsonPropertyNames.ContentHashUtf8, MatchContentHash),
                     (static () => JsonPropertyNames.KindUtf8, MatchKind),
                     (static () => JsonPropertyNames.OrdinalUtf8, MatchOrdinal),
+                    (static () => JsonPropertyNames.VersionUtf8, MatchVersion),
                 ]);
             }
 
@@ -239,6 +269,7 @@ public readonly partial struct SapphirusContractsCatalog
                             context.EvaluatedKeywordForProperty(true, 0, RequiredPropertyContentHashPresent, "contentHash"u8, "required"u8);
                             context.EvaluatedKeywordForProperty(true, 1, RequiredPropertyKindPresent, "kind"u8, "required"u8);
                             context.EvaluatedKeywordForProperty(true, 2, RequiredPropertyOrdinalPresent, "ordinal"u8, "required"u8);
+                            context.EvaluatedKeywordForProperty(true, 3, RequiredPropertyVersionPresent, "version"u8, "required"u8);
                         }
                     }
                     else if (!context.HasCollector)
@@ -273,6 +304,15 @@ public readonly partial struct SapphirusContractsCatalog
                         else
                         {
                             context.EvaluatedKeywordForProperty(true, 2, RequiredPropertyOrdinalPresent, "ordinal"u8, "required"u8);
+                        }
+
+                        if ((requiredPropertyChildHandler_seenItems[RequiredOffsetForVersion] & RequiredBitForVersion) == 0)
+                        {
+                            context.EvaluatedKeywordForProperty(false, 3, RequiredPropertyVersionNotPresent, "version"u8, "required"u8);
+                        }
+                        else
+                        {
+                            context.EvaluatedKeywordForProperty(true, 3, RequiredPropertyVersionPresent, "version"u8, "required"u8);
                         }
                     }
                 }

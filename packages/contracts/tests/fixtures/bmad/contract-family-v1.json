@@ -165,13 +165,50 @@
         "configId": "config_01J00000000000000000000000",
         "layers": [
           {
-            "kind": "central",
+            "kind": "defaults",
             "ordinal": 0,
-            "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "version": 1
           }
         ],
+        "effectiveValues": [],
+        "secretReferences": [],
+        "requirements": [],
+        "conflicts": [],
         "resolvedHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-        "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "sessionConfigHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    },
+    {
+      "schema": "bmad-customization.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-customization.v1",
+        "customizationId": "customization_01J00000000000000000000000",
+        "capabilityId": "capability_01J00000000000000000000000",
+        "sessionId": "session_01J00000000000000000000000",
+        "evidenceId": "evidence_01J00000000000000000000000",
+        "mode": "interactive",
+        "layers": [
+          {
+            "kind": "defaults",
+            "ordinal": 0,
+            "provenanceLabel": "sealed:customize.toml",
+            "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "version": 1
+          }
+        ],
+        "textOverlays": [],
+        "dependencies": [],
+        "toolIntents": [],
+        "activationProposals": [],
+        "outputProposals": [],
+        "forbiddenEffects": [],
+        "conflicts": [],
+        "activationAllowed": true,
+        "resolvedHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "sessionCustomizationHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
       }
     },
     {

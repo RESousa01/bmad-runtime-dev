@@ -16,6 +16,7 @@ export const BMAD_CROSS_LANGUAGE_SCHEMAS = Object.freeze([
   ["bmad-module", "BmadModule", "BmadModule"],
   ["bmad-script-plan", "BmadScriptPlan", "BmadScriptPlan"],
   ["bmad-config", "BmadConfig", "BmadConfig"],
+  ["bmad-customization", "BmadCustomization", "BmadCustomization"],
   ["bmad-memory", "BmadMemory", "BmadMemory"],
   ["bmad-upgrade", "BmadUpgrade", "BmadUpgrade"],
 ]);

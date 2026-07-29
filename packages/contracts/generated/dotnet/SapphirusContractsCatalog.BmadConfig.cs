@@ -81,6 +81,48 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the <c>conflicts</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.ConflictsArray Conflicts
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ConflictsUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.ConflictsArray value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <c>effectiveValues</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.EffectiveValuesArray EffectiveValues
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EffectiveValuesUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.EffectiveValuesArray value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the <c>layers</c> property.
         /// </summary>
         /// <remarks>
@@ -123,6 +165,27 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the <c>requirements</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.RequirementsArray Requirements
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.RequirementsUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.RequirementsArray value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the <c>resolvedHash</c> property.
         /// </summary>
         /// <remarks>
@@ -156,6 +219,48 @@ public readonly partial struct SapphirusContractsCatalog
             get
             {
                 if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.SchemaVersionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.SchemaVersionEntity value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <c>secretReferences</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.SecretReferencesArray SecretReferences
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.SecretReferencesUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.SecretReferencesArray value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <c>sessionConfigHash</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 SessionConfigHash
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.SessionConfigHashUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 value))
                 {
                     return value;
                 }
@@ -603,6 +708,16 @@ public readonly partial struct SapphirusContractsCatalog
             public const string ConfigId = "configId";
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="Conflicts"/>.
+            /// </summary>
+            public const string Conflicts = "conflicts";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="EffectiveValues"/>.
+            /// </summary>
+            public const string EffectiveValues = "effectiveValues";
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="Layers"/>.
             /// </summary>
             public const string Layers = "layers";
@@ -611,6 +726,11 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the JSON property name for <see cref="ProvenanceHash"/>.
             /// </summary>
             public const string ProvenanceHash = "provenanceHash";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Requirements"/>.
+            /// </summary>
+            public const string Requirements = "requirements";
 
             /// <summary>
             /// Gets the JSON property name for <see cref="ResolvedHash"/>.
@@ -623,9 +743,29 @@ public readonly partial struct SapphirusContractsCatalog
             public const string SchemaVersion = "schemaVersion";
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="SecretReferences"/>.
+            /// </summary>
+            public const string SecretReferences = "secretReferences";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="SessionConfigHash"/>.
+            /// </summary>
+            public const string SessionConfigHash = "sessionConfigHash";
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="ConfigId"/>.
             /// </summary>
             public static ReadOnlySpan<byte> ConfigIdUtf8 => "configId"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Conflicts"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ConflictsUtf8 => "conflicts"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="EffectiveValues"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> EffectiveValuesUtf8 => "effectiveValues"u8;
 
             /// <summary>
             /// Gets the JSON property name for <see cref="Layers"/>.
@@ -638,6 +778,11 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> ProvenanceHashUtf8 => "provenanceHash"u8;
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="Requirements"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> RequirementsUtf8 => "requirements"u8;
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="ResolvedHash"/>.
             /// </summary>
             public static ReadOnlySpan<byte> ResolvedHashUtf8 => "resolvedHash"u8;
@@ -646,6 +791,16 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the JSON property name for <see cref="SchemaVersion"/>.
             /// </summary>
             public static ReadOnlySpan<byte> SchemaVersionUtf8 => "schemaVersion"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="SecretReferences"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> SecretReferencesUtf8 => "secretReferences"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="SessionConfigHash"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> SessionConfigHashUtf8 => "sessionConfigHash"u8;
         }
 
         /// <summary>
@@ -659,6 +814,16 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> ConfigId => "configId"u8;
 
             /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Conflicts"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Conflicts => "conflicts"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="EffectiveValues"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> EffectiveValues => "effectiveValues"u8;
+
+            /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="Layers"/>.
             /// </summary>
             public static ReadOnlySpan<byte> Layers => "layers"u8;
@@ -669,6 +834,11 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> ProvenanceHash => "provenanceHash"u8;
 
             /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Requirements"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Requirements => "requirements"u8;
+
+            /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="ResolvedHash"/>.
             /// </summary>
             public static ReadOnlySpan<byte> ResolvedHash => "resolvedHash"u8;
@@ -677,6 +847,16 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the escaped UTF-8 JSON property name for <see cref="SchemaVersion"/>.
             /// </summary>
             public static ReadOnlySpan<byte> SchemaVersion => "schemaVersion"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="SecretReferences"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> SecretReferences => "secretReferences"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="SessionConfigHash"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> SessionConfigHash => "sessionConfigHash"u8;
         }
 
         /// <summary>
@@ -691,6 +871,16 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> ConfigId => [0xA5, 0x00, 0x00, 0x00, 0x22, 0x63, 0x6F, 0x6E, 0x66, 0x69, 0x67, 0x49, 0x64, 0x22];
 
             /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Conflicts"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Conflicts => [0xB5, 0x00, 0x00, 0x00, 0x22, 0x63, 0x6F, 0x6E, 0x66, 0x6C, 0x69, 0x63, 0x74, 0x73, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="EffectiveValues"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> EffectiveValues => [0x15, 0x01, 0x00, 0x00, 0x22, 0x65, 0x66, 0x66, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x56, 0x61, 0x6C, 0x75, 0x65, 0x73, 0x22];
+
+            /// <summary>
             /// Gets the pre-baked property name blob for <see cref="Layers"/>.
             /// </summary>
             public static ReadOnlySpan<byte> Layers => [0x85, 0x00, 0x00, 0x00, 0x22, 0x6C, 0x61, 0x79, 0x65, 0x72, 0x73, 0x22];
@@ -701,6 +891,11 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> ProvenanceHash => [0x05, 0x01, 0x00, 0x00, 0x22, 0x70, 0x72, 0x6F, 0x76, 0x65, 0x6E, 0x61, 0x6E, 0x63, 0x65, 0x48, 0x61, 0x73, 0x68, 0x22];
 
             /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Requirements"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Requirements => [0xE5, 0x00, 0x00, 0x00, 0x22, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x6D, 0x65, 0x6E, 0x74, 0x73, 0x22];
+
+            /// <summary>
             /// Gets the pre-baked property name blob for <see cref="ResolvedHash"/>.
             /// </summary>
             public static ReadOnlySpan<byte> ResolvedHash => [0xE5, 0x00, 0x00, 0x00, 0x22, 0x72, 0x65, 0x73, 0x6F, 0x6C, 0x76, 0x65, 0x64, 0x48, 0x61, 0x73, 0x68, 0x22];
@@ -709,6 +904,16 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the pre-baked property name blob for <see cref="SchemaVersion"/>.
             /// </summary>
             public static ReadOnlySpan<byte> SchemaVersion => [0xF5, 0x00, 0x00, 0x00, 0x22, 0x73, 0x63, 0x68, 0x65, 0x6D, 0x61, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="SecretReferences"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> SecretReferences => [0x25, 0x01, 0x00, 0x00, 0x22, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x52, 0x65, 0x66, 0x65, 0x72, 0x65, 0x6E, 0x63, 0x65, 0x73, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="SessionConfigHash"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> SessionConfigHash => [0x35, 0x01, 0x00, 0x00, 0x22, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6F, 0x6E, 0x43, 0x6F, 0x6E, 0x66, 0x69, 0x67, 0x48, 0x61, 0x73, 0x68, 0x22];
         }
     }
 }

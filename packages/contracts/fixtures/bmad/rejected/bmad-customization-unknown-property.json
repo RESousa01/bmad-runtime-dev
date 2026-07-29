@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-rejection.v1",
+  "id": "bmad-customization-unknown-property",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-customization.schema.json",
+  "reason": "unknown_property",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-customization.v1",
+    "customizationId": "customization_01J00000000000000000000000",
+    "capabilityId": "capability_01J00000000000000000000000",
+    "sessionId": "session_01J00000000000000000000000",
+    "evidenceId": "evidence_01J00000000000000000000000",
+    "mode": "interactive",
+    "layers": [
+      {
+        "kind": "defaults",
+        "ordinal": 0,
+        "provenanceLabel": "sealed:customize.toml",
+        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "version": 1
+      }
+    ],
+    "textOverlays": [],
+    "dependencies": [],
+    "toolIntents": [],
+    "activationProposals": [],
+    "outputProposals": [],
+    "forbiddenEffects": [],
+    "conflicts": [],
+    "activationAllowed": true,
+    "resolvedHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "sessionCustomizationHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "futureAuthority": true
+  }
+}

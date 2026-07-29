@@ -2034,6 +2034,7 @@ const typescriptSchemaTargets = [
   "bmad-capability-result",
   "bmad-capability-run",
   "bmad-config",
+  "bmad-customization",
   "bmad-eval",
   "bmad-memory",
   "bmad-method-advance-result",

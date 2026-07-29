@@ -8,11 +8,57 @@ export interface SapphirusBmadConfigV1 {
    * @maxItems 5
    */
   layers: ConfigLayer[];
+  /**
+   * @maxItems 5
+   */
+  effectiveValues: EffectiveValue[];
+  /**
+   * @maxItems 64
+   */
+  secretReferences: SecretReference[];
+  /**
+   * @maxItems 5
+   */
+  requirements: InputRequirement[];
+  /**
+   * @maxItems 128
+   */
+  conflicts: ConflictDiagnostic[];
   resolvedHash: string;
   provenanceHash: string;
+  sessionConfigHash: string;
 }
 export interface ConfigLayer {
-  kind: "central" | "bundled_module" | "project" | "user" | "invocation";
+  kind: "defaults" | "bundled_module" | "project" | "user" | "invocation";
   ordinal: number;
   contentHash: string;
+  version: number;
+}
+export interface EffectiveValue {
+  key: "language" | "personalization" | "output_folder" | "report_folder" | "model_preference";
+  value: unknown;
+  sourceLayer: "defaults" | "bundled_module" | "project" | "user" | "invocation";
+  sourceHash: string;
+  validation: "valid";
+  redaction: "none";
+  version: number;
+}
+export interface SecretReference {
+  key: string;
+  reference: string;
+  sourceLayer: "defaults" | "bundled_module" | "project" | "user" | "invocation";
+  sourceHash: string;
+  validation: "valid";
+  redaction: "reference_only";
+  version: number;
+}
+export interface InputRequirement {
+  key: "language" | "output_folder" | "report_folder" | "model_preference";
+  reason: "missing_required_headless_value";
+}
+export interface ConflictDiagnostic {
+  code: "config_value_overridden" | "config_secret_reference_overridden";
+  key: string;
+  previousSourceLayer: "defaults" | "bundled_module" | "project" | "user" | "invocation";
+  nextSourceLayer: "defaults" | "bundled_module" | "project" | "user" | "invocation";
 }

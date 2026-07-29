@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-customization.schema.json",
+  "branch": "sapphirus.bmad-customization.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-customization.v1",
+    "customizationId": "customization_01J00000000000000000000000",
+    "capabilityId": "capability_01J00000000000000000000000",
+    "sessionId": "session_01J00000000000000000000000",
+    "evidenceId": "evidence_01J00000000000000000000000",
+    "mode": "interactive",
+    "layers": [
+      {
+        "kind": "defaults",
+        "ordinal": 0,
+        "provenanceLabel": "sealed:customize.toml",
+        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "version": 1
+      }
+    ],
+    "textOverlays": [],
+    "dependencies": [],
+    "toolIntents": [],
+    "activationProposals": [],
+    "outputProposals": [],
+    "forbiddenEffects": [],
+    "conflicts": [],
+    "activationAllowed": true,
+    "resolvedHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "sessionCustomizationHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "canonicalJson": "{\"activationAllowed\":true,\"activationProposals\":[],\"capabilityId\":\"capability_01J00000000000000000000000\",\"conflicts\":[],\"customizationId\":\"customization_01J00000000000000000000000\",\"dependencies\":[],\"evidenceId\":\"evidence_01J00000000000000000000000\",\"forbiddenEffects\":[],\"layers\":[{\"contentHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"kind\":\"defaults\",\"ordinal\":0,\"provenanceLabel\":\"sealed:customize.toml\",\"version\":1}],\"mode\":\"interactive\",\"outputProposals\":[],\"provenanceHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"resolvedHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"schemaVersion\":\"sapphirus.bmad-customization.v1\",\"sessionCustomizationHash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"sessionId\":\"session_01J00000000000000000000000\",\"textOverlays\":[],\"toolIntents\":[]}",
+  "expectedHash": "sha256:1c470dc195258dec5dd0d09ba44d08b1cf2c1f8110e238510e64ab926e93da0a"
+}

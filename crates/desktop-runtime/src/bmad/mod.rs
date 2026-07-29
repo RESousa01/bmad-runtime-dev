@@ -1,10 +1,13 @@
 pub mod architecture;
+mod artifacts;
 mod binding;
 mod builder;
 mod builder_ports;
 pub mod capability;
 mod catalog;
+mod completion;
 mod config;
+mod customization;
 mod error;
 mod help;
 mod help_binding;
@@ -16,7 +19,10 @@ pub mod memlog;
 mod method;
 mod package;
 mod ports;
+mod resources;
 mod service;
+mod session;
+mod source;
 pub mod toml_subset;
 pub mod workflow;
 
@@ -24,6 +30,7 @@ pub use architecture::{
     BmadArchitectureDecision, BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
     BmadArchitectureStepRecord, BMAD_ARCHITECTURE_SESSION_SCHEMA,
 };
+pub use artifacts::{BmadArtifactIntent, BmadArtifactTransitionError};
 pub use binding::{
     BmadCapabilityKey, MethodAgentBinding, MethodAgentBindingData, MethodArtifactExpectation,
     MethodContextDecision, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
@@ -56,9 +63,17 @@ pub use catalog::{
     BmadHelpCatalogSource, BmadInstalledSkillRecord, BmadMenuTargetKind,
     BmadReviewedPromptReference, BmadUnavailableDependency,
 };
+pub use completion::{BmadCompletionError, BmadCompletionIntent};
 pub use config::{
     BmadConfigGraph, BmadConfigGraphKind, BmadConfigLayer, BmadConfigResolution,
     BmadConfigResolver, BmadConfigWarning, BmadResolvedConfig,
+};
+pub use customization::{
+    BmadCustomizationAvailability, BmadCustomizationConflict, BmadCustomizationDeclaration,
+    BmadCustomizationDeclarationKind, BmadCustomizationError, BmadCustomizationLayer,
+    BmadCustomizationLayerKind, BmadCustomizationLayerRecord, BmadCustomizationMode,
+    BmadCustomizationRequest, BmadCustomizationResolution, BmadCustomizationResolver,
+    BmadCustomizationStatus, BmadCustomizationTextOverlay,
 };
 pub use error::{MethodError, MethodErrorCode};
 pub use help::{
@@ -100,6 +115,90 @@ pub use package::{
     BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot,
 };
 pub use ports::MethodSessionRepository;
+pub use resources::{
+    BmadPackageRoot, BmadResolvedResource, BmadResource, BmadResourceClosure,
+    BmadResourceEdgeDisposition, BmadResourceEdgeDispositionKind, BmadResourceInput,
+    BmadResourceProvenance, BmadResourceReferenceKind, BmadResourceRequirement,
+    BmadResourceResolver, BmadResourceResolverError, BmadResourceSet,
+};
 pub use service::{MethodServiceError, MethodSessionService};
+pub use session::{BmadSessionIntent, BmadSessionTransitionError};
+pub use source::{BmadSourcePackage, BmadSourceService};
 pub use toml_subset::{parse_toml_subset, TomlSubsetError};
 pub use workflow::{BmadWorkflowGraph, BmadWorkflowPhase, BmadWorkflowState, BmadWorkflowStep};
+
+/// Host-facing BMAD intent boundary.
+///
+/// Implementations orchestrate persistence and authority outside the domain.
+/// Values crossing this port are generated contracts; renderer requests and
+/// provider clients are intentionally excluded.
+pub trait BmadRuntimePort {
+    /// Applies one validated session intent.
+    ///
+    /// # Errors
+    ///
+    /// Returns a transition error when the current generated state rejects the
+    /// intent.
+    fn apply_session_intent(
+        &self,
+        session: &mut crate::generated_contracts::BmadSession,
+        intent: BmadSessionIntent,
+    ) -> Result<(), BmadSessionTransitionError>;
+
+    /// Applies one validated artifact intent.
+    ///
+    /// # Errors
+    ///
+    /// Returns a transition error when the current generated state rejects the
+    /// intent.
+    fn apply_artifact_intent(
+        &self,
+        artifact: &mut crate::generated_contracts::BmadArtifact,
+        intent: BmadArtifactIntent,
+    ) -> Result<(), BmadArtifactTransitionError>;
+
+    /// Plans inert completion intents for host authorization.
+    ///
+    /// # Errors
+    ///
+    /// Returns a completion error until session and artifact preconditions are
+    /// satisfied.
+    fn plan_completion(
+        &self,
+        session: &crate::generated_contracts::BmadSession,
+        artifacts: &[crate::generated_contracts::BmadArtifact],
+    ) -> Result<Vec<BmadCompletionIntent>, BmadCompletionError>;
+}
+
+/// Stateless implementation of the generated-contract intent boundary.
+///
+/// Keeping this value zero-sized prevents the facade from accumulating
+/// cross-domain state or authority. Persistence and effects remain host ports.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct BmadDomainRuntime;
+
+impl BmadRuntimePort for BmadDomainRuntime {
+    fn apply_session_intent(
+        &self,
+        session: &mut crate::generated_contracts::BmadSession,
+        intent: BmadSessionIntent,
+    ) -> Result<(), BmadSessionTransitionError> {
+        session::apply_session_intent(session, intent)
+    }
+
+    fn apply_artifact_intent(
+        &self,
+        artifact: &mut crate::generated_contracts::BmadArtifact,
+        intent: BmadArtifactIntent,
+    ) -> Result<(), BmadArtifactTransitionError> {
+        artifacts::apply_artifact_intent(artifact, intent)
+    }
+
+    fn plan_completion(
+        &self,
+        session: &crate::generated_contracts::BmadSession,
+        artifacts: &[crate::generated_contracts::BmadArtifact],
+    ) -> Result<Vec<BmadCompletionIntent>, BmadCompletionError> {
+        completion::plan_completion(session, artifacts)
+    }
+}
