@@ -1,5 +1,6 @@
 import { Button } from "@sapphirus/ui";
 import { useId } from "react";
+import { uiAdvertisedBmadCapabilities } from "../generated/bmadCapabilities";
 import {
   type SkillVerdict,
   capabilityCompatibility,
@@ -44,16 +45,18 @@ export interface BmadLibraryPanelProps {
   readonly onViewPersona?: (agentCode: string) => void;
 }
 
+function builderActionLabel(action: string): string {
+  const words = action.replaceAll("-", " ");
+  return `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
+}
+
 const builderOperations = {
-  agent: [
-    ["builder:agent.analyze", "Analyze agent"],
-    ["builder:agent.create_rebuild", "Create or rebuild agent"],
-    ["builder:agent.edit", "Edit agent"],
-  ],
-  workflow: [
-    ["builder:workflow.analyze", "Analyze workflow"],
-    ["builder:workflow.build_edit", "Build or edit workflow"],
-  ],
+  agent: uiAdvertisedBmadCapabilities
+    .filter((row) => row.canonicalId.startsWith("builder:bmad-agent-builder:"))
+    .map((row) => [row.canonicalId, builderActionLabel(row.action ?? "")] as const),
+  workflow: uiAdvertisedBmadCapabilities
+    .filter((row) => row.canonicalId.startsWith("builder:bmad-workflow-builder:"))
+    .map((row) => [row.canonicalId, builderActionLabel(row.action ?? "")] as const),
 } as const;
 
 function availabilityLabel(availability: BmadAvailability): string {

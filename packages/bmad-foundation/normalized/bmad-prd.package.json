@@ -59,6 +59,7 @@
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
+      "browser",
       "external_handoff",
       "file_read",
       "file_write",
@@ -67,6 +68,11 @@
       "web"
     ],
     "hostInputReplacements": [
+      {
+        "toolIntent": "browser",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
       {
         "toolIntent": "external_handoff",
         "inputKind": "unavailable_fact",
@@ -98,7 +104,7 @@
         "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
       }
     ],
-    "projectionHash": "sha256:020773a36111d798aaadbed06a1aaa40ae4c830140ebcd2b4f035245beb29d17"
+    "projectionHash": "sha256:65e0dcb5dcff1b99942491f13db5a25002e3dae54dbb6a2017edfc9017daafcf"
   },
-  "projectionEnvelopeHash": "sha256:b3d3a62bee24df5565de4182f4774765c3abb5d829e05e3c72f362ae823601bc"
+  "projectionEnvelopeHash": "sha256:23163d1f90500e42ddbf885de8faf123f0c958b50628567818a2abe432d01c6c"
 }

@@ -9,13 +9,14 @@ use desktop_runtime::generated_contracts::{
     BmadInvocationDeclaredAction, BmadInvocationDeclaredActionName, BmadInvocationMode,
 };
 use desktop_runtime::{
-    sha256_bytes, AuthorityRef, BmadDomainRuntime, BmadMethodSkill, BmadResource, BmadResourceSet,
-    BmadRuntimePort, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillExecutionContract,
-    BmadSkillExecutionContractInput, BmadSkillExecutionError, BmadSkillExecutionRequest,
-    BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillRecoverySemantics,
-    BmadSkillSupportState, BmadSkillToolIntent, ContractId, CreateMethodSession,
-    MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
-    MethodArtifactExpectation, MethodArtifactProvenance, MethodExactBinding,
+    sha256_bytes, AuthorityRef, BmadDomainRuntime, BmadMethodSkill, BmadPrdSkill, BmadResource,
+    BmadResourceSet, BmadRuntimePort, BmadSkillAuthorityRequirement, BmadSkillDescriptor,
+    BmadSkillDescriptorInput, BmadSkillExecutionBindingInput, BmadSkillExecutionBranch,
+    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
+    BmadSkillExecutionRequest, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
+    CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
+    MethodArtifactExpectation, MethodArtifactProvenance, MethodContextDecision, MethodExactBinding,
     MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding,
     MethodModelBindingData, MethodPersistenceEvent, MethodResourcePolicy, MethodSession,
     MethodSessionRepository, MethodSessionScope, MethodSessionService, MethodState, Sha256Digest,
@@ -176,20 +177,25 @@ fn contract_for_descriptor(
         execution_profile: binding.execution_profile.clone(),
         validation_profile_hash: binding.validation_profile_hash,
         method_schema_hash: binding.method_schema_hash,
-        workflow: BmadSkillExecutionWorkflow {
-            initial_step_key: "draft".to_owned(),
-            steps: vec![BmadSkillExecutionStep {
-                step_key: "draft".to_owned(),
-                next_step_key: None,
-                source_resource_path: descriptor.source_path().to_owned(),
-                source_resource_hash: descriptor.source_sha256(),
-            }],
-        },
+        branches: vec![BmadSkillExecutionBranch {
+            action: "create".to_owned(),
+            mode: BmadInvocationMode::Interactive,
+            workflow: BmadSkillExecutionWorkflow {
+                initial_step_key: "draft".to_owned(),
+                steps: vec![BmadSkillExecutionStep {
+                    step_key: "draft".to_owned(),
+                    next_step_key: None,
+                    source_resource_path: descriptor.source_path().to_owned(),
+                    source_resource_hash: descriptor.source_sha256(),
+                }],
+            },
+            artifact_expectations: binding.artifact_expectations.clone(),
+            required_status_fields: Vec::new(),
+        }],
         tool_intents: vec![
             BmadSkillToolIntent::FileRead,
             BmadSkillToolIntent::ExternalHandoff,
         ],
-        artifact_expectations: binding.artifact_expectations.clone(),
         recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
     })
 }
@@ -208,6 +214,61 @@ fn request() -> BmadSkillExecutionRequest {
         resolved_config_graph_hash: digest("config graph"),
         resolved_config_hash: digest("config resolution"),
         resolved_customization_hash: digest("customization"),
+    }
+}
+
+fn prepared_prd(action: &str) -> desktop_runtime::BmadPreparedSkillExecution {
+    let binding = exact_binding();
+    let request = BmadPrdSkill
+        .execution_contract()
+        .expect("canonical PRD contract")
+        .execution_request(BmadSkillExecutionBindingInput {
+            mode: BmadInvocationMode::Interactive,
+            action: action.to_owned(),
+            model_binding: binding.model_binding,
+            resolved_config_graph_hash: binding.config_graph_hash,
+            resolved_config_hash: binding.config_resolution_hash,
+            resolved_customization_hash: binding.customization_hash,
+            egress_profile_hash: binding.egress_profile_hash,
+        })
+        .expect("canonical PRD exact request");
+    BmadDomainRuntime
+        .prepare_skill_execution(&BmadPrdSkill, request)
+        .expect("canonical PRD prepares")
+}
+
+fn review_decision(binding: &MethodExactBinding) -> MethodContextDecision {
+    MethodContextDecision {
+        decision_id: id("decision_01J00000000000000000000000"),
+        manifest_hash: digest("manifest"),
+        consent_hash: digest("consent"),
+        context_digest: digest("context"),
+        binding_hash: binding.binding_hash().expect("binding hash"),
+        reviewed_at: UnixMillis(2_000),
+    }
+}
+
+fn advance_request(
+    session: &MethodSession,
+    decision_id: ContractId,
+    idempotency_key: &str,
+) -> MethodAdvanceRequest {
+    let invocation_id = id("invoke_01J00000000000000000000000");
+    let session_authority_hash = session.session_authority_hash().expect("session authority");
+    let d2_model_invocation_binding_hash = digest("model invocation");
+    MethodAdvanceRequest {
+        invocation_id: invocation_id.clone(),
+        idempotency_key: idempotency_key.to_owned(),
+        decision_id,
+        decision_consumption_hash: digest("decision consumption"),
+        model_request_id: id("modelreq_01J00000000000000000000000"),
+        model_request_hash: digest("model request"),
+        session_authority_hash,
+        d2_model_invocation_binding_hash,
+        model_bridge_binding_hash: session
+            .model_bridge_binding_hash(&d2_model_invocation_binding_hash)
+            .expect("model bridge binding"),
+        expected_version: session.version(),
     }
 }
 
@@ -273,12 +334,20 @@ impl MethodSessionRepository for Repository {
 
     fn begin_method_advance(
         &self,
-        _: &MethodSessionScope,
-        _: &ContractId,
-        _: &MethodExactBinding,
-        _: MethodAdvanceRequest,
+        scope: &MethodSessionScope,
+        session_id: &ContractId,
+        observed_binding: &MethodExactBinding,
+        request: MethodAdvanceRequest,
     ) -> Result<MethodAdvanceReceipt, Self::Error> {
-        Err(RepositoryError)
+        let mut sessions = self.sessions.lock().map_err(|_| RepositoryError)?;
+        let session = sessions
+            .iter_mut()
+            .find(|session| session.scope() == *scope && session.session_id() == *session_id)
+            .ok_or(RepositoryError)?;
+        if session.current_binding().ok() != Some(observed_binding) {
+            return Err(RepositoryError);
+        }
+        session.begin_advance(request).map_err(|_| RepositoryError)
     }
 
     fn persist_method_transition(
@@ -303,7 +372,7 @@ impl MethodSessionRepository for Repository {
         _: MethodAdvanceDisposition,
         _: &[String],
     ) -> Result<(), Self::Error> {
-        Err(RepositoryError)
+        Ok(())
     }
 }
 
@@ -366,9 +435,13 @@ fn bmad_skill_execution_prepares_inert_data_for_the_existing_method_service() {
         .table_hash()
         .to_string()
         .starts_with("sha256:"));
+    assert_eq!(prepared.required_plan_kinds(), [BmadActionPlanKind::Read]);
     assert_eq!(
-        prepared.required_plan_kinds(),
-        [BmadActionPlanKind::Read, BmadActionPlanKind::ArtifactPlan]
+        prepared.authority_requirements(),
+        [
+            BmadSkillAuthorityRequirement::ActionPlan(BmadActionPlanKind::Read),
+            BmadSkillAuthorityRequirement::ExternalHandoff,
+        ]
     );
     assert_eq!(
         prepared.recovery(),
@@ -433,4 +506,180 @@ fn bmad_skill_execution_rejects_resource_and_action_mismatches_without_effects()
             .expect_err("resolved configuration drift is rejected"),
         BmadSkillExecutionError::BindingMismatch
     );
+}
+
+// Break caught: proving PRD branch data only through golden fixtures leaves
+// cancellation, failure, retry, repair, restart, resume, and upgrade outside
+// the executable Method lifecycle used by production dispatch.
+#[test]
+#[allow(clippy::too_many_lines)] // One scenario proves all recovery transitions share one persisted session.
+fn canonical_prd_uses_the_existing_executable_method_recovery_lifecycle() {
+    let create = prepared_prd("create");
+    let update = prepared_prd("update");
+
+    // Upgrade/rebind, restart, resume, and cancel all operate on the persisted
+    // canonical PRD session rather than on an adapter-owned state machine.
+    let repository = Repository::default();
+    let service = MethodSessionService::new(&repository);
+    let created = service
+        .create(create_session())
+        .expect("create PRD session");
+    let bound = service
+        .bind_invocation(
+            &created.scope(),
+            &created.session_id(),
+            created.version(),
+            create.exact_binding().clone(),
+            create.step_table().clone(),
+        )
+        .expect("bind create branch");
+    let upgraded = service
+        .rebind_invocation(
+            &bound.scope(),
+            &bound.session_id(),
+            bound.version(),
+            update.exact_binding().clone(),
+            update.step_table().clone(),
+        )
+        .expect("upgrade to update branch");
+    assert_eq!(upgraded.state(), MethodState::CapabilityBound);
+    let upgraded = service
+        .request_context_review(
+            &upgraded.scope(),
+            &upgraded.session_id(),
+            upgraded.version(),
+        )
+        .expect("review upgraded branch");
+    let restarted: MethodSession =
+        serde_json::from_slice(&serde_json::to_vec(&upgraded).expect("serialize checkpoint"))
+            .expect("restart from durable checkpoint");
+    assert_eq!(restarted, upgraded);
+    assert_eq!(
+        service
+            .resume(&upgraded.scope(), &upgraded.session_id())
+            .expect("resume persisted PRD"),
+        upgraded
+    );
+    let cancelled = service
+        .cancel(
+            &upgraded.scope(),
+            &upgraded.session_id(),
+            upgraded.version(),
+        )
+        .expect("cancel PRD");
+    assert_eq!(cancelled.state(), MethodState::Cancelled);
+
+    // A failed/incomplete run is a persisted terminal transition.
+    let failed_repository = Repository::default();
+    let failed_service = MethodSessionService::new(&failed_repository);
+    let failed_created = failed_service
+        .create(create_session())
+        .expect("create failure session");
+    let failed_bound = failed_service
+        .bind_invocation(
+            &failed_created.scope(),
+            &failed_created.session_id(),
+            failed_created.version(),
+            create.exact_binding().clone(),
+            create.step_table().clone(),
+        )
+        .expect("bind failure session");
+    let failed_review = failed_service
+        .request_context_review(
+            &failed_bound.scope(),
+            &failed_bound.session_id(),
+            failed_bound.version(),
+        )
+        .expect("request failed-run review");
+    let failed_decision = review_decision(create.exact_binding());
+    let failed_ready = failed_service
+        .record_context_review(
+            &failed_review.scope(),
+            &failed_review.session_id(),
+            failed_review.version(),
+            failed_decision.clone(),
+        )
+        .expect("accept failed-run review");
+    let failed_request = advance_request(&failed_ready, failed_decision.decision_id, "prd-failure");
+    let (failed_advancing, _) = failed_service
+        .begin_advance(
+            &failed_ready.scope(),
+            &failed_ready.session_id(),
+            create.exact_binding(),
+            failed_request,
+        )
+        .expect("begin failed run");
+    let incomplete = failed_service
+        .record_incomplete(
+            &failed_advancing.scope(),
+            &failed_advancing.session_id(),
+            failed_advancing.version(),
+        )
+        .expect("persist incomplete failure");
+    assert_eq!(incomplete.state(), MethodState::Incomplete);
+
+    // A malformed advance is repairable before consumption, and retrying the
+    // accepted idempotency key returns the exact authoritative receipt.
+    let retry_repository = Repository::default();
+    let retry_service = MethodSessionService::new(&retry_repository);
+    let retry_created = retry_service
+        .create(create_session())
+        .expect("create retry session");
+    let retry_bound = retry_service
+        .bind_invocation(
+            &retry_created.scope(),
+            &retry_created.session_id(),
+            retry_created.version(),
+            create.exact_binding().clone(),
+            create.step_table().clone(),
+        )
+        .expect("bind retry session");
+    let review_required = retry_service
+        .request_context_review(
+            &retry_bound.scope(),
+            &retry_bound.session_id(),
+            retry_bound.version(),
+        )
+        .expect("request PRD review");
+    let decision = review_decision(create.exact_binding());
+    let ready = retry_service
+        .record_context_review(
+            &review_required.scope(),
+            &review_required.session_id(),
+            review_required.version(),
+            decision.clone(),
+        )
+        .expect("accept PRD review");
+    let mut malformed = advance_request(
+        &ready,
+        id("decision_01J00000000000000000000099"),
+        "prd-retry",
+    );
+    assert!(retry_service
+        .begin_advance(
+            &ready.scope(),
+            &ready.session_id(),
+            create.exact_binding(),
+            malformed.clone(),
+        )
+        .is_err());
+    malformed.decision_id = decision.decision_id;
+    let (advancing, receipt) = retry_service
+        .begin_advance(
+            &ready.scope(),
+            &ready.session_id(),
+            create.exact_binding(),
+            malformed.clone(),
+        )
+        .expect("repair malformed request");
+    assert_eq!(advancing.state(), MethodState::Advancing);
+    let (_, retried) = retry_service
+        .begin_advance(
+            &ready.scope(),
+            &ready.session_id(),
+            create.exact_binding(),
+            malformed,
+        )
+        .expect("idempotent retry");
+    assert_eq!(retried, receipt);
 }

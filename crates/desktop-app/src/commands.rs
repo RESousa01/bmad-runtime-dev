@@ -14,9 +14,11 @@ use desktop_ipc::{
     ModelAuthStatusKindProjection, ValidatedCommandEnvelope,
 };
 use desktop_runtime::{
-    canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
-    CreateInertBmadHelpSession, InertBmadHelpSessionCoordinator, LocalCommand, LocalError,
-    LocalErrorCode, ProjectionEventKind, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    canonical_hash, BmadDomainRuntime, BmadHelpIntent, BmadInvocationMode,
+    BmadLibraryProjectionScope, BmadMethodSkill, BmadPrdSkill, BmadRuntimePort,
+    BmadSkillExecutionBindingInput, CommandReceipt, ContractId, CreateInertBmadHelpSession,
+    CreateMethodSession, InertBmadHelpSessionCoordinator, LocalCommand, LocalError, LocalErrorCode,
+    MethodSessionService, ProjectionEventKind, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
 use desktop_store::{
     BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
@@ -2354,6 +2356,17 @@ fn prepare_bmad_capability_run(
         },
     )
     .map_err(map_capability_error)?;
+    if binding.id == "bmm:bmad-prd" {
+        bind_canonical_prd_method_session(
+            state,
+            &authority,
+            renderer_session,
+            &configuration,
+            &project_id,
+            &prepare_input,
+            created_at,
+        )?;
+    }
     let review = state
         .bmad_capabilities
         .lock()
@@ -2366,6 +2379,93 @@ fn prepare_bmad_capability_run(
             architecture_step.map(crate::bmad_architecture::selected_step_progress),
         ),
     ))
+}
+
+fn bind_canonical_prd_method_session(
+    state: &HostState,
+    authority: &crate::state::ReadyWorkspaceCommitGuard<'_>,
+    renderer_session: &RendererSessionGuard<'_>,
+    configuration: &crate::bmad_model::config::HelpModelConfiguration,
+    project_id: &ContractId,
+    prepare_input: &crate::bmad_model::capability_coordinator::PrepareCapabilityRunInput,
+    created_at: UnixMillis,
+) -> Result<(), LocalError> {
+    let skill = BmadPrdSkill;
+    let contract = skill.execution_contract().map_err(|_| {
+        LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The canonical PRD execution contract is unavailable.",
+            false,
+        )
+    })?;
+    let request = contract
+        .execution_request(BmadSkillExecutionBindingInput {
+            mode: BmadInvocationMode::Interactive,
+            action: "create".to_owned(),
+            model_binding: configuration.trusted_profile.method_model_binding(),
+            resolved_config_graph_hash: configuration.policy_hash,
+            resolved_config_hash: configuration.provider_profile_hash,
+            resolved_customization_hash: prepare_input.instruction_hash,
+            egress_profile_hash: configuration.trusted_profile.egress_profile_hash(),
+        })
+        .map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The canonical PRD exact binding could not be assembled.",
+                false,
+            )
+        })?;
+    let prepared = BmadDomainRuntime
+        .prepare_skill_execution(&skill, request)
+        .map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The canonical PRD execution plan did not match its sealed source.",
+                false,
+            )
+        })?;
+
+    let store = state
+        .method_store(authority.authority())
+        .map_err(|_| recovery_error())?;
+    let identity = store.local_identity().map_err(|_| recovery_error())?;
+    let session_digest = canonical_hash(
+        "bmad-prd-method-session-id",
+        1,
+        &(
+            renderer_session.session_id(),
+            &prepare_input.run_id,
+            prepared.exact_binding().capability_key.clone(),
+        ),
+    )
+    .map_err(|_| recovery_error())?;
+    let session_id =
+        crate::bmad_model::context::derived_contract_id("methodsession", session_digest)
+            .map_err(|_| recovery_error())?;
+    let service = MethodSessionService::new(store);
+    let created = service
+        .create(CreateMethodSession {
+            session_id: session_id.clone(),
+            owner_scope_ref: identity.owner_scope_ref().clone(),
+            project_id: project_id.clone(),
+            run_id: prepare_input.run_id.clone(),
+            authority_ref: identity.authority_ref().map_err(|_| recovery_error())?,
+            created_at,
+        })
+        .map_err(|_| recovery_error())?;
+    let bound = service
+        .bind_invocation(
+            &created.scope(),
+            &session_id,
+            1,
+            prepared.exact_binding().clone(),
+            prepared.step_table().clone(),
+        )
+        .map_err(|_| recovery_error())?;
+    service
+        .request_context_review(&bound.scope(), &session_id, 2)
+        .map_err(|_| recovery_error())?;
+    Ok(())
 }
 
 fn approve_bmad_capability_run(
@@ -4303,6 +4403,83 @@ mod tests {
         assert_eq!(
             std::fs::read(workspace.path().join("brief-notes.md"))?,
             b"# Notes\n\nThe product under discussion.\n"
+        );
+        Ok(())
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn canonical_prd_prepare_persists_the_exact_method_session(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{
+            canonical_hash, BmadCapabilityKey, MethodSessionRepository, MethodState,
+        };
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let workspace_id = id(&workspace_id);
+        let review = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            workspace_id.clone(),
+            1,
+            "bmm:bmad-prd",
+            Vec::new(),
+            UnixMillis(11_000),
+        )
+        .expect("prepare canonical PRD");
+        let HostCommandData::CapabilityReview(review) = review else {
+            return Err("expected capability review".into());
+        };
+
+        let key = BmadCapabilityKey {
+            package_version_id: foundation.package().package_version_id.clone(),
+            module_code: "bmm".to_owned(),
+            skill_name: "bmad-prd".to_owned(),
+            normalized_action: Some("create".to_owned()),
+        };
+        let session_digest = canonical_hash(
+            "bmad-prd-method-session-id",
+            1,
+            &(renderer.session_id(), &review.run_id, key),
+        )?;
+        let session_id =
+            crate::bmad_model::context::derived_contract_id("methodsession", session_digest)?;
+        let workspace = state
+            .workspace
+            .authorize_scope(workspace_id.as_str(), 1)
+            .expect("workspace authority")
+            .projection();
+        let authority = state.ready_authority().expect("ready authority");
+        let store = state.method_store(&authority)?;
+        let identity = store.local_identity()?;
+        let scope = desktop_runtime::MethodSessionScope {
+            owner_scope_ref: identity.owner_scope_ref().clone(),
+            project_id: ContractId::new(workspace.project_id)?,
+            run_id: review.run_id,
+            authority_ref: identity.authority_ref()?,
+        };
+        let session = store
+            .load_method_session(&scope, &session_id)?
+            .ok_or("missing canonical PRD Method session")?;
+        assert_eq!(session.state(), MethodState::ContextReviewRequired);
+        assert_eq!(session.version(), 3);
+        assert_eq!(
+            session.current_binding()?.capability_key.skill_name,
+            "bmad-prd"
+        );
+        assert_eq!(
+            session
+                .current_binding()?
+                .capability_key
+                .normalized_action
+                .as_deref(),
+            Some("create")
         );
         Ok(())
     }

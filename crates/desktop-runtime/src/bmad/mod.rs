@@ -83,9 +83,9 @@ pub use capability::{
 };
 pub use catalog::{
     BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster, BmadAgentRosterBuilder, BmadAgentSource,
-    BmadCatalog, BmadCatalogAvailability, BmadCatalogBuilder, BmadHelpAction, BmadHelpActionKey,
-    BmadHelpCatalogSource, BmadInstalledSkillRecord, BmadMenuTargetKind,
-    BmadReviewedPromptReference, BmadUnavailableDependency,
+    BmadCatalog, BmadCatalogAvailability, BmadCatalogBuilder, BmadGeneratedHelpSupport,
+    BmadHelpAction, BmadHelpActionKey, BmadHelpCatalogSource, BmadInstalledSkillRecord,
+    BmadMenuTargetKind, BmadReviewedPromptReference, BmadUnavailableDependency,
 };
 pub use completion::{BmadCompletionError, BmadCompletionIntent};
 pub use config::{
@@ -192,7 +192,8 @@ pub use skills::{
     BmadCustomizeSkill, BmadDeepReconSkill, BmadDocumentProjectSkill, BmadForgeIdeaSkill,
     BmadGenerateProjectContextSkill, BmadHelpSkill, BmadMethodSkill, BmadPartyModeSkill,
     BmadPrdSkill, BmadPreparedSkillExecution, BmadPrfaqSkill, BmadProductBriefSkill,
-    BmadReviewSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillExecutionCompiler,
+    BmadReviewSkill, BmadSkillAuthorityRequirement, BmadSkillDescriptor, BmadSkillDescriptorInput,
+    BmadSkillExecutionBindingInput, BmadSkillExecutionBranch, BmadSkillExecutionCompiler,
     BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
     BmadSkillExecutionPreparedPlan, BmadSkillExecutionRequest, BmadSkillExecutionStep,
     BmadSkillExecutionWorkflow, BmadSkillHarnessError, BmadSkillRecoverySemantics,

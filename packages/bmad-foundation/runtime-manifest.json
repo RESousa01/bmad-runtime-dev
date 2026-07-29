@@ -155,8 +155,8 @@
     },
     {
       "path": "normalized/bmad-prd.package.json",
-      "contentHash": "sha256:d36df94631dbaaa2ca8465c92ca82928c75f617ee1b734a65bd1720dd200aeb1",
-      "byteLength": 4219,
+      "contentHash": "sha256:ba5a08df6f5cf83fbe38d14c5dbbe82471db6c4e18fe0fbec1f319667bd75f25",
+      "byteLength": 4428,
       "contentKind": "normalized_contract"
     },
     {
@@ -514,5 +514,5 @@
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:eb83ab5bcec0bc5475b625fbfa57b31556f2a3373c0941556929ff09b8408595"
+  "manifestHash": "sha256:3df763238260208e0a94924b49fec1e62522ef5ae58240ca57d402f5d0d92deb"
 }

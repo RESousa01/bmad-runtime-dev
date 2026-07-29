@@ -10,13 +10,10 @@
 //! sets `status: final` in place), matching
 //! `BmadArtifactCompletionHookRunHook::PersistArtifacts`.
 //!
-//! `declared_actions` stays empty even though Create/Update/Validate are
-//! named, matching the catalog row's `action: null`: intent is detected
-//! conversationally within one entry point (or forwarded verbatim by a
-//! caller, per "Forwarded activation"), not selected as a fixed,
-//! separately-invocable action the way [`BmadInvocationDeclaredAction`]
-//! models one -- the same representational limit `bmad-product-brief`'s
-//! adapter already documents for its own Create/Update/Validate modes.
+//! The source's three activation outcomes are represented as explicit
+//! `create`, `update`, and `validate` actions. Activation may still infer the
+//! user's intent, but the selected branch is sealed into the exact Method
+//! binding before a durable session begins.
 //!
 //! `follower` stays `None`: Finalize step 7 names three legitimate next
 //! skills side by side ("Common next: `bmad-ux`, `bmad-architecture`,
@@ -28,15 +25,16 @@
 //! [`BmadInvocationDeclaredAction`]: crate::generated_contracts::BmadInvocationDeclaredAction
 
 use crate::generated_contracts::{
-    BmadArtifactCompletionHookRunHook, BmadArtifactKind, BmadInvocationMode,
+    BmadArtifactCompletionHookRunHook, BmadArtifactKind, BmadInvocationDeclaredAction,
+    BmadInvocationDeclaredActionName, BmadInvocationMode,
 };
 use crate::{
     BmadMethodSkill, BmadResource, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
-    BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillRecoverySemantics,
-    BmadSkillSupportState, BmadSkillToolIntent, ContractId, MethodArtifactExpectation,
-    MethodEvidenceClass, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
-    MethodResourcePolicy, Sha256Digest,
+    BmadSkillExecutionBranch, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
+    BmadSkillExecutionError, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
+    MethodArtifactExpectation, MethodEvidenceClass, MethodExecutionProfile,
+    MethodExecutionProfileData, MethodInvocationModes, MethodResourcePolicy, Sha256Digest,
 };
 
 /// Adapter for the pinned `bmad-prd` Method skill (MTH-08).
@@ -57,7 +55,10 @@ impl BmadMethodSkill for BmadPrdSkill {
                 0x2c, 0x79, 0xe1, 0x41, 0xbc, 0x77, 0xe8, 0xe2, 0x5b, 0xa4, 0x42, 0xb8, 0x5e, 0x1c,
                 0x5c, 0x58, 0x7f, 0x3f,
             ]),
-            declared_actions: Vec::new(),
+            declared_actions: ["create", "update", "validate"]
+                .into_iter()
+                .map(declared_action)
+                .collect(),
             supported_modes: vec![
                 BmadInvocationMode::Interactive,
                 BmadInvocationMode::Headless,
@@ -153,7 +154,7 @@ impl BmadMethodSkill for BmadPrdSkill {
     fn execution_contract(&self) -> Result<BmadSkillExecutionContract, BmadSkillExecutionError> {
         let descriptor = self.descriptor();
         let execution_profile = execution_profile(&descriptor)?;
-        let source_hash = descriptor.source_sha256();
+        let branches = execution_branches(&descriptor)?;
 
         BmadSkillExecutionContract::new(BmadSkillExecutionContractInput {
             descriptor,
@@ -163,13 +164,13 @@ impl BmadMethodSkill for BmadPrdSkill {
                 "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
             )?,
             package_descriptor_hash: digest(
-                "sha256:b3d3a62bee24df5565de4182f4774765c3abb5d829e05e3c72f362ae823601bc",
+                "sha256:23163d1f90500e42ddbf885de8faf123f0c958b50628567818a2abe432d01c6c",
             )?,
             package_source_hash: digest(
                 "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
             )?,
             instruction_projection_hash: digest(
-                "sha256:020773a36111d798aaadbed06a1aaa40ae4c830140ebcd2b4f035245beb29d17",
+                "sha256:65e0dcb5dcff1b99942491f13db5a25002e3dae54dbb6a2017edfc9017daafcf",
             )?,
             capability_catalog_hash: digest(
                 "sha256:56e4a4583b6e35790afbe8f968b2cc5f78d6d8baee54ec5167a8bf4db03b1875",
@@ -183,44 +184,16 @@ impl BmadMethodSkill for BmadPrdSkill {
             method_schema_hash: digest(
                 "sha256:dda02f453dcf4edbb3fc66e0ad3a7c59d7087f5b44b526e40c435456c8c248c2",
             )?,
-            workflow: BmadSkillExecutionWorkflow {
-                initial_step_key: "facilitate_prd".to_owned(),
-                steps: vec![BmadSkillExecutionStep {
-                    step_key: "facilitate_prd".to_owned(),
-                    next_step_key: None,
-                    source_resource_path: "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md"
-                        .to_owned(),
-                    source_resource_hash: source_hash,
-                }],
-            },
+            branches,
             tool_intents: vec![
                 BmadSkillToolIntent::FileRead,
                 BmadSkillToolIntent::FileWrite,
                 BmadSkillToolIntent::Process,
                 BmadSkillToolIntent::Web,
                 BmadSkillToolIntent::Subagent,
+                BmadSkillToolIntent::Browser,
                 BmadSkillToolIntent::ExternalHandoff,
             ],
-            artifact_expectations: vec![MethodArtifactExpectation::from_source(
-                MethodArtifactExpectation {
-                    expectation_kind: "method_artifact".to_owned(),
-                    expectation_id: contract_id("expectation_01J00000000000000000000008")?,
-                    artifact_kind: "document".to_owned(),
-                    required: true,
-                    storage_scope: "app_local".to_owned(),
-                    expected_media_type: "text/markdown".to_owned(),
-                    expected_content_schema_hash: None,
-                    source_output_hint: Some(
-                        "{doc_workspace}/prd.md or {doc_workspace}/validation-report.{md,html}"
-                            .to_owned(),
-                    ),
-                    completion_evidence_class: MethodEvidenceClass::Authoritative,
-                    expectation_hash: digest(
-                        "sha256:3b263d0c06079b668d7a0b495a2a91b096f93084a5f529628be13c858f876c22",
-                    )?,
-                },
-            )
-            .map_err(|_| BmadSkillExecutionError::ContractInvalid)?],
             recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
         })
     }
@@ -235,7 +208,11 @@ fn execution_profile(
             invocation_modes: MethodInvocationModes {
                 interactive: true,
                 headless: true,
-                actions: Vec::new(),
+                actions: vec![
+                    "create".to_owned(),
+                    "update".to_owned(),
+                    "validate".to_owned(),
+                ],
             },
             required_runtimes: Vec::new(),
             resource_policy: MethodResourcePolicy {
@@ -253,6 +230,7 @@ fn execution_profile(
                 "process".to_owned(),
                 "web".to_owned(),
                 "subagent".to_owned(),
+                "browser".to_owned(),
                 "external_handoff".to_owned(),
             ],
             state_hints: vec!["memlog".to_owned(), "artifact_workspace".to_owned()],
@@ -267,6 +245,189 @@ fn execution_profile(
         digest("sha256:1e1652a19e34c8306315e5f47a5b791582d472604217f65780463ed8d768d64f")?,
     )
     .map_err(|_| BmadSkillExecutionError::ContractInvalid)
+}
+
+fn declared_action(name: &str) -> BmadInvocationDeclaredAction {
+    let name: BmadInvocationDeclaredActionName = name
+        .try_into()
+        .unwrap_or_else(|_| unreachable!("all PRD action names are generated enum members"));
+    BmadInvocationDeclaredAction {
+        declared_inputs: Vec::new(),
+        name,
+    }
+}
+
+fn execution_branches(
+    descriptor: &BmadSkillDescriptor,
+) -> Result<Vec<BmadSkillExecutionBranch>, BmadSkillExecutionError> {
+    let source_path = descriptor.source_path();
+    let source_hash = descriptor.source_sha256();
+    let validate_path = "src/bmm-skills/2-plan-workflows/bmad-prd/references/validate.md";
+    let validate_hash = resource_hash(descriptor, validate_path)?;
+    let mut branches = Vec::new();
+    for mode in [
+        BmadInvocationMode::Interactive,
+        BmadInvocationMode::Headless,
+    ] {
+        let required_status_fields = if mode == BmadInvocationMode::Headless {
+            vec![
+                "status".to_owned(),
+                "intent".to_owned(),
+                "assumptions".to_owned(),
+                "open_questions".to_owned(),
+            ]
+        } else {
+            Vec::new()
+        };
+        for action in ["create", "update", "validate"] {
+            let (steps, artifacts) = match action {
+                "create" => (
+                    vec![
+                        execution_step(
+                            "activation",
+                            Some("create_discovery"),
+                            source_path,
+                            source_hash,
+                        ),
+                        execution_step(
+                            "create_discovery",
+                            Some("reviewer_gate"),
+                            source_path,
+                            source_hash,
+                        ),
+                        execution_step("reviewer_gate", Some("finalize"), source_path, source_hash),
+                        execution_step("finalize", None, source_path, source_hash),
+                    ],
+                    prd_artifacts()?,
+                ),
+                "update" => (
+                    vec![
+                        execution_step(
+                            "activation",
+                            Some("update_reconcile"),
+                            source_path,
+                            source_hash,
+                        ),
+                        execution_step(
+                            "update_reconcile",
+                            Some("reviewer_gate"),
+                            source_path,
+                            source_hash,
+                        ),
+                        execution_step("reviewer_gate", Some("finalize"), source_path, source_hash),
+                        execution_step("finalize", None, source_path, source_hash),
+                    ],
+                    prd_artifacts()?,
+                ),
+                "validate" => (
+                    vec![
+                        execution_step(
+                            "activation",
+                            Some("validate_reviewer_gate"),
+                            source_path,
+                            source_hash,
+                        ),
+                        execution_step(
+                            "validate_reviewer_gate",
+                            Some("validation_report"),
+                            validate_path,
+                            validate_hash,
+                        ),
+                        execution_step("validation_report", None, validate_path, validate_hash),
+                    ],
+                    validation_artifacts()?,
+                ),
+                _ => unreachable!("the PRD action set is closed"),
+            };
+            branches.push(BmadSkillExecutionBranch {
+                action: action.to_owned(),
+                mode,
+                workflow: BmadSkillExecutionWorkflow {
+                    initial_step_key: "activation".to_owned(),
+                    steps,
+                },
+                artifact_expectations: artifacts,
+                required_status_fields: required_status_fields.clone(),
+            });
+        }
+    }
+    Ok(branches)
+}
+
+fn execution_step(
+    step_key: &str,
+    next_step_key: Option<&str>,
+    source_resource_path: &str,
+    source_resource_hash: Sha256Digest,
+) -> BmadSkillExecutionStep {
+    BmadSkillExecutionStep {
+        step_key: step_key.to_owned(),
+        next_step_key: next_step_key.map(str::to_owned),
+        source_resource_path: source_resource_path.to_owned(),
+        source_resource_hash,
+    }
+}
+
+fn prd_artifacts() -> Result<Vec<MethodArtifactExpectation>, BmadSkillExecutionError> {
+    Ok(vec![
+        artifact_expectation(
+            "expectation_01J00000000000000000000008",
+            "text/markdown",
+            "{doc_workspace}/prd.md",
+        )?,
+        artifact_expectation(
+            "expectation_01J00000000000000000000009",
+            "text/markdown",
+            "{doc_workspace}/.memlog.md",
+        )?,
+    ])
+}
+
+fn validation_artifacts() -> Result<Vec<MethodArtifactExpectation>, BmadSkillExecutionError> {
+    Ok(vec![
+        artifact_expectation(
+            "expectation_01J00000000000000000000010",
+            "text/markdown",
+            "{doc_workspace}/validation-report.md",
+        )?,
+        artifact_expectation(
+            "expectation_01J00000000000000000000011",
+            "text/html",
+            "{doc_workspace}/validation-report.html",
+        )?,
+    ])
+}
+
+fn artifact_expectation(
+    expectation_id: &str,
+    media_type: &str,
+    source_output_hint: &str,
+) -> Result<MethodArtifactExpectation, BmadSkillExecutionError> {
+    MethodArtifactExpectation::from_source(MethodArtifactExpectation {
+        expectation_kind: "method_artifact".to_owned(),
+        expectation_id: contract_id(expectation_id)?,
+        artifact_kind: "document".to_owned(),
+        required: true,
+        storage_scope: "app_local".to_owned(),
+        expected_media_type: media_type.to_owned(),
+        expected_content_schema_hash: None,
+        source_output_hint: Some(source_output_hint.to_owned()),
+        completion_evidence_class: MethodEvidenceClass::Authoritative,
+        expectation_hash: crate::sha256_bytes(expectation_id.as_bytes()),
+    })
+    .map_err(|_| BmadSkillExecutionError::ContractInvalid)
+}
+
+fn resource_hash(
+    descriptor: &BmadSkillDescriptor,
+    path: &str,
+) -> Result<Sha256Digest, BmadSkillExecutionError> {
+    descriptor
+        .declared_resources()
+        .iter()
+        .find(|resource| resource.path() == path)
+        .map(BmadResource::content_hash)
+        .ok_or(BmadSkillExecutionError::ResourceMismatch)
 }
 
 fn source_resource(path: &str, content_hash: [u8; 32]) -> BmadResource {

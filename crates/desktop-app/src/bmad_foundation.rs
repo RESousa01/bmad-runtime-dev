@@ -7,9 +7,9 @@ use std::sync::Arc;
 use desktop_ipc::deserialize_strict;
 use desktop_runtime::{
     canonical_hash_without_field, sha256_bytes, BmadAgentRoster, BmadCatalog, BmadCatalogBuilder,
-    BmadHelpCatalogSource, BmadKernelError, BmadLoadedMethodPackage, BmadLoadedPackage,
-    BmadLocationClass, BmadPackageLoader, BmadSealedHelpInvocation, BmadSourceEntry,
-    BmadSourceKind, BmadSourceSnapshot, RelativeWorkspacePath, Sha256Digest,
+    BmadGeneratedHelpSupport, BmadHelpCatalogSource, BmadKernelError, BmadLoadedMethodPackage,
+    BmadLoadedPackage, BmadLocationClass, BmadPackageLoader, BmadSealedHelpInvocation,
+    BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot, RelativeWorkspacePath, Sha256Digest,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -19,9 +19,9 @@ const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
     "sha256:f5599c0ccbd727472101aab6e27c269a0902c9a78d4e3b28c15ae110d7afae71";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:eb83ab5bcec0bc5475b625fbfa57b31556f2a3373c0941556929ff09b8408595";
+    "sha256:3df763238260208e0a94924b49fec1e62522ef5ae58240ca57d402f5d0d92deb";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
-const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
+const HELP_CAPABILITY_GRAPH_PATH: &str = "normalized/bmad-help-capability-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
 /// The adopted upstream method graph (ADR-0008).
 const WORKFLOW_GRAPH_PATH: &str = "source/method/6.10.0/src/bmm-skills/module-help.csv";
@@ -379,19 +379,38 @@ enum RuntimeContentKind {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct FoundationHelpActionGraph {
+struct FoundationHelpCapabilityGraph {
     schema_version: String,
-    package_version_id: String,
-    sources: Vec<FoundationHelpActionSource>,
+    generated_by: String,
+    source_catalog_sha256: String,
+    source_alias_catalog_sha256: String,
+    node_count: usize,
+    nodes: Vec<FoundationHelpCapabilityNode>,
+    alias_edges: Vec<FoundationHelpAliasEdge>,
     graph_hash: Sha256Digest,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct FoundationHelpActionSource {
-    module_code: String,
-    source_member_hash: Sha256Digest,
-    rows: Vec<Vec<String>>,
+struct FoundationHelpCapabilityNode {
+    id: String,
+    source_id: String,
+    phase: String,
+    predecessor_ids: Vec<String>,
+    follower_ids: Vec<String>,
+    output_locations: Vec<String>,
+    support_state: String,
+    ui_state: String,
+    row_ids: Vec<String>,
+    node_hash: Sha256Digest,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct FoundationHelpAliasEdge {
+    alias_id: String,
+    canonical_id: String,
+    deprecated: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -736,45 +755,77 @@ fn load_help_catalog(
     resources: &FoundationResources,
     package: &BmadLoadedPackage,
 ) -> Result<BmadCatalog, BmadFoundationError> {
-    let graph: FoundationHelpActionGraph =
-        deserialize_strict(required_bytes(resources, HELP_ACTION_GRAPH_PATH)?)
+    let graph: FoundationHelpCapabilityGraph =
+        deserialize_strict(required_bytes(resources, HELP_CAPABILITY_GRAPH_PATH)?)
             .map_err(|_| BmadFoundationError::ResourceMismatch)?;
-    let computed =
-        canonical_hash_without_field("bmad-foundation-help-action-graph", 1, &graph, "graphHash")
-            .map_err(|_| BmadFoundationError::ResourceMismatch)?;
-    let expected_sources = [
-        (
-            "bmm",
-            "sha256:ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
-        ),
-        (
-            "core",
-            "sha256:e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
-        ),
-    ];
-    if graph.schema_version != "sapphirus.bmad-foundation-help-action-graph.v1"
-        || graph.package_version_id != package.package_version_id.as_str()
-        || graph.graph_hash != computed
-        || graph.sources.len() != expected_sources.len()
-        || graph
-            .sources
-            .iter()
-            .zip(expected_sources)
-            .any(|(source, (module_code, source_hash))| {
-                source.module_code != module_code
-                    || source.source_member_hash.to_string() != source_hash
-                    || source.rows.len() != 1
-            })
+    if graph.schema_version != "sapphirus.bmad-help-capability-graph.v1"
+        || graph.generated_by != "packages/bmad-foundation/scripts/generate-catalog.mjs"
+        || graph.node_count != graph.nodes.len()
+        || graph.nodes.is_empty()
+        || graph.nodes.windows(2).any(|pair| pair[0].id >= pair[1].id)
     {
         return Err(BmadFoundationError::ResourceMismatch);
     }
-    let sources = graph
-        .sources
-        .iter()
-        .map(|source| BmadHelpCatalogSource::from_rows(&source.module_code, &source.rows))
+    let mut rows_by_module = BTreeMap::<String, Vec<Vec<String>>>::new();
+    let mut support = Vec::with_capacity(graph.nodes.len());
+    for node in &graph.nodes {
+        let (module_code, remainder) = node
+            .id
+            .split_once(':')
+            .ok_or(BmadFoundationError::ResourceMismatch)?;
+        let (skill_name, action) = remainder
+            .split_once(':')
+            .map_or((remainder, None), |(skill, action)| (skill, Some(action)));
+        let display_name = skill_name
+            .split('-')
+            .filter(|part| !part.is_empty())
+            .map(|part| {
+                let mut chars = part.chars();
+                chars.next().map_or_else(String::new, |first| {
+                    first.to_uppercase().chain(chars).collect()
+                })
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        rows_by_module
+            .entry(module_code.to_owned())
+            .or_default()
+            .push(vec![
+                module_code.to_owned(),
+                skill_name.to_owned(),
+                display_name,
+                String::new(),
+                format!("Generated canonical capability {}.", node.id),
+                action.unwrap_or_default().to_owned(),
+                String::new(),
+                node.phase.clone(),
+                node.predecessor_ids.join("|"),
+                node.follower_ids.join("|"),
+                "false".to_owned(),
+                node.output_locations.join("|"),
+                node.output_locations.join("|"),
+            ]);
+        support.push(BmadGeneratedHelpSupport {
+            module_code: module_code.to_owned(),
+            skill_name: skill_name.to_owned(),
+            action: action.map(str::to_owned),
+            runtime_available: matches!(node.support_state.as_str(), "exact" | "adapted"),
+        });
+    }
+    let sources = rows_by_module
+        .into_iter()
+        .map(|(module, rows)| BmadHelpCatalogSource::from_rows(module, &rows))
         .collect::<Result<Vec<_>, _>>()?;
-    let catalog = BmadCatalogBuilder::build_bound(package, &sources, graph.graph_hash)?;
-    if catalog.installed_skills.len() != package.skills.len() || catalog.help_actions.len() != 2 {
+    let catalog =
+        BmadCatalogBuilder::build_generated_bound(package, &sources, graph.graph_hash, &support)?;
+    if catalog.installed_skills.len() != package.skills.len()
+        || catalog.help_actions.len() != graph.node_count
+        || !catalog.help_actions.iter().any(|action| {
+            action.module_code == "bmm"
+                && action.skill_name == "bmad-prd"
+                && action.availability == desktop_runtime::BmadCatalogAvailability::Available
+        })
+    {
         return Err(BmadFoundationError::ResourceMismatch);
     }
     Ok(catalog)

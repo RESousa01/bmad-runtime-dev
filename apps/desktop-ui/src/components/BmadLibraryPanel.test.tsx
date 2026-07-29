@@ -528,7 +528,7 @@ describe("BmadLibraryPanel", () => {
     );
   });
 
-  it("starts the five reviewed Builder authoring operations while keeping outputs inactive", () => {
+  it("does not advertise Builder operations whose catalog lacks runtime closure", () => {
     const onRunBuilderCapability = vi.fn();
     render(
       <BmadLibraryPanel
@@ -561,13 +561,8 @@ describe("BmadLibraryPanel", () => {
     );
 
     expect(screen.getAllByText("Inactive output")).toHaveLength(2);
-    const create = screen.getByRole("button", { name: "Create or rebuild agent" });
-    fireEvent.click(create);
-    expect(onRunBuilderCapability).toHaveBeenCalledWith(
-      "builder:agent.create_rebuild",
-      "Create or rebuild agent",
-    );
-    expect(screen.getAllByRole("button", { name: /agent|workflow/i })).toHaveLength(5);
+    expect(screen.queryByRole("button", { name: /agent|workflow/i })).toBeNull();
+    expect(onRunBuilderCapability).not.toHaveBeenCalled();
   });
 
   /// FE-25. The old panel split an agent's menus on `availability ===
@@ -664,7 +659,7 @@ describe("BmadLibraryPanel", () => {
       ),
     ).toBeTruthy();
     expect(
-      within(reviewed).getByText(/No compatibility decision has been recorded/u),
+      within(reviewed).getByText(/records a compatibility decision/u),
     ).toBeTruthy();
   });
 
@@ -755,9 +750,9 @@ describe("BmadLibraryPanel", () => {
     expect(screen.queryByText(/does not send your workspace/u)).toBeNull();
   });
 
-  /// BM-03 has recorded no compatibility decision for any of the 48 upstream
-  /// skills, so "Runs here" on its own would be read as a claim nobody made.
-  it("says the compatibility of a startable skill is unreviewed", () => {
+  /// The generated catalog carries the governed compatibility decision beside
+  /// runtime support, so the panel cannot silently drop either half.
+  it("shows the generated compatibility decision for a startable skill", () => {
     render(
       <BmadLibraryPanel
         onRunCapability={vi.fn()}
@@ -776,14 +771,13 @@ describe("BmadLibraryPanel", () => {
     const core = screen.getByRole("region", { name: "Core skills" });
     expect(within(core).getByText("Runs here")).toBeTruthy();
     expect(
-      within(core).getByText(/No compatibility decision has been recorded/u),
+      within(core).getByText(/Recorded compatibility decision: adopt/u),
     ).toBeTruthy();
   });
 
-  /// A build with deterministic help activates `core/bmad-help`, and the matrix
-  /// records it as normalized into a package that reaches no capability. The
-  /// chip used to read "Available" off the projection alone.
-  it("reads a catalog entry the matrix projects nothing for as not known", () => {
+  /// A generated adapted row remains runnable when the host projection agrees,
+  /// and the panel exposes that decision rather than consulting a second table.
+  it("reads an adapted generated catalog entry as runnable", () => {
     render(
       <BmadLibraryPanel
         state={readyState({
@@ -802,9 +796,33 @@ describe("BmadLibraryPanel", () => {
     fireEvent.click(within(sourceDetails!).getByText(/Source catalog details/u));
     const skills = screen.getByRole("region", { name: "Installed skills" });
 
-    expect(within(skills).getByText("Not known")).toBeTruthy();
-    expect(within(skills).queryByText("Runs here")).toBeNull();
-    expect(within(skills).getByText(/One of the two is out of date/u)).toBeTruthy();
+    expect(within(skills).getByText("Runs here")).toBeTruthy();
+    expect(within(skills).getByText(/Recorded compatibility decision: adapt/u)).toBeTruthy();
+  });
+
+  it("reads canonical PRD support from the generated catalog", () => {
+    render(
+      <BmadLibraryPanel
+        state={readyState({
+          installedSkills: [{
+            ...baseProjection.installedSkills[0]!,
+            skillName: "bmad-prd",
+            displayName: "Product requirements",
+            actions: ["create", "update", "validate"],
+            availability: "available",
+            blockerCodes: [],
+          }],
+          helpActions: [],
+          methodAgents: [],
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByText(/Source catalog details/u));
+    const skills = screen.getByRole("region", { name: "Installed skills" });
+    expect(within(skills).getByText("Runs here")).toBeTruthy();
+    expect(within(skills).getByText(/Recorded compatibility decision: adopt/u)).toBeTruthy();
+    expect(within(skills).getByText(/create, update, validate/u)).toBeTruthy();
   });
 
   it("has no automated accessibility violations in the ready state", async () => {
