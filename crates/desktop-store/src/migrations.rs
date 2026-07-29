@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 20;
+pub(crate) const LATEST_STORE_VERSION: u32 = 21;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -394,6 +394,103 @@ pub(crate) const V20_TABLES: [&str; 30] = [
     "aggregates",
     "bmad_architecture_session_steps",
     "bmad_architecture_sessions",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_memlog_entries",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "bmad_session_events",
+    "bmad_sessions",
+    "chat_messages",
+    "chat_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "model_catalog_snapshots",
+    "model_profile_selections",
+    "outbox",
+    "payload_quarantine",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+
+/// Durable artifact lifecycle and provenance (ENG-07).
+///
+/// `bmad_artifacts` holds exactly one row per artifact: the current lifecycle
+/// state, its optimistic `revision`, the split between raw model output and
+/// validated content, the validation block, and the lineage that ties it back
+/// to the source, template, and inputs that produced it. `bmad_artifact_events`
+/// is append-only — a row per accepted transition, keyed so the same revision
+/// cannot be written twice. Restart recovery reads the row and replays
+/// nothing, mirroring `bmad_sessions`/`bmad_session_events` (v19->v20): the
+/// row *is* the accepted state, and the event log only explains how it got
+/// there.
+pub(crate) const V20_TO_V21_SQL: &str = "\
+ BEGIN IMMEDIATE;
+ CREATE TABLE bmad_artifacts (
+   artifact_id TEXT PRIMARY KEY,
+   session_id TEXT NOT NULL CHECK(length(session_id) > 0),
+   workspace_id TEXT NOT NULL CHECK(length(workspace_id) > 0),
+   state TEXT NOT NULL CHECK(state IN (
+     'draft', 'revised', 'validated', 'approved', 'written', 'superseded',
+     'rolled_back', 'rejected')),
+   sequence INTEGER NOT NULL CHECK(sequence >= 1 AND sequence <= 1048576),
+   revision INTEGER NOT NULL CHECK(revision >= 1 AND revision <= 65536),
+   content_hash TEXT NOT NULL
+     CHECK(length(content_hash) = 71 AND content_hash GLOB 'sha256:*'),
+   raw_output_hash TEXT
+     CHECK(raw_output_hash IS NULL
+       OR (length(raw_output_hash) = 71 AND raw_output_hash GLOB 'sha256:*')),
+   evidence_hash TEXT NOT NULL
+     CHECK(length(evidence_hash) = 71 AND evidence_hash GLOB 'sha256:*'),
+   source_id TEXT NOT NULL CHECK(length(source_id) > 0),
+   template_hash TEXT NOT NULL
+     CHECK(length(template_hash) = 71 AND template_hash GLOB 'sha256:*'),
+   inputs_hash TEXT NOT NULL
+     CHECK(length(inputs_hash) = 71 AND inputs_hash GLOB 'sha256:*'),
+   artifact_json TEXT NOT NULL CHECK(length(artifact_json) > 0),
+   created_at_ms INTEGER NOT NULL
+     CHECK(created_at_ms >= 0 AND created_at_ms <= 9007199254740991),
+   updated_at_ms INTEGER NOT NULL
+     CHECK(updated_at_ms >= 0 AND updated_at_ms <= 9007199254740991),
+   CHECK(updated_at_ms >= created_at_ms)
+ ) STRICT;
+ CREATE INDEX bmad_artifacts_by_session
+   ON bmad_artifacts(session_id, updated_at_ms DESC, artifact_id);
+ CREATE INDEX bmad_artifacts_by_workspace
+   ON bmad_artifacts(workspace_id, updated_at_ms DESC, artifact_id);
+ CREATE TABLE bmad_artifact_events (
+   artifact_id TEXT NOT NULL REFERENCES bmad_artifacts(artifact_id),
+   to_revision INTEGER NOT NULL CHECK(to_revision >= 1 AND to_revision <= 65536),
+   from_revision INTEGER NOT NULL CHECK(from_revision >= 1),
+   command TEXT NOT NULL CHECK(length(command) > 0),
+   from_state TEXT NOT NULL CHECK(length(from_state) > 0),
+   to_state TEXT NOT NULL CHECK(length(to_state) > 0),
+   recorded_at_ms INTEGER NOT NULL
+     CHECK(recorded_at_ms >= 0 AND recorded_at_ms <= 9007199254740991),
+   CHECK(to_revision = from_revision + 1),
+   PRIMARY KEY(artifact_id, to_revision)
+ ) STRICT;
+ CREATE INDEX bmad_artifact_events_by_artifact
+   ON bmad_artifact_events(artifact_id, to_revision);
+ PRAGMA user_version = 21;
+ COMMIT;";
+
+pub(crate) const V21_TABLES: [&str; 32] = [
+    "aggregates",
+    "bmad_architecture_session_steps",
+    "bmad_architecture_sessions",
+    "bmad_artifact_events",
+    "bmad_artifacts",
     "bmad_builder_analyses",
     "bmad_builder_analysis_decisions",
     "bmad_builder_drafts",
@@ -1140,79 +1237,41 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 reject_untrusted_v6_model_analysis_history(connection)?;
                 connection.execute_batch(V6_TO_V7_SQL)?;
             }
-            7 => {
-                require_store_tables(connection, &V7_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V7_TO_V8_SQL)?;
-            }
-            8 => {
-                require_store_tables(connection, &V8_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V8_TO_V9_SQL)?;
-            }
-            9 => {
-                require_store_tables(connection, &V9_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V9_TO_V10_SQL)?;
-            }
-            10 => {
-                require_store_tables(connection, &V10_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V10_TO_V11_SQL)?;
-            }
-            11 => {
-                require_store_tables(connection, &V11_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V11_TO_V12_SQL)?;
-            }
-            12 => {
-                require_store_tables(connection, &V12_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V12_TO_V13_SQL)?;
-            }
-            13 => {
-                require_store_tables(connection, &V13_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V13_TO_V14_SQL)?;
-            }
-            14 => {
-                require_store_tables(connection, &V14_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V14_TO_V15_SQL)?;
-            }
-            15 => {
-                require_store_tables(connection, &V15_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V15_TO_V16_SQL)?;
-            }
-            16 => {
-                require_store_tables(connection, &V16_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V16_TO_V17_SQL)?;
-            }
-            17 => {
-                require_store_tables(connection, &V17_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V17_TO_V18_SQL)?;
-            }
-            18 => {
-                require_store_tables(connection, &V18_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V18_TO_V19_SQL)?;
-            }
-            19 => {
-                require_store_tables(connection, &V19_TABLES)?;
-                require_outbox_event_uniqueness(connection)?;
-                connection.execute_batch(V19_TO_V20_SQL)?;
-            }
+            7 => run_migration_step(connection, &V7_TABLES, V7_TO_V8_SQL)?,
+            8 => run_migration_step(connection, &V8_TABLES, V8_TO_V9_SQL)?,
+            9 => run_migration_step(connection, &V9_TABLES, V9_TO_V10_SQL)?,
+            10 => run_migration_step(connection, &V10_TABLES, V10_TO_V11_SQL)?,
+            11 => run_migration_step(connection, &V11_TABLES, V11_TO_V12_SQL)?,
+            12 => run_migration_step(connection, &V12_TABLES, V12_TO_V13_SQL)?,
+            13 => run_migration_step(connection, &V13_TABLES, V13_TO_V14_SQL)?,
+            14 => run_migration_step(connection, &V14_TABLES, V14_TO_V15_SQL)?,
+            15 => run_migration_step(connection, &V15_TABLES, V15_TO_V16_SQL)?,
+            16 => run_migration_step(connection, &V16_TABLES, V16_TO_V17_SQL)?,
+            17 => run_migration_step(connection, &V17_TABLES, V17_TO_V18_SQL)?,
+            18 => run_migration_step(connection, &V18_TABLES, V18_TO_V19_SQL)?,
+            19 => run_migration_step(connection, &V19_TABLES, V19_TO_V20_SQL)?,
+            20 => run_migration_step(connection, &V20_TABLES, V20_TO_V21_SQL)?,
             LATEST_STORE_VERSION => {
-                require_store_tables(connection, &V20_TABLES)?;
+                require_store_tables(connection, &V21_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }
             _ => return Err(StoreError::UnsupportedStoreVersion),
         }
     }
+}
+
+/// Applies one linear migration step shared by every version that only needs
+/// the standard guard-then-execute shape (no bespoke pre-check).
+fn run_migration_step(
+    connection: &Connection,
+    required_tables: &[&str],
+    sql: &str,
+) -> Result<(), StoreError> {
+    require_store_tables(connection, required_tables)?;
+    require_outbox_event_uniqueness(connection)?;
+    connection.execute_batch(sql)?;
+    Ok(())
 }
 
 fn reject_untrusted_v6_model_analysis_history(connection: &Connection) -> Result<(), StoreError> {

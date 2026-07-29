@@ -26,7 +26,7 @@ use thiserror::Error;
 /// destroys the whole database regardless, but a user asking what is retained
 /// is entitled to see their conversations and capability results counted —
 /// this list silently fell behind two migrations and reported neither.
-pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 26] = [
+pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 28] = [
     ("workspace_and_authority_records", "aggregates"),
     ("evidence_events", "evidence_events"),
     ("stored_payloads", "payloads"),
@@ -62,6 +62,8 @@ pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 26] = [
     ("model_selections", "model_profile_selections"),
     ("bmad_skill_sessions", "bmad_sessions"),
     ("bmad_skill_session_events", "bmad_session_events"),
+    ("bmad_artifacts", "bmad_artifacts"),
+    ("bmad_artifact_events", "bmad_artifact_events"),
 ];
 use time::OffsetDateTime;
 use ulid::Ulid;
@@ -78,6 +80,7 @@ const LOCAL_IDENTITY_KIND: &str = "desktop-local-identity";
 const LOCAL_IDENTITY_SCHEMA: &str = "sapphirus.desktop-local-identity.v1";
 const LOCAL_IDENTITY_MAX_BYTES: u64 = 4_096;
 mod bmad_architecture;
+mod bmad_artifacts;
 mod bmad_builder;
 mod bmad_capability;
 mod bmad_config;
@@ -93,6 +96,7 @@ mod retention;
 pub use retention::MAX_DURABLE_CHAT_MESSAGES;
 
 pub use bmad_architecture::{ArchitectureSessionStep, ResumableArchitectureSession};
+pub use bmad_artifacts::{BmadArtifactEvent, BmadArtifactEventRow, BmadArtifactRecord};
 pub use bmad_capability::BmadCapabilityRunRecord;
 pub use bmad_config::BmadConfigSnapshot;
 pub use bmad_method::{
@@ -2574,7 +2578,9 @@ mod tests {
             )?;
             let path = store.database_path();
             store.connection.lock().execute_batch(
-                "DROP TABLE bmad_session_events;
+                "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_artifacts;
+DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
              DROP TABLE model_profile_selections;
                  DROP TABLE model_catalog_snapshots;
@@ -2972,7 +2978,9 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_session_events;
+            "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_artifacts;
+DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
@@ -3030,7 +3038,9 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_session_events;
+            "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_artifacts;
+DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
@@ -3141,7 +3151,9 @@ mod tests {
             params![legacy_consumption_hash, legacy_json, consumption_id],
         )?;
         store.connection.lock().execute_batch(
-            "DROP TABLE bmad_session_events;
+            "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_artifacts;
+DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;

@@ -87,11 +87,23 @@ const DOMAIN_BOUNDARIES: &[DomainBoundary] = &[
         allowed_body_path_roots: &["crate", "generated_contracts", "num", "std"],
     },
     DomainBoundary {
+        module: "invocation",
+        allowed_uses: &[
+            "useserde_json::Value;",
+            "usethiserror::Error;",
+            "usecrate::canonical_hash;",
+            "usecrate::generated_contracts::{BmadInvocation,BmadInvocationBudget,BmadInvocationDeclaredAction,BmadInvocationDeclaredInput,BmadInvocationDeclaredInputValueKind,BmadInvocationInputRequirement,BmadInvocationInputRequirementAllowedValuesItem,BmadInvocationInputRequirementCode,BmadInvocationInputRequirementName,BmadInvocationInputRequirementPrompt,BmadInvocationInputRequirementValueKind,BmadInvocationMode,BmadInvocationResolvedInput,BmadInvocationResolvedInputName,BmadInvocationResolvedInputOrigin,CommonContractId,};",
+        ],
+        allowed_body_path_roots: &["clippy", "collect"],
+    },
+    DomainBoundary {
         module: "artifacts",
         allowed_uses: &[
-            "usecrate::generated_contracts::{BmadArtifact,BmadArtifactState};",
+            "usestd::collections::BTreeSet;",
+            "usecrate::generated_contracts::{BmadArtifact,BmadArtifactCompletionHookRun,BmadArtifactCompletionHookRunHook,BmadArtifactCompletionHookRunStatus,BmadArtifactState,BmadArtifactValidationPassedChecksItem,BmadArtifactValidationStatus,CommonSha256,};",
+            "usecrate::{canonical_hash,CanonicalHashError,Sha256Digest};",
         ],
-        allowed_body_path_roots: &[],
+        allowed_body_path_roots: &["bmad", "collect", "num", "serde", "serde_json", "std"],
     },
     DomainBoundary {
         module: "completion",
@@ -295,7 +307,18 @@ fn artifact() -> BmadArtifact {
         "kind": "document",
         "schemaVersion": "sapphirus.bmad-artifact.v1",
         "sessionId": "session_01J00000000000000000000000",
-        "state": "proposed"
+        "state": "draft",
+        "revision": 1,
+        "lineage": {
+            "sourceId": "source_01J00000000000000000000000",
+            "templateHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "inputsHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        "validation": {
+            "status": "passed",
+            "declaredChecks": ["schema_shape"],
+            "passedChecks": ["schema_shape"]
+        }
     }))
     .expect("generated artifact")
 }
@@ -312,11 +335,18 @@ fn bmad_architecture_migrates_intent_callers_through_the_runtime_port() {
     assert_eq!(session.state, BmadSessionState::Completed);
 
     let mut artifact = artifact();
-    port.apply_artifact_intent(&mut artifact, BmadArtifactIntent::Validate)
-        .expect("validate");
-    port.apply_artifact_intent(&mut artifact, BmadArtifactIntent::Persist)
-        .expect("persist");
-    assert_eq!(artifact.state, BmadArtifactState::Persisted);
+    port.apply_artifact_intent(
+        &mut artifact,
+        BmadArtifactIntent::Validate {
+            passed_checks: vec!["schema_shape".to_owned()],
+        },
+    )
+    .expect("validate");
+    port.apply_artifact_intent(&mut artifact, BmadArtifactIntent::Approve)
+        .expect("approve");
+    port.apply_artifact_intent(&mut artifact, BmadArtifactIntent::Write)
+        .expect("write");
+    assert_eq!(artifact.state, BmadArtifactState::Written);
 
     let intents = port
         .plan_completion(&session, &[artifact])

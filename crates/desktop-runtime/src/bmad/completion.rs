@@ -38,7 +38,7 @@ pub fn plan_completion(
     if artifacts.iter().any(|artifact| {
         !matches!(
             artifact.state,
-            BmadArtifactState::Validated | BmadArtifactState::Persisted
+            BmadArtifactState::Validated | BmadArtifactState::Written
         )
     }) {
         return Err(BmadCompletionError::ArtifactNotReady);
@@ -123,9 +123,20 @@ mod tests {
             "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "evidenceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
             "kind": "document",
+            "lineage": {
+                "sourceId": "source_01J00000000000000000000000",
+                "templateHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+                "inputsHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+            },
+            "revision": 1,
             "schemaVersion": "sapphirus.bmad-artifact.v1",
             "sessionId": "session_01J00000000000000000000000",
-            "state": state
+            "state": state,
+            "validation": {
+                "declaredChecks": [],
+                "passedChecks": [],
+                "status": "not_run"
+            }
         }))
         .expect("generated artifact")
     }
@@ -146,7 +157,7 @@ mod tests {
                 BmadCompletionError::SessionNotCompleted
             );
         }
-        for state in ["proposed", "rejected"] {
+        for state in ["draft", "rejected"] {
             assert_eq!(
                 plan_completion(&session("completed", &json!([])), &[artifact(state)])
                     .expect_err("unready artifact"),
@@ -191,8 +202,8 @@ mod tests {
             ]
         ));
         assert_eq!(
-            plan_completion(&enabled, &[artifact("persisted")])
-                .expect("already persisted")
+            plan_completion(&enabled, &[artifact("written")])
+                .expect("already written")
                 .len(),
             3
         );

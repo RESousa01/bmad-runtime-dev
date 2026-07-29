@@ -14,6 +14,7 @@ mod help_binding;
 mod help_materialization;
 mod help_run;
 mod help_session;
+mod invocation;
 mod kernel_error;
 pub mod memlog;
 mod method;
@@ -31,7 +32,10 @@ pub use architecture::{
     BmadArchitectureDecision, BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
     BmadArchitectureStepRecord, BMAD_ARCHITECTURE_SESSION_SCHEMA,
 };
-pub use artifacts::{BmadArtifactIntent, BmadArtifactTransitionError};
+pub use artifacts::{
+    artifact_lineage_view, reproduction_hash, BmadArtifactIntent, BmadArtifactIntentKind,
+    BmadArtifactLineageView, BmadArtifactTransitionError,
+};
 pub use binding::{
     BmadCapabilityKey, MethodAgentBinding, MethodAgentBindingData, MethodArtifactExpectation,
     MethodContextDecision, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
@@ -99,6 +103,10 @@ pub use help_run::{
 pub use help_session::{
     CreateInertBmadHelpSession, InertBmadHelpSession, InertBmadHelpSessionCoordinator,
     InertBmadHelpSessionError, InertBmadHelpSessionPreparationError,
+};
+pub use invocation::{
+    is_headless, BmadInvocationError, BmadInvocationRequest, BmadInvocationResolver,
+    BmadInvocationSuppliedValue,
 };
 pub use kernel_error::{BmadKernelError, BmadKernelErrorCode};
 pub use memlog::{
