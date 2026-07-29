@@ -62,10 +62,20 @@ foundryProjectEndpoint.''')
 @maxLength(512)
 param foundryProjectResourceId string
 
-@description('Name of the dedicated user-assigned identity used only for Foundry model access.')
-@minLength(3)
-@maxLength(60)
-param modelBrokerIdentityName string = '${namePrefix}-foundry-id'
+@description('Backend-only Microsoft Foundry API key. Never stored in source control, outputs, or plain environment variables: it is written to a Container Apps secret and injected only through secretRef.')
+@secure()
+param foundryApiKey string = ''
+
+@allowed([
+  'ConfiguredAndProbed'
+  'OpenAiModels'
+  'ProjectDeploymentsApiKey'
+])
+@description('Selected Foundry route inventory mode. configured_and_probed is the default: candidate IDs come from signed profiles and are probed, never auto-discovered.')
+param foundryInventoryMode string = 'ConfiguredAndProbed'
+
+@description('Canonical prerequisite-evidence hash (sha256:<hex>) proving the selected inventory mode was qualified against the live project before rollout.')
+param foundryPrerequisiteEvidenceHash string = 'sha256:0000000000000000000000000000000000000000000000000000000000000'
 
 // Must stay equal to ProductionOptions.ModelProfileConfigurationPrefix in
 // services/desktop-support-api, which accepts only lowercase colon-separated
@@ -84,9 +94,6 @@ param foundryDeploymentRefreshSeconds int = 300
 @minValue(30)
 @maxValue(86400)
 param foundryCatalogMaximumStaleSeconds int = 1800
-
-@description('Pilot-only escape hatch: reuse the shared runtime identity for Foundry model access instead of creating a dedicated model-broker identity. Leave false outside a reviewed pilot.')
-param allowSharedPilotIdentity bool = false
 
 @description('Retire the legacy fixed Azure OpenAI account and its desktop-planning deployment. Left false so that migrating an existing deployment never silently deletes the legacy account; flipping it to true removes the resource from this stack and the operator then deletes it deliberately.')
 param retireLegacyOpenAiAccount bool = false
@@ -131,6 +138,12 @@ param environmentTag string = 'staging'
 
 assert immutableApiImage = !deployApi || (contains(containerImage, '@sha256:') && length(containerImage) >= 80)
 
+// The Foundry provider is now backend-only API-key authenticated: no key, no
+// running API. Prefer deployment-pipeline secret injection over a literal
+// value in a parameter file; this assertion only proves that some value was
+// supplied by the time the container is actually deployed.
+assert foundryApiKeyRequiredWhenDeployed = !deployApi || !empty(foundryApiKey)
+
 // Foundry endpoint shape. Bicep offers no @pattern constraint, so the exact
 // shape documented on foundryProjectEndpoint is proved by assertions that run
 // at deployment time (validate / what-if / create). The segment arrays are
@@ -157,13 +170,12 @@ assert foundryEndpointHostIsFoundryAccount = endsWith(foundryEndpointAuthority, 
 assert foundryEndpointHostIsLowercase = foundryEndpointAuthority == toLower(foundryEndpointAuthority)
 assert foundryEndpointPathIsCompleteProject = length(foundryEndpointSegments) == 4 && foundryEndpointPaddedSegments[1] == 'api' && foundryEndpointPaddedSegments[2] == 'projects' && length(foundryEndpointProjectName) > 0
 
-// Foundry role-assignment scope. The account named by the scope and the account
-// label in the data-plane endpoint must be the same account, otherwise the
-// grant proves nothing about the endpoint the broker actually calls.
+// Foundry account-identity check. Authentication moved to a backend-only API
+// key, so this ARM ID is no longer a role-assignment scope; it is kept as an
+// input only so the account named here can still be asserted to match the
+// account label in the data-plane endpoint below.
 var foundryScopeSegments = split(foundryProjectResourceId, '/')
 var foundryScopePaddedSegments = concat(foundryScopeSegments, ['', '', '', '', '', '', '', '', '', '', ''])
-var foundryScopeSubscriptionId = foundryScopePaddedSegments[2]
-var foundryScopeResourceGroupName = foundryScopePaddedSegments[4]
 var foundryScopeAccountName = foundryScopePaddedSegments[8]
 var foundryScopeProjectName = foundryScopePaddedSegments[10]
 
@@ -182,11 +194,6 @@ assert foundryCatalogStalenessCoversRefresh = foundryCatalogMaximumStaleSeconds 
 // The profile prefix becomes an App Configuration key filter. A wildcard or a
 // missing separator would widen the read beyond the reviewed profile keys.
 assert modelProfilePrefixIsBounded = endsWith(modelProfileConfigurationPrefix, ':') && !contains(modelProfileConfigurationPrefix, '*') && !contains(modelProfileConfigurationPrefix, ' ') && modelProfileConfigurationPrefix == toLower(modelProfileConfigurationPrefix)
-
-// The shared-identity escape hatch is a pilot concession, and the service
-// rejects it outside the pilot release channel. Fail at deployment time
-// instead of at container start.
-assert sharedPilotIdentityIsPilotOnly = !allowSharedPilotIdentity || releaseChannel == 'beta'
 
 // Private egress is declared as a whole or not at all: half of the operator's
 // existing private-link facts cannot be acted on or verified.
@@ -223,25 +230,6 @@ var roleIds = {
   keyVaultCryptoUser: '12338af0-0e69-4776-bea7-57ae8d297424'
 }
 
-// Foundry data-plane role. DEPLOYMENT-TIME VALIDATION REQUIRED: Foundry role
-// naming is still evolving, so this ID is deliberately a named variable rather
-// than an inline GUID. Before every deployment into a new tenant or region,
-// confirm it still resolves to the intended data-plane role with
-//   az role definition list --name <role> --query "[].{name:roleName,id:name}"
-// and confirm the granted dataActions still cover only project inference. The
-// same ID is the one tools/foundry-smoke/check-prerequisites.ps1 verifies, so
-// the two must be changed together.
-var foundryDataPlaneRoleDefinitionId = '53ca6127-db72-4b80-b1b0-d745d6d5456d'
-
-// Narrowest working scope: the project child when the operator supplied one,
-// otherwise the account. A resourceGroup-scoped template can only carry an
-// extension resource whose scope lives in this resource group, so the grant is
-// emitted here only when the Foundry resource is co-located. Otherwise the
-// grant stays an explicit operator step, like the SQL contained-user grants,
-// and foundryRoleAssignmentMode reports which path applies.
-var foundryScopeIsInThisResourceGroup = toLower(foundryScopeSubscriptionId) == toLower(subscription().subscriptionId) && toLower(foundryScopeResourceGroupName) == toLower(resourceGroup().name)
-var foundryScopeIsProject = !empty(foundryScopeProjectName)
-var assignFoundryRoleHere = foundryScopeIsInThisResourceGroup
 var foundryEgressPosture = empty(foundryPrivateDnsZoneName) ? 'public-egress' : 'operator-managed-private-egress'
 
 resource network 'Microsoft.Network/virtualNetworks@2024-05-01' = {
@@ -295,8 +283,9 @@ resource privateEndpointsSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-
 // runtime identity attached to one process, with module seams preserved for
 // an independently deployed signing workload if the threat review requires
 // hard isolation later. The migration identity holds schema (DDL) rights only
-// and is never attached to the API. Foundry model access has its own dedicated
-// identity so that a model-plane grant never widens the runtime identity.
+// and is never attached to the API. Foundry model access is backend-only
+// API-key authenticated: it is not a managed identity, holds no role
+// assignment, and is not one of the identities attached to the container.
 resource imagePullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: '${namePrefix}-pull-id'
   location: location
@@ -314,20 +303,6 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' 
   location: location
   tags: tags
 }
-
-// Dedicated model-broker identity. It is the only principal that ever receives
-// the Foundry data-plane role, and it is attached to the API container in
-// addition to (never instead of) the runtime and image-pull identities.
-resource modelBrokerIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (!allowSharedPilotIdentity) {
-  name: modelBrokerIdentityName
-  location: location
-  tags: tags
-}
-
-var foundryIdentityResourceId = allowSharedPilotIdentity ? identity.id : modelBrokerIdentity!.id
-var foundryIdentityClientId = allowSharedPilotIdentity ? identity.properties.clientId : modelBrokerIdentity!.properties.clientId
-var foundryIdentityPrincipalId = allowSharedPilotIdentity ? identity.properties.principalId : modelBrokerIdentity!.properties.principalId
-var foundryIdentityName = allowSharedPilotIdentity ? identity.name : modelBrokerIdentityName
 
 resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: workspaceName
@@ -532,15 +507,10 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
   tags: tags
   identity: {
     type: 'UserAssigned'
-    userAssignedIdentities: union(
-      {
-        '${identity.id}': {}
-        '${imagePullIdentity.id}': {}
-      },
-      allowSharedPilotIdentity ? {} : {
-        '${modelBrokerIdentity!.id}': {}
-      }
-    )
+    userAssignedIdentities: {
+      '${identity.id}': {}
+      '${imagePullIdentity.id}': {}
+    }
   }
   properties: {
     environmentId: environment.id
@@ -556,6 +526,12 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
         {
           identity: imagePullIdentity.id
           server: registry.properties.loginServer
+        }
+      ]
+      secrets: [
+        {
+          name: 'foundry-api-key'
+          value: foundryApiKey
         }
       ]
     }
@@ -581,16 +557,15 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
             { name: 'Sapphirus__ModelCapabilityHash', value: modelCapabilityHash }
             { name: 'Sapphirus__SqlServer', value: sqlServer.properties.fullyQualifiedDomainName }
             { name: 'Sapphirus__SqlDatabase', value: sqlDatabase.name }
-            // Model access is the complete external project endpoint plus the
-            // identity allowed to call it. No endpoint host, deployment name, or
+            // Model access is the complete external project endpoint plus a
+            // backend-only API key. No endpoint host, deployment name, or
             // deployment hash is pinned here: the broker reads the project's own
-            // catalog, and no deployment name is known to this repository.
+            // catalog, and no deployment name is known to this repository. The
+            // key itself is never a plaintext value -- only secretRef.
             { name: 'Sapphirus__FoundryProjectEndpoint', value: foundryProjectEndpoint }
-            { name: 'Sapphirus__FoundryModelIdentityClientId', value: foundryIdentityClientId }
-            // Required for the shared-identity pilot to be accepted at all: the
-            // service refuses a Foundry identity equal to the runtime identity
-            // unless this opt-in is present on the pilot channel.
-            { name: 'Sapphirus__AllowSharedPilotIdentity', value: string(allowSharedPilotIdentity) }
+            { name: 'Sapphirus__FoundryApiKey', secretRef: 'foundry-api-key' }
+            { name: 'Sapphirus__FoundryInventoryMode', value: foundryInventoryMode }
+            { name: 'Sapphirus__FoundryPrerequisiteEvidenceHash', value: foundryPrerequisiteEvidenceHash }
             { name: 'Sapphirus__FoundryDeploymentRefreshSeconds', value: string(foundryDeploymentRefreshSeconds) }
             { name: 'Sapphirus__FoundryCatalogMaximumStaleSeconds', value: string(foundryCatalogMaximumStaleSeconds) }
             { name: 'Sapphirus__ModelProfileConfigurationPrefix', value: modelProfileConfigurationPrefix }
@@ -644,8 +619,6 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = if (deployApi) {
     appConfigurationReader
     signingRole
     modelUser
-    foundryAccountModelUser
-    foundryProjectModelUser
     privateDnsZoneGroups
   ]
 }
@@ -688,38 +661,6 @@ resource modelUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!r
     principalId: identity.properties.principalId
     principalType: 'ServicePrincipal'
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleIds.cognitiveServicesOpenAiUser)
-  }
-}
-
-// The external Foundry account/project referenced only as a role scope. These
-// are `existing` declarations: this stack never creates, configures, or deletes
-// the Foundry resource.
-resource foundryAccount 'Microsoft.CognitiveServices/accounts@2025-12-01' existing = {
-  name: foundryScopeAccountName
-}
-
-resource foundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-12-01' existing = {
-  parent: foundryAccount
-  name: foundryScopeIsProject ? foundryScopeProjectName : 'unbound'
-}
-
-resource foundryProjectModelUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (assignFoundryRoleHere && foundryScopeIsProject) {
-  name: guid(foundryProject.id, foundryIdentityResourceId, foundryDataPlaneRoleDefinitionId)
-  scope: foundryProject
-  properties: {
-    principalId: foundryIdentityPrincipalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', foundryDataPlaneRoleDefinitionId)
-  }
-}
-
-resource foundryAccountModelUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (assignFoundryRoleHere && !foundryScopeIsProject) {
-  name: guid(foundryAccount.id, foundryIdentityResourceId, foundryDataPlaneRoleDefinitionId)
-  scope: foundryAccount
-  properties: {
-    principalId: foundryIdentityPrincipalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', foundryDataPlaneRoleDefinitionId)
   }
 }
 
@@ -859,19 +800,15 @@ output signingKeyUri string = signingKey.properties.keyUri
 output appConfigurationEndpoint string = configuration.properties.endpoint
 
 // Foundry operational identifiers. These are the values deployment automation
-// and tools/foundry-smoke/*.ps1 need to verify the model path. No token, no
+// and tools/foundry-smoke/*.ps1 need to verify the model path. No key, no
 // profile content, and no deployment name is emitted; this stack knows no
-// Foundry deployment name.
+// Foundry deployment name. Foundry authentication is a backend-only API key
+// carried through a Container Apps secret; there is no Foundry identity or
+// role-assignment output because none exists.
 output apiResourceId string = deployApi ? resourceId('Microsoft.App/containerApps', apiName) : ''
 output foundryProjectEndpoint string = foundryProjectEndpoint
-output foundryModelIdentityName string = foundryIdentityName
-output foundryModelIdentityClientId string = foundryIdentityClientId
-output foundryModelIdentityObjectId string = foundryIdentityPrincipalId
-output foundryModelIdentityResourceId string = foundryIdentityResourceId
-output foundryModelIdentityIsDedicated bool = !allowSharedPilotIdentity
-output foundryRoleDefinitionId string = foundryDataPlaneRoleDefinitionId
-output foundryRoleAssignmentScope string = foundryProjectResourceId
-output foundryRoleAssignmentMode string = assignFoundryRoleHere ? 'in-template' : 'operator-managed'
+output foundryInventoryMode string = foundryInventoryMode
+output foundryPrerequisiteEvidenceHash string = foundryPrerequisiteEvidenceHash
 output foundryModelProfileConfigurationPrefix string = modelProfileConfigurationPrefix
 output foundryEgressPosture string = foundryEgressPosture
 output foundryPrivateDnsZoneName string = foundryPrivateDnsZoneName

@@ -118,6 +118,85 @@ internal static partial class FoundryDeploymentNormalizer
     }
 
     /// <summary>
+    /// Normalizes routes that were already qualified by an inventory source
+    /// into the same canonical snapshot <see cref="Normalize"/> produces.
+    ///
+    /// The two entry points differ only in where the route came from, never in
+    /// what a valid snapshot is. A candidate arrives already typed, because the
+    /// source proved it callable rather than parsing it out of a provider page,
+    /// so there is no DTO projection step. Everything after that -- duplicate
+    /// conflict rejection, canonical ordering, the per-deployment identity hash,
+    /// and the snapshot hash over mode and evidence -- is deliberately the same
+    /// code path, so a route cannot become acceptable merely by arriving
+    /// through a different mode.
+    /// </summary>
+    internal static FoundryNormalizationResult NormalizeQualifiedCandidates(
+        IReadOnlyList<FoundryCandidateRoute> qualifiedRoutes,
+        DateTimeOffset retrievedAt,
+        FoundryInventoryMode inventoryMode,
+        string prerequisiteEvidenceHash)
+    {
+        ArgumentNullException.ThrowIfNull(qualifiedRoutes);
+        if (qualifiedRoutes.Count > FoundryDeploymentSnapshot.MaximumDeployments)
+        {
+            return Failure("foundry_deployment_count_exceeded");
+        }
+
+        Dictionary<string, FoundryDeployment> byName = new(StringComparer.Ordinal);
+        foreach (FoundryCandidateRoute route in qualifiedRoutes)
+        {
+            if (!DeploymentName().IsMatch(route.DeploymentName)
+                || !ModelIdentityPart().IsMatch(route.ModelPublisher)
+                || !ModelIdentityPart().IsMatch(route.ModelName)
+                || !ModelIdentityPart().IsMatch(route.ModelVersion))
+            {
+                return Failure("foundry_deployment_identity_invalid");
+            }
+
+            FoundryDeployment projected = new(
+                route.DeploymentName,
+                FoundryDeployment.ModelDeploymentType,
+                route.ModelPublisher,
+                route.ModelName,
+                route.ModelVersion,
+                route.Sku,
+                route.Capabilities,
+                ComputeDeploymentHash(
+                    route.DeploymentName,
+                    route.ModelPublisher,
+                    route.ModelName,
+                    route.ModelVersion,
+                    route.Sku,
+                    route.Capabilities));
+
+            if (byName.TryGetValue(projected.DeploymentName, out FoundryDeployment? existing))
+            {
+                if (!string.Equals(
+                    existing.DeploymentHash,
+                    projected.DeploymentHash,
+                    StringComparison.Ordinal))
+                {
+                    return Failure("foundry_deployment_duplicate_conflict");
+                }
+                continue;
+            }
+            byName.Add(projected.DeploymentName, projected);
+        }
+
+        FoundryDeployment[] canonical = [.. byName.Values
+            .OrderBy(static deployment => deployment.DeploymentName, StringComparer.Ordinal)];
+
+        return new FoundryNormalizationResult(
+            Succeeded: true,
+            ErrorCode: "",
+            new FoundryDeploymentSnapshot(
+                FoundryDeploymentSnapshot.SchemaVersionValue,
+                ComputeSnapshotHash(canonical, inventoryMode, prerequisiteEvidenceHash),
+                retrievedAt,
+                canonical));
+    }
+
+    /// <summary>
     /// Hashes the canonical, validated callable-route inventory together with
     /// the operator-selected inventory mode and the prerequisite-evidence hash
     /// that qualified it (delta compatibility decision 1). A route accepted

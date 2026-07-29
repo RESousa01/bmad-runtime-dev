@@ -63,10 +63,15 @@ services:
       Sapphirus__SqlDatabase: forge_contract
       # Foundry model path, matching the shape main.bicep now injects. The
       # project name below is a PROJECT name; no Foundry deployment name is
-      # known to this repository and none is set here.
+      # known to this repository and none is set here. The key below is a
+      # synthetic rehearsal placeholder, never a real secret; the secretRef
+      # pattern main.bicep uses is not reproducible with a plain compose
+      # environment variable, so this rehearsal only proves the shape/name of
+      # the setting the container expects.
       Sapphirus__FoundryProjectEndpoint: https://forge-contract.services.ai.azure.com/api/projects/forge-contract
-      Sapphirus__FoundryModelIdentityClientId: 55555555-5555-5555-5555-555555555555
-      Sapphirus__AllowSharedPilotIdentity: "false"
+      Sapphirus__FoundryApiKey: synthetic-local-placeholder-key-not-a-real-secret
+      Sapphirus__FoundryInventoryMode: ConfiguredAndProbed
+      Sapphirus__FoundryPrerequisiteEvidenceHash: sha256:0000000000000000000000000000000000000000000000000000000000000
       Sapphirus__FoundryDeploymentRefreshSeconds: "300"
       Sapphirus__FoundryCatalogMaximumStaleSeconds: "1800"
       Sapphirus__ModelProfileConfigurationPrefix: "desktop-support:model-profile:"
