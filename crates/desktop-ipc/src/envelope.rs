@@ -185,6 +185,11 @@ fn is_known_command(command: &str) -> bool {
             | "model.auth.sign_in"
             | "model.auth.sign_out"
             | "model.selection.set"
+            | "model.catalog.get"
+            | "model.catalog.refresh"
+            | "model.selection.get"
+            | "model.response.send"
+            | "model.response.stop"
             | "chat.send"
             | "chat.history"
             | "bmad.workflow.state"
@@ -240,6 +245,47 @@ struct PreferencesPayload {
 struct ModelSelectionPayload {
     provider_id: ModelProviderId,
     model_id: String,
+}
+
+/// The whole renderer vocabulary for the three catalog and selection reads.
+///
+/// Deliberately identical to [`WorkspaceEpochPayload`] in shape but declared
+/// separately, because what must be true of it is a property of *this* lane:
+/// there is no field here for a deployment, an endpoint, a credential, a
+/// capability, a limit, or a hash, and `deny_unknown_fields` means one cannot
+/// be added by a renderer that sends it anyway. Reusing a shared payload struct
+/// would put that guarantee somewhere a future field could be added for another
+/// command's benefit.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ModelCatalogScopePayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+}
+
+/// Starting one task-bound response. The prompt is content; everything that
+/// decides *which model* answers is resolved host-side from the catalog and is
+/// not representable here.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct SendModelResponsePayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    task_id: ContractId,
+    client_session_ref: String,
+    prompt: String,
+}
+
+/// Stopping one task-bound response. Naming both the task and the run is what
+/// makes ownership checkable: a renderer holding only a run identifier cannot
+/// stop a run belonging to a task it does not own.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct StopModelResponsePayload {
+    workspace_id: ContractId,
+    workspace_grant_epoch: u64,
+    task_id: ContractId,
+    run_id: ContractId,
 }
 
 #[derive(Deserialize)]
@@ -496,6 +542,29 @@ fn parse_command(command: &str, payload: Value) -> Result<LocalCommand, IpcValid
                 model_id: input.model_id,
             })
         }
+        "model.catalog.get" => {
+            let input = parse_model_catalog_scope(payload)?;
+            Ok(LocalCommand::GetModelCatalog {
+                workspace_id: input.workspace_id,
+                workspace_grant_epoch: input.workspace_grant_epoch,
+            })
+        }
+        "model.catalog.refresh" => {
+            let input = parse_model_catalog_scope(payload)?;
+            Ok(LocalCommand::RefreshModelCatalog {
+                workspace_id: input.workspace_id,
+                workspace_grant_epoch: input.workspace_grant_epoch,
+            })
+        }
+        "model.selection.get" => {
+            let input = parse_model_catalog_scope(payload)?;
+            Ok(LocalCommand::GetModelSelection {
+                workspace_id: input.workspace_id,
+                workspace_grant_epoch: input.workspace_grant_epoch,
+            })
+        }
+        "model.response.send" => parse_send_model_response(payload),
+        "model.response.stop" => parse_stop_model_response(payload),
         "chat.send" => parse_chat_send(payload),
         "chat.history" => parse_chat_history(payload),
         "bmad.workflow.state" => {
@@ -824,6 +893,47 @@ fn validate_agent_code(value: &str) -> Result<(), IpcValidationError> {
         return Err(IpcValidationError::InvalidPayload);
     }
     Ok(())
+}
+
+fn parse_model_catalog_scope(
+    payload: Value,
+) -> Result<ModelCatalogScopePayload, IpcValidationError> {
+    let input: ModelCatalogScopePayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    Ok(input)
+}
+
+fn parse_send_model_response(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: SendModelResponsePayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    validate_client_session_ref(&input.client_session_ref)?;
+    // The same bound the other prompt-bearing command uses, and the same NUL
+    // rejection: a prompt is content, so it is length-bounded and
+    // control-checked rather than charset-restricted.
+    if input.prompt.trim().is_empty()
+        || input.prompt.len() > MAX_PROMPT_BYTES
+        || input.prompt.contains('\0')
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    Ok(LocalCommand::SendModelResponse {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        task_id: input.task_id,
+        client_session_ref: input.client_session_ref,
+        prompt: input.prompt,
+    })
+}
+
+fn parse_stop_model_response(payload: Value) -> Result<LocalCommand, IpcValidationError> {
+    let input: StopModelResponsePayload = parse_payload(payload)?;
+    validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
+    Ok(LocalCommand::StopModelResponse {
+        workspace_id: input.workspace_id,
+        workspace_grant_epoch: input.workspace_grant_epoch,
+        task_id: input.task_id,
+        run_id: input.run_id,
+    })
 }
 
 fn parse_chat_send(payload: Value) -> Result<LocalCommand, IpcValidationError> {

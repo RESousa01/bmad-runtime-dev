@@ -101,6 +101,13 @@ impl RequestGate {
             &envelope.command,
             desktop_runtime::LocalCommand::ModelAuthSignIn { .. }
                 | desktop_runtime::LocalCommand::ModelAuthSignOut
+                // Both halves of the response lifecycle are one-shot. Replaying
+                // a send would bill and answer twice under one request id, and
+                // replaying a stop would let a stale renderer cancel whatever
+                // run happened to occupy the task next. Neither is a thing a
+                // retry may quietly succeed at, so neither is ever a `Replay`.
+                | desktop_runtime::LocalCommand::SendModelResponse { .. }
+                | desktop_runtime::LocalCommand::StopModelResponse { .. }
                 | desktop_runtime::LocalCommand::PrepareBmadHelpReview { .. }
                 | desktop_runtime::LocalCommand::ApproveBmadHelpReview { .. }
                 | desktop_runtime::LocalCommand::CancelBmadHelpReview { .. }

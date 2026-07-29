@@ -11,6 +11,7 @@ mod bmad_model_access;
 mod bmad_run;
 mod envelope;
 mod gate;
+mod model;
 
 pub use envelope::{
     CommandEnvelopeValidator, IpcValidationContext, IpcValidationError, ValidatedCommandEnvelope,
@@ -96,4 +97,18 @@ pub use bmad_model_access::{
 pub use bmad_run::{
     decode_retained_bmad_help_run, project_created_bmad_help_run, BmadHelpRunCreatedProjection,
     MAX_BMAD_HELP_RUN_PROJECTION_BYTES,
+};
+pub use model::{
+    project_model_catalog, project_model_selection, ModelBlockedAvailabilityProjection,
+    ModelRecoveryActionProjection, ModelCatalogInput, ModelCatalogProjection,
+    ModelCatalogProjectionError, ModelCatalogStateProjection, ModelProfileInput,
+    ModelProfileProjection, ModelReceiptSummaryInput, ModelReceiptSummaryProjection,
+    ModelSelectionBlockedProjection, ModelSelectionInput, ModelSelectionOutcomeInput,
+    ModelSelectionProjection, ModelSelectionSourceProjection, ModelSelectionStatusProjection,
+    ModelStreamCancellationSourceProjection, ModelStreamEventEnvelope, ModelStreamEventInput,
+    ModelStreamEventProjection, ModelStreamProjectionError, ModelStreamPublisher,
+    ModelStreamSubscription, ModelStreamTerminalProjection, ModelUnavailableProfileInput,
+    ModelUnavailableProfileProjection, MAX_MODEL_CATALOG_PROJECTION_BYTES,
+    MAX_MODEL_SELECTION_PROJECTION_BYTES, MAX_MODEL_STREAM_EVENT_PROJECTION_BYTES,
+    MODEL_CATALOG_SCHEMA, MODEL_SELECTION_SCHEMA, MODEL_STREAM_EVENT_SCHEMA,
 };

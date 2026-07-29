@@ -25,6 +25,13 @@ use ulid::Ulid;
 use crate::bmad_model::coordinator::BmadHelpCoordinator;
 use crate::wire::{BootMode, HostDispatchReply};
 
+/// Catalog-backed model selection. See [`model`] for why it is its own file.
+mod model;
+
+pub(crate) use model::{
+    CatalogSelectionOutcome, HeldModelCatalog, ModelCatalogState, ModelSelectionState,
+};
+
 const WORKSPACE_CATALOG_SCHEMA: &str = "workspace-catalog.v1";
 const WORKSPACE_ROOT_SCHEMA: &str = "workspace-root.v1";
 const MAX_ROOT_BYTES: usize = 64 * 1024;
@@ -114,6 +121,8 @@ pub(crate) struct HostState {
     sequence: AtomicU64,
     model_auth_epoch: AtomicU64,
     model_selection: RwLock<ModelSelectionState>,
+    /// The catalog-backed selection authority. See [`ModelCatalogState`].
+    model_catalog: RwLock<ModelCatalogState>,
     events: Mutex<VecDeque<ProjectionEvent>>,
     pub(crate) bmad_model: Mutex<BmadHelpCoordinator>,
     pub(crate) bmad_capabilities:
@@ -124,21 +133,6 @@ pub(crate) struct HostState {
     /// The ordinary chat lane. Independent of every BMAD coordinator: a
     /// conversation needs no BMAD concept, and holds no other lock.
     pub(crate) chat: Mutex<crate::chat::ChatCoordinator>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct ModelSelectionState {
-    pub provider_id: ModelProviderId,
-    pub model_id: String,
-}
-
-impl Default for ModelSelectionState {
-    fn default() -> Self {
-        Self {
-            provider_id: ModelProviderId::OpenAi,
-            model_id: crate::bmad_model::config::DEFAULT_OPENAI_MODEL.to_owned(),
-        }
-    }
 }
 
 /// Proof that the local authority remained in Ready mode while a D1 operation
@@ -295,7 +289,7 @@ impl HostState {
             return Ok(Self::recovery(installation_id, Some(store)));
         };
 
-        let model_selection = ModelSelectionState::default();
+        let model_selection = ModelSelectionState::provider_fallback();
         #[cfg(feature = "deterministic-help")]
         let bmad_model = BmadHelpCoordinator::new();
         #[cfg(not(feature = "deterministic-help"))]
@@ -330,6 +324,7 @@ impl HostState {
             sequence: AtomicU64::new(0),
             model_auth_epoch: AtomicU64::new(1),
             model_selection: RwLock::new(model_selection),
+            model_catalog: RwLock::new(ModelCatalogState::default()),
             events: Mutex::new(VecDeque::new()),
             bmad_model: Mutex::new(bmad_model),
             bmad_capabilities: Mutex::new(
@@ -363,7 +358,8 @@ impl HostState {
             pending_recoveries: Mutex::new(crate::recovery::PendingRecoveries::default()),
             sequence: AtomicU64::new(0),
             model_auth_epoch: AtomicU64::new(1),
-            model_selection: RwLock::new(ModelSelectionState::default()),
+            model_selection: RwLock::new(ModelSelectionState::provider_fallback()),
+            model_catalog: RwLock::new(ModelCatalogState::default()),
             events: Mutex::new(VecDeque::new()),
             bmad_model: Mutex::new(BmadHelpCoordinator::new()),
             bmad_capabilities: Mutex::new(

@@ -47,9 +47,17 @@ use crate::wire::{
     BOOTSTRAP_SCHEMA, PREFERENCES_SCHEMA, PROJECTION_REQUEST_SCHEMA,
 };
 
+/// The Foundry model command lane. See [`model`] for why it is its own file.
+mod model;
+
+use model::{
+    model_catalog_data, model_selection_data, refresh_model_catalog, send_model_response,
+    stop_model_response,
+};
+
 const MAX_CONTEXT_BYTES: u64 = 256 * 1024;
 const MAX_CONTEXT_FILE_BYTES: u64 = 512 * 1024;
-const READY_COMMANDS: [&str; 46] = [
+const READY_COMMANDS: [&str; 51] = [
     "app.get_boot_state",
     "workspace.select_folder",
     "workspace.list",
@@ -66,6 +74,11 @@ const READY_COMMANDS: [&str; 46] = [
     "model.auth.sign_in",
     "model.auth.sign_out",
     "model.selection.set",
+    "model.catalog.get",
+    "model.catalog.refresh",
+    "model.selection.get",
+    "model.response.send",
+    "model.response.stop",
     "chat.send",
     "chat.history",
     "bmad.workflow.state",
@@ -178,6 +191,12 @@ fn should_cache_reply(command: &LocalCommand) -> bool {
                 | LocalCommand::SubmitBmadHelpReview { .. }
                 | LocalCommand::PrepareChangesRecovery { .. }
                 | LocalCommand::DecideChangesRecovery { .. }
+                // The gate already refuses to replay either of these, so a
+                // cached reply for one could only ever be served to a request
+                // the gate had just rejected. Caching it would be dead state
+                // that still had to be kept correct.
+                | LocalCommand::SendModelResponse { .. }
+                | LocalCommand::StopModelResponse { .. }
         )
 }
 
@@ -690,6 +709,50 @@ fn execute_command(
             state.set_model_selection(provider_id, model_id, accepted_at)?;
             model_auth_status_data(state)
         }
+        LocalCommand::GetModelCatalog {
+            workspace_id,
+            workspace_grant_epoch,
+        } => model_catalog_data(state, &workspace_id, workspace_grant_epoch, accepted_at),
+        LocalCommand::RefreshModelCatalog {
+            workspace_id,
+            workspace_grant_epoch,
+        } => refresh_model_catalog(state, &workspace_id, workspace_grant_epoch, accepted_at),
+        LocalCommand::GetModelSelection {
+            workspace_id,
+            workspace_grant_epoch,
+        } => model_selection_data(state, &workspace_id, workspace_grant_epoch),
+        // The task, the client session and the prompt are validated by the
+        // envelope and then deliberately dropped here: the dispatch seam below
+        // is closed in this build, so nothing consumes them yet. Destructuring
+        // them away is how that stays visible — a handler that took them and
+        // ignored them would read as if the prompt were being used.
+        LocalCommand::SendModelResponse {
+            workspace_id,
+            workspace_grant_epoch,
+            ..
+        } => {
+            let renderer_session = pin_renderer_session(state, window_label, renderer_session_id)?;
+            send_model_response(
+                state,
+                &renderer_session,
+                &workspace_id,
+                workspace_grant_epoch,
+                accepted_at,
+            )
+        }
+        LocalCommand::StopModelResponse {
+            workspace_id,
+            workspace_grant_epoch,
+            task_id,
+            run_id,
+        } => stop_model_response(
+            state,
+            &workspace_id,
+            workspace_grant_epoch,
+            &task_id,
+            &run_id,
+            accepted_at,
+        ),
         LocalCommand::PrepareBmadHelpReview {
             workspace_id,
             workspace_grant_epoch,
@@ -5886,7 +5949,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
                 "changes.recovery.decide",
             ]
         );
-        assert_eq!(ready.len(), 46);
+        assert_eq!(ready.len(), 51);
         assert_eq!(
             supported_commands(crate::wire::BootMode::ReadOnlyRecovery),
             ["app.get_boot_state", "workspace.list"]
@@ -5911,7 +5974,7 @@ planning_artifacts = \"{project-root}/docs/plan\"
     #[test]
     fn git_review_capabilities_are_projected_only_in_ready_mode() {
         let ready = supported_commands(crate::wire::BootMode::Ready);
-        assert_eq!(ready.len(), 46);
+        assert_eq!(ready.len(), 51);
         assert_eq!(
             &ready[4..9],
             [

@@ -200,6 +200,20 @@ pub enum HostCommandData {
     RetentionManifest(desktop_ipc::RetentionManifestProjection),
     OffboardingErased(desktop_ipc::OffboardingErasedProjection),
     ModelAuthStatus(ModelAuthStatusProjection),
+    ModelCatalog(desktop_ipc::ModelCatalogProjection),
+    /// No catalog has been installed, so there is nothing to choose from. A
+    /// distinct variant rather than an empty catalog: "we could not ask" and
+    /// "the operator publishes no models" are different facts, and a renderer
+    /// that renders an empty list for the first one tells the user something
+    /// false.
+    ModelCatalogUnavailable,
+    ModelSelection(desktop_ipc::ModelSelectionProjection),
+    #[allow(
+        dead_code,
+        reason = "the success shape of the dispatch seam the shell composes"
+    )]
+    ModelResponseStarted(ModelResponseStartedWire),
+    ModelResponseStopped(ModelResponseStoppedWire),
     BmadHelpReview(BmadHelpReviewProjection),
     BmadHelpApproved(BmadHelpApprovedProjection),
     BmadHelpApprovedLifecycle(BmadHelpApprovedLifecycleProjection),
@@ -229,6 +243,37 @@ pub enum HostCommandData {
     Preferences(PreferencesProjection),
     About(AboutProjection),
     PickedFiles(PickedFilesProjection),
+}
+
+/// The acknowledgement that one task-bound response began.
+///
+/// It names the run so the renderer can bind a stream subscription to it, and
+/// the profile the host resolved so the user can see which model is answering.
+/// It carries no endpoint, no deployment, and no request content.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelResponseStartedWire {
+    pub task_id: ContractId,
+    pub run_id: ContractId,
+    pub app_epoch: u64,
+    pub profile_id: String,
+    pub variant_id: String,
+    pub catalog_epoch: u64,
+    pub started_at: UnixMillis,
+}
+
+/// The acknowledgement that one task-bound response was stopped.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelResponseStoppedWire {
+    pub task_id: ContractId,
+    pub run_id: ContractId,
+    pub app_epoch: u64,
+    /// False when the run had already reached a terminal state, so a second
+    /// stop reads as "already finished" rather than as a success the user
+    /// caused.
+    pub stopped: bool,
+    pub stopped_at: UnixMillis,
 }
 
 /// One file the pick refused, on the wire.
@@ -265,10 +310,7 @@ impl PickedFilesProjection {
     /// identically in two places, and a mapping duplicated across two call
     /// sites is one that can come to disagree about which counts go with which
     /// refusals -- silently, because both still typecheck.
-    pub fn from_broker(
-        workspace_id: ContractId,
-        picked: desktop_workspace::PickedFiles,
-    ) -> Self {
+    pub fn from_broker(workspace_id: ContractId, picked: desktop_workspace::PickedFiles) -> Self {
         Self {
             workspace_id,
             selected_count: u32::try_from(picked.relative_paths.len()).unwrap_or(u32::MAX),
