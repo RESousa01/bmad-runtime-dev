@@ -95,6 +95,15 @@ export type ModelClient = Pick<DesktopHostClient,
   | "setModelSelection"
 >;
 
+/** The Foundry catalog, the resolved selection, and the response lifecycle. */
+export type ModelCatalogClient = Pick<DesktopHostClient,
+  | "getModelCatalog"
+  | "refreshModelCatalog"
+  | "getModelSelection"
+  | "sendModelResponse"
+  | "stopModelResponse"
+>;
+
 /** Method guidance: the reviewed BMAD request lifecycle. */
 export type BmadHelpClient = Pick<DesktopHostClient,
   | "prepareBmadHelp"
@@ -134,6 +143,7 @@ export type DomainClientMethod =
   | keyof GitClient
   | keyof RunsClient
   | keyof ModelClient
+  | keyof ModelCatalogClient
   | keyof BmadHelpClient
   | keyof BmadCapabilityClient
   | keyof RecoveryClient

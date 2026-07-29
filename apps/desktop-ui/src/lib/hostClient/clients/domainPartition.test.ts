@@ -37,7 +37,7 @@ describe("the domain partition", () => {
     // Guards the parser itself: a regex that matched nothing would make every
     // assertion below vacuously true.
     const domains = domainMembers();
-    expect(domains.size).toBe(11);
+    expect(domains.size).toBe(12);
     expect([...domains.keys()]).toContain("ChatClient");
   });
 

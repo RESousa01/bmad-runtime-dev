@@ -95,6 +95,35 @@ export type {
   ModelProviderId,
   ModelSelection,
 } from "./bmadModelProjection";
+export type {
+  ModelBlockedAvailability,
+  ModelCatalogOutcome,
+  ModelCatalogProjection,
+  ModelCatalogState,
+  ModelProfileProjection,
+  ModelReceiptSummaryProjection,
+  ModelRecoveryAction,
+  ModelResponseSendOutcome,
+  ModelResponseStartedProjection,
+  ModelResponseStoppedProjection,
+  ModelSelectionBlocked,
+  ModelSelectionProjection,
+  ModelSelectionSource,
+  ModelStreamCancellationSource,
+  ModelStreamEventBody,
+  ModelStreamEventProjection,
+  ModelStreamTerminal,
+  ModelUnavailableProfileProjection,
+} from "./hostClient/modelProtocol";
+export {
+  parseModelCatalog,
+  parseModelCatalogReply,
+  parseModelResponseSendReply,
+  parseModelResponseStopReply,
+  parseModelSelection,
+  parseModelSelectionReply,
+  parseModelStreamEvent,
+} from "./hostClient/modelProtocol";
 export {
   getDefaultHostRuntime,
   getSafeHostMessage,

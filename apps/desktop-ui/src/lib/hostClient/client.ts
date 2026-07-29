@@ -25,6 +25,16 @@ import {
   parseModelAuthStatusReply,
 } from "./bmadProtocol";
 import {
+  type ModelCatalogOutcome,
+  type ModelResponseSendOutcome,
+  type ModelResponseStoppedProjection,
+  type ModelSelectionProjection,
+  parseModelCatalogReply,
+  parseModelResponseSendReply,
+  parseModelResponseStopReply,
+  parseModelSelectionReply,
+} from "./modelProtocol";
+import {
   parseChangesDecisionReply,
   parseChangesHistoryReply,
   parseChangesRecoveryDecisionReply,
@@ -1076,6 +1086,151 @@ export class DesktopHostClient {
       providerId,
       modelId,
     });
+  }
+
+  async getModelCatalog(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+  ): Promise<ModelCatalogOutcome> {
+    const command = "model.catalog.get" as const;
+    const bootstrap = this.requireModelWorkspaceCommand(command, workspaceId, workspaceGrantEpoch);
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(bootstrap, requestId, this.#now(), command, {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch),
+    });
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseModelCatalogReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.outcome;
+  }
+
+  async refreshModelCatalog(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+  ): Promise<ModelCatalogOutcome> {
+    const command = "model.catalog.refresh" as const;
+    const bootstrap = this.requireModelWorkspaceCommand(command, workspaceId, workspaceGrantEpoch);
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(bootstrap, requestId, this.#now(), command, {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch),
+    });
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseModelCatalogReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.outcome;
+  }
+
+  async getModelSelection(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+  ): Promise<ModelSelectionProjection> {
+    const command = "model.selection.get" as const;
+    const bootstrap = this.requireModelWorkspaceCommand(command, workspaceId, workspaceGrantEpoch);
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(bootstrap, requestId, this.#now(), command, {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch),
+    });
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseModelSelectionReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  /**
+   * Starts one task-bound model response.
+   *
+   * Three outcomes, not one: `started` names the run to subscribe the stream
+   * to; `selection` means the workspace's own model selection could not be
+   * resolved -- the draft must be preserved and the user asked to choose
+   * again, never silently retried against a different profile; `unavailable`
+   * means there is no catalog at all. None of these is optimistic -- every
+   * one is the host's own confirmed projection.
+   */
+  async sendModelResponse(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+  ): Promise<ModelResponseSendOutcome> {
+    const command = "model.response.send" as const;
+    const bootstrap = this.requireModelWorkspaceCommand(command, workspaceId, workspaceGrantEpoch);
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(bootstrap, requestId, this.#now(), command, {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch),
+    });
+    const reply = await this.#invoke("host_dispatch", { body: JSON.stringify(envelope) });
+    const parsed = parseModelResponseSendReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.outcome;
+  }
+
+  async stopModelResponse(
+    workspaceId: string,
+    workspaceGrantEpoch: number,
+    taskId: string,
+    runId: string,
+  ): Promise<ModelResponseStoppedProjection> {
+    const command = "model.response.stop" as const;
+    const bootstrap = this.requireModelWorkspaceCommand(
+      command,
+      workspaceId,
+      workspaceGrantEpoch,
+    );
+    const bootstrapGeneration = this.#bootstrapGeneration;
+    const requestId = this.#requestId();
+    const envelope = buildBmadModelEnvelope(bootstrap, requestId, this.#now(), command, {
+      workspaceId: asContractId(workspaceId),
+      workspaceGrantEpoch: asPositiveSafeInteger(workspaceGrantEpoch),
+      taskId: asContractId(taskId),
+      runId: asContractId(runId),
+    });
+    const reply = await this.#invoke("host_dispatch", {
+      body: JSON.stringify(envelope),
+    });
+    const parsed = parseModelResponseStopReply(reply, requestId);
+    this.requireBootstrapGeneration(bootstrapGeneration);
+    this.advanceProjectionSequence(parsed.sequence);
+    return parsed.projection;
+  }
+
+  private requireModelWorkspaceCommand(
+    command:
+      | "model.catalog.get"
+      | "model.catalog.refresh"
+      | "model.selection.get"
+      | "model.response.send"
+      | "model.response.stop",
+    workspaceIdValue: string,
+    workspaceGrantEpoch: number,
+  ): BootstrapReply {
+    const bootstrap = this.requireBootstrap();
+    const workspaceId = asContractId(workspaceIdValue);
+    if (
+      !Number.isSafeInteger(workspaceGrantEpoch) ||
+      workspaceGrantEpoch < 1 ||
+      bootstrap.bootMode !== "ready" ||
+      !bootstrap.supportedCommands.includes(command) ||
+      !bootstrap.workspaces.some(
+        (workspace) =>
+          workspace.workspaceId === workspaceId &&
+          workspace.grantEpoch === workspaceGrantEpoch,
+      )
+    ) {
+      throw new HostCapabilityError(
+        "Model catalog commands are unavailable in the current host mode.",
+      );
+    }
+    return bootstrap;
   }
 
   async prepareBmadHelp(
