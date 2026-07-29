@@ -489,10 +489,38 @@
       { "task": "FND-062", "commit": "0ec9151f", "gate": "network smoke 128, prerequisite regression 65" },
       { "task": "DEV-FOUNDRY-CREDENTIAL", "commit": "a1191471", "gate": "FoundryAuthentication 36", "planExtension": true }
     ],
-    "inFlight": ["FND-028", "FND-029", "FND-030", "FND-031", "FND-040", "FND-041"],
-    "notStarted": [
-      "FND-042", "FND-043", "FND-044", "FND-045", "FND-046",
-      "FND-050", "FND-051", "FND-052", "FND-053", "FND-063"
+    "inFlight": [],
+    "alsoComplete": [
+      { "task": "FND-028..031", "gate": "dotnet 670" },
+      { "task": "DEV-STREAM-GAPS", "gate": "dotnet 750", "planExtension": true },
+      { "task": "FND-040", "gate": "desktop-cloud 98" },
+      { "task": "FND-041", "gate": "desktop-store 143" },
+      { "task": "FND-042", "gate": "desktop-egress 59, golden vector with a 21-case mutation table" },
+      { "task": "FND-043", "gate": "desktop-cloud 118" },
+      { "task": "FND-044", "gate": "desktop-ipc 99, five-site catalog moved together" },
+      { "task": "FND-050", "gate": "renderer 1538 across 98 files" },
+      { "task": "FND-053-reducers", "gate": "timeline and lifecycle reducers proved from fed events", "partial": true },
+      { "task": "FND-063", "gate": "harness written and parse-verified; first full run pending a quiet checkout" }
+    ],
+    "remaining": [
+      {
+        "tasks": ["FND-051", "FND-052"],
+        "state": "blocked_on_a_missing_host_command",
+        "summary": "The renderer has a catalog client, a store, and a timeline, but no way to make an explicit pick. model.selection.set still carries the legacy providerId/modelId shape, and send_model_response resolves current, then default, then first selectable, but never accepts a caller-chosen profile.",
+        "consequence": "FND-051's rule that selection must call the host and wait for the confirmed projection has no command to call. Building the picker first would mean building against an endpoint that does not exist.",
+        "nextAction": "Extend model.selection.set to carry a profile id and variant id. It is an existing command, so the five-site catalog does not move; only the payload shape and its parse_command arm change."
+      },
+      {
+        "tasks": ["FND-045", "FND-046"],
+        "state": "blocked_on_entra",
+        "summary": "The desktop has no composed support transport. ProductionHelpTransport::with_round_trip is defined and never called anywhere in desktop-app, verified by grep.",
+        "whyItIsNotJustMissingCode": "Composing it requires a WAM broker session, a registration keypair, an HTTP executor, and a subject bearer. The desktop's only route to the support plane is WAM and Entra. The operator has no app registration, so this leg cannot be authenticated regardless of how much code is written.",
+        "correctionToAnEarlierClaim": "An earlier status said Development can stream end to end against the real project. That is true of the support API, which does work against real Foundry with the development credential. It is NOT true of the desktop application, whose only transports are the uninstantiated production round trip, a feature-gated deterministic fixture, and a feature-gated direct-provider path that bypasses the support plane entirely.",
+        "whatTheOperatorCanActuallyRunToday": [
+          "Support API in Development composition against the real Foundry project, driven over HTTP directly: real discovery, real catalog, real Responses, real signed receipts.",
+          "Desktop via DirectModelTransport, which reaches a provider but bypasses catalog, consent, entitlement, and receipts."
+        ]
+      }
     ],
     "permanentlyBlockedHere": {
       "tasks": ["FND-002", "FND-064", "FND-065"],
