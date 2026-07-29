@@ -1,0 +1,87 @@
+{
+  "schema_version": "sapphirus.bmad.source-lock/v1",
+  "importer": {
+    "id": "sapphirus-bmad-source-importer",
+    "version": "1.0.0",
+    "implementation": "packages/bmad-foundation/scripts/import-source.mjs"
+  },
+  "sources": [
+    {
+      "id": "method",
+      "package_name": "bmad-method",
+      "version": "6.10.0",
+      "repository": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "canonical_archive_label": "BMAD-METHOD-main(1).zip",
+      "acquired_filename": "BMAD-METHOD-main.zip",
+      "archive_root": "BMAD-METHOD-main",
+      "archive_sha256": "2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02b",
+      "archive_byte_length": 7446443,
+      "regular_file_count": 597,
+      "skill_md_count": 57,
+      "primary_skill_count": 48,
+      "runtime": {
+        "node": ">=20.12.0"
+      },
+      "identity_members": {
+        "package.json": "7b4f67e25fb6ed90136d9e6214e9e67373c109bfa64b341a484ae6cc9dc09d83",
+        "LICENSE": "0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66",
+        "TRADEMARK.md": "ce57ad749e43277c6021e5d5085980b33c9bf8f67a070bbbf07e041ccdddc58b"
+      },
+      "acquisition": {
+        "kind": "user_supplied_local_archive",
+        "verified_on": "2026-07-28",
+        "identity_basis": "archive_sha256"
+      },
+      "historical_identities": [
+        {
+          "archive_sha256": "a7c049038099b99081fbd03d22c6a5180edd88dee656bb37c4276b1cc31b4a32",
+          "status": "superseded_stale_snapshot",
+          "retained_for": "migration_and_audit_history"
+        }
+      ]
+    },
+    {
+      "id": "builder",
+      "package_name": "bmad-builder",
+      "version": "2.1.0",
+      "repository": "https://github.com/bmad-code-org/bmad-builder",
+      "canonical_archive_label": "bmad-builder-main(1).zip",
+      "acquired_filename": "bmad-builder-main.zip",
+      "archive_root": "bmad-builder-main",
+      "archive_sha256": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
+      "archive_byte_length": 1377042,
+      "regular_file_count": 299,
+      "skill_md_count": 13,
+      "primary_skill_count": 5,
+      "public_action_count": 9,
+      "internal_action_count": 1,
+      "runtime": {
+        "node": ">=22.0.0"
+      },
+      "identity_members": {
+        "package.json": "9072e665e63c05e5701387c4ff8d0ba1489518b59307a92a475686a019439ead",
+        "LICENSE": "0aa79baf6328b4a1e694ce10a12ffc36d7666554da128dff0e8fcda0fc536a66",
+        "TRADEMARK.md": "ce57ad749e43277c6021e5d5085980b33c9bf8f67a070bbbf07e041ccdddc58b"
+      },
+      "acquisition": {
+        "kind": "user_supplied_local_archive",
+        "verified_on": "2026-07-28",
+        "identity_basis": "archive_sha256"
+      },
+      "historical_identities": []
+    }
+  ],
+  "acceptance_policy": {
+    "changed_archive_bytes": "reject",
+    "version_without_matching_hash": "reject",
+    "folder_name_as_identity": "reject",
+    "required_upgrade_record": [
+      "source_diff",
+      "semantic_impact",
+      "compatibility_impact",
+      "migration",
+      "rollback",
+      "approval"
+    ]
+  }
+}

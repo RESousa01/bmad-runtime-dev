@@ -1,0 +1,41 @@
+{
+  "schema_version": "sapphirus.bmad.builder-source-notes/v1",
+  "source_identity": {
+    "source_id": "builder",
+    "package_name": "bmad-builder",
+    "version": "2.1.0",
+    "archive_sha256": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
+    "package_json_sha256": "9072e665e63c05e5701387c4ff8d0ba1489518b59307a92a475686a019439ead"
+  },
+  "record_kind": "forge_compatibility_metadata",
+  "upstream_bytes_policy": "verbatim_archive_members_unchanged",
+  "runtime_authority": "non_authoritative_untrusted_source_evidence",
+  "corrections": [
+    {
+      "id": "builder-agents-layout-drift",
+      "upstream_path": "AGENTS.md",
+      "classification": "stale_contributor_guidance",
+      "claim": "The runtime source is a src/ tree of YAML agents and workflows.",
+      "decision": "Do not reconstruct this historical layout; use the five pinned production skills and canonical Forge runtime contracts."
+    },
+    {
+      "id": "builder-agents-script-drift",
+      "upstream_path": "AGENTS.md",
+      "classification": "stale_contributor_guidance",
+      "claim": "npm test and the named schema/reference validation scripts are available.",
+      "decision": "Do not invoke scripts absent from the pinned package.json; use Forge verification commands."
+    },
+    {
+      "id": "builder-agents-distribution-drift",
+      "upstream_path": "AGENTS.md",
+      "classification": "non_authoritative_distribution_guidance",
+      "claim": "Builder modules are npm-published src/ packages installed directly by npx bmad-method install.",
+      "decision": "Forge uses the governed bundled/custom-source promotion decision in distribution-decision.json."
+    }
+  ],
+  "compatibility_metadata": {
+    "documentation": "docs/bmad/builder-source-notes.md",
+    "distribution_decision": "source/builder/2.1.0/distribution-decision.json"
+  }
+}
+

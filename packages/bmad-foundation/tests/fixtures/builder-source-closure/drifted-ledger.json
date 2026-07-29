@@ -1,0 +1,8 @@
+{
+  "schema_version": "sapphirus.bmad.builder-source-ledger/v1",
+  "builder": {
+    "version": "2.1.0",
+    "archive_sha256": "wrong"
+  },
+  "members": []
+}

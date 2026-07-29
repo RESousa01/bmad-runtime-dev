@@ -22,7 +22,10 @@ test("SRC-08 generated surfaces cover every canonical BMAD schema version", asyn
     readFile(path.join(packageRoot, "generated/csharp/BmadContracts.cs"), "utf8"),
   ]);
   assert.equal(catalog.schemaVersion, "sapphirus.bmad-cross-language-fixtures.v1");
-  assert.equal(catalog.schemas.length, 15);
+  // Reviewed count. Seven BMAD schemas were added by ENG-06, ENG-08, ENG-12,
+  // ENG-13, ENG-14, ENG-16 and BLD-02; this guard exists so an addition is a
+  // deliberate act rather than a silent one.
+  assert.equal(catalog.schemas.length, 22);
   for (const schema of catalog.schemas) {
     assert.match(typescript, new RegExp(schema.protocolVersion.replaceAll(".", "\\."), "u"));
     assert.match(rust, new RegExp(schema.rustType, "u"));

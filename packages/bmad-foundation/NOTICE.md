@@ -26,11 +26,11 @@ identify the reviewed sources and to state compatibility. Forge does not
 use a BMAD mark as a product, service, company, or domain name, and claims no
 endorsement, approval, or certification by BMad Code, LLC.
 
-The reviewed archives carry no immutable Git metadata. Their identity rests on
-the repository maintainer's attestation that each was downloaded directly from
-its official upstream repository, together with the release version declared
-inside the archive and a content hash for every adopted member. That basis is
-recorded as an owner-granted exception in `semantic-source-ledger.json` and
-decided in `docs/adr/ADR-0008-verbatim-method-adoption.md`. What it does not
-provide is reproducibility: the adopted bytes must be pinned to an immutably
-identified upstream release before any public distribution.
+The reviewed archives carry no immutable Git metadata. Their byte identities,
+declared package versions, member counts, runtime floors, licenses, trademarks,
+and acquisition evidence are pinned in `source-lock.json`. Changed bytes are
+rejected even when a folder or version label is unchanged. The earlier Method
+snapshot identity remains recorded there only as superseded audit history.
+The owner-attestation basis and the remaining tagged-release requirement for
+public distribution remain governed by
+`docs/adr/ADR-0008-verbatim-method-adoption.md`.

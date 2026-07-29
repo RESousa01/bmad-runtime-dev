@@ -7,9 +7,9 @@
 // BMAD workflow failure, not a crash.
 //
 // Testing is therefore the thing that makes that decision safe. `verify.mjs`
-// already checks the seal: hashes, manifest, treatments — that the bytes are
-// the bytes. This file checks the other half: that the corpus still has the
-// SHAPE Forge's native runtime is written against.
+// already checks the seal: hashes and manifests — that the bytes are the
+// pinned bytes. This file checks the other half: that the complete upstream
+// corpus still has the SHAPE Forge's native runtime is written against.
 //
 // These assertions are deliberately about the corpus, not about Rust. They fail
 // when the vendored Method changes underneath an implementation that assumed
@@ -46,8 +46,8 @@ test("the corpus still holds exactly the skills the runtime is written against",
   const skills = await skillFiles();
   assert.equal(
     skills.length,
-    47,
-    `expected 47 SKILL.md in the vendored corpus, found ${skills.length}. ` +
+    48,
+    `expected 48 primary SKILL.md in the vendored corpus, found ${skills.length}. ` +
       "A changed count means discovery, the capability denominator, and the " +
       "fidelity matrix are all measuring something different than before.",
   );
@@ -55,15 +55,16 @@ test("the corpus still holds exactly the skills the runtime is written against",
   const core = skills.filter((path) => path.startsWith("core-skills/"));
   const bmm = skills.filter((path) => path.startsWith("bmm-skills/"));
   assert.equal(core.length, 14, "core skill count changed");
-  assert.equal(bmm.length, 33, "BMM skill count changed");
+  assert.equal(bmm.length, 34, "BMM skill count changed");
 
   // The four phase folders are load-bearing: upstream's ordering is the
-  // Method's sequence, and Forge presents it.
+  // Method's sequence, and Forge presents it. The pinned archive also retains
+  // one explicitly named v6 compatibility-shim surface.
   const phases = new Set(bmm.map((path) => path.split("/")[1]));
   assert.deepEqual(
     [...phases].sort(),
-    ["1-analysis", "2-plan-workflows", "3-solutioning", "4-implementation"],
-    "the BMM phase folders changed",
+    ["1-analysis", "2-plan-workflows", "3-solutioning", "4-implementation", "v6-shims"],
+    "the BMM phase and compatibility folders changed",
   );
 });
 
@@ -102,23 +103,22 @@ test("the _bmad overlay surface is the size the design assumes", async () => {
   }
   assert.equal(
     referencesBmadTree,
-    39,
+    41,
     "the number of skills reading {project-root}/_bmad changed; the virtual " +
       "overlay in the governed-IO layer is sized against this",
   );
   assert.equal(
     referencesConfigYaml,
-    36,
+    28,
     "the number of skills reading config.yaml changed; that file is generated " +
       "by upstream's installer and must be synthesised by the overlay",
   );
 });
 
-test("the script dependency the corpus declares is still unvendored", async () => {
-  // 39 skills shell out to `uv run {project-root}/_bmad/scripts/*.py` and the
-  // corpus vendors none of those scripts. This is an open decision (bundle
-  // Python, reimplement natively, or degrade those skills), and this test
-  // exists so it is not silently *resolved* by someone dropping files in.
+test("the complete pinned Python surface remains explicit and inert", async () => {
+  // The complete 6.10.0 archive includes the Python helpers referenced by
+  // skills, additional skill-local helpers, and their upstream tests. Retaining
+  // these exact untrusted bytes does not grant process-execution authority.
   const skills = await skillFiles();
   const invoked = new Set();
   for (const relative of skills) {
@@ -133,8 +133,6 @@ test("the script dependency the corpus declares is still unvendored", async () =
     "the set of Python scripts the corpus invokes changed",
   );
 
-  // None of them are vendored. When that stops being true, this test should be
-  // updated deliberately — it is the marker for an unresolved design decision.
   const vendored = [];
   async function walk(directory, prefix) {
     const entries = await readdir(directory, { withFileTypes: true });
@@ -149,9 +147,31 @@ test("the script dependency the corpus declares is still unvendored", async () =
   }
   await walk(corpusRoot, "");
   assert.deepEqual(
-    vendored,
-    [],
-    "Python scripts are now vendored; the uv/Python decision has been made " +
-      "in code and the packet must be updated to match",
+    vendored.sort(),
+    [
+      "bmm-skills/3-solutioning/bmad-architecture/scripts/lint_spine.py",
+      "bmm-skills/3-solutioning/bmad-architecture/scripts/tests/test_lint_spine.py",
+      "bmm-skills/4-implementation/bmad-quick-dev/render.py",
+      "core-skills/bmad-advanced-elicitation/scripts/pick_methods.py",
+      "core-skills/bmad-advanced-elicitation/scripts/tests/test_pick_methods.py",
+      "core-skills/bmad-brainstorming/scripts/brain.py",
+      "core-skills/bmad-brainstorming/scripts/tests/test_brain.py",
+      "core-skills/bmad-customize/scripts/list_customizable_skills.py",
+      "core-skills/bmad-customize/scripts/tests/test_list_customizable_skills.py",
+      "core-skills/bmad-deep-recon/scripts/recon_kit.py",
+      "core-skills/bmad-deep-recon/scripts/tests/test_recon_kit.py",
+      "core-skills/bmad-forge-idea/scripts/resolve_personas.py",
+      "core-skills/bmad-forge-idea/scripts/tests/test_resolve_personas.py",
+      "core-skills/bmad-party-mode/scripts/resolve_party.py",
+      "core-skills/bmad-party-mode/scripts/tests/test_resolve_party.py",
+      "core-skills/bmad-review/scripts/tests/test_word_metrics.py",
+      "core-skills/bmad-review/scripts/word_metrics.py",
+      "scripts/memlog.py",
+      "scripts/resolve_config.py",
+      "scripts/resolve_customization.py",
+      "scripts/tests/test_memlog.py",
+      "scripts/tests/test_resolve_customization.py",
+    ],
+    "the exact Python surface in the pinned Method archive changed",
   );
 });

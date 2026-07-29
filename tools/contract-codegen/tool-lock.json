@@ -78,6 +78,11 @@
           "typeName": "BmadConfig"
         },
         {
+          "file": "bmad-context-contribution.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-context-contribution.schema.json",
+          "typeName": "BmadContextContribution"
+        },
+        {
           "file": "bmad-customization.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-customization.schema.json",
           "typeName": "BmadCustomization"
@@ -88,34 +93,14 @@
           "typeName": "BmadEval"
         },
         {
-          "file": "bmad-invocation.schema.json",
-          "id": "https://schemas.sapphirus.dev/v1/bmad-invocation.schema.json",
-          "typeName": "BmadInvocation"
-        },
-        {
-          "file": "bmad-review-result.schema.json",
-          "id": "https://schemas.sapphirus.dev/v1/bmad-review-result.schema.json",
-          "typeName": "BmadReviewResult"
-        },
-        {
-          "file": "bmad-problem.schema.json",
-          "id": "https://schemas.sapphirus.dev/v1/bmad-problem.schema.json",
-          "typeName": "BmadProblem"
-        },
-        {
-          "file": "bmad-context-contribution.schema.json",
-          "id": "https://schemas.sapphirus.dev/v1/bmad-context-contribution.schema.json",
-          "typeName": "BmadContextContribution"
-        },
-        {
           "file": "bmad-installation.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-installation.schema.json",
           "typeName": "BmadInstallation"
         },
         {
-          "file": "builder-capability.schema.json",
-          "id": "https://schemas.sapphirus.dev/v1/builder-capability.schema.json",
-          "typeName": "BuilderCapability"
+          "file": "bmad-invocation.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-invocation.schema.json",
+          "typeName": "BmadInvocation"
         },
         {
           "file": "bmad-memory.schema.json",
@@ -153,6 +138,16 @@
           "typeName": "BmadPackageDescriptor"
         },
         {
+          "file": "bmad-problem.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-problem.schema.json",
+          "typeName": "BmadProblem"
+        },
+        {
+          "file": "bmad-review-result.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-review-result.schema.json",
+          "typeName": "BmadReviewResult"
+        },
+        {
           "file": "bmad-script-plan.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-script-plan.schema.json",
           "typeName": "BmadScriptPlan"
@@ -186,6 +181,11 @@
           "file": "bmad-validation-report.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-validation-report.schema.json",
           "typeName": "BmadValidationReport"
+        },
+        {
+          "file": "builder-capability.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/builder-capability.schema.json",
+          "typeName": "BuilderCapability"
         },
         {
           "file": "candidate-action.schema.json",

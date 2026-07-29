@@ -1,0 +1,246 @@
+{
+  "schema_version": "sapphirus.bmad.binary-scorecard-contract/v1",
+  "template_only": true,
+  "complete": false,
+  "completion_percent": 0,
+  "completion_rule": "binary_all_mandatory_gates",
+  "authority": "This file defines the scorecard contract. It is not completion evidence and cannot be promoted to artifacts/bmad100/final-scorecard.json.",
+  "pinned_sources": {
+    "method": {
+      "version": "6.10.0",
+      "archive_sha256": "2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02b",
+      "source_members": 597,
+      "skill_md_files": 57,
+      "primary_skills": 48
+    },
+    "builder": {
+      "version": "2.1.0",
+      "archive_sha256": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
+      "source_members": 299,
+      "skill_md_files": 13,
+      "production_skills": 5,
+      "public_actions": 9,
+      "internal_actions": 1
+    }
+  },
+  "source_completion": {
+    "accounting_percent_required": 100,
+    "resource_closure_percent_required": 100,
+    "required_primary_support_states": [
+      "conformant",
+      "supported",
+      "complete"
+    ],
+    "required_primary_release_states": [
+      "released",
+      "release_ready",
+      "active"
+    ],
+    "forbidden_primary_treatments": [
+      "fixture",
+      "distribution",
+      "reject_nonruntime"
+    ],
+    "aliases_must_resolve_exactly_once": true
+  },
+  "gate_evidence_contract": {
+    "schema_version": "sapphirus.bmad.gate-evidence/v1",
+    "required_fields": [
+      "gate_id",
+      "status",
+      "generated_at",
+      "commit",
+      "source_tree",
+      "evidence_hashes",
+      "skipped",
+      "unavailable",
+      "partial",
+      "incomparable",
+      "commands"
+    ],
+    "required_status": "pass",
+    "required_boolean_values": {
+      "skipped": false,
+      "unavailable": false,
+      "partial": false,
+      "incomparable": false
+    },
+    "command_rule": "At least one required command; every required command has exit_code 0 and is not skipped.",
+    "identity_rule": "Every gate is bound to the same current commit and source tree.",
+    "integrity_rule": "Every gate lists at least one lowercase SHA-256 evidence hash.",
+    "external_environment_rule": "Every environment or release gate records executed true in a non-mock qualified environment.",
+    "approval_rule": "Independent review requires named product, runtime, security, QA, and operations approvers.",
+    "conformance_dimensions_when_declared": [
+      "interactive",
+      "headless",
+      "error",
+      "resume",
+      "cancel"
+    ]
+  },
+  "mandatory_gates": [
+    {
+      "id": "source_identity",
+      "category": "source",
+      "remediation_task_ids": [
+        "QAL-01"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-01/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "source_closure",
+      "category": "closure",
+      "remediation_task_ids": [
+        "QAL-01"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-01/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "contracts",
+      "category": "contracts",
+      "remediation_task_ids": [
+        "QAL-02"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-02/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "method_semantics",
+      "category": "semantics",
+      "remediation_task_ids": [
+        "QAL-03"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-03/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "builder_conformance",
+      "category": "builder",
+      "remediation_task_ids": [
+        "QAL-04"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-04/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "runtime",
+      "category": "runtime",
+      "remediation_task_ids": [
+        "QAL-05"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-05/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "ui",
+      "category": "ui",
+      "remediation_task_ids": [
+        "QAL-06"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-06/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "support_plane",
+      "category": "support_plane",
+      "remediation_task_ids": [
+        "QAL-07"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-07/report.json",
+      "max_age_hours": 24
+    },
+    {
+      "id": "desktop_e2e",
+      "category": "desktop_e2e",
+      "remediation_task_ids": [
+        "QAL-08"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-08/report.json",
+      "max_age_hours": 24
+    },
+    {
+      "id": "security",
+      "category": "security",
+      "remediation_task_ids": [
+        "QAL-09"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-09/report.json",
+      "max_age_hours": 24
+    },
+    {
+      "id": "performance",
+      "category": "performance",
+      "remediation_task_ids": [
+        "QAL-10"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-10/report.json",
+      "max_age_hours": 24
+    },
+    {
+      "id": "persistence",
+      "category": "persistence",
+      "remediation_task_ids": [
+        "QAL-11"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-11/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "packaging",
+      "category": "packaging",
+      "remediation_task_ids": [
+        "QAL-12"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-12/report.json",
+      "max_age_hours": 24
+    },
+    {
+      "id": "deployment",
+      "category": "deployment",
+      "remediation_task_ids": [
+        "QAL-13"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-13/report.json",
+      "max_age_hours": 24
+    },
+    {
+      "id": "documentation",
+      "category": "documentation",
+      "remediation_task_ids": [
+        "QAL-14"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-14/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "pilot",
+      "category": "pilot",
+      "remediation_task_ids": [
+        "QAL-15"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-15/report.json",
+      "max_age_hours": 24
+    },
+    {
+      "id": "traceability",
+      "category": "traceability",
+      "remediation_task_ids": [
+        "QAL-16"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-16/report.json",
+      "max_age_hours": 168
+    },
+    {
+      "id": "independent_review",
+      "category": "independent_review",
+      "remediation_task_ids": [
+        "QAL-18"
+      ],
+      "evidence_path": "artifacts/bmad100/quality/qal-18/report.json",
+      "max_age_hours": 4
+    }
+  ],
+  "failure_rule": "Any missing, failed, skipped, stale, unavailable, unverified, partial, incomparable, identity-mismatched, or tampered mandatory input makes complete false and completion_percent 0."
+}

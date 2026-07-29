@@ -1,0 +1,546 @@
+{
+  "schemaVersion": "sapphirus.bmad.builder-capability-catalog/v1",
+  "generatedBy": "packages/bmad-foundation/scripts/generate-builder-catalog.mjs",
+  "pinnedSource": {
+    "id": "builder",
+    "version": "2.1.0"
+  },
+  "counts": {
+    "public": 9,
+    "internal": 1,
+    "total": 10
+  },
+  "publicActions": [
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_6TF7FCC8XY9411TAWF2NWMM12A",
+      "action": "build-process",
+      "exposure": "public",
+      "module": "bmad-builder",
+      "skill": "bmad-agent-builder",
+      "displayName": "Build an Agent",
+      "menuCode": "BA",
+      "description": "Create, edit, or rebuild an agent skill through conversational discovery.",
+      "phase": "anytime",
+      "required": false,
+      "args": [
+        {
+          "name": "h",
+          "required": false,
+          "valueKind": "boolean"
+        },
+        {
+          "name": "description",
+          "required": false,
+          "valueKind": "string"
+        },
+        {
+          "name": "path",
+          "required": false,
+          "valueKind": "string"
+        }
+      ],
+      "outputs": {
+        "outputContractId": "sapphirus.bmad-artifact.v1",
+        "outputLocation": "bmad_builder_output_folder"
+      },
+      "provenance": {
+        "sourceId": "source_6HC710A8135E41NW0TYZCZYKZY",
+        "sourceFile": "skills/module-help.csv",
+        "sourceHash": "sha256:fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+        "sourceRow": 4
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "output_contract_builder_draft",
+          "kind": "output_contract",
+          "edge": "required"
+        },
+        {
+          "id": "model_profile_builder_default",
+          "kind": "model_profile",
+          "edge": "optional"
+        }
+      ],
+      "follower": "quality-analysis",
+      "capabilityHash": "sha256:30540da0ffbadbd2e72aa7ec222e7d1b439e85073ed5c60fa59115cdafb3e913"
+    },
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_66C1GQJ0HSFFGETAN30H396CJT",
+      "action": "build-process",
+      "exposure": "public",
+      "module": "bmad-builder",
+      "skill": "bmad-workflow-builder",
+      "displayName": "Build a Workflow",
+      "menuCode": "BW",
+      "description": "Create, edit, or rebuild a workflow or utility skill.",
+      "phase": "anytime",
+      "required": false,
+      "args": [
+        {
+          "name": "h",
+          "required": false,
+          "valueKind": "boolean"
+        },
+        {
+          "name": "description",
+          "required": false,
+          "valueKind": "string"
+        },
+        {
+          "name": "path",
+          "required": false,
+          "valueKind": "string"
+        }
+      ],
+      "outputs": {
+        "outputContractId": "sapphirus.bmad-artifact.v1",
+        "outputLocation": "bmad_builder_output_folder"
+      },
+      "provenance": {
+        "sourceId": "source_6HC710A8135E41NW0TYZCZYKZY",
+        "sourceFile": "skills/module-help.csv",
+        "sourceHash": "sha256:fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+        "sourceRow": 6
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "output_contract_builder_draft",
+          "kind": "output_contract",
+          "edge": "required"
+        },
+        {
+          "id": "model_profile_builder_default",
+          "kind": "model_profile",
+          "edge": "optional"
+        }
+      ],
+      "follower": "quality-analysis",
+      "capabilityHash": "sha256:7d03d3cbd25d2ac48c157273e3b2eb248e1e3d4ef810a2674d0d89b1a199d5e2"
+    },
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_N90MMVXZ4RHAQ2B44VBNB3ECXV",
+      "action": "configure",
+      "exposure": "public",
+      "module": "bmad-builder",
+      "skill": "bmad-bmb-setup",
+      "displayName": "Setup Builder Module",
+      "menuCode": "SB",
+      "description": "Install or update BMad Builder module config and help entries.",
+      "phase": "anytime",
+      "required": false,
+      "args": [
+        {
+          "name": "h",
+          "required": false,
+          "valueKind": "boolean"
+        },
+        {
+          "name": "inline_values",
+          "required": false,
+          "valueKind": "string"
+        }
+      ],
+      "outputs": {
+        "outputContractId": "sapphirus.bmad-artifact.v1",
+        "outputLocation": "{project-root}/_bmad"
+      },
+      "provenance": {
+        "sourceId": "source_6HC710A8135E41NW0TYZCZYKZY",
+        "sourceFile": "skills/module-help.csv",
+        "sourceHash": "sha256:fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+        "sourceRow": 3
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "configuration_bmad_builder_config",
+          "kind": "configuration",
+          "edge": "required"
+        }
+      ],
+      "capabilityHash": "sha256:170864f1da04c2e868bd39b25cd4998b9f5b93739433dfdd42d0fea0f7edeb30"
+    },
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_STZ462550KAXHN78AYZ2Q6J25N",
+      "action": "convert-process",
+      "exposure": "public",
+      "module": "bmad-builder",
+      "skill": "bmad-workflow-builder",
+      "displayName": "Convert a Skill",
+      "menuCode": "CW",
+      "description": "Convert any skill to BMad-compliant, outcome-driven equivalent with before/after HTML comparison report.",
+      "phase": "anytime",
+      "required": false,
+      "args": [
+        {
+          "name": "convert",
+          "required": false,
+          "valueKind": "boolean"
+        },
+        {
+          "name": "h",
+          "required": false,
+          "valueKind": "boolean"
+        }
+      ],
+      "outputs": {
+        "outputContractId": "sapphirus.bmad-artifact.v1",
+        "outputLocation": "bmad_builder_reports"
+      },
+      "provenance": {
+        "sourceId": "source_6HC710A8135E41NW0TYZCZYKZY",
+        "sourceFile": "skills/module-help.csv",
+        "sourceHash": "sha256:fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+        "sourceRow": 8
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "output_contract_builder_draft",
+          "kind": "output_contract",
+          "edge": "required"
+        },
+        {
+          "id": "model_profile_builder_default",
+          "kind": "model_profile",
+          "edge": "optional"
+        },
+        {
+          "id": "ui_support_convert_flag",
+          "kind": "ui_support",
+          "edge": "conditional",
+          "condition": "convert_flag_present"
+        }
+      ],
+      "capabilityHash": "sha256:97df82a9cbd44e82309c908a748bc709c28acf5792b6bde14fd5365b70054c70"
+    },
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_NENP4YEBRS3FK6KPTZMYP4BYMV",
+      "action": "create-module",
+      "exposure": "public",
+      "module": "bmad-builder",
+      "skill": "bmad-module-builder",
+      "displayName": "Create Module",
+      "menuCode": "CM",
+      "description": "Scaffold module infrastructure into built skills, making them an installable BMad module.",
+      "phase": "anytime",
+      "required": false,
+      "args": [
+        {
+          "name": "h",
+          "required": false,
+          "valueKind": "boolean"
+        },
+        {
+          "name": "path",
+          "required": false,
+          "valueKind": "string"
+        }
+      ],
+      "outputs": {
+        "outputContractId": "sapphirus.bmad-artifact.v1",
+        "outputLocation": "bmad_builder_output_folder"
+      },
+      "provenance": {
+        "sourceId": "source_6HC710A8135E41NW0TYZCZYKZY",
+        "sourceFile": "skills/module-help.csv",
+        "sourceHash": "sha256:fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+        "sourceRow": 10
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "output_contract_builder_draft",
+          "kind": "output_contract",
+          "edge": "required"
+        },
+        {
+          "id": "script_plan_scaffold_module",
+          "kind": "script_plan",
+          "edge": "required"
+        }
+      ],
+      "predecessor": "ideate-module",
+      "capabilityHash": "sha256:9658d411673b1eaa571fc92d3a34789ab690ea1bc6ef77ee451e4e20d2e49360"
+    },
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_ZHT65HKPMXAYACGPQBNZNK4CFY",
+      "action": "ideate-module",
+      "exposure": "public",
+      "module": "bmad-builder",
+      "skill": "bmad-module-builder",
+      "displayName": "Ideate Module",
+      "menuCode": "IM",
+      "description": "Brainstorm and plan a BMad module — explore ideas, decide architecture, and produce a build plan.",
+      "phase": "anytime",
+      "required": false,
+      "args": [
+        {
+          "name": "description",
+          "required": false,
+          "valueKind": "string"
+        }
+      ],
+      "outputs": {
+        "outputContractId": "sapphirus.bmad-artifact.v1",
+        "outputLocation": "bmad_builder_reports"
+      },
+      "provenance": {
+        "sourceId": "source_6HC710A8135E41NW0TYZCZYKZY",
+        "sourceFile": "skills/module-help.csv",
+        "sourceHash": "sha256:fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+        "sourceRow": 9
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "output_contract_builder_draft",
+          "kind": "output_contract",
+          "edge": "required"
+        },
+        {
+          "id": "model_profile_builder_default",
+          "kind": "model_profile",
+          "edge": "optional"
+        }
+      ],
+      "follower": "create-module",
+      "capabilityHash": "sha256:a2683dbafc9dc28024dbe5297368e46a031978d2e94e11fb90ad965dd765e972"
+    },
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_CZZ2RGKBR9KTZV4WFSVQWKD3DP",
+      "action": "quality-analysis",
+      "exposure": "public",
+      "module": "bmad-builder",
+      "skill": "bmad-agent-builder",
+      "displayName": "Analyze an Agent",
+      "menuCode": "AA",
+      "description": "Run quality analysis on an existing agent — structure, cohesion, prompt craft, and enhancement opportunities.",
+      "phase": "anytime",
+      "required": false,
+      "args": [
+        {
+          "name": "h",
+          "required": false,
+          "valueKind": "boolean"
+        },
+        {
+          "name": "path",
+          "required": false,
+          "valueKind": "string"
+        }
+      ],
+      "outputs": {
+        "outputContractId": "sapphirus.bmad-artifact.v1",
+        "outputLocation": "bmad_builder_reports"
+      },
+      "provenance": {
+        "sourceId": "source_6HC710A8135E41NW0TYZCZYKZY",
+        "sourceFile": "skills/module-help.csv",
+        "sourceHash": "sha256:fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+        "sourceRow": 5
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "output_contract_builder_draft",
+          "kind": "output_contract",
+          "edge": "required"
+        },
+        {
+          "id": "model_profile_builder_default",
+          "kind": "model_profile",
+          "edge": "optional"
+        }
+      ],
+      "predecessor": "build-process",
+      "capabilityHash": "sha256:24d49bfd68f485f46ebdcd29277007a802c3cc66b9cee8a09d0d0ac817099f38"
+    },
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_JQP460JWS377T9C2Q6CR9V6Y9Z",
+      "action": "quality-analysis",
+      "exposure": "public",
+      "module": "bmad-builder",
+      "skill": "bmad-workflow-builder",
+      "displayName": "Analyze a Workflow",
+      "menuCode": "AW",
+      "description": "Run quality analysis on an existing workflow/skill — structure, efficiency, and enhancement opportunities.",
+      "phase": "anytime",
+      "required": false,
+      "args": [
+        {
+          "name": "h",
+          "required": false,
+          "valueKind": "boolean"
+        },
+        {
+          "name": "path",
+          "required": false,
+          "valueKind": "string"
+        }
+      ],
+      "outputs": {
+        "outputContractId": "sapphirus.bmad-artifact.v1",
+        "outputLocation": "bmad_builder_reports"
+      },
+      "provenance": {
+        "sourceId": "source_6HC710A8135E41NW0TYZCZYKZY",
+        "sourceFile": "skills/module-help.csv",
+        "sourceHash": "sha256:fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+        "sourceRow": 7
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "output_contract_builder_draft",
+          "kind": "output_contract",
+          "edge": "required"
+        },
+        {
+          "id": "model_profile_builder_default",
+          "kind": "model_profile",
+          "edge": "optional"
+        }
+      ],
+      "predecessor": "build-process",
+      "capabilityHash": "sha256:36d90575333dd9fd69f5526887f6c7c86b90f6a18a3470301e9b21c8544bd511"
+    },
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_640XQ3VCJ9Y7KJ5HR4CT4EJW6M",
+      "action": "validate-module",
+      "exposure": "public",
+      "module": "bmad-builder",
+      "skill": "bmad-module-builder",
+      "displayName": "Validate Module",
+      "menuCode": "VM",
+      "description": "Check that a module's structure is complete, accurate, and all capabilities are properly registered.",
+      "phase": "anytime",
+      "required": false,
+      "args": [
+        {
+          "name": "h",
+          "required": false,
+          "valueKind": "boolean"
+        },
+        {
+          "name": "path",
+          "required": false,
+          "valueKind": "string"
+        }
+      ],
+      "outputs": {
+        "outputContractId": "sapphirus.bmad-artifact.v1",
+        "outputLocation": "bmad_builder_reports"
+      },
+      "provenance": {
+        "sourceId": "source_6HC710A8135E41NW0TYZCZYKZY",
+        "sourceFile": "skills/module-help.csv",
+        "sourceHash": "sha256:fe5c030134a6019d6a8c9e609ca6c196cd5f469aac8b9711145257a966f14b7e",
+        "sourceRow": 11
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "output_contract_builder_draft",
+          "kind": "output_contract",
+          "edge": "required"
+        },
+        {
+          "id": "runtime_port_validation_engine",
+          "kind": "runtime_port",
+          "edge": "required"
+        }
+      ],
+      "predecessor": "create-module",
+      "capabilityHash": "sha256:37f30f70918c70b56554f2780a92b5c5b1d668898c1f87b46e424b01ad112e09"
+    }
+  ],
+  "internalActions": [
+    {
+      "schemaVersion": "sapphirus.builder-capability.v1",
+      "capabilityId": "capability_231VKWGYYSMB6T3NJ0KC9XQFH5",
+      "action": "run-evals",
+      "exposure": "internal",
+      "module": "bmad-builder",
+      "skill": "bmad-eval-runner",
+      "displayName": "Skill Eval Runner",
+      "description": "Run a skill's evals and report results. Use when the user wants to evaluate a skill, run evals, benchmark a skill, validate triggers, optimize a description, or grade skill outputs.",
+      "provenance": {
+        "sourceId": "source_3W6ZQMQ9ZT9EC3FHKMVABFBHV6",
+        "sourceFile": "skills/bmad-eval-runner/SKILL.md",
+        "sourceHash": "sha256:5fbce2be0bd46a310972a62b7bc6e8cc33d953dd07e5bdc066410429d4522f2c"
+      },
+      "dependencies": [
+        {
+          "id": "source_resource_skill_md",
+          "kind": "source_resource",
+          "edge": "required"
+        },
+        {
+          "id": "runtime_port_eval_adapter",
+          "kind": "runtime_port",
+          "edge": "required"
+        },
+        {
+          "id": "script_plan_run_evals",
+          "kind": "script_plan",
+          "edge": "required"
+        },
+        {
+          "id": "configuration_bmad_builder_config",
+          "kind": "configuration",
+          "edge": "optional"
+        }
+      ],
+      "capabilityHash": "sha256:25da7093f6024e7b6b329e1046ce7b10d1fd6133293194562654550ec12c47b7"
+    }
+  ],
+  "catalogHash": "sha256:48f125dba98752591e1368e34d515e48f5d5abd14cd10ce52d4034a0e55cc8a4"
+}

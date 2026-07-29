@@ -107,8 +107,23 @@ const managedOutputPaths = Object.freeze([
 
 const requiredPackagePaths = Object.freeze([
   "README.md",
+  "bmad-100-scorecard.json",
+  "builder-source-ledger.json",
+  "capability-catalog.json",
+  "compatibility-aliases.json",
   "runtime-manifest.json",
+  "script-inventory.json",
   "semantic-source-ledger.json",
+  "source-accounting.json",
+  "source-lock.json",
+  "source-manifest.json",
+  "scripts/classify-scripts.mjs",
+  "scripts/builder-resource-closure.mjs",
+  "scripts/generate-catalog.mjs",
+  "scripts/import-source.mjs",
+  "scripts/resource-closure.mjs",
+  "scripts/verify-source-notes.mjs",
+  "scripts/verify-source-identities.mjs",
   "scripts/verify.mjs",
   ...normalizedPaths,
   ...managedOutputPaths,
@@ -116,8 +131,16 @@ const requiredPackagePaths = Object.freeze([
 
 const packageDistributionFiles = Object.freeze([
   "adoption-ledger.json",
+  "bmad-100-scorecard.json",
+  "builder-source-ledger.json",
+  "capability-catalog.json",
   "capability-closure-ledger.json",
+  "compatibility-aliases.json",
+  "script-inventory.json",
   "semantic-source-ledger.json",
+  "source-accounting.json",
+  "source-lock.json",
+  "source-manifest.json",
   "NOTICE.md",
   "licenses",
   "normalized",
@@ -137,7 +160,7 @@ const sourceFacts = Object.freeze({
     sourceFormatVersionEvidence: "not_declared",
     runtimeCompatibility: Object.freeze({ node: ">=20.12.0" }),
     archiveSha256:
-      "a7c049038099b99081fbd03d22c6a5180edd88dee656bb37c4276b1cc31b4a32",
+      "2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02b",
   }),
   builder: Object.freeze({
     packageName: "bmad-builder",
@@ -647,16 +670,24 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
       "NOTICE.md",
       "README.md",
       "adoption-ledger.json",
+      "bmad-100-scorecard.json",
+      "builder-source-ledger.json",
+      "capability-catalog.json",
       "capability-closure-ledger.json",
+      "compatibility-aliases.json",
       "licenses",
       "normalized",
       "package.json",
       "runtime",
       "runtime-manifest.json",
+      "script-inventory.json",
       "scripts",
       "semantic-source-ledger.json",
       // ADR-0008: adopted upstream bodies, shipped verbatim and manifest-pinned.
       "source",
+      "source-accounting.json",
+      "source-lock.json",
+      "source-manifest.json",
       "tests",
     ],
   );
@@ -666,16 +697,33 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
     normalizedPaths.map((relativePath) => path.posix.basename(relativePath)),
   );
   assert.deepEqual(await readdir(path.join(packageRoot, "scripts")), [
+    "builder-resource-closure.mjs",
+    "classify-scripts.mjs",
+    "generate-catalog.mjs",
+    "import-source.mjs",
     "intake.mjs",
     "reseal.mjs",
+    "resource-closure.mjs",
+    "source-accounting.mjs",
+    "verify-source-identities.mjs",
+    "verify-source-notes.mjs",
     "verify.mjs",
   ]);
   assert.deepEqual(await readdir(path.join(packageRoot, "tests")), [
+    "bmad-capability-catalog.test.mjs",
+    "builder-source-closure.test.mjs",
+    "fixtures",
     "foundation.test.mjs",
+    "import-source.test.mjs",
     // Fidelity conformance over the vendored corpus (ADR-0010). Pinned here as
     // well as in `verify.mjs` so adding a file to the sealed package stays a
     // two-place, deliberate act rather than something a stray write can do.
     "method-fidelity.test.mjs",
+    "resource-closure.test.mjs",
+    "script-inventory.test.mjs",
+    "source-accounting.test.mjs",
+    "source-identities.test.mjs",
+    "source-notes.test.mjs",
   ]);
 });
 

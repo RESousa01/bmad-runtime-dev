@@ -1,0 +1,43 @@
+{
+  "schema_version": "sapphirus.bmad.builder-distribution-decision/v1",
+  "decision_id": "SRC-10-builder-2.1.0-distribution",
+  "status": "active",
+  "source_identity": {
+    "source_id": "builder",
+    "package_name": "bmad-builder",
+    "version": "2.1.0",
+    "archive_sha256": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852"
+  },
+  "distribution": {
+    "bundled_source": "hash_pinned_forge_input",
+    "custom_source": "governed_import_and_promotion_only",
+    "marketplace_metadata": "untrusted_compatibility_metadata",
+    "direct_npm_install": "prohibited",
+    "direct_marketplace_activation": "prohibited",
+    "file_presence_activation": "prohibited"
+  },
+  "promotion_lifecycle": [
+    "source_acquisition_and_identity_verification",
+    "validation",
+    "analysis",
+    "evaluation",
+    "review",
+    "approval",
+    "staging",
+    "installation",
+    "atomic_catalog_activation",
+    "live_conformance",
+    "receipt"
+  ],
+  "eval_runner": {
+    "skill_path": "skills/bmad-eval-runner/SKILL.md",
+    "public_help_path": "skills/module-help.csv",
+    "visibility": "internal",
+    "reason": "present_in_pinned_source_but_absent_from_public_help",
+    "public_action_count": 9,
+    "internal_action_count": 1,
+    "total_action_count": 10,
+    "invocation_boundary": "typed_builder_evaluation_orchestration"
+  }
+}
+

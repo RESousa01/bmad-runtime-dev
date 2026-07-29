@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "sapphirus.bmad.builder-alias-registry/v1",
+  "generatedBy": "packages/bmad-foundation/scripts/generate-builder-catalog.mjs",
+  "sourceCatalogHash": "sha256:48f125dba98752591e1368e34d515e48f5d5abd14cd10ce52d4034a0e55cc8a4",
+  "counts": {
+    "legacyForgeIds": 5,
+    "canonicalPublicActions": 9
+  },
+  "aliases": [
+    {
+      "legacyId": "builder:agent.analyze",
+      "canonicalId": "capability_CZZ2RGKBR9KTZV4WFSVQWKD3DP",
+      "canonicalAction": "bmad-builder:bmad-agent-builder:quality-analysis",
+      "translation": "identity",
+      "status": "deprecated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    },
+    {
+      "legacyId": "builder:agent.create_rebuild",
+      "canonicalId": "capability_6TF7FCC8XY9411TAWF2NWMM12A",
+      "canonicalAction": "bmad-builder:bmad-agent-builder:build-process",
+      "translation": "identity",
+      "status": "deprecated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    },
+    {
+      "legacyId": "builder:agent.edit",
+      "canonicalId": "capability_6TF7FCC8XY9411TAWF2NWMM12A",
+      "canonicalAction": "bmad-builder:bmad-agent-builder:build-process",
+      "translation": "input_mapped",
+      "status": "deprecated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    },
+    {
+      "legacyId": "builder:workflow.analyze",
+      "canonicalId": "capability_JQP460JWS377T9C2Q6CR9V6Y9Z",
+      "canonicalAction": "bmad-builder:bmad-workflow-builder:quality-analysis",
+      "translation": "identity",
+      "status": "deprecated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    },
+    {
+      "legacyId": "builder:workflow.build_edit",
+      "canonicalId": "capability_66C1GQJ0HSFFGETAN30H396CJT",
+      "canonicalAction": "bmad-builder:bmad-workflow-builder:build-process",
+      "translation": "identity",
+      "status": "deprecated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    }
+  ],
+  "registryHash": "sha256:8de766b6cd096d45839a7b6858c97b2f03ae8219ed45a36e6728079084610b72"
+}

@@ -1,0 +1,790 @@
+{
+  "schemaVersion": "sapphirus.bmad-help-capability-graph.v1",
+  "generatedBy": "packages/bmad-foundation (hand-authored for ENG-11, derived from capability-catalog.json + compatibility-aliases.json)",
+  "sourceCatalogSha256": "80af8969ee6546d2f482d145d6011135795ae54626707f9ce3ca547fcb77906e",
+  "sourceAliasCatalogSha256": "5e4f258c2516ff48a48658ce58b98059d08c788e8dc44c19229dd2902e846d6d",
+  "nodeCount": 45,
+  "nodes": [
+    {
+      "id": "bmm:bmad-agent-analyst",
+      "sourceId": "method",
+      "phase": "analysis",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/1-analysis/bmad-agent-analyst/SKILL.md"
+      ],
+      "nodeHash": "sha256:53ef8b6d79c4e26bd29bdc0d8df81f069615bac8ac709e2e45e2ad8699e01ddc"
+    },
+    {
+      "id": "bmm:bmad-agent-architect",
+      "sourceId": "method",
+      "phase": "solutioning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md"
+      ],
+      "nodeHash": "sha256:ea9c48adf95e8c57f091bdf87a9d8f4f5043d9052d520d0fcb9d816287b2443b"
+    },
+    {
+      "id": "bmm:bmad-agent-dev",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-agent-dev/SKILL.md"
+      ],
+      "nodeHash": "sha256:cd4d0765bf9e140bfc5d27c7642fa1c661ddd77903300560981707d388a0d119"
+    },
+    {
+      "id": "bmm:bmad-agent-pm",
+      "sourceId": "method",
+      "phase": "planning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/2-plan-workflows/bmad-agent-pm/SKILL.md"
+      ],
+      "nodeHash": "sha256:064ff72f5439f534f0552a67bb18c1246e587c56fc7d13e98d43904ea28109d6"
+    },
+    {
+      "id": "bmm:bmad-agent-tech-writer",
+      "sourceId": "method",
+      "phase": "analysis",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/1-analysis/bmad-agent-tech-writer/SKILL.md"
+      ],
+      "nodeHash": "sha256:1e3572d33c149e62373caff21e3ddfb9ce6b15eb4d10fa45b3d372fec1768200"
+    },
+    {
+      "id": "bmm:bmad-agent-ux-designer",
+      "sourceId": "method",
+      "phase": "planning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/SKILL.md"
+      ],
+      "nodeHash": "sha256:5c45f62fb1ce44c46a35bf9a33be86c3c732fbdd3f2169bd918f93db1e578eb0"
+    },
+    {
+      "id": "bmm:bmad-architecture",
+      "sourceId": "method",
+      "phase": "solutioning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+        "method:src/bmm-skills/v6-shims/bmad-create-architecture/SKILL.md"
+      ],
+      "nodeHash": "sha256:cae5d006b9c479758e5f68812ac6d904c882fc7eb24161648046ce7a6ac08781"
+    },
+    {
+      "id": "bmm:bmad-check-implementation-readiness",
+      "sourceId": "method",
+      "phase": "solutioning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md"
+      ],
+      "nodeHash": "sha256:79d4651bb5eda1d3d8092dd17d1ed8e7989fa2771dca9986d4281c2a41398502"
+    },
+    {
+      "id": "bmm:bmad-checkpoint-preview",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-checkpoint-preview/SKILL.md"
+      ],
+      "nodeHash": "sha256:f527e63c0b50b7626b92d856b0ebb03672bdc83593e8445379abca07950df02d"
+    },
+    {
+      "id": "bmm:bmad-code-review",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-code-review/SKILL.md"
+      ],
+      "nodeHash": "sha256:8bab5faa2b1f813b69c595b5cb68fc44da832ee0a53a8bcce1d1936a159e04d4"
+    },
+    {
+      "id": "bmm:bmad-correct-course",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-correct-course/SKILL.md"
+      ],
+      "nodeHash": "sha256:bb1efe13970f38f127b915c15596c3b635d79daac3406cfaed087844d772ecd7"
+    },
+    {
+      "id": "bmm:bmad-create-epics-and-stories",
+      "sourceId": "method",
+      "phase": "solutioning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/SKILL.md"
+      ],
+      "nodeHash": "sha256:feaf49b138c36d9690fa66ebbfce94d5090a0818ef596165e348b0f73f395602"
+    },
+    {
+      "id": "bmm:bmad-create-story",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-create-story/SKILL.md"
+      ],
+      "nodeHash": "sha256:23e803866197509e49af6ef7b80b5cffbd4dc70cc4fffdd585bd475fa07d59b3"
+    },
+    {
+      "id": "bmm:bmad-dev-auto",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-dev-auto/SKILL.md"
+      ],
+      "nodeHash": "sha256:8ba2c09d0189ec207beff4ed1beb8cdb0d35a61de47dd05a667f62e9ffa069a8"
+    },
+    {
+      "id": "bmm:bmad-dev-story",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-dev-story/SKILL.md"
+      ],
+      "nodeHash": "sha256:2aae49adb469b648cefac6157c7d44ca295e40d702e23c65a4f47a4100f89aa4"
+    },
+    {
+      "id": "bmm:bmad-document-project",
+      "sourceId": "method",
+      "phase": "analysis",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/1-analysis/bmad-document-project/SKILL.md"
+      ],
+      "nodeHash": "sha256:653ed39e34616899fd008fa017bb9b86bfdb40fa2e7933d563c4f7b76152e454"
+    },
+    {
+      "id": "bmm:bmad-generate-project-context",
+      "sourceId": "method",
+      "phase": "solutioning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/3-solutioning/bmad-generate-project-context/SKILL.md"
+      ],
+      "nodeHash": "sha256:4f28d0aef0d36266a403484acea4703d4059e5b5c9e9aab36487054689a658a5"
+    },
+    {
+      "id": "bmm:bmad-prd",
+      "sourceId": "method",
+      "phase": "planning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+        "method:src/bmm-skills/v6-shims/bmad-create-prd/SKILL.md",
+        "method:src/bmm-skills/v6-shims/bmad-edit-prd/SKILL.md",
+        "method:src/bmm-skills/v6-shims/bmad-validate-prd/SKILL.md"
+      ],
+      "nodeHash": "sha256:888935bb1091bff5d02d0a7e0873c0f98e8930ffef4493b7ab9bd15045efa86a"
+    },
+    {
+      "id": "bmm:bmad-prfaq",
+      "sourceId": "method",
+      "phase": "analysis",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/1-analysis/bmad-prfaq/SKILL.md"
+      ],
+      "nodeHash": "sha256:13292e84bcc5c23db0b0d37f62c55ff2a16a4b1770aa258d9fe7f1d823e7aa1d"
+    },
+    {
+      "id": "bmm:bmad-product-brief",
+      "sourceId": "method",
+      "phase": "analysis",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/1-analysis/bmad-product-brief/SKILL.md"
+      ],
+      "nodeHash": "sha256:0827a3b5d906ba9139e1ad27637c87d55323d8693f295b511f54e99c87aaf0ae"
+    },
+    {
+      "id": "bmm:bmad-qa-generate-e2e-tests",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-qa-generate-e2e-tests/SKILL.md"
+      ],
+      "nodeHash": "sha256:f9ad2dd6498ab60cd005c8155bfb9eeefa0b7b9182da7754e4bbc129f2cf1f81"
+    },
+    {
+      "id": "bmm:bmad-quick-dev",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-quick-dev/SKILL.md"
+      ],
+      "nodeHash": "sha256:029cf5d5c9b076cd826cc8c55d30463fe11c59dce6345fbebbcdc2526b4838aa"
+    },
+    {
+      "id": "bmm:bmad-retrospective",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-retrospective/SKILL.md"
+      ],
+      "nodeHash": "sha256:8124d0516dfdb5afd99fcd5d0d848056b7d22b46fefe085d695192043d0c615e"
+    },
+    {
+      "id": "bmm:bmad-spec",
+      "sourceId": "method",
+      "phase": "planning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md"
+      ],
+      "nodeHash": "sha256:2241893b50529158d2b7b627ed2f609ae412ba1f8e194f2e7208718794f952e2"
+    },
+    {
+      "id": "bmm:bmad-sprint-planning",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-sprint-planning/SKILL.md"
+      ],
+      "nodeHash": "sha256:b218b463704ee92e8ce8652a22b371c5bd24b9258c6d0f357dd4832d51f8ffbb"
+    },
+    {
+      "id": "bmm:bmad-sprint-status",
+      "sourceId": "method",
+      "phase": "implementation",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/4-implementation/bmad-sprint-status/SKILL.md"
+      ],
+      "nodeHash": "sha256:69b6b773980b3b3a23ecaac2afcb2978d2408424d0f394485910c9667eeb431c"
+    },
+    {
+      "id": "bmm:bmad-ux",
+      "sourceId": "method",
+      "phase": "planning",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md"
+      ],
+      "nodeHash": "sha256:bf1e7fb51d85517bfc8455039f753a52f01f3ebd0a040ea77c0c4c7be67d018e"
+    },
+    {
+      "id": "builder:bmad-agent-builder:build-process",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "builder:bmad-agent-builder:build-process"
+      ],
+      "nodeHash": "sha256:9c8e09077ff716b7afcac7e5ab86a279bb48653fa4f95c633d3abb5e0403232f"
+    },
+    {
+      "id": "builder:bmad-agent-builder:quality-analysis",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "builder:bmad-agent-builder:quality-analysis"
+      ],
+      "nodeHash": "sha256:441c42258a8e92119cece226c1cfb7b84a0e2fd424294b31cfc4db8f8b34aa31"
+    },
+    {
+      "id": "builder:bmad-bmb-setup:configure",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "builder:bmad-bmb-setup:configure"
+      ],
+      "nodeHash": "sha256:f5e2635072613362e0858eb495ee1b9e05f0a1075b9a4a0b4f0b6450285e5553"
+    },
+    {
+      "id": "builder:bmad-eval-runner:run-evals",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "shim",
+      "rowIds": [
+        "builder:bmad-eval-runner:run-evals"
+      ],
+      "nodeHash": "sha256:f646dc07e75087807f8d7c32dd68929ff8989f8f4267f2547813e965dce120e2"
+    },
+    {
+      "id": "builder:bmad-module-builder:create-module",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "builder:bmad-module-builder:create-module"
+      ],
+      "nodeHash": "sha256:add624261ab5796ed5c84e855646503fe6fef956a1aa42bc315fd3f6da055c52"
+    },
+    {
+      "id": "builder:bmad-module-builder:ideate-module",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "builder:bmad-module-builder:ideate-module"
+      ],
+      "nodeHash": "sha256:28942fcc54a4b102b682bc002be2f5b62cd80ef80ae01948331660c2791c9ea1"
+    },
+    {
+      "id": "builder:bmad-module-builder:validate-module",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "builder:bmad-module-builder:validate-module"
+      ],
+      "nodeHash": "sha256:23317150638657372237175830ee5e5448ef1af54b58c12c282b171237e238b8"
+    },
+    {
+      "id": "builder:bmad-workflow-builder:build-process",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "builder:bmad-workflow-builder:build-process"
+      ],
+      "nodeHash": "sha256:cd69e5602acc7a6afbc9e4a531e207d0e4928e0356f4ea1bc9167de1b6d28468"
+    },
+    {
+      "id": "builder:bmad-workflow-builder:convert-process",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "builder:bmad-workflow-builder:convert-process"
+      ],
+      "nodeHash": "sha256:c313775ccc9356fadb1416cd7509d058f31c133c1c7ab95f54a48f3cecb7f9ab"
+    },
+    {
+      "id": "builder:bmad-workflow-builder:quality-analysis",
+      "sourceId": "builder",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "inactive_builder_draft"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "builder:bmad-workflow-builder:quality-analysis"
+      ],
+      "nodeHash": "sha256:a2bd0b50039a57b625759c10c86a277e820f590eae47ba5578283759ae7a9fe8"
+    },
+    {
+      "id": "core:bmad-advanced-elicitation",
+      "sourceId": "method",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/core-skills/bmad-advanced-elicitation/SKILL.md"
+      ],
+      "nodeHash": "sha256:fffef6b518c5c7680f2d653e842923147c281a613a656ec75207bd926479aa46"
+    },
+    {
+      "id": "core:bmad-brainstorming",
+      "sourceId": "method",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/core-skills/bmad-brainstorming/SKILL.md"
+      ],
+      "nodeHash": "sha256:6cb117418fec939a133e3401cf87f2305a4edb5eb588702288ea7eeb5a9784ce"
+    },
+    {
+      "id": "core:bmad-customize",
+      "sourceId": "method",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/core-skills/bmad-customize/SKILL.md"
+      ],
+      "nodeHash": "sha256:dda8c5c0abf0d7d505b444e1c74197695e059d242da963f6a870dd5d7c8fdcde"
+    },
+    {
+      "id": "core:bmad-deep-recon",
+      "sourceId": "method",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/bmm-skills/v6-shims/bmad-domain-research/SKILL.md",
+        "method:src/bmm-skills/v6-shims/bmad-market-research/SKILL.md",
+        "method:src/bmm-skills/v6-shims/bmad-technical-research/SKILL.md",
+        "method:src/core-skills/bmad-deep-recon/SKILL.md"
+      ],
+      "nodeHash": "sha256:ed70b7c5afebd716655ffb95d6f24048a3c32a12b2f2c8e6565c1caacd9101aa"
+    },
+    {
+      "id": "core:bmad-forge-idea",
+      "sourceId": "method",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/core-skills/bmad-forge-idea/SKILL.md"
+      ],
+      "nodeHash": "sha256:880957aca9afa03267cacefcac336d51d6a69e4075a6f45519982978cd6cb5f3"
+    },
+    {
+      "id": "core:bmad-help",
+      "sourceId": "method",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/core-skills/bmad-help/SKILL.md"
+      ],
+      "nodeHash": "sha256:128eb4b19e7a8120ff3af8c579c2114c33849d26d8bb2cf38ba41d5eaf490934"
+    },
+    {
+      "id": "core:bmad-party-mode",
+      "sourceId": "method",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/core-skills/bmad-party-mode/SKILL.md"
+      ],
+      "nodeHash": "sha256:4646d338a3511c52d170ec7d1d2bf6537627dca1ab0d6833430cf603228430b3"
+    },
+    {
+      "id": "core:bmad-review",
+      "sourceId": "method",
+      "phase": "anytime",
+      "predecessorIds": [],
+      "followerIds": [],
+      "outputLocations": [
+        "governed_artifact"
+      ],
+      "supportState": "adapted",
+      "rowIds": [
+        "method:src/core-skills/bmad-review/SKILL.md",
+        "method:src/core-skills/v6-shims/bmad-editorial-review-prose/SKILL.md",
+        "method:src/core-skills/v6-shims/bmad-editorial-review-structure/SKILL.md",
+        "method:src/core-skills/v6-shims/bmad-editorial-review/SKILL.md",
+        "method:src/core-skills/v6-shims/bmad-review-adversarial-general/SKILL.md",
+        "method:src/core-skills/v6-shims/bmad-review-edge-case-hunter/SKILL.md",
+        "method:src/core-skills/v6-shims/bmad-review-verification-gap/SKILL.md"
+      ],
+      "nodeHash": "sha256:48bf6ca9640b90c4c54cde8f47387853e8c116cc16ff904ac2cde75c9ee64124"
+    }
+  ],
+  "aliasEdges": [
+    {
+      "aliasId": "bmm:bmad-create-architecture",
+      "canonicalId": "bmm:bmad-architecture",
+      "deprecated": true
+    },
+    {
+      "aliasId": "bmm:bmad-create-prd",
+      "canonicalId": "bmm:bmad-prd",
+      "deprecated": true
+    },
+    {
+      "aliasId": "bmm:bmad-domain-research",
+      "canonicalId": "core:bmad-deep-recon",
+      "deprecated": true
+    },
+    {
+      "aliasId": "bmm:bmad-edit-prd",
+      "canonicalId": "bmm:bmad-prd",
+      "deprecated": true
+    },
+    {
+      "aliasId": "bmm:bmad-market-research",
+      "canonicalId": "core:bmad-deep-recon",
+      "deprecated": true
+    },
+    {
+      "aliasId": "bmm:bmad-technical-research",
+      "canonicalId": "core:bmad-deep-recon",
+      "deprecated": true
+    },
+    {
+      "aliasId": "bmm:bmad-validate-prd",
+      "canonicalId": "bmm:bmad-prd",
+      "deprecated": true
+    },
+    {
+      "aliasId": "builder:agent.analyze",
+      "canonicalId": "builder:bmad-agent-builder:quality-analysis",
+      "deprecated": true
+    },
+    {
+      "aliasId": "builder:agent.create_rebuild",
+      "canonicalId": "builder:bmad-agent-builder:build-process",
+      "deprecated": true
+    },
+    {
+      "aliasId": "builder:agent.edit",
+      "canonicalId": "builder:bmad-agent-builder:build-process",
+      "deprecated": true
+    },
+    {
+      "aliasId": "builder:workflow.analyze",
+      "canonicalId": "builder:bmad-workflow-builder:quality-analysis",
+      "deprecated": true
+    },
+    {
+      "aliasId": "builder:workflow.build_edit",
+      "canonicalId": "builder:bmad-workflow-builder:build-process",
+      "deprecated": true
+    },
+    {
+      "aliasId": "core:bmad-editorial-review",
+      "canonicalId": "core:bmad-review",
+      "deprecated": true
+    },
+    {
+      "aliasId": "core:bmad-editorial-review-prose",
+      "canonicalId": "core:bmad-review",
+      "deprecated": true
+    },
+    {
+      "aliasId": "core:bmad-editorial-review-structure",
+      "canonicalId": "core:bmad-review",
+      "deprecated": true
+    },
+    {
+      "aliasId": "core:bmad-review-adversarial-general",
+      "canonicalId": "core:bmad-review",
+      "deprecated": true
+    },
+    {
+      "aliasId": "core:bmad-review-edge-case-hunter",
+      "canonicalId": "core:bmad-review",
+      "deprecated": true
+    },
+    {
+      "aliasId": "core:bmad-review-verification-gap",
+      "canonicalId": "core:bmad-review",
+      "deprecated": true
+    }
+  ],
+  "graphHash": "sha256:471be22d70e0301db9b4ba6d9e163d65cf3f96ea96446bcdb869db8bb6519b9f"
+}

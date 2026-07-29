@@ -5,10 +5,10 @@
   "packageVersion": "6.10.0",
   "sourceIdentity": {
     "sourceId": "method",
-    "upstreamLocator": "BMAD-METHOD-main.zip",
+    "upstreamLocator": "BMAD-METHOD-main(1).zip",
     "immutableRef": null,
-    "archiveArtifactLabel": "BMAD-METHOD-main.zip",
-    "archiveSha256": "sha256:a7c049038099b99081fbd03d22c6a5180edd88dee656bb37c4276b1cc31b4a32",
+    "archiveArtifactLabel": "BMAD-METHOD-main(1).zip",
+    "archiveSha256": "sha256:2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02b",
     "sourceTreeHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
     "gitIdentity": null,
     "packageName": "bmad-method",
@@ -2041,5 +2041,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:004e588b58f0add13986a1d5aab81b4fb67dd075e5c8fded9b0b8941638bd08d"
+  "descriptorHash": "sha256:655a9e17813f44261d7b027c8306a43ee6181949e3aa75634c7ef48df6dc5d13"
 }

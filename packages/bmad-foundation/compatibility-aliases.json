@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "sapphirus.bmad.compatibility-aliases/v1",
+  "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
+  "sourceCatalogSha256": "5e4f258c2516ff48a48658ce58b98059d08c788e8dc44c19229dd2902e846d6d",
+  "resolutionPolicy": "Aliases resolve exactly once before dispatch and never grant authority.",
+  "aliases": [
+    {
+      "alias": "bmm:bmad-create-architecture",
+      "target": "bmm:bmad-architecture",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/bmm-skills/v6-shims/bmad-create-architecture/SKILL.md"
+    },
+    {
+      "alias": "bmm:bmad-create-prd",
+      "target": "bmm:bmad-prd",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/bmm-skills/v6-shims/bmad-create-prd/SKILL.md"
+    },
+    {
+      "alias": "bmm:bmad-domain-research",
+      "target": "core:bmad-deep-recon",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/bmm-skills/v6-shims/bmad-domain-research/SKILL.md"
+    },
+    {
+      "alias": "bmm:bmad-edit-prd",
+      "target": "bmm:bmad-prd",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/bmm-skills/v6-shims/bmad-edit-prd/SKILL.md"
+    },
+    {
+      "alias": "bmm:bmad-market-research",
+      "target": "core:bmad-deep-recon",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/bmm-skills/v6-shims/bmad-market-research/SKILL.md"
+    },
+    {
+      "alias": "bmm:bmad-technical-research",
+      "target": "core:bmad-deep-recon",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/bmm-skills/v6-shims/bmad-technical-research/SKILL.md"
+    },
+    {
+      "alias": "bmm:bmad-validate-prd",
+      "target": "bmm:bmad-prd",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/bmm-skills/v6-shims/bmad-validate-prd/SKILL.md"
+    },
+    {
+      "alias": "builder:agent.analyze",
+      "target": "builder:bmad-agent-builder:quality-analysis",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "builder-2.1.0-canonical-catalog",
+      "removalPolicy": "remove_after_persisted_references_are_migrated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    },
+    {
+      "alias": "builder:agent.create_rebuild",
+      "target": "builder:bmad-agent-builder:build-process",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "builder-2.1.0-canonical-catalog",
+      "removalPolicy": "remove_after_persisted_references_are_migrated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    },
+    {
+      "alias": "builder:agent.edit",
+      "target": "builder:bmad-agent-builder:build-process",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "builder-2.1.0-canonical-catalog",
+      "removalPolicy": "remove_after_persisted_references_are_migrated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    },
+    {
+      "alias": "builder:workflow.analyze",
+      "target": "builder:bmad-workflow-builder:quality-analysis",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "builder-2.1.0-canonical-catalog",
+      "removalPolicy": "remove_after_persisted_references_are_migrated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    },
+    {
+      "alias": "builder:workflow.build_edit",
+      "target": "builder:bmad-workflow-builder:build-process",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "builder-2.1.0-canonical-catalog",
+      "removalPolicy": "remove_after_persisted_references_are_migrated",
+      "source": "crates/desktop-app/src/bmad_capability_host.rs"
+    },
+    {
+      "alias": "core:bmad-editorial-review",
+      "target": "core:bmad-review",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/core-skills/v6-shims/bmad-editorial-review/SKILL.md"
+    },
+    {
+      "alias": "core:bmad-editorial-review-prose",
+      "target": "core:bmad-review",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/core-skills/v6-shims/bmad-editorial-review-prose/SKILL.md"
+    },
+    {
+      "alias": "core:bmad-editorial-review-structure",
+      "target": "core:bmad-review",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/core-skills/v6-shims/bmad-editorial-review-structure/SKILL.md"
+    },
+    {
+      "alias": "core:bmad-review-adversarial-general",
+      "target": "core:bmad-review",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/core-skills/v6-shims/bmad-review-adversarial-general/SKILL.md"
+    },
+    {
+      "alias": "core:bmad-review-edge-case-hunter",
+      "target": "core:bmad-review",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/core-skills/v6-shims/bmad-review-edge-case-hunter/SKILL.md"
+    },
+    {
+      "alias": "core:bmad-review-verification-gap",
+      "target": "core:bmad-review",
+      "migrationPolicy": "resolve_before_dispatch",
+      "deprecatedSince": "method-6.10.0",
+      "removalPolicy": "retain_while_pinned_v6_compatibility_is_supported",
+      "source": "src/core-skills/v6-shims/bmad-review-verification-gap/SKILL.md"
+    }
+  ],
+  "aliasCatalogSha256": "060a3f2fe1b8b790021249649e24732d29101141c3272d93bef226422ec50bc5"
+}
