@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
+  "canonicalId": "bmm:bmad-spec",
+  "mode": "interactive",
+  "description": "Greets by name in the resolved language, asks for the input to distill when none is given, and derives SPEC.md (plus companions) from the growing .memlog.md, offering Story Breakdown at most once per run.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": ["output_folder"],
+    "artifact": "{spec-folder}/SPEC.md",
+    "artifactKind": "document"
+  }
+}

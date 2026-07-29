@@ -1,0 +1,20 @@
+{
+  "rowId": "method:src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+  "canonicalId": "bmm:bmad-prd",
+  "mode": "headless",
+  "description": "Headless mode (references/headless.md): completes the detected intent (create/update/validate) from caller-supplied inputs without prompting; halts with a blocked JSON status and reason if intent stays ambiguous.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml"
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{doc_workspace}/prd.md",
+    "artifactKind": "document",
+    "statusSchema": {
+      "status": "complete | partial | blocked",
+      "intent": "create | update | validate",
+      "assumptions": [],
+      "open_questions": []
+    }
+  }
+}

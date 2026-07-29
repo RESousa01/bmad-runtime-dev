@@ -1,0 +1,19 @@
+{
+  "rowId": "method:src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+  "canonicalId": "bmm:bmad-ux",
+  "mode": "interactive",
+  "description": "Detects create/update/validate intent, greets by name in the resolved language, and walks Discovery (source scan, brain dump, working mode, journeys) before distilling DESIGN.md and EXPERIENCE.md at Finalize.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-ux.toml",
+      "{project-root}/_bmad/custom/bmad-ux.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{doc_workspace}/DESIGN.md",
+    "artifactKind": "document"
+  }
+}

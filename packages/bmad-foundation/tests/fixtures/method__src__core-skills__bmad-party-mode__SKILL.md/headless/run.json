@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/core-skills/bmad-party-mode/SKILL.md",
+  "canonicalId": "core:bmad-party-mode",
+  "mode": "headless",
+  "description": "The one explicit non-interactive path: runs the party on the given intent to a natural close, wraps up, and releases any spawned agents, per the `--non-interactive` flag the source names.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": ["memory_dir", "output_dir"],
+    "artifact": "{workflow.memory_dir}/<party>/.memlog.md",
+    "artifactKind": "document"
+  }
+}

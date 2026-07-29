@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/core-skills/bmad-review/SKILL.md",
+  "canonicalId": "core:bmad-review",
+  "mode": "headless",
+  "description": "Headless mode runs the same lens selection and execution without an interactive announcement, honoring any legacy forwarder's exact output contract, and writes to {workflow.report_path} when set.",
+  "inputs": {
+    "content": "[path]"
+  },
+  "outputs": {
+    "outputLocations": ["report_path"],
+    "artifact": "{workflow.report_path}",
+    "artifactKind": "report"
+  }
+}

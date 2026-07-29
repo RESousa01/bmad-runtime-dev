@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
+  "canonicalId": "bmm:bmad-spec",
+  "mode": "headless",
+  "description": "Headless when no TTY, a programmatic caller, or a first message that pre-supplies all inputs; distills without asking, defaults sparse input to express mode, and returns JSON per assets/headless-schemas.md.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": ["output_folder"],
+    "artifact": "{spec-folder}/SPEC.md",
+    "artifactKind": "document"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "rowId": "method:src/core-skills/bmad-advanced-elicitation/SKILL.md",
+  "canonicalId": "core:bmad-advanced-elicitation",
+  "mode": "interactive",
+  "description": "Serves a numbered menu of elicitation methods against the most recent conversational output, runs the chosen ones, and hands back the improved version in place; the user drives every choice (method pick, reshuffle, proceed).",
+  "inputs": {
+    "customization": ["{skill-root}/customize.toml"],
+    "target": "the most recent output in the conversation"
+  },
+  "outputs": {
+    "outputLocations": [],
+    "artifact": null,
+    "artifactKind": null
+  }
+}

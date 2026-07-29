@@ -1,0 +1,19 @@
+{
+  "rowId": "method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+  "canonicalId": "bmm:bmad-architecture",
+  "mode": "interactive",
+  "description": "Greets the user, detects create/update/validate intent, offers Coaching (default) or Fast path, coaches or drafts the architecture spine through an append-only memlog, then distills and saves ARCHITECTURE-SPINE.md at Finalize.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-architecture.toml",
+      "{project-root}/_bmad/custom/bmad-architecture.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{doc_workspace}/ARCHITECTURE-SPINE.md",
+    "artifactKind": "document"
+  }
+}

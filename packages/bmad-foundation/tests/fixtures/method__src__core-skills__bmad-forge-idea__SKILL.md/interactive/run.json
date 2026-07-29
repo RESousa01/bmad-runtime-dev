@@ -1,0 +1,15 @@
+{
+  "rowId": "method:src/core-skills/bmad-forge-idea/SKILL.md",
+  "canonicalId": "core:bmad-forge-idea",
+  "mode": "interactive",
+  "description": "Interactive pressure-testing session: discovers the idea and goal, sets up the memlog workspace, cross-examines the idea with two persona voices per turn, and exits Hardened, Killed, or Clearer.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml",
+    "customization": ["{skill-root}/customize.toml"]
+  },
+  "outputs": {
+    "outputLocations": ["forge_output_path"],
+    "artifact": "{workspace}/forge-report.html",
+    "artifactKind": "document"
+  }
+}

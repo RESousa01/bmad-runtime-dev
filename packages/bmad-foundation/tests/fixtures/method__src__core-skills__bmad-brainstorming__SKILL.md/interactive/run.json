@@ -1,0 +1,15 @@
+{
+  "rowId": "method:src/core-skills/bmad-brainstorming/SKILL.md",
+  "canonicalId": "core:bmad-brainstorming",
+  "mode": "interactive",
+  "description": "Interactive brainstorming session (Facilitator, Creative Partner, or Ideate for me), driven by the composer page or in-chat technique selection, logging every idea to the memlog and finalizing on user wrap-up.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml",
+    "customization": ["{skill-root}/customize.toml"]
+  },
+  "outputs": {
+    "outputLocations": ["output_dir"],
+    "artifact": "{doc_workspace}/.memlog.md",
+    "artifactKind": "document"
+  }
+}

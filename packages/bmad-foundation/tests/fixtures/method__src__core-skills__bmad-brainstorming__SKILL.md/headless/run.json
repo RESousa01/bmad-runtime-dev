@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/core-skills/bmad-brainstorming/SKILL.md",
+  "canonicalId": "core:bmad-brainstorming",
+  "mode": "headless",
+  "description": "Headless mode: generates ideas autonomously (Ideate for me) per references/headless.md, logging to the memlog and finalizing without prompting.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": ["output_dir"],
+    "artifact": "{doc_workspace}/.memlog.md",
+    "artifactKind": "document"
+  }
+}

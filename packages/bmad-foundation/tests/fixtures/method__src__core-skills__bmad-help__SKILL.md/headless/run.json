@@ -1,0 +1,15 @@
+{
+  "rowId": "method:src/core-skills/bmad-help/SKILL.md",
+  "canonicalId": "core:bmad-help",
+  "mode": "headless",
+  "description": "Headless mode answers the same availability/next-step/alias questions from the catalog and resolved config without a conversational turn, returning the same structured orientation content in place of chat prose.",
+  "inputs": {
+    "catalog": "{project-root}/_bmad/_config/bmad-help.csv",
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": [],
+    "artifact": null,
+    "artifactKind": null
+  }
+}

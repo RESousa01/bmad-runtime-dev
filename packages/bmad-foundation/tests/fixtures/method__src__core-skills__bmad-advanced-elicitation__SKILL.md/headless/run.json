@@ -1,0 +1,15 @@
+{
+  "rowId": "method:src/core-skills/bmad-advanced-elicitation/SKILL.md",
+  "canonicalId": "core:bmad-advanced-elicitation",
+  "mode": "headless",
+  "description": "Autonomous refinement mode: applies the resolved elicitation preferences to the target without prompting and returns the improved version in place, with no persisted artifact.",
+  "inputs": {
+    "customization": ["{skill-root}/customize.toml"],
+    "target": "the most recent output in the conversation"
+  },
+  "outputs": {
+    "outputLocations": [],
+    "artifact": null,
+    "artifactKind": null
+  }
+}

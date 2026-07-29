@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+  "canonicalId": "bmm:bmad-architecture",
+  "mode": "headless",
+  "description": "Headless (no interactive user): follows references/headless.md for the whole run instead of greeting and coaching, still distilling and saving ARCHITECTURE-SPINE.md at Finalize.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{doc_workspace}/ARCHITECTURE-SPINE.md",
+    "artifactKind": "document"
+  }
+}

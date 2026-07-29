@@ -1,0 +1,19 @@
+{
+  "rowId": "method:src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+  "canonicalId": "bmm:bmad-check-implementation-readiness",
+  "mode": "interactive",
+  "description": "Six-step, just-in-time step-file progression (document discovery through final assessment) validating PRD, UX, Architecture, and Epics/Stories completeness and alignment, halting at each menu for user input.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-check-implementation-readiness.toml",
+      "{project-root}/_bmad/custom/bmad-check-implementation-readiness.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{planning_artifacts}/implementation-readiness-report-{date}.md",
+    "artifactKind": "document"
+  }
+}

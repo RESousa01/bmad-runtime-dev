@@ -1,0 +1,15 @@
+{
+  "rowId": "method:src/core-skills/bmad-deep-recon/SKILL.md",
+  "canonicalId": "core:bmad-deep-recon",
+  "mode": "interactive",
+  "description": "Interactive research session: greets the user, detects Draft/Process/Run/Refresh intent, offers the Run-here-vs-Draft-for-your-tool trade-off up front, and builds the run-folder workspace as it goes.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml",
+    "customization": ["{skill-root}/customize.toml"]
+  },
+  "outputs": {
+    "outputLocations": ["research_output_path"],
+    "artifact": "{doc_workspace}/research.md",
+    "artifactKind": "document"
+  }
+}

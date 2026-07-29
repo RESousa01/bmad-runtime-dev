@@ -1,0 +1,15 @@
+{
+  "rowId": "method:src/core-skills/bmad-review/SKILL.md",
+  "canonicalId": "core:bmad-review",
+  "mode": "interactive",
+  "description": "Interactive multi-lens review: loads content, selects applicable lenses from {workflow.lenses}, announces the plan, runs independent then dependent lenses, and presents the findings per {workflow.output_format}.",
+  "inputs": {
+    "customization": ["{skill-root}/customize.toml"],
+    "content": "[path]"
+  },
+  "outputs": {
+    "outputLocations": ["report_path"],
+    "artifact": "{workflow.report_path}",
+    "artifactKind": "report"
+  }
+}

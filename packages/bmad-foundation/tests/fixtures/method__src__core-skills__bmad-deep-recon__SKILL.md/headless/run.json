@@ -1,0 +1,24 @@
+{
+  "rowId": "method:src/core-skills/bmad-deep-recon/SKILL.md",
+  "canonicalId": "core:bmad-deep-recon",
+  "mode": "headless",
+  "description": "Headless mode: plan-and-proceed, inferring type and intent (bare research defaults to run), logging every judgment call as an assumption, halting blocked only if topic or target folder cannot be inferred.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": ["research_output_path"],
+    "artifact": "{doc_workspace}/research.md",
+    "artifactKind": "document",
+    "statusSchema": {
+      "status": "complete | blocked",
+      "intent": "draft | process | run | refresh | deepen",
+      "type": "market | domain | technical | competitive | user-voice | academic-lit",
+      "report": "{doc_workspace}/research.md",
+      "memlog": "{doc_workspace}/.memlog.md",
+      "claims": { "verified": 0, "unverified": 0, "overturned": 0 },
+      "open_questions": [],
+      "external_handoffs": []
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/core-skills/bmad-forge-idea/SKILL.md",
+  "canonicalId": "core:bmad-forge-idea",
+  "mode": "headless",
+  "description": "Headless mode runs the forge without an interactive user turn, driving the idea to a Hardened, Killed, or Clearer exit and always rendering the forge-report.html and, on Hardened, forged-idea.md.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": ["forge_output_path"],
+    "artifact": "{workspace}/forge-report.html",
+    "artifactKind": "document"
+  }
+}

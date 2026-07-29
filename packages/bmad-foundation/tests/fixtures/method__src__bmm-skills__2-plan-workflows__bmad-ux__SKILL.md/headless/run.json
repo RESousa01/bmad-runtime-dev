@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+  "canonicalId": "bmm:bmad-ux",
+  "mode": "headless",
+  "description": "Headless mode (references/headless.md): completes the detected intent from caller-supplied inputs without prompting, skipping the interactive greeting and creative-tool prompts.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml"
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{doc_workspace}/DESIGN.md",
+    "artifactKind": "document"
+  }
+}

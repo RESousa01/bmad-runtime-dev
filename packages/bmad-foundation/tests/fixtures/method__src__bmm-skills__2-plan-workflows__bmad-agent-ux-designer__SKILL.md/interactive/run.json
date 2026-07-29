@@ -1,0 +1,17 @@
+{
+  "rowId": "method:src/bmm-skills/2-plan-workflows/bmad-agent-ux-designer/SKILL.md",
+  "canonicalId": "bmm:bmad-agent-ux-designer",
+  "mode": "interactive",
+  "description": "Sally greets the user, renders {agent.menu} as a numbered table, and stops to wait for input before dispatching.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-agent-ux-designer.toml",
+      "{project-root}/_bmad/custom/bmad-agent-ux-designer.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"]
+  }
+}

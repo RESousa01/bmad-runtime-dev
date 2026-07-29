@@ -1,0 +1,15 @@
+{
+  "rowId": "method:src/core-skills/bmad-help/SKILL.md",
+  "canonicalId": "core:bmad-help",
+  "mode": "interactive",
+  "description": "Ranks the installed skill catalog against the user's query and current project state, reports position, next step, and invocation details in chat, and can fetch module docs to answer general questions.",
+  "inputs": {
+    "catalog": "{project-root}/_bmad/_config/bmad-help.csv",
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": [],
+    "artifact": null,
+    "artifactKind": null
+  }
+}

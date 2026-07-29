@@ -1,0 +1,19 @@
+{
+  "rowId": "method:src/bmm-skills/3-solutioning/bmad-generate-project-context/SKILL.md",
+  "canonicalId": "bmm:bmad-generate-project-context",
+  "mode": "interactive",
+  "description": "Three-step, just-in-time step-file progression (discover through complete) producing a lean, LLM-optimized project-context.md, halting for user approval before each continuation.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-generate-project-context.toml",
+      "{project-root}/_bmad/custom/bmad-generate-project-context.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{output_folder}/project-context.md",
+    "artifactKind": "document"
+  }
+}

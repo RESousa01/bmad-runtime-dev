@@ -1,0 +1,17 @@
+{
+  "rowId": "method:src/bmm-skills/2-plan-workflows/bmad-agent-pm/SKILL.md",
+  "canonicalId": "bmm:bmad-agent-pm",
+  "mode": "headless",
+  "description": "John's activation sequence (resolve agent block, prepend/append steps, persistent facts, config load, greeting) runs without a menu presentation waiting on interactive input.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-agent-pm.toml",
+      "{project-root}/_bmad/custom/bmad-agent-pm.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"]
+  }
+}

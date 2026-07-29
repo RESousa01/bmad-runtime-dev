@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/core-skills/bmad-customize/SKILL.md",
+  "canonicalId": "core:bmad-customize",
+  "mode": "headless",
+  "description": "Headless mode composes and writes the requested override without an interactive confirmation prompt, still following the same discover/route/author/write/verify steps.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": ["_bmad/custom"],
+    "artifact": "{project-root}/_bmad/custom/{skill-name}.toml",
+    "artifactKind": "file_set"
+  }
+}

@@ -186,9 +186,14 @@ pub use review::{
 pub use service::{MethodServiceError, MethodSessionService};
 pub use session::{BmadSessionIntent, BmadSessionTransitionError};
 pub use skills::{
-    BmadAgentAnalystSkill, BmadAgentTechWriterSkill, BmadDocumentProjectSkill, BmadMethodSkill,
-    BmadPrfaqSkill, BmadProductBriefSkill, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillHarnessError, BmadSkillSupportState, BMAD_SKILL_HARNESS_SCHEMA,
+    BmadAdvancedElicitationSkill, BmadAgentAnalystSkill, BmadAgentArchitectSkill, BmadAgentPmSkill,
+    BmadAgentTechWriterSkill, BmadAgentUxDesignerSkill, BmadArchitectureSkill,
+    BmadBrainstormingSkill, BmadCheckImplementationReadinessSkill, BmadCreateEpicsAndStoriesSkill,
+    BmadCustomizeSkill, BmadDeepReconSkill, BmadDocumentProjectSkill, BmadForgeIdeaSkill,
+    BmadGenerateProjectContextSkill, BmadHelpSkill, BmadMethodSkill, BmadPartyModeSkill,
+    BmadPrdSkill, BmadPrfaqSkill, BmadProductBriefSkill, BmadReviewSkill, BmadSkillDescriptor,
+    BmadSkillDescriptorInput, BmadSkillHarnessError, BmadSkillSupportState, BmadSpecSkill,
+    BmadUxSkill, BMAD_SKILL_HARNESS_SCHEMA,
 };
 pub use source::{BmadSourcePackage, BmadSourceService};
 pub use state_machine::{

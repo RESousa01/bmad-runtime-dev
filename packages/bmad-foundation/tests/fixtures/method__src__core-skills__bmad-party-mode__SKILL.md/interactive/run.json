@@ -1,0 +1,15 @@
+{
+  "rowId": "method:src/core-skills/bmad-party-mode/SKILL.md",
+  "canonicalId": "core:bmad-party-mode",
+  "mode": "interactive",
+  "description": "Interactive round-table: resolves the roster, welcomes the user, runs an open-ended multi-persona conversation until the user signals done, then offers a keepsake HTML and tops up the party memlog.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml",
+    "customization": ["{skill-root}/customize.toml"]
+  },
+  "outputs": {
+    "outputLocations": ["memory_dir", "output_dir"],
+    "artifact": "{workflow.memory_dir}/<party>/.memlog.md",
+    "artifactKind": "document"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "rowId": "method:src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+  "canonicalId": "bmm:bmad-prd",
+  "mode": "interactive",
+  "description": "Detects create/update/validate intent, greets by name in the resolved language, and walks Discovery (brain dump, stakes calibration, working mode) before drafting prd.md and running Finalize.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-prd.toml",
+      "{project-root}/_bmad/custom/bmad-prd.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{doc_workspace}/prd.md",
+    "artifactKind": "document"
+  }
+}

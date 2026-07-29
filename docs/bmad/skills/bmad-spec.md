@@ -1,0 +1,44 @@
+# bmad-spec
+
+- **rowId**: `method:src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md`
+- **canonicalId**: `bmm:bmad-spec`
+- **pinned source**: `packages/bmad-foundation/source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md`
+
+## What it does
+
+Distills any intent input (idea, brain dump, PRD, GDD, RFC, brief, transcript,
+mixed multi-source) into `SPEC.md` -- the five-field kernel (Why,
+Capabilities, Constraints, Non-goals, Success signal) -- plus optional
+companion files for load-bearing content that would bloat the kernel.
+Create-vs-update is detected by whether a prior `.memlog.md` exists at the
+target spec folder, not by a caller-selected action. `SPEC.md` and every
+spec-authored companion are re-derived from `.memlog.md` on every run. A
+self-validate sweep (coherence, then preservation) runs after every
+create/update. Story Breakdown is an optional, interactive-only extension
+that writes `stories.yaml`.
+
+## Declared actions and modes
+
+- **Actions**: none declared as a fixed, separately-invocable action.
+  Catalog row records `action: null`.
+- **Modes**: `interactive`, `headless` (per capability-catalog.json). The
+  source's own headless detection (activation Step 4) is heuristic --
+  "no TTY, programmatic caller ... or the first message pre-supplies all
+  inputs" -- rather than an explicit flag, but both modes are still named
+  and supported.
+- **Output location**: `output_folder`. Unlike its sibling
+  `2-plan-workflows` skills, activation Step 3 resolves `{output_folder}`
+  (under the merged `core` config), not `{planning_artifacts}`, and the
+  spec folder defaults to `{output_folder}/specs/spec-{slug}/`.
+- **Artifact kind**: `document`. `SPEC.md` is the canonical working
+  artifact, re-derived and persisted on every run -- `PersistArtifacts`
+  completion hook. Companions are optional overflow of the same kind, not a
+  distinct declared kind.
+- **Predecessor/follower**: neither is declared. The source states
+  "Multiple skills may call to update the same spec over time" -- no single
+  fixed upstream or downstream skill is named.
+
+## Compatibility decision
+
+**adopt / exact.** No semantic divergence was found between the pinned
+source and the harness descriptor.

@@ -1,0 +1,7 @@
+{
+  "rowId": "method:src/core-skills/bmad-help/SKILL.md",
+  "decision": "adapt",
+  "supportState": "adapted",
+  "owner": "MTH-core-skills",
+  "rationale": "crates/desktop-runtime/src/bmad/help.rs already implements a model-free deterministic Help engine (availability, next-steps, alias resolution, capability projection, catalog counts). The pinned SKILL.md's remote module-doc fetch and open-ended general-question answering are explicitly model-driven behaviors that engine does not, and structurally cannot, perform, so this row reports adapted rather than exact."
+}

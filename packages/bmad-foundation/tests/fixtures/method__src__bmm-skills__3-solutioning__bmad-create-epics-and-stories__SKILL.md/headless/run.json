@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/bmm-skills/3-solutioning/bmad-create-epics-and-stories/SKILL.md",
+  "canonicalId": "bmm:bmad-create-epics-and-stories",
+  "mode": "headless",
+  "description": "Catalog-declared headless mode. No headless path is named in the pinned source or its four step files -- every step halts at a menu and states content is never generated without user input. Recorded as a fidelity gap; see the adapter's module doc.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml"
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{planning_artifacts}/epics.md",
+    "artifactKind": "document"
+  }
+}

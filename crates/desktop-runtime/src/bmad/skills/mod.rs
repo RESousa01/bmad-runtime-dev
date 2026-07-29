@@ -9,8 +9,12 @@ mod adapters;
 mod harness;
 
 pub use adapters::{
-    BmadAgentAnalystSkill, BmadAgentTechWriterSkill, BmadDocumentProjectSkill, BmadPrfaqSkill,
-    BmadProductBriefSkill,
+    BmadAdvancedElicitationSkill, BmadAgentAnalystSkill, BmadAgentArchitectSkill, BmadAgentPmSkill,
+    BmadAgentTechWriterSkill, BmadAgentUxDesignerSkill, BmadArchitectureSkill,
+    BmadBrainstormingSkill, BmadCheckImplementationReadinessSkill, BmadCreateEpicsAndStoriesSkill,
+    BmadCustomizeSkill, BmadDeepReconSkill, BmadDocumentProjectSkill, BmadForgeIdeaSkill,
+    BmadGenerateProjectContextSkill, BmadHelpSkill, BmadPartyModeSkill, BmadPrdSkill,
+    BmadPrfaqSkill, BmadProductBriefSkill, BmadReviewSkill, BmadSpecSkill, BmadUxSkill,
 };
 pub use harness::{
     BmadMethodSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillHarnessError,

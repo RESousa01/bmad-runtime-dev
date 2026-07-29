@@ -1,0 +1,17 @@
+{
+  "rowId": "method:src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md",
+  "canonicalId": "bmm:bmad-agent-architect",
+  "mode": "headless",
+  "description": "Winston's activation sequence (resolve agent block, prepend/append steps, persistent facts, config load, greeting) runs without a menu presentation waiting on interactive input.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-agent-architect.toml",
+      "{project-root}/_bmad/custom/bmad-agent-architect.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"]
+  }
+}

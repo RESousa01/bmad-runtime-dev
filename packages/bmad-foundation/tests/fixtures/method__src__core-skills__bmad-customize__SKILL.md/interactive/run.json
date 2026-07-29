@@ -1,0 +1,14 @@
+{
+  "rowId": "method:src/core-skills/bmad-customize/SKILL.md",
+  "canonicalId": "core:bmad-customize",
+  "mode": "interactive",
+  "description": "Discovers customizable skills, routes intent to the agent or workflow surface, composes a TOML override, shows a diff, waits for explicit confirmation, then writes and verifies it.",
+  "inputs": {
+    "config": "{project-root}/_bmad/config.toml"
+  },
+  "outputs": {
+    "outputLocations": ["_bmad/custom"],
+    "artifact": "{project-root}/_bmad/custom/{skill-name}.toml",
+    "artifactKind": "file_set"
+  }
+}
