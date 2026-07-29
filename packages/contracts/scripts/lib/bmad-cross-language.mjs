@@ -10,6 +10,7 @@ export const BMAD_CROSS_LANGUAGE_SCHEMAS = Object.freeze([
   ["bmad-skill-package", "BmadSkillPackage", "BmadSkillPackage"],
   ["bmad-session", "BmadSession", "BmadSession"],
   ["bmad-artifact", "BmadArtifact", "BmadArtifact"],
+  ["bmad-action-plan", "BmadActionPlan", "BmadActionPlan"],
   ["bmad-builder-authoring", "BuilderAuthoringObject", "BuilderAuthoringObject"],
   ["bmad-builder-promotion", "BmadBuilderPromotion", "BmadBuilderPromotion"],
   ["bmad-eval", "BmadEval", "BmadEval"],

@@ -24,12 +24,12 @@
     "dotnet": "Corvus.Json.Cli@5.2.7",
     "dotnetRuntime": "Corvus.Text.Json@5.2.7"
   },
-  "toolLockSha256": "sha256:d2c68a65b5ff8e6f2f083751a4a66e20a8626a463dc35b2a546ccf2007a27149",
-  "generationConfigSha256": "sha256:d5852353ad4c4d80862a2446b350f731879ed054a1b220a82e2444e54d425a30",
+  "toolLockSha256": "sha256:de1babac74965c22a73d3a589b8f1feace22420b069dff815131304d3c6409c3",
+  "generationConfigSha256": "sha256:052ab180d1be683c0386f3ac90c2e2634c5b47ccf3f58ba372611e89455dd346",
   "generationBundles": {
     "production": {
       "id": "https://schemas.sapphirus.dev/codegen/contracts-catalog.schema.json",
-      "sha256": "sha256:47338d9ffec294779bf343dada75e30e4c8d7b76f7a059f5607d96a53d9f6ec9"
+      "sha256": "sha256:fc7be136d4b7afbc41f8a53daa29ecf2325aa16056c4047b56d8a205fdcbaae8"
     },
     "qualification": {
       "id": "https://schemas.sapphirus.dev/codegen/generator-qualification.schema.json",
@@ -55,6 +55,7 @@
       "families": [
         "approved-execution-spec",
         "authority-ref",
+        "bmad-action-plan",
         "bmad-artifact",
         "bmad-builder-authoring",
         "bmad-builder-promotion",
@@ -113,6 +114,7 @@
       "families": [
         "approved-execution-spec",
         "authority-ref",
+        "bmad-action-plan",
         "bmad-artifact",
         "bmad-builder-authoring",
         "bmad-builder-promotion",
@@ -171,6 +173,7 @@
       "families": [
         "approved-execution-spec",
         "authority-ref",
+        "bmad-action-plan",
         "bmad-artifact",
         "bmad-builder-authoring",
         "bmad-builder-promotion",
@@ -243,6 +246,16 @@
       "sha256": "sha256:66ce5aac41b92f46e7fe98ceda7f9a8a125c1ee38ec8211031df17a8ae5b23d0",
       "canonicalSha256": "sha256:66ce5aac41b92f46e7fe98ceda7f9a8a125c1ee38ec8211031df17a8ae5b23d0",
       "sourceSha256": "sha256:b1aeb485fe96e3276a76956b61b58008bd16075c4188fd819ffa4322fc43a006",
+      "role": "root",
+      "compatibility": "major-locked"
+    },
+    {
+      "file": "schemas/bmad-action-plan.schema.json",
+      "id": "https://schemas.sapphirus.dev/v1/bmad-action-plan.schema.json",
+      "title": "sapphirus.bmad-action-plan.v1",
+      "sha256": "sha256:cee3274c27da52634ba4047df9fca94ccbf28366460927da3d75d340d9696953",
+      "canonicalSha256": "sha256:cee3274c27da52634ba4047df9fca94ccbf28366460927da3d75d340d9696953",
+      "sourceSha256": "sha256:b5f17a35d7757b5991abc23424a72a69add405480a6d2e6fd62832b9c442ad98",
       "role": "root",
       "compatibility": "major-locked"
     },
@@ -350,9 +363,9 @@
       "file": "schemas/bmad-memory.schema.json",
       "id": "https://schemas.sapphirus.dev/v1/bmad-memory.schema.json",
       "title": "sapphirus.bmad-memory.v1",
-      "sha256": "sha256:d9cec629aa3715a1119eab70010fc604e6edbbdc2a1ed351c93eef3433bce72e",
-      "canonicalSha256": "sha256:d9cec629aa3715a1119eab70010fc604e6edbbdc2a1ed351c93eef3433bce72e",
-      "sourceSha256": "sha256:2a2e7709be78984d2fa37e1f029106715217082d09fa810155040cb1c8bc89b1",
+      "sha256": "sha256:958180c089e3805d7842af596acc729133cd88b1caf10eb0d5bbba3a930e0b52",
+      "canonicalSha256": "sha256:958180c089e3805d7842af596acc729133cd88b1caf10eb0d5bbba3a930e0b52",
+      "sourceSha256": "sha256:0963933d96afb28dd6dcd4b68a4efbbae784b13a686b8cebe2b08648c1b7a601",
       "role": "root",
       "compatibility": "major-locked"
     },
@@ -798,7 +811,7 @@
     }
   ],
   "schemaTree": {
-    "sha256": "sha256:8b6a63d45151b4d3f4d94125984b0fb25e35b1f7777732731f6a52461f488c4d",
+    "sha256": "sha256:5ba13ff5aaab9fcb7672a71aaca047934a7c9d56ee2f215fce1c3ee332fa6668",
     "files": [
       {
         "file": "schemas/approved-execution-spec.schema.json",
@@ -810,6 +823,12 @@
         "file": "schemas/authority-ref.schema.json",
         "sourceSha256": "sha256:b1aeb485fe96e3276a76956b61b58008bd16075c4188fd819ffa4322fc43a006",
         "canonicalSha256": "sha256:66ce5aac41b92f46e7fe98ceda7f9a8a125c1ee38ec8211031df17a8ae5b23d0",
+        "role": "root"
+      },
+      {
+        "file": "schemas/bmad-action-plan.schema.json",
+        "sourceSha256": "sha256:b5f17a35d7757b5991abc23424a72a69add405480a6d2e6fd62832b9c442ad98",
+        "canonicalSha256": "sha256:cee3274c27da52634ba4047df9fca94ccbf28366460927da3d75d340d9696953",
         "role": "root"
       },
       {
@@ -874,8 +893,8 @@
       },
       {
         "file": "schemas/bmad-memory.schema.json",
-        "sourceSha256": "sha256:2a2e7709be78984d2fa37e1f029106715217082d09fa810155040cb1c8bc89b1",
-        "canonicalSha256": "sha256:d9cec629aa3715a1119eab70010fc604e6edbbdc2a1ed351c93eef3433bce72e",
+        "sourceSha256": "sha256:0963933d96afb28dd6dcd4b68a4efbbae784b13a686b8cebe2b08648c1b7a601",
+        "canonicalSha256": "sha256:958180c089e3805d7842af596acc729133cd88b1caf10eb0d5bbba3a930e0b52",
         "role": "root"
       },
       {
@@ -1136,11 +1155,11 @@
   "generatedTrees": {
     "production": {
       "typescript": {
-        "sha256": "sha256:970d555dfaebeacc9464adf87c85f6ef44a2474f7622d0c8b7cea20dcba731e8",
+        "sha256": "sha256:098e00407e943d168c5e8368d23f6e2a04b2610732f287fd2d1c3921705e0e44",
         "files": [
           {
             "file": "generated/typescript/bmad.ts",
-            "sha256": "sha256:8923452b6a3a835472964f437d485afe8f3cff5a505bb1c028dd4ccdd95d4903"
+            "sha256": "sha256:1d2b39973c3f54747feeb6997d30650f482d2d1a556d8c4c0f07ada14228615e"
           },
           {
             "file": "generated/typescript/canonical-json.mjs",
@@ -1161,6 +1180,10 @@
           {
             "file": "generated/typescript/schema/authority-ref.ts",
             "sha256": "sha256:9b52008f757c49e72f64cb3e252497c03f06e5c756fa2d22340de50a92b563c3"
+          },
+          {
+            "file": "generated/typescript/schema/bmad-action-plan.ts",
+            "sha256": "sha256:faa843ac15dcc134f45ee663f4ab9b8866e8720ecc7f8369e858403609fac474"
           },
           {
             "file": "generated/typescript/schema/bmad-artifact.ts",
@@ -1204,7 +1227,7 @@
           },
           {
             "file": "generated/typescript/schema/bmad-memory.ts",
-            "sha256": "sha256:b7fe75d252eabd21e510ad9284d54e76b51203fa2daa3eb451a7eff8a9067257"
+            "sha256": "sha256:ce52d78b1e23071f325ab6e5c10fb85a3b4dc2e9c5cbe55ab4389f3e3658864f"
           },
           {
             "file": "generated/typescript/schema/bmad-method-advance-result.ts",
@@ -1393,20 +1416,20 @@
         ]
       },
       "rust": {
-        "sha256": "sha256:7aaf13e33b888f4c799cc1a14920afdac434fb4910c2f023bf70ff5bceaf34d2",
+        "sha256": "sha256:33488be0537643132aeba380fbc30fa3e408fc20c118822cd6a773315248f0e3",
         "files": [
           {
             "file": "generated/rust/bmad.rs",
-            "sha256": "sha256:979053d53bd1994ed800b9d287e235f0f88dcded0696518e6b5b78f947a58c2e"
+            "sha256": "sha256:a5037dab9a7fb7d760ddd990af996a77927e0501072dffa886461bb8b3cee14a"
           },
           {
             "file": "generated/rust/contracts.rs",
-            "sha256": "sha256:5f32ff38ac7923cf28abf762aa247a665eeae2551fa02af38406d82e6b85ad59"
+            "sha256": "sha256:c57bdb6a35b25be3820255fd7bec237a93a9d95712f12b4fd502d9f1ba3b93cc"
           }
         ]
       },
       "dotnet": {
-        "sha256": "sha256:7571a5858b57261a3f117ea743ee97cc3cd7f78d7b1bf3cba7cd30d33e13e532",
+        "sha256": "sha256:6bccbb957072e39022009dc9b633caa04061fb8bca22260cc79c92fff37a4c6d",
         "files": [
           {
             "file": "generated/dotnet/BmadSchemaClosures.g.cs",
@@ -1511,6 +1534,222 @@
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.ApprovedExecutionSpec.cs",
             "sha256": "sha256:cff03437cda56a73c0799febb77ea6111a1f5e30f843510b9b270d5e2b11d6b1"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.AuthorityClassEntity.JsonSchema.cs",
+            "sha256": "sha256:f4697e5e32c9f0b47fb92d862c8ac96442d0c114f0d087a72a9afe96c2693f91"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.AuthorityClassEntity.Mutable.cs",
+            "sha256": "sha256:962aae4fabbcd822f5a3f20db174e6dee9b2f8bd7e9e1a80b9b01278a6e05128"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.AuthorityClassEntity.cs",
+            "sha256": "sha256:afa00b0bf749ccf146e41fc01d56eafc3b25854d23e65955f221d265380952b3"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.JsonSchema.cs",
+            "sha256": "sha256:2517ff22ee4542ed92c474a5a9a58618234d81ada4785a3cb4029006ebdd9a27"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.KindEntity.JsonSchema.cs",
+            "sha256": "sha256:431648dc9bcd7bc91e85caba317e0d25fbab8e1b07a5d4956870b5fa0900a573"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.KindEntity.Mutable.cs",
+            "sha256": "sha256:242026482b811f427b7aefd4cfdb6d5139fead864bff19cb5694a69b804527d5"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.KindEntity.cs",
+            "sha256": "sha256:81678da8c78a357a1e83ec0a15b2983c1b3f88ebb5983de82b4b2a22129b625f"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.Mutable.cs",
+            "sha256": "sha256:3bb8862385adec8fab0adb9e1b3e3d83ac93047717e8962b15c50365fd98bf14"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.JsonSchema.cs",
+            "sha256": "sha256:2c5d9c79a56ca9a3906cd7d724206aa062d5203441f4b427ebb3fe1a19ced524"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.Mutable.cs",
+            "sha256": "sha256:e077c9ea2fce52f1bf0e34a7bcad1755f24d93395ccd2f80d690c690e65d26d1"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.ReadsEntity.JsonSchema.cs",
+            "sha256": "sha256:7165d9111a9c6c4d4a6e8bb46525723c392eb88f92d46df34f6fc4c63ba51905"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.ReadsEntity.Mutable.cs",
+            "sha256": "sha256:ddf785cd39eab35a1468b959b9f58f46b78a2460db29fda166be934b3a1c344e"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.ReadsEntity.cs",
+            "sha256": "sha256:b7ddde42e054b08944c709485d95e5d382506dfe75522577306b25ba4ab67ea5"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.cs",
+            "sha256": "sha256:7c2101b2f1d809aabeaaa1ff104752c66ea9fd7352bfc32333f7f8d8e0ca7b8b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.SchemaVersionEntity.JsonSchema.cs",
+            "sha256": "sha256:5d2a23afd345c4c381824f87deda6285e406809bd30dc7c12e0b93f206ff925b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.SchemaVersionEntity.Mutable.cs",
+            "sha256": "sha256:0742c80b2f9785181de0f7c629c40e55c82dd840395219a86bbb4a50a9350283"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.SchemaVersionEntity.cs",
+            "sha256": "sha256:d8f6f446acbe00932ede6d57bada6cef9711e8f97c5ab83ae3beebd08719973d"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.StepIndexEntity.JsonSchema.cs",
+            "sha256": "sha256:3a4d8944092c0e852b7b6477f411bfafb1b05a0c4d940141c56ead7daf43335e"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.StepIndexEntity.Mutable.cs",
+            "sha256": "sha256:fb9cb8a046f80c1916633fdee17387d5d8141ce3f3126bc01c40eafc0a1fcbd4"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.StepIndexEntity.cs",
+            "sha256": "sha256:d60e1e668c29afd437e174e530f2fcd3d65fa65b34e3f55bd75e33a2491cc6d0"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.cs",
+            "sha256": "sha256:d185a01306b4b33c6a0e391c39ce65fa68c68c092158825221e0e17a94f54864"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.JsonSchema.cs",
+            "sha256": "sha256:f67fe2c637a13519e9199bc74fea9d001e29dddb4a73744c75e0b287b3dcb824"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxModelCallsEntity.JsonSchema.cs",
+            "sha256": "sha256:f46825c057499aeab8f33681ca83b4845206d5c08fd9d32ef2b57f95739e3761"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxModelCallsEntity.Mutable.cs",
+            "sha256": "sha256:5952a4a584f0ef5400779ffc779d8a321771c05eb71f1b4cdae7d40b42fe00fc"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxModelCallsEntity.cs",
+            "sha256": "sha256:7eefa7dbe426182566cfae8a10f96fadf6a5cb6e9cf659ab6fb8f31827b07386"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRepairsEntity.JsonSchema.cs",
+            "sha256": "sha256:4cdf0df274fbf3ad214470fad9521a74d3431ab73f48605e28c1f015c09a9ad4"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRepairsEntity.Mutable.cs",
+            "sha256": "sha256:b8de401310dfe75c3d2c6eaaf34e1b8f014bf27c41821f002337902fa72553cf"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRepairsEntity.cs",
+            "sha256": "sha256:457e43fd8904bd2bf17cb8ec5ede51b7669b866f4b74300bac021f88b7e76d7d"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRetriesEntity.JsonSchema.cs",
+            "sha256": "sha256:d8c6d20420022658867b0d9be68b654a27147de0088b25b0679f759befe422f5"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRetriesEntity.Mutable.cs",
+            "sha256": "sha256:524a9693ae62cd023291c4ba49bfb4b44fbccb163eca268c54ce143562bbf19b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRetriesEntity.cs",
+            "sha256": "sha256:f8cf448aac5294d311b0356e0d3c5120829eeaad953c2562ffa3b7e65be20cb9"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxTokensEntity.JsonSchema.cs",
+            "sha256": "sha256:63579748dca7afdcb6bd1f69e31cd8fef65cb40c9937eee006eff0e800f51783"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxTokensEntity.Mutable.cs",
+            "sha256": "sha256:458efbb9fa1bba4c362aea256913d554732ede86da19bade326e40a91f8cfb8d"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxTokensEntity.cs",
+            "sha256": "sha256:bc836c2f4c80da88d3ca9dfb9339800cbef34cd97f912d023475df2d484eaa0d"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.Mutable.cs",
+            "sha256": "sha256:fc3d81c31beb369fa3ec201a1688d296f3f83767dad4ae4b9ae5828540943ddd"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.cs",
+            "sha256": "sha256:98276a31ad8de887a62c32291d4248519edeac7d7bff174ef8ad66179122f464"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.EffectClassEntity.JsonSchema.cs",
+            "sha256": "sha256:0a9d1f80f67418cb7d614073126474b32630e5199b0751ca95bf21a11928c498"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.EffectClassEntity.Mutable.cs",
+            "sha256": "sha256:616a1938087e5a454894c4008b1db60dcbf0b1944d3bb628ff5892c41aab1268"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.EffectClassEntity.cs",
+            "sha256": "sha256:3745a70970d8f1e7b599f2f6b9a6fd677a305bf90eb95df250fe93b6d56b7a83"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.JsonSchema.cs",
+            "sha256": "sha256:46c6bc797a888ad86dd57f91eeeae7cb35ca6d0f0b3797d5f818660ef8e3e9e8"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.Mutable.cs",
+            "sha256": "sha256:3e0080003e644feaa6837f41b8ed79a73bbf55ece1853e0905e02a0af2c9ec3f"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.cs",
+            "sha256": "sha256:0904bf73fcf3707eb4b29a7741a92888bb6353cfb02ffa71d796c31b1326e96d"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.JsonSchema.cs",
+            "sha256": "sha256:8ccc4f31d3f804c74b926c50a45bd818320d9ffb3b23de59d231e1f36605acb5"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.Mutable.cs",
+            "sha256": "sha256:b469f0358ba8f7c06826e1e0ba200e407f4e15499a04ca1775d8b312e46a2a92"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.OutputSchemaIdEntity.JsonSchema.cs",
+            "sha256": "sha256:eaffc9a1dc2bbeeecdcc5193755499dc6c5ba41406afe181e467a181c020e09f"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.OutputSchemaIdEntity.Mutable.cs",
+            "sha256": "sha256:d53e23c81aa8a92e007bcdc8936b42933ca6d5fa772acf482208c5a09f9d3094"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.OutputSchemaIdEntity.cs",
+            "sha256": "sha256:01b0180d1a8fb667954fc8c74d993995ae3dc7d636fdcd4ef644dbf6aa3b5b98"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.TrustModeEntity.JsonSchema.cs",
+            "sha256": "sha256:c50b8c23882d69b490ae52f1338da75a3e1a140c58a331ccf8bfbe85ef2abd91"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.TrustModeEntity.Mutable.cs",
+            "sha256": "sha256:6bee126f4683a8b554e6d382e36767d55f81794cf45fd7def665d1fcfc6e5c5b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.TrustModeEntity.cs",
+            "sha256": "sha256:e8035004da71c7dfbf46d52060392fa998b4f738215d891b9cc571262ac6bd4c"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.cs",
+            "sha256": "sha256:72605df0d4e81ce589aef5beecab3be121b5cda23bc45d2c375c7d7a261ed3ff"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanProvenance.JsonSchema.cs",
+            "sha256": "sha256:08602e42d19ceca0873fb148ee17d0207117fd7b0da1f19cafbcfe2b401d0f04"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanProvenance.Mutable.cs",
+            "sha256": "sha256:5fd120227aa06b7cf748b2317956c23b2f7fd055637beefb16038b530b24ce72"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanProvenance.cs",
+            "sha256": "sha256:0f9663f19f0d3b5999cd3f0a58f1a6579f087214f8c31dc20928bad5c74455b9"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.JsonSchema.cs",
@@ -4813,8 +5052,20 @@
             "sha256": "sha256:778d8759bb4bc20cea2759673d219a743920e648b5aeee0422028f4a284ef7f8"
           },
           {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.EntriesArray.JsonSchema.cs",
+            "sha256": "sha256:c62ac75337cd1c9bdd69ac2e794269e661c01498ffd2f81d557c6bbf74a933ba"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.EntriesArray.Mutable.cs",
+            "sha256": "sha256:a5f8b600894171f1691924c5b17f5aec12369ac9876486aba9b00a747ca27fda"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.EntriesArray.cs",
+            "sha256": "sha256:732367e8e408bab231532ef82d428fe5bf21f310aaef39f55c07644349afc061"
+          },
+          {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.JsonSchema.cs",
-            "sha256": "sha256:8d49c096066e13b1eabf2f6fb32c68802dd5de97aa22ab66e2eedce89a8b70de"
+            "sha256": "sha256:9b9d52fc885948d442e7104320fdbc4baab313212c292ac4c27c727050d41cb7"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.ModeEntity.JsonSchema.cs",
@@ -4830,7 +5081,7 @@
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.Mutable.cs",
-            "sha256": "sha256:cad514fdec4775b7dad980fc86c21dda52ce3a9c3e82a8cfaacbafd73f13046c"
+            "sha256": "sha256:e1270c5ff381b49325dac8a4be6388d8ce0d750023e8fb11dd6adfe2e543f384"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.SchemaVersionEntity.JsonSchema.cs",
@@ -4858,7 +5109,7 @@
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.cs",
-            "sha256": "sha256:7fa6d558d39e443cd6a73bb0cc2f11ba6b686f40725fac0e9667e9e96642b13b"
+            "sha256": "sha256:fa2baab6226a568c28268dbadc724830da1e6be5a66b8eeea68dfd35dd14b4d5"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryBounds.JsonSchema.cs",
@@ -4955,6 +5206,138 @@
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryConsent.cs",
             "sha256": "sha256:abb2aecdea2311d5991966903f782499b08eb849fea71d23107efe57d02dbff3"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.JsonSchema.cs",
+            "sha256": "sha256:2edca822a724f595221f7ced227112790cd7a2dee7aaadb88c95f2422c9326a8"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MemoryClassEntity.JsonSchema.cs",
+            "sha256": "sha256:a5a239d8882856f5c0065e05af8d457d6d9a1ce804fc6258699cdc7cc28bb53f"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MemoryClassEntity.Mutable.cs",
+            "sha256": "sha256:a36da221e318283d491693540a3ebcf2368a1187a94494c619eb92a795e8ea24"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MemoryClassEntity.cs",
+            "sha256": "sha256:01fbc75ebaeda518e8c1d441525d74a15c36e2d61ec910528f2690c1d2a3fd64"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MutabilityEntity.JsonSchema.cs",
+            "sha256": "sha256:8e26c5d08d6ebc8f54f797c290af19f5e4332403c3e89debc641ed715e326a19"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MutabilityEntity.Mutable.cs",
+            "sha256": "sha256:d88e9cbd06c74f6bee4d7c6e1eaaac806b13d8b6460fa0a03c08e19dbf1e2179"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MutabilityEntity.cs",
+            "sha256": "sha256:7be26bbe2c2d0949b2e056a36e2a4e00f8835027cab7c23d8efd47db9802c81b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.Mutable.cs",
+            "sha256": "sha256:3627c1546d17b8f2167efe2410ff06bf76dda53fa7654008bf3866bbde130639"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.RetentionEntity.JsonSchema.cs",
+            "sha256": "sha256:b083c4e18d75e8780ba4c6a5a9b7ef412ceb453193b4d90e8c5b05f5018f20be"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.RetentionEntity.Mutable.cs",
+            "sha256": "sha256:b3c55b111c5e5f8edcb819e20250ca6fb666f5a655c99e8affd6022bdf2c2d91"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.RetentionEntity.cs",
+            "sha256": "sha256:f29ee33b42cea0594dd4f0523c9f4456f006d529e2437a5529845942013739fc"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.SensitivityEntity.JsonSchema.cs",
+            "sha256": "sha256:79385d5e7d0d82908591f5a6b384666069bc00ce0805373c207e73bc3ef33ea0"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.SensitivityEntity.Mutable.cs",
+            "sha256": "sha256:5d7f2ceeaddb5166f2298ac9b2dd278822aa9307a3b9fc8aeccafa80f9cd8d4e"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.SensitivityEntity.cs",
+            "sha256": "sha256:56b5d8d52ee8f3e9e266169fbd7633cf4e1d2b4966764fccdf83cdd7be7c28f9"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.cs",
+            "sha256": "sha256:04e691541cd4bc62210d404cfee3aa3d1d983680677a66fe6dc077a3af12afe9"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.JsonSchema.cs",
+            "sha256": "sha256:49f6f14b6b36354b8d0b5c652c900fc22d54e194cbe0f79f88d4a9eac507ca05"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.Mutable.cs",
+            "sha256": "sha256:d3bfb428ce921b72e38443c0cc712eded0c33c5f6e3c5643234926ded5c231ba"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.OriginEntity.JsonSchema.cs",
+            "sha256": "sha256:55060b38f01b59c07d5489cef1cf213ccb19b910cd73d49a0cb5b39729289373"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.OriginEntity.Mutable.cs",
+            "sha256": "sha256:63c9391cde921b0c7cbed3b0cddbbdb855942a648c377ed43d51d48d9fce18ad"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.OriginEntity.cs",
+            "sha256": "sha256:ceca2b435c41ee2383da8f89d895523e8870b19d73b0b47a27ed0ca32d153308"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.RecordedAtSequenceEntity.JsonSchema.cs",
+            "sha256": "sha256:8bd46b13e99a90740968f3117b3d5bb6efaae48b32517739af441fe18414244a"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.RecordedAtSequenceEntity.Mutable.cs",
+            "sha256": "sha256:dd024da5550d91ca0fdaa5fb8c0d8095482a0efebc6780d06a1e173ee5988ddc"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.RecordedAtSequenceEntity.cs",
+            "sha256": "sha256:e4f3766e34dbb47b59e7eaca8637b2357e5ffd76042430046477465a9ef8539b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.SourceEntryIdsArray.JsonSchema.cs",
+            "sha256": "sha256:0e0593e1b50ba4112e64535d295d132b5fba4fa8fabaa366e20663e54b66a4c0"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.SourceEntryIdsArray.Mutable.cs",
+            "sha256": "sha256:1e0c184c3548872fbf0cd91ebebb45f72c9d9dc19f26b06cee064dc6656ae82c"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.SourceEntryIdsArray.cs",
+            "sha256": "sha256:398471464a8189f1f02475ec5c99a5a9584c62c387ca399c816d77a5d20b59aa"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.cs",
+            "sha256": "sha256:69fb0c5020ec89e8a844563991740c4734b072a8409e5b4341476538998d4b95"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.JsonSchema.cs",
+            "sha256": "sha256:2a80dfd32b9e2e1c3c4c78c5a8c64cbf0be14f1479e19560608db449da7c78cb"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.KindEntity.JsonSchema.cs",
+            "sha256": "sha256:2cd7b81a942fd94eafeb7a6de0639579bda766dd6ade49bf9dcd7557c8846f06"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.KindEntity.Mutable.cs",
+            "sha256": "sha256:9b2628c5cce0ffa2f6209960a7b87fb230eefc15a11a86f97b3248bc06589eb8"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.KindEntity.cs",
+            "sha256": "sha256:a8d946a35b9a4bca552b1c69e812b75fb0776435d02e6d3d52c61309bf7ca138"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.Mutable.cs",
+            "sha256": "sha256:d910f60530591c75801ceb620d4555f395480331da34be21a72f86456c89f5c2"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.cs",
+            "sha256": "sha256:0b80e12089acf84b96af0c864cbc05f3b03213c9a168fdc961d98a304ff118d0"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadModule.JsonSchema.cs",
@@ -12206,7 +12589,7 @@
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.JsonSchema.cs",
-            "sha256": "sha256:6f71667f616595a3b874e4f2be21e1dcfd0edc84f438eeb9bd0914821df63825"
+            "sha256": "sha256:cc8e8f1db8dd77b18620cacf7cb0dd6d0d12bc5a59174fd912a19214bad6f3bb"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.MethodHelpProposal.JsonSchema.cs",
@@ -18030,7 +18413,7 @@
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.Mutable.cs",
-            "sha256": "sha256:1c69a11b53779c9fb0c016a6e2be242a6efdc19ae66048f3a59fba8a14ca63a3"
+            "sha256": "sha256:139d9eff61fc4a157bb268dd33a0f99759b8147a67a92218a7fdd102bdd8d89c"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.PackageCompatibility.ConformanceBundleEntity.FixtureSetIdEntity.JsonSchema.cs",
@@ -18694,7 +19077,7 @@
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.cs",
-            "sha256": "sha256:a184718072996a6182728854eeeab242e4c7c702f5b64c20b7aabac2acad0969"
+            "sha256": "sha256:dc89da325c60978553bd872fee4a089b1ac85189e5db552a8a67b5664eb4ba70"
           }
         ]
       }
@@ -19079,11 +19462,15 @@
   },
   "fixtureTrees": {
     "production": {
-      "sha256": "sha256:389cfe68909bc64c18ba56bad8471afd5809a825de37b8cef11358e66791a446",
+      "sha256": "sha256:0d6c54f0bc0f2e667291bd0c75cc0cb4850dfb670b0a1d475281b4d5c3f26919",
       "files": [
         {
           "file": "fixtures/bmad/catalog.json",
-          "sha256": "sha256:e315b0c2e305e3e1d29101792575435b114697b551cd7a2850c333a629e3bc09"
+          "sha256": "sha256:41fcbfbf69fb496e0ddf222e5688850d53550963a63fb5e89b8ea26d2c7b8d52"
+        },
+        {
+          "file": "fixtures/bmad/rejected/bmad-action-plan-unknown-property.json",
+          "sha256": "sha256:4bf644401c9d01a5e1f196ace25552a67641a325eb9b22d41cf61221f9ec5817"
         },
         {
           "file": "fixtures/bmad/rejected/bmad-artifact-unknown-property.json",
@@ -19119,7 +19506,7 @@
         },
         {
           "file": "fixtures/bmad/rejected/bmad-memory-unknown-property.json",
-          "sha256": "sha256:026c4d0e13454eb890d23fd75c3b6e905075679aead129eca22312a5962c11e1"
+          "sha256": "sha256:b64f8e8cbf432ea5e809ca10717faf4e2133446941ad3cb352228f525892e134"
         },
         {
           "file": "fixtures/bmad/rejected/bmad-module-unknown-property.json",
@@ -19666,6 +20053,10 @@
           "sha256": "sha256:236499afbace512a57efd1079725184ea729f1a57ab501154f133fca47756926"
         },
         {
+          "file": "fixtures/bmad/valid/action-plan.json",
+          "sha256": "sha256:0eac7a29854745006e25ece0fa37af965a6ca2de5f94cd80281cf2bf389f8b4d"
+        },
+        {
           "file": "fixtures/bmad/valid/artifact.json",
           "sha256": "sha256:fe0d88a74a1db6129cff1441c44205fb808af5c839aae821678d45c70b8e1bb2"
         },
@@ -19731,7 +20122,7 @@
         },
         {
           "file": "fixtures/bmad/valid/memory.json",
-          "sha256": "sha256:163ac9ea4a91c529f884256bcfc0d88e51d419c6576287fcb8d97df92d87aaaf"
+          "sha256": "sha256:68b75655565920e42899a16b5031bee3eafa38a64df65af88469ab907a30a8b7"
         },
         {
           "file": "fixtures/bmad/valid/module.json",
@@ -20732,11 +21123,11 @@
     }
   ],
   "generatedTree": {
-    "sha256": "sha256:02610f51b7063eb7aa711ffb47001398e3271535f87e4091ebf6d6dd055fd770",
+    "sha256": "sha256:5136d5f2f9a0a15809b63f13f69b984e43d4725aecceed27a2549831b7d292d7",
     "files": [
       {
         "file": "generated/csharp/BmadContracts.cs",
-        "sha256": "sha256:234cafa40ca37690af4b8043b6190472f8d180ef82575c7ce40549c3a2fe553d"
+        "sha256": "sha256:052fd88ad41110327097fe55ce745a03cd9d4133a00fdcf86ce07fa2856a41d6"
       },
       {
         "file": "generated/dotnet/BmadSchemaClosures.g.cs",
@@ -20841,6 +21232,222 @@
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.ApprovedExecutionSpec.cs",
         "sha256": "sha256:cff03437cda56a73c0799febb77ea6111a1f5e30f843510b9b270d5e2b11d6b1"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.AuthorityClassEntity.JsonSchema.cs",
+        "sha256": "sha256:f4697e5e32c9f0b47fb92d862c8ac96442d0c114f0d087a72a9afe96c2693f91"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.AuthorityClassEntity.Mutable.cs",
+        "sha256": "sha256:962aae4fabbcd822f5a3f20db174e6dee9b2f8bd7e9e1a80b9b01278a6e05128"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.AuthorityClassEntity.cs",
+        "sha256": "sha256:afa00b0bf749ccf146e41fc01d56eafc3b25854d23e65955f221d265380952b3"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.JsonSchema.cs",
+        "sha256": "sha256:2517ff22ee4542ed92c474a5a9a58618234d81ada4785a3cb4029006ebdd9a27"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.KindEntity.JsonSchema.cs",
+        "sha256": "sha256:431648dc9bcd7bc91e85caba317e0d25fbab8e1b07a5d4956870b5fa0900a573"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.KindEntity.Mutable.cs",
+        "sha256": "sha256:242026482b811f427b7aefd4cfdb6d5139fead864bff19cb5694a69b804527d5"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.KindEntity.cs",
+        "sha256": "sha256:81678da8c78a357a1e83ec0a15b2983c1b3f88ebb5983de82b4b2a22129b625f"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.Mutable.cs",
+        "sha256": "sha256:3bb8862385adec8fab0adb9e1b3e3d83ac93047717e8962b15c50365fd98bf14"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.JsonSchema.cs",
+        "sha256": "sha256:2c5d9c79a56ca9a3906cd7d724206aa062d5203441f4b427ebb3fe1a19ced524"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.Mutable.cs",
+        "sha256": "sha256:e077c9ea2fce52f1bf0e34a7bcad1755f24d93395ccd2f80d690c690e65d26d1"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.ReadsEntity.JsonSchema.cs",
+        "sha256": "sha256:7165d9111a9c6c4d4a6e8bb46525723c392eb88f92d46df34f6fc4c63ba51905"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.ReadsEntity.Mutable.cs",
+        "sha256": "sha256:ddf785cd39eab35a1468b959b9f58f46b78a2460db29fda166be934b3a1c344e"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.ReadsEntity.cs",
+        "sha256": "sha256:b7ddde42e054b08944c709485d95e5d382506dfe75522577306b25ba4ab67ea5"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.ReadsArray.cs",
+        "sha256": "sha256:7c2101b2f1d809aabeaaa1ff104752c66ea9fd7352bfc32333f7f8d8e0ca7b8b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.SchemaVersionEntity.JsonSchema.cs",
+        "sha256": "sha256:5d2a23afd345c4c381824f87deda6285e406809bd30dc7c12e0b93f206ff925b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.SchemaVersionEntity.Mutable.cs",
+        "sha256": "sha256:0742c80b2f9785181de0f7c629c40e55c82dd840395219a86bbb4a50a9350283"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.SchemaVersionEntity.cs",
+        "sha256": "sha256:d8f6f446acbe00932ede6d57bada6cef9711e8f97c5ab83ae3beebd08719973d"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.StepIndexEntity.JsonSchema.cs",
+        "sha256": "sha256:3a4d8944092c0e852b7b6477f411bfafb1b05a0c4d940141c56ead7daf43335e"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.StepIndexEntity.Mutable.cs",
+        "sha256": "sha256:fb9cb8a046f80c1916633fdee17387d5d8141ce3f3126bc01c40eafc0a1fcbd4"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.StepIndexEntity.cs",
+        "sha256": "sha256:d60e1e668c29afd437e174e530f2fcd3d65fa65b34e3f55bd75e33a2491cc6d0"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlan.cs",
+        "sha256": "sha256:d185a01306b4b33c6a0e391c39ce65fa68c68c092158825221e0e17a94f54864"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.JsonSchema.cs",
+        "sha256": "sha256:f67fe2c637a13519e9199bc74fea9d001e29dddb4a73744c75e0b287b3dcb824"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxModelCallsEntity.JsonSchema.cs",
+        "sha256": "sha256:f46825c057499aeab8f33681ca83b4845206d5c08fd9d32ef2b57f95739e3761"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxModelCallsEntity.Mutable.cs",
+        "sha256": "sha256:5952a4a584f0ef5400779ffc779d8a321771c05eb71f1b4cdae7d40b42fe00fc"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxModelCallsEntity.cs",
+        "sha256": "sha256:7eefa7dbe426182566cfae8a10f96fadf6a5cb6e9cf659ab6fb8f31827b07386"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRepairsEntity.JsonSchema.cs",
+        "sha256": "sha256:4cdf0df274fbf3ad214470fad9521a74d3431ab73f48605e28c1f015c09a9ad4"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRepairsEntity.Mutable.cs",
+        "sha256": "sha256:b8de401310dfe75c3d2c6eaaf34e1b8f014bf27c41821f002337902fa72553cf"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRepairsEntity.cs",
+        "sha256": "sha256:457e43fd8904bd2bf17cb8ec5ede51b7669b866f4b74300bac021f88b7e76d7d"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRetriesEntity.JsonSchema.cs",
+        "sha256": "sha256:d8c6d20420022658867b0d9be68b654a27147de0088b25b0679f759befe422f5"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRetriesEntity.Mutable.cs",
+        "sha256": "sha256:524a9693ae62cd023291c4ba49bfb4b44fbccb163eca268c54ce143562bbf19b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxRetriesEntity.cs",
+        "sha256": "sha256:f8cf448aac5294d311b0356e0d3c5120829eeaad953c2562ffa3b7e65be20cb9"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxTokensEntity.JsonSchema.cs",
+        "sha256": "sha256:63579748dca7afdcb6bd1f69e31cd8fef65cb40c9937eee006eff0e800f51783"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxTokensEntity.Mutable.cs",
+        "sha256": "sha256:458efbb9fa1bba4c362aea256913d554732ede86da19bade326e40a91f8cfb8d"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.MaxTokensEntity.cs",
+        "sha256": "sha256:bc836c2f4c80da88d3ca9dfb9339800cbef34cd97f912d023475df2d484eaa0d"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.Mutable.cs",
+        "sha256": "sha256:fc3d81c31beb369fa3ec201a1688d296f3f83767dad4ae4b9ae5828540943ddd"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanBudget.cs",
+        "sha256": "sha256:98276a31ad8de887a62c32291d4248519edeac7d7bff174ef8ad66179122f464"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.EffectClassEntity.JsonSchema.cs",
+        "sha256": "sha256:0a9d1f80f67418cb7d614073126474b32630e5199b0751ca95bf21a11928c498"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.EffectClassEntity.Mutable.cs",
+        "sha256": "sha256:616a1938087e5a454894c4008b1db60dcbf0b1944d3bb628ff5892c41aab1268"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.EffectClassEntity.cs",
+        "sha256": "sha256:3745a70970d8f1e7b599f2f6b9a6fd677a305bf90eb95df250fe93b6d56b7a83"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.JsonSchema.cs",
+        "sha256": "sha256:46c6bc797a888ad86dd57f91eeeae7cb35ca6d0f0b3797d5f818660ef8e3e9e8"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.Mutable.cs",
+        "sha256": "sha256:3e0080003e644feaa6837f41b8ed79a73bbf55ece1853e0905e02a0af2c9ec3f"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanEffect.cs",
+        "sha256": "sha256:0904bf73fcf3707eb4b29a7741a92888bb6353cfb02ffa71d796c31b1326e96d"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.JsonSchema.cs",
+        "sha256": "sha256:8ccc4f31d3f804c74b926c50a45bd818320d9ffb3b23de59d231e1f36605acb5"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.Mutable.cs",
+        "sha256": "sha256:b469f0358ba8f7c06826e1e0ba200e407f4e15499a04ca1775d8b312e46a2a92"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.OutputSchemaIdEntity.JsonSchema.cs",
+        "sha256": "sha256:eaffc9a1dc2bbeeecdcc5193755499dc6c5ba41406afe181e467a181c020e09f"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.OutputSchemaIdEntity.Mutable.cs",
+        "sha256": "sha256:d53e23c81aa8a92e007bcdc8936b42933ca6d5fa772acf482208c5a09f9d3094"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.OutputSchemaIdEntity.cs",
+        "sha256": "sha256:01b0180d1a8fb667954fc8c74d993995ae3dc7d636fdcd4ef644dbf6aa3b5b98"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.TrustModeEntity.JsonSchema.cs",
+        "sha256": "sha256:c50b8c23882d69b490ae52f1338da75a3e1a140c58a331ccf8bfbe85ef2abd91"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.TrustModeEntity.Mutable.cs",
+        "sha256": "sha256:6bee126f4683a8b554e6d382e36767d55f81794cf45fd7def665d1fcfc6e5c5b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.TrustModeEntity.cs",
+        "sha256": "sha256:e8035004da71c7dfbf46d52060392fa998b4f738215d891b9cc571262ac6bd4c"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanModelCall.cs",
+        "sha256": "sha256:72605df0d4e81ce589aef5beecab3be121b5cda23bc45d2c375c7d7a261ed3ff"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanProvenance.JsonSchema.cs",
+        "sha256": "sha256:08602e42d19ceca0873fb148ee17d0207117fd7b0da1f19cafbcfe2b401d0f04"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanProvenance.Mutable.cs",
+        "sha256": "sha256:5fd120227aa06b7cf748b2317956c23b2f7fd055637beefb16038b530b24ce72"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadActionPlanProvenance.cs",
+        "sha256": "sha256:0f9663f19f0d3b5999cd3f0a58f1a6579f087214f8c31dc20928bad5c74455b9"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.JsonSchema.cs",
@@ -24143,8 +24750,20 @@
         "sha256": "sha256:778d8759bb4bc20cea2759673d219a743920e648b5aeee0422028f4a284ef7f8"
       },
       {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.EntriesArray.JsonSchema.cs",
+        "sha256": "sha256:c62ac75337cd1c9bdd69ac2e794269e661c01498ffd2f81d557c6bbf74a933ba"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.EntriesArray.Mutable.cs",
+        "sha256": "sha256:a5f8b600894171f1691924c5b17f5aec12369ac9876486aba9b00a747ca27fda"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.EntriesArray.cs",
+        "sha256": "sha256:732367e8e408bab231532ef82d428fe5bf21f310aaef39f55c07644349afc061"
+      },
+      {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.JsonSchema.cs",
-        "sha256": "sha256:8d49c096066e13b1eabf2f6fb32c68802dd5de97aa22ab66e2eedce89a8b70de"
+        "sha256": "sha256:9b9d52fc885948d442e7104320fdbc4baab313212c292ac4c27c727050d41cb7"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.ModeEntity.JsonSchema.cs",
@@ -24160,7 +24779,7 @@
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.Mutable.cs",
-        "sha256": "sha256:cad514fdec4775b7dad980fc86c21dda52ce3a9c3e82a8cfaacbafd73f13046c"
+        "sha256": "sha256:e1270c5ff381b49325dac8a4be6388d8ce0d750023e8fb11dd6adfe2e543f384"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.SchemaVersionEntity.JsonSchema.cs",
@@ -24188,7 +24807,7 @@
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemory.cs",
-        "sha256": "sha256:7fa6d558d39e443cd6a73bb0cc2f11ba6b686f40725fac0e9667e9e96642b13b"
+        "sha256": "sha256:fa2baab6226a568c28268dbadc724830da1e6be5a66b8eeea68dfd35dd14b4d5"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryBounds.JsonSchema.cs",
@@ -24285,6 +24904,138 @@
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryConsent.cs",
         "sha256": "sha256:abb2aecdea2311d5991966903f782499b08eb849fea71d23107efe57d02dbff3"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.JsonSchema.cs",
+        "sha256": "sha256:2edca822a724f595221f7ced227112790cd7a2dee7aaadb88c95f2422c9326a8"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MemoryClassEntity.JsonSchema.cs",
+        "sha256": "sha256:a5a239d8882856f5c0065e05af8d457d6d9a1ce804fc6258699cdc7cc28bb53f"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MemoryClassEntity.Mutable.cs",
+        "sha256": "sha256:a36da221e318283d491693540a3ebcf2368a1187a94494c619eb92a795e8ea24"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MemoryClassEntity.cs",
+        "sha256": "sha256:01fbc75ebaeda518e8c1d441525d74a15c36e2d61ec910528f2690c1d2a3fd64"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MutabilityEntity.JsonSchema.cs",
+        "sha256": "sha256:8e26c5d08d6ebc8f54f797c290af19f5e4332403c3e89debc641ed715e326a19"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MutabilityEntity.Mutable.cs",
+        "sha256": "sha256:d88e9cbd06c74f6bee4d7c6e1eaaac806b13d8b6460fa0a03c08e19dbf1e2179"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.MutabilityEntity.cs",
+        "sha256": "sha256:7be26bbe2c2d0949b2e056a36e2a4e00f8835027cab7c23d8efd47db9802c81b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.Mutable.cs",
+        "sha256": "sha256:3627c1546d17b8f2167efe2410ff06bf76dda53fa7654008bf3866bbde130639"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.RetentionEntity.JsonSchema.cs",
+        "sha256": "sha256:b083c4e18d75e8780ba4c6a5a9b7ef412ceb453193b4d90e8c5b05f5018f20be"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.RetentionEntity.Mutable.cs",
+        "sha256": "sha256:b3c55b111c5e5f8edcb819e20250ca6fb666f5a655c99e8affd6022bdf2c2d91"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.RetentionEntity.cs",
+        "sha256": "sha256:f29ee33b42cea0594dd4f0523c9f4456f006d529e2437a5529845942013739fc"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.SensitivityEntity.JsonSchema.cs",
+        "sha256": "sha256:79385d5e7d0d82908591f5a6b384666069bc00ce0805373c207e73bc3ef33ea0"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.SensitivityEntity.Mutable.cs",
+        "sha256": "sha256:5d7f2ceeaddb5166f2298ac9b2dd278822aa9307a3b9fc8aeccafa80f9cd8d4e"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.SensitivityEntity.cs",
+        "sha256": "sha256:56b5d8d52ee8f3e9e266169fbd7633cf4e1d2b4966764fccdf83cdd7be7c28f9"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryEntry.cs",
+        "sha256": "sha256:04e691541cd4bc62210d404cfee3aa3d1d983680677a66fe6dc077a3af12afe9"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.JsonSchema.cs",
+        "sha256": "sha256:49f6f14b6b36354b8d0b5c652c900fc22d54e194cbe0f79f88d4a9eac507ca05"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.Mutable.cs",
+        "sha256": "sha256:d3bfb428ce921b72e38443c0cc712eded0c33c5f6e3c5643234926ded5c231ba"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.OriginEntity.JsonSchema.cs",
+        "sha256": "sha256:55060b38f01b59c07d5489cef1cf213ccb19b910cd73d49a0cb5b39729289373"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.OriginEntity.Mutable.cs",
+        "sha256": "sha256:63c9391cde921b0c7cbed3b0cddbbdb855942a648c377ed43d51d48d9fce18ad"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.OriginEntity.cs",
+        "sha256": "sha256:ceca2b435c41ee2383da8f89d895523e8870b19d73b0b47a27ed0ca32d153308"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.RecordedAtSequenceEntity.JsonSchema.cs",
+        "sha256": "sha256:8bd46b13e99a90740968f3117b3d5bb6efaae48b32517739af441fe18414244a"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.RecordedAtSequenceEntity.Mutable.cs",
+        "sha256": "sha256:dd024da5550d91ca0fdaa5fb8c0d8095482a0efebc6780d06a1e173ee5988ddc"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.RecordedAtSequenceEntity.cs",
+        "sha256": "sha256:e4f3766e34dbb47b59e7eaca8637b2357e5ffd76042430046477465a9ef8539b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.SourceEntryIdsArray.JsonSchema.cs",
+        "sha256": "sha256:0e0593e1b50ba4112e64535d295d132b5fba4fa8fabaa366e20663e54b66a4c0"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.SourceEntryIdsArray.Mutable.cs",
+        "sha256": "sha256:1e0c184c3548872fbf0cd91ebebb45f72c9d9dc19f26b06cee064dc6656ae82c"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.SourceEntryIdsArray.cs",
+        "sha256": "sha256:398471464a8189f1f02475ec5c99a5a9584c62c387ca399c816d77a5d20b59aa"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryProvenance.cs",
+        "sha256": "sha256:69fb0c5020ec89e8a844563991740c4734b072a8409e5b4341476538998d4b95"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.JsonSchema.cs",
+        "sha256": "sha256:2a80dfd32b9e2e1c3c4c78c5a8c64cbf0be14f1479e19560608db449da7c78cb"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.KindEntity.JsonSchema.cs",
+        "sha256": "sha256:2cd7b81a942fd94eafeb7a6de0639579bda766dd6ade49bf9dcd7557c8846f06"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.KindEntity.Mutable.cs",
+        "sha256": "sha256:9b2628c5cce0ffa2f6209960a7b87fb230eefc15a11a86f97b3248bc06589eb8"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.KindEntity.cs",
+        "sha256": "sha256:a8d946a35b9a4bca552b1c69e812b75fb0776435d02e6d3d52c61309bf7ca138"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.Mutable.cs",
+        "sha256": "sha256:d910f60530591c75801ceb620d4555f395480331da34be21a72f86456c89f5c2"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadMemoryMemoryScope.cs",
+        "sha256": "sha256:0b80e12089acf84b96af0c864cbc05f3b03213c9a168fdc961d98a304ff118d0"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadModule.JsonSchema.cs",
@@ -31536,7 +32287,7 @@
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.JsonSchema.cs",
-        "sha256": "sha256:6f71667f616595a3b874e4f2be21e1dcfd0edc84f438eeb9bd0914821df63825"
+        "sha256": "sha256:cc8e8f1db8dd77b18620cacf7cb0dd6d0d12bc5a59174fd912a19214bad6f3bb"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.MethodHelpProposal.JsonSchema.cs",
@@ -37360,7 +38111,7 @@
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.Mutable.cs",
-        "sha256": "sha256:1c69a11b53779c9fb0c016a6e2be242a6efdc19ae66048f3a59fba8a14ca63a3"
+        "sha256": "sha256:139d9eff61fc4a157bb268dd33a0f99759b8147a67a92218a7fdd102bdd8d89c"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.PackageCompatibility.ConformanceBundleEntity.FixtureSetIdEntity.JsonSchema.cs",
@@ -38024,19 +38775,19 @@
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.cs",
-        "sha256": "sha256:a184718072996a6182728854eeeab242e4c7c702f5b64c20b7aabac2acad0969"
+        "sha256": "sha256:dc89da325c60978553bd872fee4a089b1ac85189e5db552a8a67b5664eb4ba70"
       },
       {
         "file": "generated/rust/bmad.rs",
-        "sha256": "sha256:979053d53bd1994ed800b9d287e235f0f88dcded0696518e6b5b78f947a58c2e"
+        "sha256": "sha256:a5037dab9a7fb7d760ddd990af996a77927e0501072dffa886461bb8b3cee14a"
       },
       {
         "file": "generated/rust/contracts.rs",
-        "sha256": "sha256:5f32ff38ac7923cf28abf762aa247a665eeae2551fa02af38406d82e6b85ad59"
+        "sha256": "sha256:c57bdb6a35b25be3820255fd7bec237a93a9d95712f12b4fd502d9f1ba3b93cc"
       },
       {
         "file": "generated/typescript/bmad.ts",
-        "sha256": "sha256:8923452b6a3a835472964f437d485afe8f3cff5a505bb1c028dd4ccdd95d4903"
+        "sha256": "sha256:1d2b39973c3f54747feeb6997d30650f482d2d1a556d8c4c0f07ada14228615e"
       },
       {
         "file": "generated/typescript/canonical-json.mjs",
@@ -38057,6 +38808,10 @@
       {
         "file": "generated/typescript/schema/authority-ref.ts",
         "sha256": "sha256:9b52008f757c49e72f64cb3e252497c03f06e5c756fa2d22340de50a92b563c3"
+      },
+      {
+        "file": "generated/typescript/schema/bmad-action-plan.ts",
+        "sha256": "sha256:faa843ac15dcc134f45ee663f4ab9b8866e8720ecc7f8369e858403609fac474"
       },
       {
         "file": "generated/typescript/schema/bmad-artifact.ts",
@@ -38100,7 +38855,7 @@
       },
       {
         "file": "generated/typescript/schema/bmad-memory.ts",
-        "sha256": "sha256:b7fe75d252eabd21e510ad9284d54e76b51203fa2daa3eb451a7eff8a9067257"
+        "sha256": "sha256:ce52d78b1e23071f325ab6e5c10fb85a3b4dc2e9c5cbe55ab4389f3e3658864f"
       },
       {
         "file": "generated/typescript/schema/bmad-method-advance-result.ts",
@@ -38289,11 +39044,15 @@
     ]
   },
   "fixtureTree": {
-    "sha256": "sha256:389cfe68909bc64c18ba56bad8471afd5809a825de37b8cef11358e66791a446",
+    "sha256": "sha256:0d6c54f0bc0f2e667291bd0c75cc0cb4850dfb670b0a1d475281b4d5c3f26919",
     "files": [
       {
         "file": "fixtures/bmad/catalog.json",
-        "sha256": "sha256:e315b0c2e305e3e1d29101792575435b114697b551cd7a2850c333a629e3bc09"
+        "sha256": "sha256:41fcbfbf69fb496e0ddf222e5688850d53550963a63fb5e89b8ea26d2c7b8d52"
+      },
+      {
+        "file": "fixtures/bmad/rejected/bmad-action-plan-unknown-property.json",
+        "sha256": "sha256:4bf644401c9d01a5e1f196ace25552a67641a325eb9b22d41cf61221f9ec5817"
       },
       {
         "file": "fixtures/bmad/rejected/bmad-artifact-unknown-property.json",
@@ -38329,7 +39088,7 @@
       },
       {
         "file": "fixtures/bmad/rejected/bmad-memory-unknown-property.json",
-        "sha256": "sha256:026c4d0e13454eb890d23fd75c3b6e905075679aead129eca22312a5962c11e1"
+        "sha256": "sha256:b64f8e8cbf432ea5e809ca10717faf4e2133446941ad3cb352228f525892e134"
       },
       {
         "file": "fixtures/bmad/rejected/bmad-module-unknown-property.json",
@@ -38876,6 +39635,10 @@
         "sha256": "sha256:236499afbace512a57efd1079725184ea729f1a57ab501154f133fca47756926"
       },
       {
+        "file": "fixtures/bmad/valid/action-plan.json",
+        "sha256": "sha256:0eac7a29854745006e25ece0fa37af965a6ca2de5f94cd80281cf2bf389f8b4d"
+      },
+      {
         "file": "fixtures/bmad/valid/artifact.json",
         "sha256": "sha256:fe0d88a74a1db6129cff1441c44205fb808af5c839aae821678d45c70b8e1bb2"
       },
@@ -38941,7 +39704,7 @@
       },
       {
         "file": "fixtures/bmad/valid/memory.json",
-        "sha256": "sha256:163ac9ea4a91c529f884256bcfc0d88e51d419c6576287fcb8d97df92d87aaaf"
+        "sha256": "sha256:68b75655565920e42899a16b5031bee3eafa38a64df65af88469ab907a30a8b7"
       },
       {
         "file": "fixtures/bmad/valid/module.json",

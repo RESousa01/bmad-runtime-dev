@@ -14,6 +14,7 @@ public static class BmadContracts
         new("sapphirus.bmad-skill-package.v1", typeof(BmadSkillPackage)),
         new("sapphirus.bmad-session.v1", typeof(BmadSession)),
         new("sapphirus.bmad-artifact.v1", typeof(BmadArtifact)),
+        new("sapphirus.bmad-action-plan.v1", typeof(BmadActionPlan)),
         new("sapphirus.bmad-builder-authoring.v1", typeof(BuilderAuthoringObject)),
         new("sapphirus.bmad-builder-promotion.v1", typeof(BmadBuilderPromotion)),
         new("sapphirus.bmad-eval.v1", typeof(BmadEval)),

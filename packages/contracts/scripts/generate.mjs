@@ -2027,6 +2027,7 @@ function rewriteGeneratorReferences(value, sourceFile) {
 const typescriptSchemaTargets = [
   "approved-execution-spec",
   "authority-ref",
+  "bmad-action-plan",
   "bmad-artifact",
   "bmad-builder-authoring",
   "bmad-builder-promotion",

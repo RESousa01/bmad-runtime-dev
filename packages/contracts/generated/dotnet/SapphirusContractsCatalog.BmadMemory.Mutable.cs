@@ -230,6 +230,22 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Gets the (optional) <c>entries</c> property.
+            /// </summary>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Mutable Entries
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EntriesUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
             /// Gets the <c>memoryId</c> property.
             /// </summary>
             /// <remarks>
@@ -522,6 +538,87 @@ public readonly partial struct SapphirusContractsCatalog
                 }
 
                 _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>entries</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetEntries(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.EntriesUtf8);
+                    _documentVersion = _parent.Version;
+                    return;
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EntriesUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Entries, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>entries</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetEntries<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source<TContext> value)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.EntriesUtf8);
+                    _documentVersion = _parent.Version;
+                    return;
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EntriesUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Entries, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Remove the <c>entries</c> property, if present.
+            /// </summary>
+            /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+            public bool RemoveEntries()
+            {
+                CheckValidInstance();
+                bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.EntriesUtf8);
+                _documentVersion = _parent.Version;
+                return result;
             }
 
             /// <summary>
@@ -840,6 +937,7 @@ public readonly partial struct SapphirusContractsCatalog
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source _createArg5;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg6;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source _createArg8;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -854,7 +952,7 @@ public readonly partial struct SapphirusContractsCatalog
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
 
-            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source arg7)
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source arg8)
             {
                 _createArg1 = arg1;
                 _createArg2 = arg2;
@@ -863,6 +961,7 @@ public readonly partial struct SapphirusContractsCatalog
                 _createArg5 = arg5;
                 _createArg6 = arg6;
                 _createArg7 = arg7;
+                _createArg8 = arg8;
                 _kind = Kind.Create;
             }
 
@@ -883,7 +982,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -908,7 +1007,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -933,7 +1032,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -958,7 +1057,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -983,7 +1082,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndItem(handle);
                             break;
                         }
@@ -1018,6 +1117,7 @@ public readonly partial struct SapphirusContractsCatalog
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source _createArg5;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg6;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source<TContext> _createArg8;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1030,7 +1130,7 @@ public readonly partial struct SapphirusContractsCatalog
 
             internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
 
-            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source arg7)
+            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source<TContext> arg8)
             {
                 _context = context;
                 _createArg1 = arg1;
@@ -1040,6 +1140,7 @@ public readonly partial struct SapphirusContractsCatalog
                 _createArg5 = arg5;
                 _createArg6 = arg6;
                 _createArg7 = arg7;
+                _createArg8 = arg8;
                 _kind = Kind.Create;
             }
 
@@ -1058,7 +1159,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -1083,7 +1184,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -1108,7 +1209,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -1133,7 +1234,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -1158,7 +1259,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
-                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, ref valueBuilder);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
                             valueBuilder.EndItem(handle);
                             break;
                         }
@@ -1198,7 +1299,8 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef,
-                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state)
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source entries = default)
             {
                 bounds.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Bounds, ref builder);
                 consent.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Consent, ref builder);
@@ -1208,6 +1310,7 @@ public readonly partial struct SapphirusContractsCatalog
                 ownerScopeRef.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.OwnerScopeRef, ref builder);
                 builder.AddPrebakedProperty(JsonPropertyNamesPrebaked.SchemaVersion, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.SchemaVersionEntity.ConstInstance);
                 state.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.State, ref builder);
+                entries.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Entries, ref builder);
             }
 
             /// <summary>
@@ -1220,9 +1323,10 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef,
-                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state)
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source entries = default)
             {
-                Create(ref _builder, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state);
+                Create(ref _builder, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state, entries);
             }
 
             /// <summary>
@@ -1237,7 +1341,8 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef,
-                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state)
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source<TContext> entries = default)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
@@ -1250,6 +1355,7 @@ public readonly partial struct SapphirusContractsCatalog
                 ownerScopeRef.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.OwnerScopeRef, ref builder);
                 builder.AddPrebakedProperty(JsonPropertyNamesPrebaked.SchemaVersion, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.SchemaVersionEntity.ConstInstance);
                 state.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.State, ref builder);
+                entries.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Entries, ref builder);
             }
 
             /// <summary>
@@ -1263,12 +1369,13 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef,
-                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state)
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source<TContext> entries = default)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
             {
-                Create(context, ref _builder, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state);
+                Create(context, ref _builder, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state, entries);
             }
 
             internal static void BuildValue(Build value, ref ComplexValueBuilder o)
@@ -1304,11 +1411,12 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="arg5">The value of the property.</param>
             /// <param name="arg6">The value of the property.</param>
             /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
             /// <param name="o">The complex value builder into which to write the object.</param>
-            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source arg7, ref ComplexValueBuilder o)
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source arg8, ref ComplexValueBuilder o)
             {
                 o.StartObject();
-                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                 o.EndObject();
             }
 
@@ -1324,14 +1432,15 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="arg5">The value of the property.</param>
             /// <param name="arg6">The value of the property.</param>
             /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
             /// <param name="o">The complex value builder into which to write the object.</param>
-            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source arg7, ref ComplexValueBuilder o)
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source<TContext> arg8, ref ComplexValueBuilder o)
 #if NET9_0_OR_GREATER
                 where TContext : allows ref struct
 #endif
             {
                 o.StartObject();
-                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                 o.EndObject();
             }
         }
@@ -1375,10 +1484,11 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mode">The value of the <c>"mode"</c> property.</param>
         /// <param name="ownerScopeRef">The value of the <c>"ownerScopeRef"</c> property.</param>
         /// <param name="state">The value of the <c>"state"</c> property.</param>
+        /// <param name="entries">The value of the <c>"entries"</c> property.</param>
         /// <returns>The source from which to build the value.</returns>
-        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source bounds, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source consent, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state)
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source bounds, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source consent, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source entries = default)
         {
-            return new Source(bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state);
+            return new Source(bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state, entries);
         }
 
         /// <summary>
@@ -1393,13 +1503,14 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mode">The value of the <c>"mode"</c> property.</param>
         /// <param name="ownerScopeRef">The value of the <c>"ownerScopeRef"</c> property.</param>
         /// <param name="state">The value of the <c>"state"</c> property.</param>
+        /// <param name="entries">The value of the <c>"entries"</c> property.</param>
         /// <returns>The source from which to build the value.</returns>
-        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> bounds, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> consent, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state)
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> bounds, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> consent, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source<TContext> entries = default)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
         {
-            return new Source<TContext>(context, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state);
+            return new Source<TContext>(context, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state, entries);
         }
 
         /// <summary>
@@ -1479,15 +1590,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mode">The value of the property.</param>
         /// <param name="ownerScopeRef">The value of the property.</param>
         /// <param name="state">The value of the property.</param>
+        /// <param name="entries">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source bounds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, int initialCapacity = 30)
+        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source bounds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source entries = default, int initialCapacity = 30)
         {
             JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state);
+            ovb.Create(bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state, entries);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -1507,9 +1619,10 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mode">The value of the property.</param>
         /// <param name="ownerScopeRef">The value of the property.</param>
         /// <param name="state">The value of the property.</param>
+        /// <param name="entries">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> bounds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, int initialCapacity = 30)
+        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> bounds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source<TContext> entries = default, int initialCapacity = 30)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
@@ -1518,7 +1631,7 @@ public readonly partial struct SapphirusContractsCatalog
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(context, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state);
+            ovb.Create(context, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state, entries);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -1626,9 +1739,10 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mode">The value of the property.</param>
         /// <param name="ownerScopeRef">The value of the property.</param>
         /// <param name="state">The value of the property.</param>
+        /// <param name="entries">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
-        public static ParsedJsonDocument<BmadMemory> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source bounds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, int initialCapacity = 30)
+        public static ParsedJsonDocument<BmadMemory> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source bounds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source entries = default, int initialCapacity = 30)
         {
             ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
             try
@@ -1636,7 +1750,7 @@ public readonly partial struct SapphirusContractsCatalog
                 ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
                 cvb.StartObject();
                 Builder ovb = new(cvb);
-                ovb.Create(bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state);
+                ovb.Create(bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state, entries);
                 cvb = ovb._builder;
                 cvb.EndObject();
                 ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -1660,9 +1774,10 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="mode">The value of the property.</param>
         /// <param name="ownerScopeRef">The value of the property.</param>
         /// <param name="state">The value of the property.</param>
+        /// <param name="entries">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
-        public static ParsedJsonDocument<BmadMemory> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> bounds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, int initialCapacity = 30)
+        public static ParsedJsonDocument<BmadMemory> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryBounds.Source<TContext> bounds, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemoryConsent.Source<TContext> consent, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source memoryId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.Source mode, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source ownerScopeRef, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.Source<TContext> entries = default, int initialCapacity = 30)
             #if NET9_0_OR_GREATER
             where TContext : allows ref struct
             #endif
@@ -1673,7 +1788,7 @@ public readonly partial struct SapphirusContractsCatalog
                 ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
                 cvb.StartObject();
                 Builder ovb = new(cvb);
-                ovb.Create(context, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state);
+                ovb.Create(context, bounds, consent, contentHash, memoryId, mode, ownerScopeRef, state, entries);
                 cvb = ovb._builder;
                 cvb.EndObject();
                 ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);

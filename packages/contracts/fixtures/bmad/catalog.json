@@ -44,6 +44,13 @@
       "csharpType": "BmadArtifact"
     },
     {
+      "name": "bmad-action-plan",
+      "schemaId": "https://schemas.sapphirus.dev/v1/bmad-action-plan.schema.json",
+      "protocolVersion": "sapphirus.bmad-action-plan.v1",
+      "rustType": "BmadActionPlan",
+      "csharpType": "BmadActionPlan"
+    },
+    {
       "name": "bmad-builder-authoring",
       "schemaId": "https://schemas.sapphirus.dev/v1/bmad-builder-authoring.schema.json",
       "protocolVersion": "sapphirus.bmad-builder-authoring.v1",
@@ -122,6 +129,7 @@
     "typescript"
   ],
   "validFixtures": [
+    "fixtures/bmad/valid/action-plan.json",
     "fixtures/bmad/valid/artifact.json",
     "fixtures/bmad/valid/builder-agent-analysis-deterministic.json",
     "fixtures/bmad/valid/builder-agent-analysis-model-lens.json",
@@ -163,6 +171,7 @@
     "fixtures/bmad/valid/upgrade.json"
   ],
   "rejectionFixtures": [
+    "fixtures/bmad/rejected/bmad-action-plan-unknown-property.json",
     "fixtures/bmad/rejected/bmad-artifact-unknown-property.json",
     "fixtures/bmad/rejected/bmad-builder-authoring-unknown-property.json",
     "fixtures/bmad/rejected/bmad-builder-promotion-unknown-property.json",

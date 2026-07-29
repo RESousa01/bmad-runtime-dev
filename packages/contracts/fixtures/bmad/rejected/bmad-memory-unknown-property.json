@@ -21,6 +21,24 @@
     },
     "state": "active",
     "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "entries": [
+      {
+        "entryId": "entry_01J00000000000000000000000",
+        "memoryClass": "persistent_fact",
+        "scope": {
+          "kind": "project",
+          "workspaceId": "workspace_01J00000000000000000000000"
+        },
+        "provenance": {
+          "origin": "user_supplied",
+          "recordedAtSequence": 1
+        },
+        "sensitivity": "ordinary",
+        "retention": "pinned",
+        "mutability": "append_only",
+        "contentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+      }
+    ],
     "futureAuthority": true
   }
 }

@@ -1,4 +1,5 @@
 pub mod architecture;
+mod action_plan;
 mod artifacts;
 mod binding;
 mod builder;
@@ -17,6 +18,9 @@ mod help_session;
 mod invocation;
 mod kernel_error;
 pub mod memlog;
+mod memory;
+mod model_port;
+mod orchestrator;
 mod method;
 mod package;
 mod ports;
@@ -32,6 +36,7 @@ pub use architecture::{
     BmadArchitectureDecision, BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
     BmadArchitectureStepRecord, BMAD_ARCHITECTURE_SESSION_SCHEMA,
 };
+pub use action_plan::BmadActionPlanError;
 pub use artifacts::{
     artifact_lineage_view, reproduction_hash, BmadArtifactIntent, BmadArtifactIntentKind,
     BmadArtifactLineageView, BmadArtifactTransitionError,
@@ -112,6 +117,9 @@ pub use kernel_error::{BmadKernelError, BmadKernelErrorCode};
 pub use memlog::{
     labelled_body_part, Memlog, MemlogEntry, MemlogEntryKind, MemlogError, MEMLOG_FILE_NAME,
 };
+pub use memory::BmadMemoryError;
+pub use model_port::BmadModelPortError;
+pub use orchestrator::BmadOrchestratorError;
 pub use method::{
     CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
     MethodAdvanceResult, MethodArtifactProvenance, MethodCanonicalAdvanceResultData,

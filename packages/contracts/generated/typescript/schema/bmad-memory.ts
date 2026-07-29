@@ -9,6 +9,10 @@ export interface SapphirusBmadMemoryV1 {
   bounds: Bounds;
   state: "inactive" | "active" | "revoked" | "killed";
   contentHash: string;
+  /**
+   * @maxItems 4096
+   */
+  entries?: MemoryEntry[];
 }
 export interface Consent {
   optedIn: boolean;
@@ -20,4 +24,30 @@ export interface Bounds {
   maxBytes: number;
   ttlSeconds: number;
   killSwitch: true;
+}
+export interface MemoryEntry {
+  entryId: string;
+  memoryClass: "session_fact" | "persistent_fact" | "memlog_entry" | "compaction_summary" | "sanctum_entry";
+  scope: MemoryScope;
+  provenance: MemoryProvenance;
+  sensitivity: "ordinary" | "personal" | "restricted";
+  retention: "session" | "bounded" | "pinned";
+  mutability: "append_only" | "replaceable";
+  contentHash: string;
+  supersededByEntryId?: string;
+}
+export interface MemoryScope {
+  kind: "session" | "project" | "user" | "installed_agent";
+  sessionId?: string;
+  workspaceId?: string;
+  installedAgentId?: string;
+}
+export interface MemoryProvenance {
+  origin: "user_supplied" | "skill_declared" | "model_summarized" | "host_observed";
+  recordedAtSequence: number;
+  /**
+   * @maxItems 256
+   */
+  sourceEntryIds?: string[];
+  sourceSessionId?: string;
 }

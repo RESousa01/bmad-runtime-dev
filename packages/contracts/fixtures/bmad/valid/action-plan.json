@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-action-plan.schema.json",
+  "branch": "sapphirus.bmad-action-plan.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-action-plan.v1",
+    "planId": "plan_01J00000000000000000000000",
+    "sessionId": "session_01J00000000000000000000000",
+    "capabilityId": "capability_01J00000000000000000000000",
+    "stepIndex": 0,
+    "kind": "model_call",
+    "authorityClass": "none",
+    "provenance": {
+      "sourceId": "source_01J00000000000000000000000",
+      "stepHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    "budget": {
+      "maxModelCalls": 4,
+      "maxTokens": 32768,
+      "maxRetries": 2,
+      "maxRepairs": 1
+    },
+    "modelCall": {
+      "trustMode": "untrusted_assistive",
+      "contextHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "outputSchemaId": "sapphirus.bmad-artifact.v1"
+    },
+    "planHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+  },
+  "canonicalJson": "{\"authorityClass\":\"none\",\"budget\":{\"maxModelCalls\":4,\"maxRepairs\":1,\"maxRetries\":2,\"maxTokens\":32768},\"capabilityId\":\"capability_01J00000000000000000000000\",\"kind\":\"model_call\",\"modelCall\":{\"contextHash\":\"sha256:7777777777777777777777777777777777777777777777777777777777777777\",\"outputSchemaId\":\"sapphirus.bmad-artifact.v1\",\"trustMode\":\"untrusted_assistive\"},\"planHash\":\"sha256:8888888888888888888888888888888888888888888888888888888888888888\",\"planId\":\"plan_01J00000000000000000000000\",\"provenance\":{\"sourceId\":\"source_01J00000000000000000000000\",\"stepHash\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\"},\"schemaVersion\":\"sapphirus.bmad-action-plan.v1\",\"sessionId\":\"session_01J00000000000000000000000\",\"stepIndex\":0}",
+  "expectedHash": "sha256:618bb95c2afe97c978fc65f39fa698db83bc230d45cbd75b53fcda494633e14d"
+}

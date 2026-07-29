@@ -38,6 +38,11 @@
           "typeName": "AuthorityRef"
         },
         {
+          "file": "bmad-action-plan.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-action-plan.schema.json",
+          "typeName": "BmadActionPlan"
+        },
+        {
           "file": "bmad-artifact.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-artifact.schema.json",
           "typeName": "BmadArtifact"

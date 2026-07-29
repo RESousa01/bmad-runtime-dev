@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-action-plan.schema.json",
+  "title": "sapphirus.bmad-action-plan.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "planId", "sessionId", "capabilityId", "stepIndex", "kind", "authorityClass", "provenance", "budget", "planHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-action-plan.v1" },
+    "planId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "capabilityId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "stepIndex": { "type": "integer", "minimum": 0, "maximum": 65536 },
+    "kind": { "enum": ["model_call", "read", "write_proposal", "command_proposal", "script_plan", "schedule_plan", "artifact_plan"] },
+    "authorityClass": { "enum": ["none", "read_only", "requires_approval"] },
+    "provenance": { "$ref": "#/$defs/Provenance" },
+    "budget": { "$ref": "#/$defs/Budget" },
+    "modelCall": { "$ref": "#/$defs/ModelCall" },
+    "reads": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$" }
+    },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "planHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "Provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "stepHash"],
+      "properties": {
+        "sourceId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "stepHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "customizationHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "Budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxModelCalls", "maxTokens", "maxRetries", "maxRepairs"],
+      "properties": {
+        "maxModelCalls": { "type": "integer", "minimum": 0, "maximum": 1024 },
+        "maxTokens": { "type": "integer", "minimum": 0, "maximum": 4194304 },
+        "maxRetries": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "maxRepairs": { "type": "integer", "minimum": 0, "maximum": 64 }
+      }
+    },
+    "ModelCall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trustMode", "contextHash", "outputSchemaId"],
+      "properties": {
+        "trustMode": { "enum": ["untrusted_assistive", "reviewed_advisory", "sealed_deterministic"] },
+        "contextHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "outputSchemaId": { "type": "string", "minLength": 1, "maxLength": 256, "pattern": "^sapphirus\\.[a-z0-9.-]+\\.v[0-9]+$" },
+        "redactedPromptHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "Effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effectClass", "targetHash", "reversible"],
+      "properties": {
+        "effectClass": { "enum": ["filesystem", "process", "network", "installation", "publication", "schedule", "secret"] },
+        "targetHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "reversible": { "type": "boolean" }
+      }
+    }
+  }
+}

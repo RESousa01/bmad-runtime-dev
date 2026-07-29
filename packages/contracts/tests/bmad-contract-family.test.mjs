@@ -16,6 +16,7 @@ const requiredSchemas = [
   "bmad-skill-package.schema.json",
   "bmad-session.schema.json",
   "bmad-artifact.schema.json",
+  "bmad-action-plan.schema.json",
   "bmad-builder-authoring.schema.json",
   "bmad-builder-promotion.schema.json",
   "bmad-eval.schema.json",

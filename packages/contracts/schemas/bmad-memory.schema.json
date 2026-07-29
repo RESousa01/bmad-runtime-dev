@@ -4,29 +4,83 @@
   "title": "sapphirus.bmad-memory.v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "memoryId", "ownerScopeRef", "mode", "consent", "bounds", "state", "contentHash"],
+  "required": [
+    "schemaVersion",
+    "memoryId",
+    "ownerScopeRef",
+    "mode",
+    "consent",
+    "bounds",
+    "state",
+    "contentHash"
+  ],
   "properties": {
-    "schemaVersion": { "const": "sapphirus.bmad-memory.v1" },
-    "memoryId": { "$ref": "./common.schema.json#/$defs/ContractId" },
-    "ownerScopeRef": { "$ref": "./common.schema.json#/$defs/ContractId" },
-    "mode": { "enum": ["disabled", "session", "bounded_persistent", "autonomous_pulse"] },
-    "consent": { "$ref": "#/$defs/Consent" },
-    "bounds": { "$ref": "#/$defs/Bounds" },
-    "state": { "enum": ["inactive", "active", "revoked", "killed"] },
-    "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+    "schemaVersion": {
+      "const": "sapphirus.bmad-memory.v1"
+    },
+    "memoryId": {
+      "$ref": "./common.schema.json#/$defs/ContractId"
+    },
+    "ownerScopeRef": {
+      "$ref": "./common.schema.json#/$defs/ContractId"
+    },
+    "mode": {
+      "enum": [
+        "disabled",
+        "session",
+        "bounded_persistent",
+        "autonomous_pulse"
+      ]
+    },
+    "consent": {
+      "$ref": "#/$defs/Consent"
+    },
+    "bounds": {
+      "$ref": "#/$defs/Bounds"
+    },
+    "state": {
+      "enum": [
+        "inactive",
+        "active",
+        "revoked",
+        "killed"
+      ]
+    },
+    "contentHash": {
+      "$ref": "./common.schema.json#/$defs/Sha256"
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "$ref": "#/$defs/MemoryEntry"
+      }
+    }
   },
   "$defs": {
     "Consent": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["optedIn", "revocable", "grantedAt"],
+      "required": [
+        "optedIn",
+        "revocable",
+        "grantedAt"
+      ],
       "properties": {
-        "optedIn": { "type": "boolean" },
-        "revocable": { "const": true },
+        "optedIn": {
+          "type": "boolean"
+        },
+        "revocable": {
+          "const": true
+        },
         "grantedAt": {
           "oneOf": [
-            { "$ref": "./common.schema.json#/$defs/UtcInstant" },
-            { "type": "null" }
+            {
+              "$ref": "./common.schema.json#/$defs/UtcInstant"
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       }
@@ -34,12 +88,150 @@
     "Bounds": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["maxEntries", "maxBytes", "ttlSeconds", "killSwitch"],
+      "required": [
+        "maxEntries",
+        "maxBytes",
+        "ttlSeconds",
+        "killSwitch"
+      ],
       "properties": {
-        "maxEntries": { "type": "integer", "minimum": 0, "maximum": 100000 },
-        "maxBytes": { "type": "integer", "minimum": 0, "maximum": 1073741824 },
-        "ttlSeconds": { "type": "integer", "minimum": 0, "maximum": 31536000 },
-        "killSwitch": { "const": true }
+        "maxEntries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "maxBytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1073741824
+        },
+        "ttlSeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 31536000
+        },
+        "killSwitch": {
+          "const": true
+        }
+      }
+    },
+    "MemoryEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entryId",
+        "memoryClass",
+        "scope",
+        "provenance",
+        "sensitivity",
+        "retention",
+        "mutability",
+        "contentHash"
+      ],
+      "properties": {
+        "entryId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "memoryClass": {
+          "enum": [
+            "session_fact",
+            "persistent_fact",
+            "memlog_entry",
+            "compaction_summary",
+            "sanctum_entry"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/MemoryScope"
+        },
+        "provenance": {
+          "$ref": "#/$defs/MemoryProvenance"
+        },
+        "sensitivity": {
+          "enum": [
+            "ordinary",
+            "personal",
+            "restricted"
+          ]
+        },
+        "retention": {
+          "enum": [
+            "session",
+            "bounded",
+            "pinned"
+          ]
+        },
+        "mutability": {
+          "enum": [
+            "append_only",
+            "replaceable"
+          ]
+        },
+        "contentHash": {
+          "$ref": "./common.schema.json#/$defs/Sha256"
+        },
+        "supersededByEntryId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        }
+      }
+    },
+    "MemoryScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "session",
+            "project",
+            "user",
+            "installed_agent"
+          ]
+        },
+        "sessionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "workspaceId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        },
+        "installedAgentId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        }
+      }
+    },
+    "MemoryProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "recordedAtSequence"
+      ],
+      "properties": {
+        "origin": {
+          "enum": [
+            "user_supplied",
+            "skill_declared",
+            "model_summarized",
+            "host_observed"
+          ]
+        },
+        "recordedAtSequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "sourceEntryIds": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "./common.schema.json#/$defs/ContractId"
+          }
+        },
+        "sourceSessionId": {
+          "$ref": "./common.schema.json#/$defs/ContractId"
+        }
       }
     }
   }

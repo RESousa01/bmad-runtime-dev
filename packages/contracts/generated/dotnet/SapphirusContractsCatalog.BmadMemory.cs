@@ -123,6 +123,22 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the (optional) <c>entries</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray Entries
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EntriesUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the <c>memoryId</c> property.
         /// </summary>
         /// <remarks>
@@ -676,6 +692,11 @@ public readonly partial struct SapphirusContractsCatalog
             public const string ContentHash = "contentHash";
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="Entries"/>.
+            /// </summary>
+            public const string Entries = "entries";
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="MemoryId"/>.
             /// </summary>
             public const string MemoryId = "memoryId";
@@ -714,6 +735,11 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the JSON property name for <see cref="ContentHash"/>.
             /// </summary>
             public static ReadOnlySpan<byte> ContentHashUtf8 => "contentHash"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Entries"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> EntriesUtf8 => "entries"u8;
 
             /// <summary>
             /// Gets the JSON property name for <see cref="MemoryId"/>.
@@ -762,6 +788,11 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> ContentHash => "contentHash"u8;
 
             /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Entries"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Entries => "entries"u8;
+
+            /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="MemoryId"/>.
             /// </summary>
             public static ReadOnlySpan<byte> MemoryId => "memoryId"u8;
@@ -807,6 +838,11 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the pre-baked property name blob for <see cref="ContentHash"/>.
             /// </summary>
             public static ReadOnlySpan<byte> ContentHash => [0xD5, 0x00, 0x00, 0x00, 0x22, 0x63, 0x6F, 0x6E, 0x74, 0x65, 0x6E, 0x74, 0x48, 0x61, 0x73, 0x68, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Entries"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Entries => [0x95, 0x00, 0x00, 0x00, 0x22, 0x65, 0x6E, 0x74, 0x72, 0x69, 0x65, 0x73, 0x22];
 
             /// <summary>
             /// Gets the pre-baked property name blob for <see cref="MemoryId"/>.

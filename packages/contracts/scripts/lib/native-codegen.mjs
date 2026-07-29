@@ -64,6 +64,7 @@ const lockedRustChildEnvironment = Object.freeze({});
 const productionRoots = Object.freeze([
   ["approved-execution-spec.schema.json", "ApprovedExecutionSpec"],
   ["authority-ref.schema.json", "AuthorityRef"],
+  ["bmad-action-plan.schema.json", "BmadActionPlan"],
   ["bmad-artifact.schema.json", "BmadArtifact"],
   ["bmad-builder-authoring.schema.json", "BuilderAuthoringObject"],
   ["bmad-builder-promotion.schema.json", "BmadBuilderPromotion"],

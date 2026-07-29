@@ -88,6 +88,34 @@
       }
     },
     {
+      "schema": "bmad-action-plan.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-action-plan.v1",
+        "planId": "plan_01J00000000000000000000000",
+        "sessionId": "session_01J00000000000000000000000",
+        "capabilityId": "capability_01J00000000000000000000000",
+        "stepIndex": 0,
+        "kind": "model_call",
+        "authorityClass": "none",
+        "provenance": {
+          "sourceId": "source_01J00000000000000000000000",
+          "stepHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        "budget": {
+          "maxModelCalls": 4,
+          "maxTokens": 32768,
+          "maxRetries": 2,
+          "maxRepairs": 1
+        },
+        "modelCall": {
+          "trustMode": "untrusted_assistive",
+          "contextHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+          "outputSchemaId": "sapphirus.bmad-artifact.v1"
+        },
+        "planHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+      }
+    },
+    {
       "schema": "bmad-artifact.schema.json",
       "value": {
         "schemaVersion": "sapphirus.bmad-artifact.v1",
@@ -312,7 +340,25 @@
           "killSwitch": true
         },
         "state": "active",
-        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "entries": [
+          {
+            "entryId": "entry_01J00000000000000000000000",
+            "memoryClass": "persistent_fact",
+            "scope": {
+              "kind": "project",
+              "workspaceId": "workspace_01J00000000000000000000000"
+            },
+            "provenance": {
+              "origin": "user_supplied",
+              "recordedAtSequence": 1
+            },
+            "sensitivity": "ordinary",
+            "retention": "pinned",
+            "mutability": "append_only",
+            "contentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+          }
+        ]
       }
     }
   ]

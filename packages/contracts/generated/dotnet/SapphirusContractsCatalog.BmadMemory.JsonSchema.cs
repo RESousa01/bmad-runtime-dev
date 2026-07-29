@@ -86,6 +86,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static readonly JsonSchemaPathProvider BoundsSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/bounds/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider ConsentSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/consent/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider ContentHashSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/contentHash/$ref"u8, buffer, out written);
+            private static readonly JsonSchemaPathProvider EntriesSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/entries"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider MemoryIdSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/memoryId/$ref"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider ModeSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/mode"u8, buffer, out written);
             private static readonly JsonSchemaPathProvider OwnerScopeRefSchemaEvaluationPath = static (buffer, out written) => JsonSchemaEvaluation.TryCopyPath("#/properties/ownerScopeRef/$ref"u8, buffer, out written);
@@ -158,10 +159,25 @@ public readonly partial struct SapphirusContractsCatalog
                 requiredBitBuffer[RequiredOffsetForContentHash] |= RequiredBitForContentHash;
             }
 
-            private static void MatchMemoryId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
+            private static void MatchEntries(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
                 JsonSchemaContext childContext3 =
+                    Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.JsonSchema.PushChildContextUnescaped(
+                        parentDocument,
+                        parentDocumentIndex,
+                        ref context,
+                        JsonPropertyNames.EntriesUtf8,
+                        evaluationPath: EntriesSchemaEvaluationPath);
+
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.EntriesArray.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext3);
+                context.CommitChildContext(childContext3.IsMatch, ref childContext3);
+            }
+
+            private static void MatchMemoryId(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
+            {
+                context.AddLocalEvaluatedProperty(propertyCount);
+                JsonSchemaContext childContext4 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -169,8 +185,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.MemoryIdUtf8,
                         evaluationPath: MemoryIdSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext3);
-                context.CommitChildContext(childContext3.IsMatch, ref childContext3);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext4);
+                context.CommitChildContext(childContext4.IsMatch, ref childContext4);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -183,7 +199,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static void MatchMode(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext4 =
+                JsonSchemaContext childContext5 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -191,8 +207,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.ModeUtf8,
                         evaluationPath: ModeSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext4);
-                context.CommitChildContext(childContext4.IsMatch, ref childContext4);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.ModeEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext5);
+                context.CommitChildContext(childContext5.IsMatch, ref childContext5);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -205,7 +221,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static void MatchOwnerScopeRef(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext5 =
+                JsonSchemaContext childContext6 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -213,8 +229,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.OwnerScopeRefUtf8,
                         evaluationPath: OwnerScopeRefSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext5);
-                context.CommitChildContext(childContext5.IsMatch, ref childContext5);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext6);
+                context.CommitChildContext(childContext6.IsMatch, ref childContext6);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -227,7 +243,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static void MatchSchemaVersion(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext6 =
+                JsonSchemaContext childContext7 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.SchemaVersionEntity.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -235,8 +251,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.SchemaVersionUtf8,
                         evaluationPath: SchemaVersionSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.SchemaVersionEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext6);
-                context.CommitChildContext(childContext6.IsMatch, ref childContext6);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.SchemaVersionEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext7);
+                context.CommitChildContext(childContext7.IsMatch, ref childContext7);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -249,7 +265,7 @@ public readonly partial struct SapphirusContractsCatalog
             private static void MatchState(IJsonDocument parentDocument, int parentDocumentIndex, int propertyCount, ref JsonSchemaContext context, Span<uint> requiredBitBuffer)
             {
                 context.AddLocalEvaluatedProperty(propertyCount);
-                JsonSchemaContext childContext7 =
+                JsonSchemaContext childContext8 =
                     Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.JsonSchema.PushChildContextUnescaped(
                         parentDocument,
                         parentDocumentIndex,
@@ -257,8 +273,8 @@ public readonly partial struct SapphirusContractsCatalog
                         JsonPropertyNames.StateUtf8,
                         evaluationPath: StateSchemaEvaluationPath);
 
-                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext7);
-                context.CommitChildContext(childContext7.IsMatch, ref childContext7);
+                Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.StateEntity.JsonSchema.Evaluate(parentDocument, parentDocumentIndex, ref childContext8);
+                context.CommitChildContext(childContext8.IsMatch, ref childContext8);
 
                 if (!context.HasCollector && !context.IsMatch)
                 {
@@ -274,6 +290,7 @@ public readonly partial struct SapphirusContractsCatalog
                     (static () => JsonPropertyNames.BoundsUtf8, MatchBounds),
                     (static () => JsonPropertyNames.ConsentUtf8, MatchConsent),
                     (static () => JsonPropertyNames.ContentHashUtf8, MatchContentHash),
+                    (static () => JsonPropertyNames.EntriesUtf8, MatchEntries),
                     (static () => JsonPropertyNames.MemoryIdUtf8, MatchMemoryId),
                     (static () => JsonPropertyNames.ModeUtf8, MatchMode),
                     (static () => JsonPropertyNames.OwnerScopeRefUtf8, MatchOwnerScopeRef),

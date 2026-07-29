@@ -87,6 +87,22 @@ public readonly partial struct SapphirusContractsCatalog
     }
 
     /// <summary>
+    /// Gets the (optional) <c>bmadActionPlan</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan BmadActionPlanValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadActionPlanValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Gets the (optional) <c>bmadArtifact</c> property.
     /// </summary>
     public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact BmadArtifactValue
@@ -1348,6 +1364,11 @@ public readonly partial struct SapphirusContractsCatalog
         public const string AuthorityRef = "authorityRef";
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="BmadActionPlanValue"/>.
+        /// </summary>
+        public const string BmadActionPlanValue = "bmadActionPlan";
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="BmadArtifactValue"/>.
         /// </summary>
         public const string BmadArtifactValue = "bmadArtifact";
@@ -1596,6 +1617,11 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the JSON property name for <see cref="AuthorityRef"/>.
         /// </summary>
         public static ReadOnlySpan<byte> AuthorityRefUtf8 => "authorityRef"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="BmadActionPlanValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadActionPlanValueUtf8 => "bmadActionPlan"u8;
 
         /// <summary>
         /// Gets the JSON property name for <see cref="BmadArtifactValue"/>.
@@ -1854,6 +1880,11 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> AuthorityRef => "authorityRef"u8;
 
         /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="BmadActionPlanValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadActionPlanValue => "bmadActionPlan"u8;
+
+        /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="BmadArtifactValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadArtifactValue => "bmadArtifact"u8;
@@ -2109,6 +2140,11 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the pre-baked property name blob for <see cref="AuthorityRef"/>.
         /// </summary>
         public static ReadOnlySpan<byte> AuthorityRef => [0xE5, 0x00, 0x00, 0x00, 0x22, 0x61, 0x75, 0x74, 0x68, 0x6F, 0x72, 0x69, 0x74, 0x79, 0x52, 0x65, 0x66, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="BmadActionPlanValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadActionPlanValue => [0x05, 0x01, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x41, 0x63, 0x74, 0x69, 0x6F, 0x6E, 0x50, 0x6C, 0x61, 0x6E, 0x22];
 
         /// <summary>
         /// Gets the pre-baked property name blob for <see cref="BmadArtifactValue"/>.

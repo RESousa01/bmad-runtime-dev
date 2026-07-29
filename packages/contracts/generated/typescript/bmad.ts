@@ -395,6 +395,48 @@ export interface BmadArtifactCompletionHookRun {
   receiptHash?: string;
 }
 
+export interface BmadActionPlanSapphirusBmadActionPlanV1 {
+  schemaVersion: "sapphirus.bmad-action-plan.v1";
+  planId: string;
+  sessionId: string;
+  capabilityId: string;
+  stepIndex: number;
+  kind:
+    "model_call" | "read" | "write_proposal" | "command_proposal" | "script_plan" | "schedule_plan" | "artifact_plan";
+  authorityClass: "none" | "read_only" | "requires_approval";
+  provenance: BmadActionPlanProvenance;
+  budget: BmadActionPlanBudget;
+  modelCall?: BmadActionPlanModelCall;
+  /**
+   * @maxItems 256
+   */
+  reads?: string[];
+  effect?: BmadActionPlanEffect;
+  planHash: string;
+}
+export interface BmadActionPlanProvenance {
+  sourceId: string;
+  stepHash: string;
+  customizationHash?: string;
+}
+export interface BmadActionPlanBudget {
+  maxModelCalls: number;
+  maxTokens: number;
+  maxRetries: number;
+  maxRepairs: number;
+}
+export interface BmadActionPlanModelCall {
+  trustMode: "untrusted_assistive" | "reviewed_advisory" | "sealed_deterministic";
+  contextHash: string;
+  outputSchemaId: string;
+  redactedPromptHash?: string;
+}
+export interface BmadActionPlanEffect {
+  effectClass: "filesystem" | "process" | "network" | "installation" | "publication" | "schedule" | "secret";
+  targetHash: string;
+  reversible: boolean;
+}
+
 /**
  * Inactive early BMAD Builder draft, revision, and analysis records.
  */
@@ -1022,6 +1064,10 @@ export interface BmadMemorySapphirusBmadMemoryV1 {
   bounds: BmadMemoryBounds;
   state: "inactive" | "active" | "revoked" | "killed";
   contentHash: string;
+  /**
+   * @maxItems 4096
+   */
+  entries?: BmadMemoryMemoryEntry[];
 }
 export interface BmadMemoryConsent {
   optedIn: boolean;
@@ -1033,6 +1079,32 @@ export interface BmadMemoryBounds {
   maxBytes: number;
   ttlSeconds: number;
   killSwitch: true;
+}
+export interface BmadMemoryMemoryEntry {
+  entryId: string;
+  memoryClass: "session_fact" | "persistent_fact" | "memlog_entry" | "compaction_summary" | "sanctum_entry";
+  scope: BmadMemoryMemoryScope;
+  provenance: BmadMemoryMemoryProvenance;
+  sensitivity: "ordinary" | "personal" | "restricted";
+  retention: "session" | "bounded" | "pinned";
+  mutability: "append_only" | "replaceable";
+  contentHash: string;
+  supersededByEntryId?: string;
+}
+export interface BmadMemoryMemoryScope {
+  kind: "session" | "project" | "user" | "installed_agent";
+  sessionId?: string;
+  workspaceId?: string;
+  installedAgentId?: string;
+}
+export interface BmadMemoryMemoryProvenance {
+  origin: "user_supplied" | "skill_declared" | "model_summarized" | "host_observed";
+  recordedAtSequence: number;
+  /**
+   * @maxItems 256
+   */
+  sourceEntryIds?: string[];
+  sourceSessionId?: string;
 }
 
 export interface BmadUpgradeSapphirusBmadUpgradeV1 {

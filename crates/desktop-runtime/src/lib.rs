@@ -36,6 +36,7 @@ pub use bmad::{
     BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster, BmadAgentRosterBuilder, BmadAgentSource,
     BmadArchitectureDecision, BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
     BmadArchitectureStepRecord, BmadArtifactClassification, BmadArtifactEvidence,
+    BmadActionPlanError, BmadMemoryError, BmadModelPortError, BmadOrchestratorError,
     BmadArtifactEvidenceKind, BmadArtifactIntent, BmadArtifactIntentKind, BmadArtifactLineageView,
     BmadArtifactReference, BmadArtifactTransitionError, BmadBuilderDraftFile, BmadBuilderDraftKind,
     BmadCandidateChange, BmadCanonicalAdvanceResult, BmadCanonicalHelpRecords, BmadCapabilityKey,

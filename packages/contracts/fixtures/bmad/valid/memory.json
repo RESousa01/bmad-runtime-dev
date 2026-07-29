@@ -19,8 +19,26 @@
       "killSwitch": true
     },
     "state": "active",
-    "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "entries": [
+      {
+        "entryId": "entry_01J00000000000000000000000",
+        "memoryClass": "persistent_fact",
+        "scope": {
+          "kind": "project",
+          "workspaceId": "workspace_01J00000000000000000000000"
+        },
+        "provenance": {
+          "origin": "user_supplied",
+          "recordedAtSequence": 1
+        },
+        "sensitivity": "ordinary",
+        "retention": "pinned",
+        "mutability": "append_only",
+        "contentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+      }
+    ]
   },
-  "canonicalJson": "{\"bounds\":{\"killSwitch\":true,\"maxBytes\":1048576,\"maxEntries\":100,\"ttlSeconds\":86400},\"consent\":{\"grantedAt\":\"2026-07-28T10:00:00.000Z\",\"optedIn\":true,\"revocable\":true},\"contentHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"memoryId\":\"memory_01J00000000000000000000000\",\"mode\":\"bounded_persistent\",\"ownerScopeRef\":\"owner_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-memory.v1\",\"state\":\"active\"}",
-  "expectedHash": "sha256:3a16dfaf320364387b76449c368c6f10ddce8f9b56cfb2111afae10bb4176a71"
+  "canonicalJson": "{\"bounds\":{\"killSwitch\":true,\"maxBytes\":1048576,\"maxEntries\":100,\"ttlSeconds\":86400},\"consent\":{\"grantedAt\":\"2026-07-28T10:00:00.000Z\",\"optedIn\":true,\"revocable\":true},\"contentHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"entries\":[{\"contentHash\":\"sha256:9999999999999999999999999999999999999999999999999999999999999999\",\"entryId\":\"entry_01J00000000000000000000000\",\"memoryClass\":\"persistent_fact\",\"mutability\":\"append_only\",\"provenance\":{\"origin\":\"user_supplied\",\"recordedAtSequence\":1},\"retention\":\"pinned\",\"scope\":{\"kind\":\"project\",\"workspaceId\":\"workspace_01J00000000000000000000000\"},\"sensitivity\":\"ordinary\"}],\"memoryId\":\"memory_01J00000000000000000000000\",\"mode\":\"bounded_persistent\",\"ownerScopeRef\":\"owner_01J00000000000000000000000\",\"schemaVersion\":\"sapphirus.bmad-memory.v1\",\"state\":\"active\"}",
+  "expectedHash": "sha256:1d357045e3f6899b2c93f339e28c0ffb4f43c4e21c9f775edbab46cfef011903"
 }
