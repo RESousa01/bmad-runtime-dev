@@ -22,8 +22,22 @@
         "packages/bmad-foundation/source/method/6.10.0/.vscode/settings.json",
         "packages/bmad-foundation/source/method/6.10.0/package-lock.json"
       ],
-      "resolution": "Retained by the reviewer-required clean source-topology repair. Both paths are covered by the completed SRC-03 source-retention lease packages/bmad-foundation/source/method/6.10.0/** and are required members of the pinned Method source tree consumed by MTH-08 closure verification.",
-      "source_lease_artifact": "artifacts/bmad100/tasks/SRC-03.json",
+      "resolution": "Retained by the reviewer-required clean source-topology repair. The committed authoritative source manifest identifies both as Method 6.10.0 members with the exact SHA-256 values below; they are required members of the pinned Method source tree consumed by MTH-08 closure verification.",
+      "governing_manifest": {
+        "path": "packages/bmad-foundation/source-manifest.json",
+        "source_id": "method",
+        "source_version": "6.10.0",
+        "entries": [
+          {
+            "path": ".vscode/settings.json",
+            "sha256": "0e391501f65d10db323be3cadd0bfcf6118ed270f5e134c13cefcbbcb331ee12"
+          },
+          {
+            "path": "package-lock.json",
+            "sha256": "c1e0de1fe219b251097ac78f275c42250595c075f63fab39b47800fbd92e883d"
+          }
+        ]
+      },
       "reviewer_scope": "MTH-08 reviewer round 2 clean-topology requirement",
       "content_hashes": {
         ".vscode/settings.json": "0e391501f65d10db323be3cadd0bfcf6118ed270f5e134c13cefcbbcb331ee12",

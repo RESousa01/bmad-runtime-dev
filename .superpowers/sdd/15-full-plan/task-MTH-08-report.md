@@ -271,14 +271,17 @@ Scope resolution for the two clean-topology files is also explicit:
 - `packages/bmad-foundation/source/method/6.10.0/package-lock.json`
   (`sha256:c1e0de1fe219b251097ac78f275c42250595c075f63fab39b47800fbd92e883d`)
 
-Both were retained by the reviewer-round-2 clean source-topology requirement,
-are covered by the completed SRC-03 source-retention lease
-`packages/bmad-foundation/source/method/6.10.0/**`, and are required members of
-the pinned Method source tree consumed by MTH-08 closure verification. An
-executable lease-and-hash assertion reported:
+Both were retained by the reviewer-round-2 clean source-topology requirement
+and are governed by the committed authoritative record
+`packages/bmad-foundation/source-manifest.json`. That manifest declares source
+`method` at version `6.10.0` and contains member entries for
+`.vscode/settings.json` and `package-lock.json` with the exact SHA-256 values
+above. The committed file bytes match those entries, so both remain verifiable
+members of the pinned Method source tree consumed by MTH-08 closure
+verification. An executable manifest-and-hash assertion reported:
 
 ```text
-scope accepted: lease=packages/bmad-foundation/source/method/6.10.0/** files=2 hashes=matched
+scope accepted: manifest=packages/bmad-foundation/source-manifest.json source=method version=6.10.0 files=2 hashes=matched
 ```
 
 The focused diff from the verified implementation commit contains only this
