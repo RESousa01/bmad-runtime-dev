@@ -7,6 +7,11 @@
 //! of one so concurrent MTH tasks touching other skills never conflict on
 //! this file's diff.
 
+mod bmad_generate_project_context;
+mod bmad_create_epics_and_stories;
+mod bmad_check_implementation_readiness;
+mod bmad_architecture;
+mod bmad_agent_architect;
 mod bmad_advanced_elicitation;
 mod bmad_agent_analyst;
 mod bmad_agent_pm;
@@ -44,3 +49,8 @@ pub use bmad_product_brief::BmadProductBriefSkill;
 pub use bmad_review::BmadReviewSkill;
 pub use bmad_spec::BmadSpecSkill;
 pub use bmad_ux::BmadUxSkill;
+pub use bmad_agent_architect::BmadAgentArchitectSkill;
+pub use bmad_architecture::BmadArchitectureSkill;
+pub use bmad_check_implementation_readiness::BmadCheckImplementationReadinessSkill;
+pub use bmad_create_epics_and_stories::BmadCreateEpicsAndStoriesSkill;
+pub use bmad_generate_project_context::BmadGenerateProjectContextSkill;
