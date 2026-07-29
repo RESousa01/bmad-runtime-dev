@@ -87,6 +87,26 @@ const DOMAIN_BOUNDARIES: &[DomainBoundary] = &[
         allowed_body_path_roots: &["crate", "generated_contracts", "num", "std"],
     },
     DomainBoundary {
+        module: "action_plan",
+        allowed_uses: &["useserde_json::Value;", "usethiserror::Error;", "usecrate::generated_contracts::{BmadActionPlan,BmadActionPlanAuthorityClass,BmadActionPlanBudget,BmadActionPlanEffect,BmadActionPlanKind,BmadActionPlanModelCall,BmadActionPlanProvenance,BmadActionPlanReadsItem,CommonContractId,CommonSha256,};", "usecrate::{canonical_hash_without_field,Sha256Digest};"],
+        allowed_body_path_roots: &["serde_json"],
+    },
+    DomainBoundary {
+        module: "model_port",
+        allowed_uses: &["useserde::de::DeserializeOwned;", "useserde_json::Value;", "usethiserror::Error;", "usecrate::generated_contracts::{BmadActionPlan,BmadActionPlanAuthorityClass,BmadActionPlanKind,};"],
+        allowed_body_path_roots: &["crate", "generated_contracts", "serde_json"],
+    },
+    DomainBoundary {
+        module: "orchestrator",
+        allowed_uses: &["useserde_json::json;", "usethiserror::Error;", "usecrate::canonical_hash;", "usecrate::generated_contracts::{BmadActionPlan,BmadActionPlanBudget,BmadActionPlanEffect,BmadActionPlanEffectEffectClass,BmadActionPlanKind,BmadActionPlanModelCall,BmadActionPlanModelCallTrustMode,};", "usesuper::action_plan::{build_plan,BmadActionPlanError,BmadActionPlanRequest};"],
+        allowed_body_path_roots: &["clippy", "crate"],
+    },
+    DomainBoundary {
+        module: "memory",
+        allowed_uses: &["usecrate::generated_contracts::{BmadMemoryMemoryEntry,BmadMemoryMemoryEntryMemoryClass,BmadMemoryMemoryEntryMutability,BmadMemoryMemoryEntryRetention,BmadMemoryMemoryEntrySensitivity,BmadMemoryMemoryProvenanceOrigin,BmadMemoryMemoryScope,BmadMemoryMemoryScopeKind,CommonContractId,CommonSha256,};", "usecrate::{canonical_hash,Sha256Digest};"],
+        allowed_body_path_roots: &["serde"],
+    },
+    DomainBoundary {
         module: "invocation",
         allowed_uses: &[
             "useserde_json::Value;",

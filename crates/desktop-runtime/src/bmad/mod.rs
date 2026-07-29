@@ -1,5 +1,5 @@
-pub mod architecture;
 mod action_plan;
+pub mod architecture;
 mod artifacts;
 mod binding;
 mod builder;
@@ -19,9 +19,9 @@ mod invocation;
 mod kernel_error;
 pub mod memlog;
 mod memory;
+mod method;
 mod model_port;
 mod orchestrator;
-mod method;
 mod package;
 mod ports;
 mod resources;
@@ -32,11 +32,13 @@ mod state_machine;
 pub mod toml_subset;
 pub mod workflow;
 
+pub use action_plan::{
+    build_plan, required_authority_class, validate_plan, BmadActionPlanError, BmadActionPlanRequest,
+};
 pub use architecture::{
     BmadArchitectureDecision, BmadArchitectureError, BmadArchitectureSession, BmadArchitectureStep,
     BmadArchitectureStepRecord, BMAD_ARCHITECTURE_SESSION_SCHEMA,
 };
-pub use action_plan::BmadActionPlanError;
 pub use artifacts::{
     artifact_lineage_view, reproduction_hash, BmadArtifactIntent, BmadArtifactIntentKind,
     BmadArtifactLineageView, BmadArtifactTransitionError,
@@ -117,9 +119,11 @@ pub use kernel_error::{BmadKernelError, BmadKernelErrorCode};
 pub use memlog::{
     labelled_body_part, Memlog, MemlogEntry, MemlogEntryKind, MemlogError, MEMLOG_FILE_NAME,
 };
-pub use memory::BmadMemoryError;
-pub use model_port::BmadModelPortError;
-pub use orchestrator::BmadOrchestratorError;
+pub use memory::{
+    authoritative_entries, compact, compute_resume_state, entries_for_scope, insert_entry,
+    is_authoritative_origin, project_for_export, supersede_entry, BmadMemoryError,
+    BmadMemoryProjectedEntry, BmadResumeState, MAX_MEMORY_ENTRIES, MAX_SOURCE_ENTRY_IDS,
+};
 pub use method::{
     CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
     MethodAdvanceResult, MethodArtifactProvenance, MethodCanonicalAdvanceResultData,
@@ -127,6 +131,11 @@ pub use method::{
     MethodSessionScope, MethodState, MethodStepTable, MethodVerifiedAdvanceResult,
     MethodVerifiedResultBindingData,
 };
+pub use model_port::{
+    accept_model_response, record_repair, record_retry, BmadClosedOutputSchema, BmadModelCallUsage,
+    BmadModelPortError,
+};
+pub use orchestrator::{plan_source_steps, BmadOrchestratorError, BmadSourceStep};
 pub use package::{
     BmadEntrypointKind, BmadLoadedPackage, BmadLoadedSkill, BmadLocationClass, BmadPackageLoader,
     BmadSourceEntry, BmadSourceKind, BmadSourceSnapshot,

@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 21;
+pub(crate) const LATEST_STORE_VERSION: u32 = 22;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -499,6 +499,89 @@ pub(crate) const V21_TABLES: [&str; 32] = [
     "bmad_capability_runs",
     "bmad_help_run_creations",
     "bmad_memlog_entries",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "bmad_session_events",
+    "bmad_sessions",
+    "chat_messages",
+    "chat_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "model_catalog_snapshots",
+    "model_profile_selections",
+    "outbox",
+    "payload_quarantine",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+
+/// Typed, durable memory entries for resume and Builder memory (ENG-10).
+///
+/// One row per entry, append-only in the same sense as `bmad_memlog_entries`:
+/// a `memlog_entry` row is only ever inserted, never updated. `replaceable`
+/// entries (session/persistent facts and compaction summaries) may have
+/// their own row's `superseded_by_entry_id` and `entry_json` updated when a
+/// compaction commits, but the superseding is always a *new* row referencing
+/// the old one — the old row is retired, not deleted, until retention purge.
+///
+/// `entry_json` carries the full validated contract entry; `content_hash`
+/// and `recorded_at_sequence` are duplicated as indexed columns so a reader
+/// can detect a row that drifted from what it was indexed under without
+/// deserializing every row up front (`StoreError::Inconsistent`).
+pub(crate) const V21_TO_V22_SQL: &str = "\
+ BEGIN IMMEDIATE;
+ CREATE TABLE bmad_memory_entries (
+   entry_id TEXT PRIMARY KEY,
+   workspace_id TEXT NOT NULL CHECK(length(workspace_id) > 0),
+   memory_class TEXT NOT NULL CHECK(memory_class IN (
+     'session_fact', 'persistent_fact', 'memlog_entry', 'compaction_summary',
+     'sanctum_entry')),
+   scope_kind TEXT NOT NULL CHECK(scope_kind IN (
+     'session', 'project', 'user', 'installed_agent')),
+   scope_session_id TEXT,
+   scope_workspace_id TEXT,
+   scope_installed_agent_id TEXT,
+   origin TEXT NOT NULL CHECK(origin IN (
+     'user_supplied', 'skill_declared', 'model_summarized', 'host_observed')),
+   sensitivity TEXT NOT NULL CHECK(sensitivity IN ('ordinary', 'personal', 'restricted')),
+   retention TEXT NOT NULL CHECK(retention IN ('session', 'bounded', 'pinned')),
+   mutability TEXT NOT NULL CHECK(mutability IN ('append_only', 'replaceable')),
+   content_hash TEXT NOT NULL
+     CHECK(length(content_hash) = 71 AND content_hash GLOB 'sha256:*'),
+   recorded_at_sequence INTEGER NOT NULL
+     CHECK(recorded_at_sequence >= 0 AND recorded_at_sequence <= 1048576),
+   superseded_by_entry_id TEXT,
+   entry_json TEXT NOT NULL CHECK(length(entry_json) > 0),
+   created_at_ms INTEGER NOT NULL
+     CHECK(created_at_ms >= 0 AND created_at_ms <= 9007199254740991)
+ ) STRICT;
+ CREATE INDEX bmad_memory_entries_by_workspace_scope
+   ON bmad_memory_entries(workspace_id, scope_kind, recorded_at_sequence);
+ CREATE INDEX bmad_memory_entries_by_retention
+   ON bmad_memory_entries(workspace_id, retention);
+ PRAGMA user_version = 22;
+ COMMIT;";
+
+pub(crate) const V22_TABLES: [&str; 33] = [
+    "aggregates",
+    "bmad_architecture_session_steps",
+    "bmad_architecture_sessions",
+    "bmad_artifact_events",
+    "bmad_artifacts",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_memlog_entries",
+    "bmad_memory_entries",
     "bmad_method_artifacts",
     "bmad_method_checkpoints",
     "bmad_method_decision_consumptions",
@@ -1251,8 +1334,9 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
             18 => run_migration_step(connection, &V18_TABLES, V18_TO_V19_SQL)?,
             19 => run_migration_step(connection, &V19_TABLES, V19_TO_V20_SQL)?,
             20 => run_migration_step(connection, &V20_TABLES, V20_TO_V21_SQL)?,
+            21 => run_migration_step(connection, &V21_TABLES, V21_TO_V22_SQL)?,
             LATEST_STORE_VERSION => {
-                require_store_tables(connection, &V21_TABLES)?;
+                require_store_tables(connection, &V22_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

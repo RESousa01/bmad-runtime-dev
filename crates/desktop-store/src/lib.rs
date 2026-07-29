@@ -26,7 +26,7 @@ use thiserror::Error;
 /// destroys the whole database regardless, but a user asking what is retained
 /// is entitled to see their conversations and capability results counted —
 /// this list silently fell behind two migrations and reported neither.
-pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 28] = [
+pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 29] = [
     ("workspace_and_authority_records", "aggregates"),
     ("evidence_events", "evidence_events"),
     ("stored_payloads", "payloads"),
@@ -64,6 +64,7 @@ pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 28] = [
     ("bmad_skill_session_events", "bmad_session_events"),
     ("bmad_artifacts", "bmad_artifacts"),
     ("bmad_artifact_events", "bmad_artifact_events"),
+    ("memory_entries", "bmad_memory_entries"),
 ];
 use time::OffsetDateTime;
 use ulid::Ulid;
@@ -84,6 +85,7 @@ mod bmad_artifacts;
 mod bmad_builder;
 mod bmad_capability;
 mod bmad_config;
+mod bmad_memory;
 mod bmad_method;
 mod bmad_sessions;
 mod chat;
@@ -99,6 +101,7 @@ pub use bmad_architecture::{ArchitectureSessionStep, ResumableArchitectureSessio
 pub use bmad_artifacts::{BmadArtifactEvent, BmadArtifactEventRow, BmadArtifactRecord};
 pub use bmad_capability::BmadCapabilityRunRecord;
 pub use bmad_config::BmadConfigSnapshot;
+pub use bmad_memory::{BmadMemoryScopeQuery, StoredBmadMemoryEntry};
 pub use bmad_method::{
     BmadHelpRunCompletionReceipt, BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt,
     BmadHelpRunLatest, BmadHelpRunReplayRequest, MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES,
@@ -2579,6 +2582,7 @@ mod tests {
             let path = store.database_path();
             store.connection.lock().execute_batch(
                 "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
@@ -2979,6 +2983,7 @@ DROP TABLE bmad_session_events;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
             "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
@@ -3039,6 +3044,7 @@ DROP TABLE bmad_session_events;
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
             "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
@@ -3152,6 +3158,7 @@ DROP TABLE bmad_session_events;
         )?;
         store.connection.lock().execute_batch(
             "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;

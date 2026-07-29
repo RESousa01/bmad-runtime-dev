@@ -252,6 +252,7 @@ fn a_v12_store_gains_the_memlog_table_on_open() -> Result<(), Box<dyn std::error
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
@@ -287,6 +288,7 @@ fn an_interrupted_v13_upgrade_recovers_on_reopen() -> Result<(), Box<dyn std::er
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
@@ -309,7 +311,7 @@ DROP TABLE bmad_session_events;
     drop(connection);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 21);
+    assert_eq!(reopened.schema_version()?, 22);
     assert_eq!(reopened.schema_catalog()?, expected);
     assert_eq!(
         sequence_of(reopened.append_memlog_entry(append("e1", "docs/prd", "after recovery"))?),
@@ -331,6 +333,7 @@ fn a_half_applied_v13_schema_fails_closed() -> Result<(), Box<dyn std::error::Er
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
@@ -415,6 +418,7 @@ fn a_v13_store_gains_the_subject_column_on_open() -> Result<(), Box<dyn std::err
     let connection = rusqlite::Connection::open(&database_path)?;
     connection.execute_batch(
         "DROP TABLE bmad_artifact_events;
+DROP TABLE bmad_memory_entries;
 DROP TABLE bmad_artifacts;
 DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
@@ -448,7 +452,7 @@ DROP TABLE bmad_session_events;
     drop(connection);
 
     let upgraded = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 21);
+    assert_eq!(upgraded.schema_version()?, 22);
     assert_eq!(memlog_columns(&database_path)?, expected_columns);
     assert!(expected_columns.iter().any(|column| column == "subject"));
 
