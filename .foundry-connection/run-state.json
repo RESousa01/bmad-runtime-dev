@@ -506,6 +506,23 @@
   },
   "decisions": [
     {
+      "id": "RUST-MODULE-SPLIT",
+      "decidedAt": "2026-07-29T02:10:00Z",
+      "decidedBy": "operator",
+      "question": "Do the Rust model changes get appended to the existing flat modules, or extracted into their own?",
+      "decision": "Extracted. This is a plan requirement that was nearly missed: FND-044's first step is to split model commands out of the large command modules, and the plan's file paths throughout phase 3 name directories rather than the flat files this repository currently has.",
+      "targets": [
+        { "planPath": "crates/desktop-app/src/commands/model.rs", "repositoryToday": "commands.rs, a single 6739-line module" },
+        { "planPath": "crates/desktop-app/src/state/model.rs", "repositoryToday": "state.rs, a single 1779-line module" },
+        { "planPath": "crates/desktop-ipc/src/model.rs", "repositoryToday": "no model module; earlier briefing wrongly said model_catalog.rs" },
+        { "planPath": "crates/desktop-app/src/chat/**", "repositoryToday": "chat.rs, a single 1907-line module", "appliesTo": "FND-045" },
+        { "planPath": "crates/desktop-runtime/src/chat/**", "repositoryToday": "no chat module in that crate", "appliesTo": "FND-045" }
+      ],
+      "whyItMatters": "Clippy enforces too_many_lines at 100 across the workspace with warnings denied. Appending model handling to a 6739-line module makes an existing problem worse and is likely to trip the lint outright.",
+      "mechanic": "Rust 2018 path resolution means no file has to be renamed to mod.rs. Keep src/commands.rs and add src/commands/model.rs, declaring mod model; inside commands.rs. This is an extraction, not a restructure.",
+      "scopeDiscipline": "Move only model-related code. Opportunistic refactoring of unrelated parts of these modules collides with the concurrent BMAD lane and makes review much harder. Anything model-related that is deeply entangled with non-model code should be left in place and reported instead."
+    },
+    {
       "id": "DEV-FOUNDRY-CREDENTIAL",
       "decidedAt": "2026-07-28T20:05:00Z",
       "decidedBy": "operator",
