@@ -1806,20 +1806,23 @@ const fn map_cloud_error(error: &CloudError) -> BmadHelpCoordinatorError {
         CloudError::ResponseBindingMismatch => BmadHelpCoordinatorError::ResponseBindingMismatch,
         CloudError::InvalidModelOutput => BmadHelpCoordinatorError::InvalidModelOutput,
         CloudError::ReceiptInvalid => BmadHelpCoordinatorError::ReceiptInvalid,
-        CloudError::InvalidSupportOrigin | CloudError::TransportFailed => {
-            BmadHelpCoordinatorError::TransportFailed
-        }
+        // Catalog-lane failures (FND-040) are merged in with the other
+        // transport-shaped arms below. This coordinator never fetches a
+        // catalog, so `ContractUpgradeRequired` and `ModelCatalogUnavailable`
+        // exist only to keep the exhaustive match honest rather than to
+        // classify a path it takes: an upgrade requirement and an unavailable
+        // catalog are both "the support plane would not serve this", exactly
+        // like `InvalidSupportOrigin` and `TransportFailed`.
+        CloudError::InvalidSupportOrigin
+        | CloudError::TransportFailed
+        | CloudError::ContractUpgradeRequired
+        | CloudError::ModelCatalogUnavailable => BmadHelpCoordinatorError::TransportFailed,
         CloudError::CanonicalProjectionInvalid => BmadHelpCoordinatorError::ConsentBindingMismatch,
-        CloudError::InstallationKeyUnavailable => BmadHelpCoordinatorError::Integrity,
-        // Catalog-lane failures (FND-040). This coordinator never fetches a
-        // catalog, so these arms exist to keep the exhaustive match honest
-        // rather than to classify a path it takes: an upgrade requirement and
-        // an unavailable catalog are both "the support plane would not serve
-        // this", and a catalog that failed validation is an integrity failure.
-        CloudError::ContractUpgradeRequired | CloudError::ModelCatalogUnavailable => {
-            BmadHelpCoordinatorError::TransportFailed
+        // A catalog that failed validation is an integrity failure, same as an
+        // unavailable installation key.
+        CloudError::InstallationKeyUnavailable | CloudError::ModelCatalogIntegrity => {
+            BmadHelpCoordinatorError::Integrity
         }
-        CloudError::ModelCatalogIntegrity => BmadHelpCoordinatorError::Integrity,
     }
 }
 
