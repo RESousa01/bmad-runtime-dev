@@ -34,6 +34,14 @@ const QUALIFIED_METHOD_ROWS = new Map([
       releaseState: "qualified",
     },
   ],
+  [
+    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+    {
+      supportState: "exact",
+      uiState: "runtime_available",
+      releaseState: "qualified",
+    },
+  ],
 ]);
 
 const METHOD_TASK_NAMES = [

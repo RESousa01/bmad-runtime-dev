@@ -189,13 +189,14 @@ pub use skills::{
     BmadAdvancedElicitationSkill, BmadAgentAnalystSkill, BmadAgentArchitectSkill, BmadAgentPmSkill,
     BmadAgentTechWriterSkill, BmadAgentUxDesignerSkill, BmadArchitectureSkill,
     BmadBrainstormingSkill, BmadCheckImplementationReadinessSkill, BmadCreateEpicsAndStoriesSkill,
-    BmadCustomizeSkill, BmadDeepReconSkill, BmadDocumentProjectSkill, BmadForgeIdeaSkill,
-    BmadGenerateProjectContextSkill, BmadHelpSkill, BmadMethodSkill, BmadPartyModeSkill,
-    BmadPrdSkill, BmadPreparedSkillExecution, BmadPrfaqSkill, BmadProductBriefSkill,
-    BmadReviewSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillExecutionCompiler,
-    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
-    BmadSkillExecutionPreparedPlan, BmadSkillExecutionRequest, BmadSkillExecutionStep,
-    BmadSkillExecutionWorkflow, BmadSkillHarnessError, BmadSkillRecoverySemantics,
+    BmadCustomizeSkill, BmadDeepReconSkill, BmadDispatchedSkillExecution, BmadDocumentProjectSkill,
+    BmadForgeIdeaSkill, BmadGenerateProjectContextSkill, BmadHelpSkill, BmadMethodSkill,
+    BmadPartyModeSkill, BmadPrdSkill, BmadPreparedSkillExecution, BmadPrfaqSkill,
+    BmadProductBriefSkill, BmadReviewSkill, BmadSkillDescriptor, BmadSkillDescriptorInput,
+    BmadSkillDispatchError, BmadSkillExecutionCompiler, BmadSkillExecutionContract,
+    BmadSkillExecutionContractInput, BmadSkillExecutionError, BmadSkillExecutionPreparedPlan,
+    BmadSkillExecutionRequest, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillHarnessError, BmadSkillHostBindingInput, BmadSkillRecoverySemantics,
     BmadSkillSupportState, BmadSkillToolIntent, BmadSpecSkill, BmadUxSkill,
     BMAD_SKILL_HARNESS_SCHEMA,
 };
@@ -303,5 +304,42 @@ impl BmadRuntimePort for BmadDomainRuntime {
         request: BmadSkillExecutionRequest,
     ) -> Result<BmadPreparedSkillExecution, BmadSkillExecutionError> {
         BmadSkillExecutionCompiler::prepare(skill, request)
+    }
+}
+
+impl BmadDomainRuntime {
+    /// Prepares an opted-in skill and durably creates/binds its session through
+    /// the established Method service in one production dispatch path.
+    ///
+    /// # Errors
+    ///
+    /// Returns a fail-closed preparation error before persistence, or the
+    /// established Method service error if creation/binding fails.
+    pub fn dispatch_skill_execution<R>(
+        &self,
+        service: &MethodSessionService<R>,
+        skill: &dyn BmadMethodSkill,
+        request: BmadSkillExecutionRequest,
+        creation: CreateMethodSession,
+    ) -> Result<BmadDispatchedSkillExecution, BmadSkillDispatchError<R::Error>>
+    where
+        R: MethodSessionRepository,
+    {
+        let prepared = self
+            .prepare_skill_execution(skill, request)
+            .map_err(BmadSkillDispatchError::Preparation)?;
+        let created = service
+            .create(creation)
+            .map_err(BmadSkillDispatchError::Lifecycle)?;
+        let bound = service
+            .bind_invocation(
+                &created.scope(),
+                &created.session_id(),
+                created.version(),
+                prepared.exact_binding().clone(),
+                prepared.step_table().clone(),
+            )
+            .map_err(BmadSkillDispatchError::Lifecycle)?;
+        Ok(BmadDispatchedSkillExecution::new(prepared, bound))
     }
 }
