@@ -8,13 +8,19 @@
     "configId": "config_01J00000000000000000000000",
     "layers": [
       {
-        "kind": "central",
+        "kind": "defaults",
         "ordinal": 0,
-        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "version": 1
       }
     ],
+    "effectiveValues": [],
+    "secretReferences": [],
+    "requirements": [],
+    "conflicts": [],
     "resolvedHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
     "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "sessionConfigHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
     "futureAuthority": true
   }
 }

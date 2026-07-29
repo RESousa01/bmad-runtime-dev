@@ -4,7 +4,7 @@
   "title": "sapphirus.bmad-config.v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "configId", "layers", "resolvedHash", "provenanceHash"],
+  "required": ["schemaVersion", "configId", "layers", "effectiveValues", "secretReferences", "requirements", "conflicts", "resolvedHash", "provenanceHash", "sessionConfigHash"],
   "properties": {
     "schemaVersion": { "const": "sapphirus.bmad-config.v1" },
     "configId": { "$ref": "./common.schema.json#/$defs/ContractId" },
@@ -14,18 +14,88 @@
       "maxItems": 5,
       "items": { "$ref": "#/$defs/ConfigLayer" }
     },
+    "effectiveValues": {
+      "type": "array",
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/EffectiveValue" }
+    },
+    "secretReferences": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/SecretReference" }
+    },
+    "requirements": {
+      "type": "array",
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/InputRequirement" }
+    },
+    "conflicts": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/ConflictDiagnostic" }
+    },
     "resolvedHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-    "provenanceHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+    "provenanceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "sessionConfigHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
   },
   "$defs": {
     "ConfigLayer": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "ordinal", "contentHash"],
+      "required": ["kind", "ordinal", "contentHash", "version"],
       "properties": {
-        "kind": { "enum": ["central", "bundled_module", "project", "user", "invocation"] },
+        "kind": { "enum": ["defaults", "bundled_module", "project", "user", "invocation"] },
         "ordinal": { "type": "integer", "minimum": 0, "maximum": 4 },
-        "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+        "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "version": { "type": "integer", "minimum": 1, "maximum": 4294967295 }
+      }
+    },
+    "EffectiveValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "value", "sourceLayer", "sourceHash", "validation", "redaction", "version"],
+      "properties": {
+        "key": { "enum": ["language", "personalization", "output_folder", "report_folder", "model_preference"] },
+        "value": {},
+        "sourceLayer": { "enum": ["defaults", "bundled_module", "project", "user", "invocation"] },
+        "sourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "validation": { "const": "valid" },
+        "redaction": { "const": "none" },
+        "version": { "type": "integer", "minimum": 1, "maximum": 4294967295 }
+      }
+    },
+    "SecretReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "reference", "sourceLayer", "sourceHash", "validation", "redaction", "version"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9_-]+$" },
+        "reference": { "type": "string", "minLength": 10, "maxLength": 512, "pattern": "^secret://[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*$" },
+        "sourceLayer": { "enum": ["defaults", "bundled_module", "project", "user", "invocation"] },
+        "sourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "validation": { "const": "valid" },
+        "redaction": { "const": "reference_only" },
+        "version": { "type": "integer", "minimum": 1, "maximum": 4294967295 }
+      }
+    },
+    "InputRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "reason"],
+      "properties": {
+        "key": { "enum": ["language", "output_folder", "report_folder", "model_preference"] },
+        "reason": { "const": "missing_required_headless_value" }
+      }
+    },
+    "ConflictDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "key", "previousSourceLayer", "nextSourceLayer"],
+      "properties": {
+        "code": { "enum": ["config_value_overridden", "config_secret_reference_overridden"] },
+        "key": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "previousSourceLayer": { "enum": ["defaults", "bundled_module", "project", "user", "invocation"] },
+        "nextSourceLayer": { "enum": ["defaults", "bundled_module", "project", "user", "invocation"] }
       }
     }
   }

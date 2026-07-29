@@ -179,6 +179,41 @@ pub enum LocalCommand {
         provider_id: ModelProviderId,
         model_id: String,
     },
+    /// Reads the catalog the host already holds. Never reaches the network.
+    GetModelCatalog {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+    },
+    /// Asks the host to re-resolve its catalog. The renderer names no origin,
+    /// no deployment and no credential: which support plane is contacted, and
+    /// with what authority, is entirely the host's.
+    RefreshModelCatalog {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+    },
+    /// Reads which model is currently resolved for a workspace, including the
+    /// "the user must choose again" outcome.
+    GetModelSelection {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+    },
+    /// Starts one task-bound model response. The prompt is the only content
+    /// the renderer supplies; the profile, the variant, the limits and the
+    /// endpoint are all resolved by the host from the catalog.
+    SendModelResponse {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        task_id: ContractId,
+        client_session_ref: String,
+        prompt: String,
+    },
+    /// Stops one task-bound model response the user started.
+    StopModelResponse {
+        workspace_id: ContractId,
+        workspace_grant_epoch: u64,
+        task_id: ContractId,
+        run_id: ContractId,
+    },
     PrepareBmadHelpReview {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
@@ -344,6 +379,11 @@ impl LocalCommand {
             Self::ModelAuthSignIn { .. } => "model.auth.sign_in",
             Self::ModelAuthSignOut => "model.auth.sign_out",
             Self::SetModelSelection { .. } => "model.selection.set",
+            Self::GetModelCatalog { .. } => "model.catalog.get",
+            Self::RefreshModelCatalog { .. } => "model.catalog.refresh",
+            Self::GetModelSelection { .. } => "model.selection.get",
+            Self::SendModelResponse { .. } => "model.response.send",
+            Self::StopModelResponse { .. } => "model.response.stop",
             Self::SendChatMessage { .. } => "chat.send",
             Self::ChatHistory { .. } => "chat.history",
             Self::BmadWorkflowState { .. } => "bmad.workflow.state",
@@ -393,6 +433,8 @@ impl LocalCommand {
                 | Self::ViewBmadPersona { .. }
                 | Self::OffboardingInspect
                 | Self::ModelAuthStatus
+                | Self::GetModelCatalog { .. }
+                | Self::GetModelSelection { .. }
                 | Self::LatestBmadHelpRun { .. }
                 | Self::LatestBmadCapabilityRun { .. }
                 | Self::ChatHistory { .. }

@@ -13,7 +13,9 @@ const NEWEST_RENDERER_PROJECTION: &[u8] = br#"{"schemaVersion":"bmad-help-run.v1
 const LATEST_COMMITTED_RENDERER_PROJECTION: &[u8] = br#"{"schemaVersion":"bmad-help-run.v1","runKind":"bmad_help","lifecycle":"created_unbound","workspaceId":"workspace_01J00000000000000000000000","runId":"run_01J22222222222222222222222","sessionId":"session_01J22222222222222222222222","runnable":false,"completionClaimed":false}"#;
 
 const RESTORE_RELEASED_V8_HELP_RUN_TABLE_SQL: &str = "
- DROP TABLE model_profile_selections;
+ DROP TABLE bmad_session_events;
+             DROP TABLE bmad_sessions;
+             DROP TABLE model_profile_selections;
  DROP TABLE model_catalog_snapshots;
  DROP TABLE payload_quarantine;
  DROP TABLE chat_messages;
@@ -882,7 +884,7 @@ fn released_v8_help_history_migrates_without_inventing_a_projection(
     restore_released_v8_help_run_table(&database_path)?;
 
     let migrated = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(migrated.schema_version()?, 19);
+    assert_eq!(migrated.schema_version()?, 20);
     migrated.verify_integrity()?;
     assert!(matches!(
         migrated.replay_bmad_help_run(&replay_request(&legacy)),
@@ -917,7 +919,7 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
-    assert_eq!(fresh.schema_version()?, 19);
+    assert_eq!(fresh.schema_version()?, 20);
     let expected = fresh.schema_catalog()?;
 
     let upgrade_directory = tempfile::tempdir()?;
@@ -926,7 +928,9 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
     drop(upgrade);
     let connection = Connection::open(&upgrade_path)?;
     connection.execute_batch(
-        "DROP TABLE model_profile_selections;
+        "DROP TABLE bmad_session_events;
+             DROP TABLE bmad_sessions;
+             DROP TABLE model_profile_selections;
          DROP TABLE model_catalog_snapshots;
          DROP TABLE chat_messages;
          DROP TABLE chat_sessions;
@@ -945,7 +949,7 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
     )?;
     drop(connection);
     let upgraded = LocalStore::open(upgrade_directory.path(), &TestProtector)?;
-    assert_eq!(upgraded.schema_version()?, 19);
+    assert_eq!(upgraded.schema_version()?, 20);
     assert_eq!(upgraded.schema_catalog()?, expected);
 
     let interrupted_directory = tempfile::tempdir()?;
@@ -954,7 +958,9 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
     drop(interrupted);
     let connection = Connection::open(&interrupted_path)?;
     connection.execute_batch(
-        "DROP TABLE model_profile_selections;
+        "DROP TABLE bmad_session_events;
+             DROP TABLE bmad_sessions;
+             DROP TABLE model_profile_selections;
          DROP TABLE model_catalog_snapshots;
          DROP TABLE chat_messages;
          DROP TABLE chat_sessions;
@@ -975,7 +981,7 @@ fn fresh_v7_upgrade_and_interrupted_v10_migration_are_equivalent(
     )?;
     drop(connection);
     let resumed = LocalStore::open(interrupted_directory.path(), &TestProtector)?;
-    assert_eq!(resumed.schema_version()?, 19);
+    assert_eq!(resumed.schema_version()?, 20);
     assert_eq!(resumed.schema_catalog()?, expected);
     Ok(())
 }

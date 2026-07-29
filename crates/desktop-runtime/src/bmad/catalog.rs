@@ -8,7 +8,10 @@ use crate::{
     Sha256Digest,
 };
 
-use super::{BmadEntrypointKind, BmadKernelError, BmadKernelErrorCode, BmadLoadedPackage};
+use super::{
+    kernel_error::{BmadKernelError, BmadKernelErrorCode},
+    package::{BmadEntrypointKind, BmadLoadedPackage},
+};
 
 const HELP_HEADER: [&str; 13] = [
     "module",

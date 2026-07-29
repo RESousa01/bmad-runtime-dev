@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 19;
+pub(crate) const LATEST_STORE_VERSION: u32 = 20;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -312,6 +312,102 @@ pub(crate) const V19_TABLES: [&str; 28] = [
     "bmad_method_checkpoints",
     "bmad_method_decision_consumptions",
     "bmad_method_sessions",
+    "chat_messages",
+    "chat_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "model_catalog_snapshots",
+    "model_profile_selections",
+    "outbox",
+    "payload_quarantine",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
+
+/// The one durable BMAD skill lifecycle (ENG-05).
+///
+/// `bmad_sessions` holds exactly one row per session: the current state, its
+/// optimistic `version`, the evidence-chain head, and the bound source,
+/// package, config, customization, model, task, workspace, and policy
+/// identities. `bmad_session_events` is append-only — a row per accepted
+/// transition, keyed so the same version cannot be written twice. Restart
+/// recovery reads the row and replays nothing: the row *is* the accepted
+/// state, and the event log explains how it got there.
+pub(crate) const V19_TO_V20_SQL: &str = "\
+ BEGIN IMMEDIATE;
+ CREATE TABLE bmad_sessions (
+   session_id TEXT PRIMARY KEY,
+   capability_id TEXT NOT NULL CHECK(length(capability_id) > 0),
+   workspace_id TEXT NOT NULL CHECK(length(workspace_id) > 0),
+   state TEXT NOT NULL CHECK(state IN (
+     'created', 'resolving', 'input_required', 'ready', 'running',
+     'awaiting_approval', 'paused', 'validating', 'completed', 'failed',
+     'cancelled')),
+   version INTEGER NOT NULL CHECK(version >= 1 AND version <= 1048576),
+   evidence_hash TEXT NOT NULL
+     CHECK(length(evidence_hash) = 71 AND evidence_hash GLOB 'sha256:*'),
+   source_id TEXT NOT NULL CHECK(length(source_id) > 0),
+   package_id TEXT NOT NULL CHECK(length(package_id) > 0),
+   config_hash TEXT NOT NULL
+     CHECK(length(config_hash) = 71 AND config_hash GLOB 'sha256:*'),
+   customization_hash TEXT NOT NULL
+     CHECK(length(customization_hash) = 71 AND customization_hash GLOB 'sha256:*'),
+   model_id TEXT NOT NULL CHECK(length(model_id) > 0),
+   task_id TEXT NOT NULL CHECK(length(task_id) > 0),
+   policy_hash TEXT NOT NULL
+     CHECK(length(policy_hash) = 71 AND policy_hash GLOB 'sha256:*'),
+   session_json TEXT NOT NULL CHECK(length(session_json) > 0),
+   created_at_ms INTEGER NOT NULL
+     CHECK(created_at_ms >= 0 AND created_at_ms <= 9007199254740991),
+   updated_at_ms INTEGER NOT NULL
+     CHECK(updated_at_ms >= 0 AND updated_at_ms <= 9007199254740991),
+   CHECK(updated_at_ms >= created_at_ms)
+ ) STRICT;
+ CREATE INDEX bmad_sessions_by_workspace
+   ON bmad_sessions(workspace_id, updated_at_ms DESC, session_id);
+ CREATE TABLE bmad_session_events (
+   session_id TEXT NOT NULL REFERENCES bmad_sessions(session_id),
+   to_version INTEGER NOT NULL CHECK(to_version >= 2 AND to_version <= 1048576),
+   from_version INTEGER NOT NULL CHECK(from_version >= 1),
+   command TEXT NOT NULL CHECK(length(command) > 0),
+   from_state TEXT NOT NULL CHECK(length(from_state) > 0),
+   to_state TEXT NOT NULL CHECK(length(to_state) > 0),
+   previous_evidence_hash TEXT NOT NULL
+     CHECK(length(previous_evidence_hash) = 71
+       AND previous_evidence_hash GLOB 'sha256:*'),
+   evidence_hash TEXT NOT NULL
+     CHECK(length(evidence_hash) = 71 AND evidence_hash GLOB 'sha256:*'),
+   recorded_at_ms INTEGER NOT NULL
+     CHECK(recorded_at_ms >= 0 AND recorded_at_ms <= 9007199254740991),
+   CHECK(to_version = from_version + 1),
+   PRIMARY KEY(session_id, to_version)
+ ) STRICT;
+ CREATE INDEX bmad_session_events_by_session
+   ON bmad_session_events(session_id, to_version);
+ PRAGMA user_version = 20;
+ COMMIT;";
+
+pub(crate) const V20_TABLES: [&str; 30] = [
+    "aggregates",
+    "bmad_architecture_session_steps",
+    "bmad_architecture_sessions",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_memlog_entries",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "bmad_session_events",
+    "bmad_sessions",
     "chat_messages",
     "chat_sessions",
     "effect_journals",
@@ -1104,8 +1200,13 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
                 require_outbox_event_uniqueness(connection)?;
                 connection.execute_batch(V18_TO_V19_SQL)?;
             }
-            LATEST_STORE_VERSION => {
+            19 => {
                 require_store_tables(connection, &V19_TABLES)?;
+                require_outbox_event_uniqueness(connection)?;
+                connection.execute_batch(V19_TO_V20_SQL)?;
+            }
+            LATEST_STORE_VERSION => {
+                require_store_tables(connection, &V20_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

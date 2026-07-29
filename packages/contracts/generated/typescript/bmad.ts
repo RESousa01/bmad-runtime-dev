@@ -252,9 +252,38 @@ export interface BmadSessionSapphirusBmadSessionV1 {
   capabilityId: string;
   mode: "interactive" | "headless";
   agentProfile: "stateless" | "memory" | "autonomous_pulse";
-  state: "created" | "running" | "input_required" | "paused" | "completed" | "failed" | "cancelled";
+  state:
+    | "created"
+    | "resolving"
+    | "input_required"
+    | "ready"
+    | "running"
+    | "awaiting_approval"
+    | "paused"
+    | "validating"
+    | "completed"
+    | "failed"
+    | "cancelled";
+  version: number;
+  identities: BmadSessionSessionIdentities;
+  evidenceHash: string;
   control: BmadSessionSessionControl;
+  stage?: string;
+  action?: string;
   inputRequest?: BmadSessionInputRequest;
+  approvalRequest?: BmadSessionApprovalRequest;
+  /**
+   * @maxItems 1024
+   */
+  answers?: BmadSessionRecordedAnswer[];
+  /**
+   * @maxItems 1024
+   */
+  modelCalls?: BmadSessionModelCall[];
+  /**
+   * @maxItems 1024
+   */
+  toolProposals?: BmadSessionToolProposal[];
   /**
    * @maxItems 1024
    */
@@ -263,10 +292,21 @@ export interface BmadSessionSapphirusBmadSessionV1 {
    * @maxItems 32
    */
   completionHooks?: BmadSessionCompletionHook[];
+  outcome?: BmadSessionOutcome;
   /**
    * @maxItems 4096
    */
   evidence: string[];
+}
+export interface BmadSessionSessionIdentities {
+  sourceId: string;
+  packageId: string;
+  configHash: string;
+  customizationHash: string;
+  modelId: string;
+  taskId: string;
+  workspaceId: string;
+  policyHash: string;
 }
 export interface BmadSessionSessionControl {
   pauseAllowed: boolean;
@@ -278,9 +318,34 @@ export interface BmadSessionInputRequest {
   prompt: string;
   responseSchemaHash: string;
 }
+export interface BmadSessionApprovalRequest {
+  requestId: string;
+  planHash: string;
+  effectClass: "filesystem" | "process" | "network" | "installation" | "publication" | "schedule" | "secret";
+}
+export interface BmadSessionRecordedAnswer {
+  requestId: string;
+  answerHash: string;
+}
+export interface BmadSessionModelCall {
+  callId: string;
+  modelId: string;
+  requestHash: string;
+  responseHash: string;
+}
+export interface BmadSessionToolProposal {
+  proposalId: string;
+  planHash: string;
+  status: "proposed" | "approved" | "rejected" | "expired";
+}
 export interface BmadSessionCompletionHook {
   hook: "persist_artifacts" | "emit_receipt" | "notify_local" | "schedule_followup";
   enabled: boolean;
+}
+export interface BmadSessionOutcome {
+  kind: "completed" | "failed" | "cancelled";
+  code: string;
+  detail?: string;
 }
 
 export interface BmadArtifactSapphirusBmadArtifactV1 {

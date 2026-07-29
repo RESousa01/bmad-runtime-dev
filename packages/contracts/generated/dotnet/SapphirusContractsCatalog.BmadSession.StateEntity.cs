@@ -555,20 +555,28 @@ public readonly partial struct SapphirusContractsCatalog
             /// <typeparam name="TResult">The result of calling the match function.</typeparam>
             /// <param name="context">The context to pass to the match function.</param>
             /// <param name="matchCreated">Match 1st item.</param>
-            /// <param name="matchRunning">Match 2nd item.</param>
+            /// <param name="matchResolving">Match 2nd item.</param>
             /// <param name="matchInputRequired">Match 3rd item.</param>
-            /// <param name="matchPaused">Match 4th item.</param>
-            /// <param name="matchCompleted">Match 5th item.</param>
-            /// <param name="matchFailed">Match 6th item.</param>
-            /// <param name="matchCancelled">Match 7th item.</param>
+            /// <param name="matchReady">Match 4th item.</param>
+            /// <param name="matchRunning">Match 5th item.</param>
+            /// <param name="matchAwaitingApproval">Match 6th item.</param>
+            /// <param name="matchPaused">Match 7th item.</param>
+            /// <param name="matchValidating">Match 8th item.</param>
+            /// <param name="matchCompleted">Match 9th item.</param>
+            /// <param name="matchFailed">Match 10th item.</param>
+            /// <param name="matchCancelled">Match 11th item.</param>
             /// <param name="defaultMatch">Match any other value.</param>
             /// <returns>An instance of the value returned by the match function.</returns>
             public TResult Match<TContext, TResult>(
                 in TContext context,
                 Func<TContext, TResult> matchCreated,
-                Func<TContext, TResult> matchRunning,
+                Func<TContext, TResult> matchResolving,
                 Func<TContext, TResult> matchInputRequired,
+                Func<TContext, TResult> matchReady,
+                Func<TContext, TResult> matchRunning,
+                Func<TContext, TResult> matchAwaitingApproval,
                 Func<TContext, TResult> matchPaused,
+                Func<TContext, TResult> matchValidating,
                 Func<TContext, TResult> matchCompleted,
                 Func<TContext, TResult> matchFailed,
                 Func<TContext, TResult> matchCancelled,
@@ -584,7 +592,7 @@ public readonly partial struct SapphirusContractsCatalog
 
                 if (this.ValueEquals(Constants.Enum2))
                 {
-                    return matchRunning(context);
+                    return matchResolving(context);
                 }
 
                 if (this.ValueEquals(Constants.Enum3))
@@ -594,20 +602,40 @@ public readonly partial struct SapphirusContractsCatalog
 
                 if (this.ValueEquals(Constants.Enum4))
                 {
-                    return matchPaused(context);
+                    return matchReady(context);
                 }
 
                 if (this.ValueEquals(Constants.Enum5))
                 {
-                    return matchCompleted(context);
+                    return matchRunning(context);
                 }
 
                 if (this.ValueEquals(Constants.Enum6))
                 {
-                    return matchFailed(context);
+                    return matchAwaitingApproval(context);
                 }
 
                 if (this.ValueEquals(Constants.Enum7))
+                {
+                    return matchPaused(context);
+                }
+
+                if (this.ValueEquals(Constants.Enum8))
+                {
+                    return matchValidating(context);
+                }
+
+                if (this.ValueEquals(Constants.Enum9))
+                {
+                    return matchCompleted(context);
+                }
+
+                if (this.ValueEquals(Constants.Enum10))
+                {
+                    return matchFailed(context);
+                }
+
+                if (this.ValueEquals(Constants.Enum11))
                 {
                     return matchCancelled(context);
                 }
@@ -620,19 +648,27 @@ public readonly partial struct SapphirusContractsCatalog
             /// </summary>
             /// <typeparam name="TResult">The result of calling the match function.</typeparam>
             /// <param name="matchCreated">Match 1st item.</param>
-            /// <param name="matchRunning">Match 2nd item.</param>
+            /// <param name="matchResolving">Match 2nd item.</param>
             /// <param name="matchInputRequired">Match 3rd item.</param>
-            /// <param name="matchPaused">Match 4th item.</param>
-            /// <param name="matchCompleted">Match 5th item.</param>
-            /// <param name="matchFailed">Match 6th item.</param>
-            /// <param name="matchCancelled">Match 7th item.</param>
+            /// <param name="matchReady">Match 4th item.</param>
+            /// <param name="matchRunning">Match 5th item.</param>
+            /// <param name="matchAwaitingApproval">Match 6th item.</param>
+            /// <param name="matchPaused">Match 7th item.</param>
+            /// <param name="matchValidating">Match 8th item.</param>
+            /// <param name="matchCompleted">Match 9th item.</param>
+            /// <param name="matchFailed">Match 10th item.</param>
+            /// <param name="matchCancelled">Match 11th item.</param>
             /// <param name="defaultMatch">Match any other value.</param>
             /// <returns>An instance of the value returned by the match function.</returns>
             public TResult Match<TResult>(
                 Func<TResult> matchCreated,
-                Func<TResult> matchRunning,
+                Func<TResult> matchResolving,
                 Func<TResult> matchInputRequired,
+                Func<TResult> matchReady,
+                Func<TResult> matchRunning,
+                Func<TResult> matchAwaitingApproval,
                 Func<TResult> matchPaused,
+                Func<TResult> matchValidating,
                 Func<TResult> matchCompleted,
                 Func<TResult> matchFailed,
                 Func<TResult> matchCancelled,
@@ -645,7 +681,7 @@ public readonly partial struct SapphirusContractsCatalog
 
                 if (this.ValueEquals(Constants.Enum2))
                 {
-                    return matchRunning();
+                    return matchResolving();
                 }
 
                 if (this.ValueEquals(Constants.Enum3))
@@ -655,20 +691,40 @@ public readonly partial struct SapphirusContractsCatalog
 
                 if (this.ValueEquals(Constants.Enum4))
                 {
-                    return matchPaused();
+                    return matchReady();
                 }
 
                 if (this.ValueEquals(Constants.Enum5))
                 {
-                    return matchCompleted();
+                    return matchRunning();
                 }
 
                 if (this.ValueEquals(Constants.Enum6))
                 {
-                    return matchFailed();
+                    return matchAwaitingApproval();
                 }
 
                 if (this.ValueEquals(Constants.Enum7))
+                {
+                    return matchPaused();
+                }
+
+                if (this.ValueEquals(Constants.Enum8))
+                {
+                    return matchValidating();
+                }
+
+                if (this.ValueEquals(Constants.Enum9))
+                {
+                    return matchCompleted();
+                }
+
+                if (this.ValueEquals(Constants.Enum10))
+                {
+                    return matchFailed();
+                }
+
+                if (this.ValueEquals(Constants.Enum11))
                 {
                     return matchCancelled();
                 }

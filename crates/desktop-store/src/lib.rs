@@ -26,7 +26,7 @@ use thiserror::Error;
 /// destroys the whole database regardless, but a user asking what is retained
 /// is entitled to see their conversations and capability results counted —
 /// this list silently fell behind two migrations and reported neither.
-pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 24] = [
+pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 26] = [
     ("workspace_and_authority_records", "aggregates"),
     ("evidence_events", "evidence_events"),
     ("stored_payloads", "payloads"),
@@ -60,6 +60,8 @@ pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 24] = [
     ("execution_results", "execution_results"),
     ("help_runs", "bmad_help_run_creations"),
     ("model_selections", "model_profile_selections"),
+    ("bmad_skill_sessions", "bmad_sessions"),
+    ("bmad_skill_session_events", "bmad_session_events"),
 ];
 use time::OffsetDateTime;
 use ulid::Ulid;
@@ -80,6 +82,7 @@ mod bmad_builder;
 mod bmad_capability;
 mod bmad_config;
 mod bmad_method;
+mod bmad_sessions;
 mod chat;
 mod execution;
 mod memlog;
@@ -97,6 +100,7 @@ pub use bmad_method::{
     BmadHelpRunLatest, BmadHelpRunReplayRequest, MAX_BMAD_HELP_COMPLETED_RENDERER_PROJECTION_BYTES,
     MAX_BMAD_HELP_RUN_RENDERER_PROJECTION_BYTES,
 };
+pub use bmad_sessions::{BmadSessionEventRow, BmadSessionRecord};
 pub use chat::{ChatTurnAppend, ChatTurnMessage, StoredChatMessage, StoredChatSession};
 pub use execution::{
     EffectJournalRow, EffectJournalUpsert, ExecutionCheckpointAppend, ExecutionCheckpointRow,
@@ -2570,7 +2574,9 @@ mod tests {
             )?;
             let path = store.database_path();
             store.connection.lock().execute_batch(
-                "DROP TABLE model_profile_selections;
+                "DROP TABLE bmad_session_events;
+             DROP TABLE bmad_sessions;
+             DROP TABLE model_profile_selections;
                  DROP TABLE model_catalog_snapshots;
                  DROP TABLE payload_quarantine;
                  ALTER TABLE payloads DROP COLUMN verified_at;
@@ -2966,7 +2972,9 @@ mod tests {
         let directory = tempfile::tempdir()?;
         let store = LocalStore::open(directory.path(), &TestProtector)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE model_profile_selections;
+            "DROP TABLE bmad_session_events;
+             DROP TABLE bmad_sessions;
+             DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
@@ -3022,7 +3030,9 @@ mod tests {
         };
         let record = store.append_transition("run", "run_01", 1, "{}", &event)?;
         store.connection.lock().execute_batch(
-            "DROP TABLE model_profile_selections;
+            "DROP TABLE bmad_session_events;
+             DROP TABLE bmad_sessions;
+             DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
              DROP TABLE chat_sessions;
@@ -3131,7 +3141,9 @@ mod tests {
             params![legacy_consumption_hash, legacy_json, consumption_id],
         )?;
         store.connection.lock().execute_batch(
-            "DROP TABLE model_profile_selections;
+            "DROP TABLE bmad_session_events;
+             DROP TABLE bmad_sessions;
+             DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
              DROP TABLE chat_sessions;

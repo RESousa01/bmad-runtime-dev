@@ -51,11 +51,11 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum2 = "running"u8.ToArray();
+                public static readonly byte[] Enum2 = "resolving"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly StateEntity EnumJson2 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"running\""u8]);
+                public static readonly StateEntity EnumJson2 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"resolving\""u8]);
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
@@ -67,35 +67,67 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum4 = "paused"u8.ToArray();
+                public static readonly byte[] Enum4 = "ready"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly StateEntity EnumJson4 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"paused\""u8]);
+                public static readonly StateEntity EnumJson4 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"ready\""u8]);
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum5 = "completed"u8.ToArray();
+                public static readonly byte[] Enum5 = "running"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly StateEntity EnumJson5 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"completed\""u8]);
+                public static readonly StateEntity EnumJson5 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"running\""u8]);
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum6 = "failed"u8.ToArray();
+                public static readonly byte[] Enum6 = "awaiting_approval"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly StateEntity EnumJson6 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"failed\""u8]);
+                public static readonly StateEntity EnumJson6 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"awaiting_approval\""u8]);
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum7 = "cancelled"u8.ToArray();
+                public static readonly byte[] Enum7 = "paused"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly StateEntity EnumJson7 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"cancelled\""u8]);
+                public static readonly StateEntity EnumJson7 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"paused\""u8]);
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly byte[] Enum8 = "validating"u8.ToArray();
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly StateEntity EnumJson8 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"validating\""u8]);
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly byte[] Enum9 = "completed"u8.ToArray();
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly StateEntity EnumJson9 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"completed\""u8]);
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly byte[] Enum10 = "failed"u8.ToArray();
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly StateEntity EnumJson10 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"failed\""u8]);
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly byte[] Enum11 = "cancelled"u8.ToArray();
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly StateEntity EnumJson11 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"cancelled\""u8]);
             }
 
             /// <summary>
@@ -115,15 +147,15 @@ public readonly partial struct SapphirusContractsCatalog
                 public static ReadOnlySpan<byte> CreatedUtf8 => Constants.Enum1;
 
                 /// <summary>
-                /// Gets the string "running"
+                /// Gets the string "resolving"
                 /// as a <see cref="StateEntity"/>.
                 /// </summary>
-                public static StateEntity Running { get; } = Constants.EnumJson2;
+                public static StateEntity Resolving { get; } = Constants.EnumJson2;
                 /// <summary>
-                /// Gets the string "running"
+                /// Gets the string "resolving"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> RunningUtf8 => Constants.Enum2;
+                public static ReadOnlySpan<byte> ResolvingUtf8 => Constants.Enum2;
 
                 /// <summary>
                 /// Gets the string "input_required"
@@ -137,48 +169,92 @@ public readonly partial struct SapphirusContractsCatalog
                 public static ReadOnlySpan<byte> InputRequiredUtf8 => Constants.Enum3;
 
                 /// <summary>
+                /// Gets the string "ready"
+                /// as a <see cref="StateEntity"/>.
+                /// </summary>
+                public static StateEntity Ready { get; } = Constants.EnumJson4;
+                /// <summary>
+                /// Gets the string "ready"
+                /// as a UTF8 byte array.
+                /// </summary>
+                public static ReadOnlySpan<byte> ReadyUtf8 => Constants.Enum4;
+
+                /// <summary>
+                /// Gets the string "running"
+                /// as a <see cref="StateEntity"/>.
+                /// </summary>
+                public static StateEntity Running { get; } = Constants.EnumJson5;
+                /// <summary>
+                /// Gets the string "running"
+                /// as a UTF8 byte array.
+                /// </summary>
+                public static ReadOnlySpan<byte> RunningUtf8 => Constants.Enum5;
+
+                /// <summary>
+                /// Gets the string "awaiting_approval"
+                /// as a <see cref="StateEntity"/>.
+                /// </summary>
+                public static StateEntity AwaitingApproval { get; } = Constants.EnumJson6;
+                /// <summary>
+                /// Gets the string "awaiting_approval"
+                /// as a UTF8 byte array.
+                /// </summary>
+                public static ReadOnlySpan<byte> AwaitingApprovalUtf8 => Constants.Enum6;
+
+                /// <summary>
                 /// Gets the string "paused"
                 /// as a <see cref="StateEntity"/>.
                 /// </summary>
-                public static StateEntity Paused { get; } = Constants.EnumJson4;
+                public static StateEntity Paused { get; } = Constants.EnumJson7;
                 /// <summary>
                 /// Gets the string "paused"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> PausedUtf8 => Constants.Enum4;
+                public static ReadOnlySpan<byte> PausedUtf8 => Constants.Enum7;
+
+                /// <summary>
+                /// Gets the string "validating"
+                /// as a <see cref="StateEntity"/>.
+                /// </summary>
+                public static StateEntity Validating { get; } = Constants.EnumJson8;
+                /// <summary>
+                /// Gets the string "validating"
+                /// as a UTF8 byte array.
+                /// </summary>
+                public static ReadOnlySpan<byte> ValidatingUtf8 => Constants.Enum8;
 
                 /// <summary>
                 /// Gets the string "completed"
                 /// as a <see cref="StateEntity"/>.
                 /// </summary>
-                public static StateEntity Completed { get; } = Constants.EnumJson5;
+                public static StateEntity Completed { get; } = Constants.EnumJson9;
                 /// <summary>
                 /// Gets the string "completed"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> CompletedUtf8 => Constants.Enum5;
+                public static ReadOnlySpan<byte> CompletedUtf8 => Constants.Enum9;
 
                 /// <summary>
                 /// Gets the string "failed"
                 /// as a <see cref="StateEntity"/>.
                 /// </summary>
-                public static StateEntity Failed { get; } = Constants.EnumJson6;
+                public static StateEntity Failed { get; } = Constants.EnumJson10;
                 /// <summary>
                 /// Gets the string "failed"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> FailedUtf8 => Constants.Enum6;
+                public static ReadOnlySpan<byte> FailedUtf8 => Constants.Enum10;
 
                 /// <summary>
                 /// Gets the string "cancelled"
                 /// as a <see cref="StateEntity"/>.
                 /// </summary>
-                public static StateEntity Cancelled { get; } = Constants.EnumJson7;
+                public static StateEntity Cancelled { get; } = Constants.EnumJson11;
                 /// <summary>
                 /// Gets the string "cancelled"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> CancelledUtf8 => Constants.Enum7;
+                public static ReadOnlySpan<byte> CancelledUtf8 => Constants.Enum11;
             }
 
             public static partial class JsonSchema
@@ -187,9 +263,13 @@ public readonly partial struct SapphirusContractsCatalog
                 {
                     return new EnumStringSet([
                         static () => "created"u8,
-                        static () => "running"u8,
+                        static () => "resolving"u8,
                         static () => "input_required"u8,
+                        static () => "ready"u8,
+                        static () => "running"u8,
+                        static () => "awaiting_approval"u8,
                         static () => "paused"u8,
+                        static () => "validating"u8,
                         static () => "completed"u8,
                         static () => "failed"u8,
                         static () => "cancelled"u8,

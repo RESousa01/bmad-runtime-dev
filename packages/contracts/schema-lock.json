@@ -29,7 +29,7 @@
   "generationBundles": {
     "production": {
       "id": "https://schemas.sapphirus.dev/codegen/contracts-catalog.schema.json",
-      "sha256": "sha256:dedc209847ea8f0aa5acb7c199a4190b8e21c63a8e30fe22ba1f8c5505ee5133"
+      "sha256": "sha256:b51ce57b03741d5bfded8315ad988129545f77400a2d744d2416542792d942e4"
     },
     "qualification": {
       "id": "https://schemas.sapphirus.dev/codegen/generator-qualification.schema.json",
@@ -417,9 +417,9 @@
       "file": "schemas/bmad-session.schema.json",
       "id": "https://schemas.sapphirus.dev/v1/bmad-session.schema.json",
       "title": "sapphirus.bmad-session.v1",
-      "sha256": "sha256:8b06dcc07223111c0dcbc63231947b8fac77d300626f33d2df757179abf51542",
-      "canonicalSha256": "sha256:8b06dcc07223111c0dcbc63231947b8fac77d300626f33d2df757179abf51542",
-      "sourceSha256": "sha256:de64839a2da147680eb4f04391f4d0f299eeddcf495ffff7e02ec213530dbda8",
+      "sha256": "sha256:a37043a5a5ab277d94da6afc2390061be53459a69207d23b3b9e7b57800383c9",
+      "canonicalSha256": "sha256:a37043a5a5ab277d94da6afc2390061be53459a69207d23b3b9e7b57800383c9",
+      "sourceSha256": "sha256:fa8a8bef5a28352a556a143d753811c41be59a8e57952a83977063123a30b7eb",
       "role": "root",
       "compatibility": "major-locked"
     },
@@ -785,7 +785,7 @@
     }
   ],
   "schemaTree": {
-    "sha256": "sha256:72c0c3350ae8201a67e868ed87261bfbe3a841bff26fc11ecfc661b89672188b",
+    "sha256": "sha256:d649db26be9aab3e0c744bc8df1715c61330087c8923b3c005ab1e1e1721db2c",
     "files": [
       {
         "file": "schemas/approved-execution-spec.schema.json",
@@ -903,8 +903,8 @@
       },
       {
         "file": "schemas/bmad-session.schema.json",
-        "sourceSha256": "sha256:de64839a2da147680eb4f04391f4d0f299eeddcf495ffff7e02ec213530dbda8",
-        "canonicalSha256": "sha256:8b06dcc07223111c0dcbc63231947b8fac77d300626f33d2df757179abf51542",
+        "sourceSha256": "sha256:fa8a8bef5a28352a556a143d753811c41be59a8e57952a83977063123a30b7eb",
+        "canonicalSha256": "sha256:a37043a5a5ab277d94da6afc2390061be53459a69207d23b3b9e7b57800383c9",
         "role": "root"
       },
       {
@@ -1117,11 +1117,11 @@
   "generatedTrees": {
     "production": {
       "typescript": {
-        "sha256": "sha256:02a2fe1ffad73ed0ab2fe3144b70aa5bbaf2ca51ec7917e821ac72961b34b736",
+        "sha256": "sha256:4eee7b4e6e88149c6e2e7880d8f149ef668b9724d28c7387bbc8a177d52391c2",
         "files": [
           {
             "file": "generated/typescript/bmad.ts",
-            "sha256": "sha256:83c08e03880590d84f69a435ecceeb74592dfd5091a21d1802bee71888fbf494"
+            "sha256": "sha256:b4db29f6b247a469f404e16d6457db678411cfde9f5a3dc4d0d02b79fe62b05b"
           },
           {
             "file": "generated/typescript/canonical-json.mjs",
@@ -1213,7 +1213,7 @@
           },
           {
             "file": "generated/typescript/schema/bmad-session.ts",
-            "sha256": "sha256:bc4f7e51520508ca157df3798d2467bce270ffcf2bfb9744198961b7aee7fdb3"
+            "sha256": "sha256:d9e605a0bd5e85edc7c7788a5d5a6522e0f24b799eb58bc36a79e0d5abb4d3d0"
           },
           {
             "file": "generated/typescript/schema/bmad-skill-package.ts",
@@ -1370,20 +1370,20 @@
         ]
       },
       "rust": {
-        "sha256": "sha256:f678f5295713d712b0b93123f48de849b1612c1856ea0a920afd9db38b5abbb6",
+        "sha256": "sha256:3a2f5d26f460198d1ed178046a5b48ae893b845c86147c4c27925c3999c08138",
         "files": [
           {
             "file": "generated/rust/bmad.rs",
-            "sha256": "sha256:f531465a50d5d5a3bf2f23dcf9976294342e6ad1e6047db51f1f4257cc63c652"
+            "sha256": "sha256:6c7924ba5d0c06206115820f26b253c74ecd1843d659c1b44b3203e5381ee0c4"
           },
           {
             "file": "generated/rust/contracts.rs",
-            "sha256": "sha256:43dbd3f9096a281d76ef76d4f7b0a08d02140de0e7cae383d5dc7b89c3b8d95d"
+            "sha256": "sha256:0956eae4f4c7e6b75da3da2f5ec1387409f08729a82017a5f3f6444cca513688"
           }
         ]
       },
       "dotnet": {
-        "sha256": "sha256:649c72d347fa01d523939272d54b33759138635541ad958ea3d91ae7d108503e",
+        "sha256": "sha256:4feb3b0f42850c40ec320c9d3025ba2a130f292b0c0a24af1a074ff69aec57ab",
         "files": [
           {
             "file": "generated/dotnet/BmadSchemaClosures.g.cs",
@@ -6470,6 +6470,18 @@
             "sha256": "sha256:6537a40d5e642068bab813e450ffadf689d732d023c241cc47002a9cc0c593ab"
           },
           {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ActionEntity.JsonSchema.cs",
+            "sha256": "sha256:076aa1825c564cfc24bd0ca8a87e920b08886cf2650e29d0a992c31b4ea8ecdb"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ActionEntity.Mutable.cs",
+            "sha256": "sha256:3313dea3477039cbe183837a31ac3085ccd3074b82745421d0f08d946ce84102"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ActionEntity.cs",
+            "sha256": "sha256:9df6db93e9f5b1dae671213f0e9dd5b14cba026d6731933b4c7d43515703eddb"
+          },
+          {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AgentProfileEntity.JsonSchema.cs",
             "sha256": "sha256:9b9d710c2930989c12e9d1bbc5eb98447bacb1eaf73426ea3f81200d46600ee9"
           },
@@ -6480,6 +6492,18 @@
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AgentProfileEntity.cs",
             "sha256": "sha256:acde94e0a24b84ea80e0de4fe4be9697db4c5e77ad2a57dfb126d8192f69732b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AnswersArray.JsonSchema.cs",
+            "sha256": "sha256:fed613b46ba73556467d149ec38ce084b9acb377d1989daacaeb5da1de4a8363"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AnswersArray.Mutable.cs",
+            "sha256": "sha256:e2ffbb0592acdb300f21cb2eefaea939317a7c879b235111a37a12446a031c53"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AnswersArray.cs",
+            "sha256": "sha256:d345253373855207f3ef72a14b197172506f4a6842656aa5a0c69412b9754e6b"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ArtifactsArray.JsonSchema.cs",
@@ -6519,7 +6543,7 @@
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.JsonSchema.cs",
-            "sha256": "sha256:dade5cfb103227ddc82f2b68a3993f0ebdb598ebf364013996d5470f7ff29a05"
+            "sha256": "sha256:92c93a954aa6ebbb89b40c84945b2ce8f0ebef898dc5cec9bb1b27093cf8ce47"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ModeEntity.JsonSchema.cs",
@@ -6534,8 +6558,20 @@
             "sha256": "sha256:45ec8c3e4c30acce98dea83e95e5ddf795b23b3ff6924c5e78726146548ea020"
           },
           {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ModelCallsArray.JsonSchema.cs",
+            "sha256": "sha256:24d053fecb3ad901a8f88eb974f8c642104ad5399d6ee71551a219b19637a33b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ModelCallsArray.Mutable.cs",
+            "sha256": "sha256:6f26b09620fb274451caa19bd588263a9da8e23aef358ae0173170618f0647c0"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ModelCallsArray.cs",
+            "sha256": "sha256:87ce09c1f1460548beebaa51f9997319e3e791b31f53716bf9df7142dd9f2622"
+          },
+          {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.Mutable.cs",
-            "sha256": "sha256:fd7068cab6571a112e982cd0cdbe3c863a538a616b65039abb465aca425ebabc"
+            "sha256": "sha256:682bfe6edbb764988d0d7c27904f5209bde091407c08e0dcb882f43f163896f2"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.SchemaVersionEntity.JsonSchema.cs",
@@ -6550,20 +6586,80 @@
             "sha256": "sha256:1614fdc2ab9fe4257ccca04eddd1d0bd9153395edc819c510ed72701ff7566c1"
           },
           {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StageEntity.JsonSchema.cs",
+            "sha256": "sha256:8a54b3779b98e5ff26a29e38189bdec21adba197ec9eace23293df1457d8c95b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StageEntity.Mutable.cs",
+            "sha256": "sha256:02d92e6410796f52fb56bbc230fea623e85619bed93362924f60cdf88000ec60"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StageEntity.cs",
+            "sha256": "sha256:19759be3f562322abd0ea450673a38e0e48221b852b6efcd3c837b00332645ee"
+          },
+          {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StateEntity.JsonSchema.cs",
-            "sha256": "sha256:e196ba31a2aa1a5d6fa3011ba6af8344cf24261e812120f4bbd3db90f995e1e0"
+            "sha256": "sha256:0b8b52d8cb690b74a09c0d3f744734f80022fc9ad3ea6988404f4300b2365e1f"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StateEntity.Mutable.cs",
-            "sha256": "sha256:d6a14f818132b1e1b608af0ac790311ffafa1ac5fd5502eef366b2af62293f8a"
+            "sha256": "sha256:9a6c386513d751f11c8c2371c2c0994671f40f64a28cbbe262064b6f0a6764ef"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StateEntity.cs",
-            "sha256": "sha256:749d66799556cbaab392c058da41d141ad45cf67138cc6cbadc1f5ae194dd955"
+            "sha256": "sha256:c38fefb1cc182d9a2609594a14796d4d9b7086f857d545ea4360cce667aed4aa"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ToolProposalsArray.JsonSchema.cs",
+            "sha256": "sha256:91aa850621d5c0da6e583a16991761dcd5368355bf75aebb017603a4e5e4c9d2"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ToolProposalsArray.Mutable.cs",
+            "sha256": "sha256:3696f1978f8e62147165f41a9942f0422bf90c8a2a8a4f1a4ab0d90457b4cd7c"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ToolProposalsArray.cs",
+            "sha256": "sha256:75354398b327f0fc7f6d74faac460bc54dbf5c93fbed446915b0bf60a05b7dda"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.VersionEntity.JsonSchema.cs",
+            "sha256": "sha256:28f0908e38a470afeb683326f7fd031566b656f5f4ab5d17f2869265ba137954"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.VersionEntity.Mutable.cs",
+            "sha256": "sha256:485537fcd18eddbe2263c8b12cd8a1fdb22365d2c544376b5ef2709c251558ce"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.VersionEntity.cs",
+            "sha256": "sha256:90976c9e699d4ea6a2e15d0b4501bf4b373c817ff17b99e73f0d488e8fbf52ee"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.cs",
-            "sha256": "sha256:bbefcd80551dc7b215a2c4c1b567c58ee0b1cff651e5c52de9f61bb5b067b701"
+            "sha256": "sha256:8f1eed9b58f00e0ad183e20e0c29351639b4d6cef2050af4ee9fd0f0e720ecc1"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.EffectClassEntity.JsonSchema.cs",
+            "sha256": "sha256:b1ab5a7761453a9fee542ee7b751136492995d4149de2f86bf526efc33690ed6"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.EffectClassEntity.Mutable.cs",
+            "sha256": "sha256:d55c128365cf03a1643d8c222f23cbd51202c0b122e62dd1f5e636f415a8e3dc"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.EffectClassEntity.cs",
+            "sha256": "sha256:aca9447d7355a2170d31983716bce59084ab26f7fc7595cf955d27c70bf2b712"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.JsonSchema.cs",
+            "sha256": "sha256:cd879d90e561022874a620b657eb894d2926dce2cac5f33fff39bc83536791a7"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.Mutable.cs",
+            "sha256": "sha256:91d57bec7aaaf82414911233e3cedc7873064d481a0bd96809e99f77ae71a6cc"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.cs",
+            "sha256": "sha256:6a6ca4b7f3d1895bf8c9578e76d4be2ec4e8a5b58a9e511fba015a7249084779"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionCompletionHook.HookEntity.JsonSchema.cs",
@@ -6614,6 +6710,78 @@
             "sha256": "sha256:9c6f4e3765a001f25d0e261d0f1dc7868986780a6c83e3571a746b819a416d00"
           },
           {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionModelCall.JsonSchema.cs",
+            "sha256": "sha256:81b7ef697c0b3de63794b3509e4c503a8b436c1f008c3cc4e9e7480a977199a8"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionModelCall.Mutable.cs",
+            "sha256": "sha256:12629c053fdd504a0c9c7a3bd987f9120f0d7196a6235c50f103b50980a3834b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionModelCall.cs",
+            "sha256": "sha256:2ab5c39a7b2399ec3e272b8ce16a6cecf0c7204026ee9f6b1dc2a499c350db8d"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.CodeEntity.JsonSchema.cs",
+            "sha256": "sha256:3b9ec3d3719968f9b5dc36ba19c2f21848cf23e203b542ea862f1ea9a6ce94ab"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.CodeEntity.Mutable.cs",
+            "sha256": "sha256:a83f73f1c9415beccc9bc14c6da83c5c0fc5744d28e797327620af4c94df48f7"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.CodeEntity.cs",
+            "sha256": "sha256:2d137e98c98949f28c1c2bac51ff47300222e774c69cb1a63ec778b71334a1d4"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.DetailEntity.JsonSchema.cs",
+            "sha256": "sha256:bdbcfec5510e0ce19e4d1d1ce12faf95350732b61393df0a3be1dd55aa2fd2a3"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.DetailEntity.Mutable.cs",
+            "sha256": "sha256:9098abd1f084e39d07395be013ea5c6ea845feac9d3b173530988f0351b5fd46"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.DetailEntity.cs",
+            "sha256": "sha256:739decc4eed76bbdf2e6ec07616da3ece4b575d119f389aeeb384ab05444ddd6"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.JsonSchema.cs",
+            "sha256": "sha256:02b30e1ba67cbbc7c3cc4c2e7420403f132a820a00f1a520104d5f9e1eee06af"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.KindEntity.JsonSchema.cs",
+            "sha256": "sha256:d4b7f03cdfc3db636b47b02902252c7e54bfa305785e4a7e3284ad2b9b317f21"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.KindEntity.Mutable.cs",
+            "sha256": "sha256:ff7b35ed94d8e4b36804e629bc694be257731bde9b7f647da928079f2d80cbb1"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.KindEntity.cs",
+            "sha256": "sha256:aad0cc05ed03aaee4b83a4d03c98e37a29fc4ff1d4ece9d7fc11a395e6bd242b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.Mutable.cs",
+            "sha256": "sha256:8db707c2d4979b7ee2e5fb9996de6850db7c82c04faf44613d748be8e52ef57d"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.cs",
+            "sha256": "sha256:19c1b6d0a79cd46c6de8d68b8a06cc581343d7f99607f6601c61eacbab39dfb2"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionRecordedAnswer.JsonSchema.cs",
+            "sha256": "sha256:8d2ceb660646c6baddaef033655e5594c044085c86177b6ec99e39462e909a91"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionRecordedAnswer.Mutable.cs",
+            "sha256": "sha256:c9732e17b0122d5c61a752ff5620c70017966951812cfa0673cb269350b395e3"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionRecordedAnswer.cs",
+            "sha256": "sha256:a44ddf3f09930900d1d3f19a2fc0f105afb88bc8d7327a824a617073c3b31cdf"
+          },
+          {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionControl.JsonSchema.cs",
             "sha256": "sha256:e978c0dc7363b6fec891384b24f9ef5905b8f47cf7a165145386c2b1ad5998d5"
           },
@@ -6624,6 +6792,42 @@
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionControl.cs",
             "sha256": "sha256:06fd8a7d54e6610825beac52b4023ebf039fcd5deb5e3d1b67db6253ab6d8f5a"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionIdentities.JsonSchema.cs",
+            "sha256": "sha256:5ebd14aee6e71c4c243f231ab7c27bf75b4985463990bce9d978afbbd30212c3"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionIdentities.Mutable.cs",
+            "sha256": "sha256:924f097c16b6e5a260ed9290b897b65a2ca125e06187ef12853abc6a0c7c70c5"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionIdentities.cs",
+            "sha256": "sha256:f805ce9daf09bd9cb7313a1dfd3a1e19dcef4e0f55414dd9ef6317c4fd424032"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.JsonSchema.cs",
+            "sha256": "sha256:e4249b9534889fc0b8b196b6e993d71611d6c27e047e1d63a0f80d50fd1f38de"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.Mutable.cs",
+            "sha256": "sha256:365ac4aa4d7edc39805489d56e5d105a90e251655741b7d0f7bb1bad1306c99b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.StatusEntity.JsonSchema.cs",
+            "sha256": "sha256:dccdee07937cf0108b73e262c74f50bf01328e59b7b7080f1f792ab03d1a89d9"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.StatusEntity.Mutable.cs",
+            "sha256": "sha256:a410972303353b81d22097e6c0c5605b9c5d89d117b8d54df5e3532d11cf6c63"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.StatusEntity.cs",
+            "sha256": "sha256:6b37f001fa6e3e22525927e30588504438f877e08ba6ac3b2c4f7950f0e44e9b"
+          },
+          {
+            "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.cs",
+            "sha256": "sha256:f122826adac15213222b3d48535844cb3944705051e466d0ffa0b37ebc64cf5e"
           },
           {
             "file": "generated/dotnet/SapphirusContractsCatalog.BmadSkillPackage.ActionsArray.JsonSchema.cs",
@@ -18360,7 +18564,7 @@
   },
   "fixtureTrees": {
     "production": {
-      "sha256": "sha256:59f46fa2456f59a99d5140dbd59499480ef5d435fb153546dc400a5d20a234ce",
+      "sha256": "sha256:6ec596954f94c5b3d06ea2b89bb223c8272cda2e066e4a94bc7da7df7307fb22",
       "files": [
         {
           "file": "fixtures/bmad/catalog.json",
@@ -18408,7 +18612,7 @@
         },
         {
           "file": "fixtures/bmad/rejected/bmad-session-unknown-property.json",
-          "sha256": "sha256:bf0d81514eb89ed0bc420febc3546f9173a98514d2a74b9a68e92dd736a59b2c"
+          "sha256": "sha256:a392f888ed5e4db117edc9a24874b30fc05d0c44ca4e32daac9dbfe0f716fd8e"
         },
         {
           "file": "fixtures/bmad/rejected/bmad-skill-package-unknown-property.json",
@@ -19076,7 +19280,7 @@
         },
         {
           "file": "fixtures/bmad/valid/session.json",
-          "sha256": "sha256:b4ac2d4d2b8a2b754e5d4fe7bd45b8b018a33b0ee5f0f4358128bf8e87729ae0"
+          "sha256": "sha256:3ee76a22f38a95aaac39f587c24237ee61dfd7d6d35feeb297e82860a9401585"
         },
         {
           "file": "fixtures/bmad/valid/skill-package.json",
@@ -20005,7 +20209,7 @@
     }
   ],
   "generatedTree": {
-    "sha256": "sha256:ca162a49e2a788f929fd87d9bbac9ea9fa046eb2b52d2a6d254076787fc53163",
+    "sha256": "sha256:a744a861dbb1d0aaf969edf07d8e09363433ac1a24caaf662b39dceb7e9da19d",
     "files": [
       {
         "file": "generated/csharp/BmadContracts.cs",
@@ -25096,6 +25300,18 @@
         "sha256": "sha256:6537a40d5e642068bab813e450ffadf689d732d023c241cc47002a9cc0c593ab"
       },
       {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ActionEntity.JsonSchema.cs",
+        "sha256": "sha256:076aa1825c564cfc24bd0ca8a87e920b08886cf2650e29d0a992c31b4ea8ecdb"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ActionEntity.Mutable.cs",
+        "sha256": "sha256:3313dea3477039cbe183837a31ac3085ccd3074b82745421d0f08d946ce84102"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ActionEntity.cs",
+        "sha256": "sha256:9df6db93e9f5b1dae671213f0e9dd5b14cba026d6731933b4c7d43515703eddb"
+      },
+      {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AgentProfileEntity.JsonSchema.cs",
         "sha256": "sha256:9b9d710c2930989c12e9d1bbc5eb98447bacb1eaf73426ea3f81200d46600ee9"
       },
@@ -25106,6 +25322,18 @@
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AgentProfileEntity.cs",
         "sha256": "sha256:acde94e0a24b84ea80e0de4fe4be9697db4c5e77ad2a57dfb126d8192f69732b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AnswersArray.JsonSchema.cs",
+        "sha256": "sha256:fed613b46ba73556467d149ec38ce084b9acb377d1989daacaeb5da1de4a8363"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AnswersArray.Mutable.cs",
+        "sha256": "sha256:e2ffbb0592acdb300f21cb2eefaea939317a7c879b235111a37a12446a031c53"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.AnswersArray.cs",
+        "sha256": "sha256:d345253373855207f3ef72a14b197172506f4a6842656aa5a0c69412b9754e6b"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ArtifactsArray.JsonSchema.cs",
@@ -25145,7 +25373,7 @@
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.JsonSchema.cs",
-        "sha256": "sha256:dade5cfb103227ddc82f2b68a3993f0ebdb598ebf364013996d5470f7ff29a05"
+        "sha256": "sha256:92c93a954aa6ebbb89b40c84945b2ce8f0ebef898dc5cec9bb1b27093cf8ce47"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ModeEntity.JsonSchema.cs",
@@ -25160,8 +25388,20 @@
         "sha256": "sha256:45ec8c3e4c30acce98dea83e95e5ddf795b23b3ff6924c5e78726146548ea020"
       },
       {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ModelCallsArray.JsonSchema.cs",
+        "sha256": "sha256:24d053fecb3ad901a8f88eb974f8c642104ad5399d6ee71551a219b19637a33b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ModelCallsArray.Mutable.cs",
+        "sha256": "sha256:6f26b09620fb274451caa19bd588263a9da8e23aef358ae0173170618f0647c0"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ModelCallsArray.cs",
+        "sha256": "sha256:87ce09c1f1460548beebaa51f9997319e3e791b31f53716bf9df7142dd9f2622"
+      },
+      {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.Mutable.cs",
-        "sha256": "sha256:fd7068cab6571a112e982cd0cdbe3c863a538a616b65039abb465aca425ebabc"
+        "sha256": "sha256:682bfe6edbb764988d0d7c27904f5209bde091407c08e0dcb882f43f163896f2"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.SchemaVersionEntity.JsonSchema.cs",
@@ -25176,20 +25416,80 @@
         "sha256": "sha256:1614fdc2ab9fe4257ccca04eddd1d0bd9153395edc819c510ed72701ff7566c1"
       },
       {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StageEntity.JsonSchema.cs",
+        "sha256": "sha256:8a54b3779b98e5ff26a29e38189bdec21adba197ec9eace23293df1457d8c95b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StageEntity.Mutable.cs",
+        "sha256": "sha256:02d92e6410796f52fb56bbc230fea623e85619bed93362924f60cdf88000ec60"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StageEntity.cs",
+        "sha256": "sha256:19759be3f562322abd0ea450673a38e0e48221b852b6efcd3c837b00332645ee"
+      },
+      {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StateEntity.JsonSchema.cs",
-        "sha256": "sha256:e196ba31a2aa1a5d6fa3011ba6af8344cf24261e812120f4bbd3db90f995e1e0"
+        "sha256": "sha256:0b8b52d8cb690b74a09c0d3f744734f80022fc9ad3ea6988404f4300b2365e1f"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StateEntity.Mutable.cs",
-        "sha256": "sha256:d6a14f818132b1e1b608af0ac790311ffafa1ac5fd5502eef366b2af62293f8a"
+        "sha256": "sha256:9a6c386513d751f11c8c2371c2c0994671f40f64a28cbbe262064b6f0a6764ef"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.StateEntity.cs",
-        "sha256": "sha256:749d66799556cbaab392c058da41d141ad45cf67138cc6cbadc1f5ae194dd955"
+        "sha256": "sha256:c38fefb1cc182d9a2609594a14796d4d9b7086f857d545ea4360cce667aed4aa"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ToolProposalsArray.JsonSchema.cs",
+        "sha256": "sha256:91aa850621d5c0da6e583a16991761dcd5368355bf75aebb017603a4e5e4c9d2"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ToolProposalsArray.Mutable.cs",
+        "sha256": "sha256:3696f1978f8e62147165f41a9942f0422bf90c8a2a8a4f1a4ab0d90457b4cd7c"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.ToolProposalsArray.cs",
+        "sha256": "sha256:75354398b327f0fc7f6d74faac460bc54dbf5c93fbed446915b0bf60a05b7dda"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.VersionEntity.JsonSchema.cs",
+        "sha256": "sha256:28f0908e38a470afeb683326f7fd031566b656f5f4ab5d17f2869265ba137954"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.VersionEntity.Mutable.cs",
+        "sha256": "sha256:485537fcd18eddbe2263c8b12cd8a1fdb22365d2c544376b5ef2709c251558ce"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.VersionEntity.cs",
+        "sha256": "sha256:90976c9e699d4ea6a2e15d0b4501bf4b373c817ff17b99e73f0d488e8fbf52ee"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSession.cs",
-        "sha256": "sha256:bbefcd80551dc7b215a2c4c1b567c58ee0b1cff651e5c52de9f61bb5b067b701"
+        "sha256": "sha256:8f1eed9b58f00e0ad183e20e0c29351639b4d6cef2050af4ee9fd0f0e720ecc1"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.EffectClassEntity.JsonSchema.cs",
+        "sha256": "sha256:b1ab5a7761453a9fee542ee7b751136492995d4149de2f86bf526efc33690ed6"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.EffectClassEntity.Mutable.cs",
+        "sha256": "sha256:d55c128365cf03a1643d8c222f23cbd51202c0b122e62dd1f5e636f415a8e3dc"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.EffectClassEntity.cs",
+        "sha256": "sha256:aca9447d7355a2170d31983716bce59084ab26f7fc7595cf955d27c70bf2b712"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.JsonSchema.cs",
+        "sha256": "sha256:cd879d90e561022874a620b657eb894d2926dce2cac5f33fff39bc83536791a7"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.Mutable.cs",
+        "sha256": "sha256:91d57bec7aaaf82414911233e3cedc7873064d481a0bd96809e99f77ae71a6cc"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionApprovalRequest.cs",
+        "sha256": "sha256:6a6ca4b7f3d1895bf8c9578e76d4be2ec4e8a5b58a9e511fba015a7249084779"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionCompletionHook.HookEntity.JsonSchema.cs",
@@ -25240,6 +25540,78 @@
         "sha256": "sha256:9c6f4e3765a001f25d0e261d0f1dc7868986780a6c83e3571a746b819a416d00"
       },
       {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionModelCall.JsonSchema.cs",
+        "sha256": "sha256:81b7ef697c0b3de63794b3509e4c503a8b436c1f008c3cc4e9e7480a977199a8"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionModelCall.Mutable.cs",
+        "sha256": "sha256:12629c053fdd504a0c9c7a3bd987f9120f0d7196a6235c50f103b50980a3834b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionModelCall.cs",
+        "sha256": "sha256:2ab5c39a7b2399ec3e272b8ce16a6cecf0c7204026ee9f6b1dc2a499c350db8d"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.CodeEntity.JsonSchema.cs",
+        "sha256": "sha256:3b9ec3d3719968f9b5dc36ba19c2f21848cf23e203b542ea862f1ea9a6ce94ab"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.CodeEntity.Mutable.cs",
+        "sha256": "sha256:a83f73f1c9415beccc9bc14c6da83c5c0fc5744d28e797327620af4c94df48f7"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.CodeEntity.cs",
+        "sha256": "sha256:2d137e98c98949f28c1c2bac51ff47300222e774c69cb1a63ec778b71334a1d4"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.DetailEntity.JsonSchema.cs",
+        "sha256": "sha256:bdbcfec5510e0ce19e4d1d1ce12faf95350732b61393df0a3be1dd55aa2fd2a3"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.DetailEntity.Mutable.cs",
+        "sha256": "sha256:9098abd1f084e39d07395be013ea5c6ea845feac9d3b173530988f0351b5fd46"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.DetailEntity.cs",
+        "sha256": "sha256:739decc4eed76bbdf2e6ec07616da3ece4b575d119f389aeeb384ab05444ddd6"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.JsonSchema.cs",
+        "sha256": "sha256:02b30e1ba67cbbc7c3cc4c2e7420403f132a820a00f1a520104d5f9e1eee06af"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.KindEntity.JsonSchema.cs",
+        "sha256": "sha256:d4b7f03cdfc3db636b47b02902252c7e54bfa305785e4a7e3284ad2b9b317f21"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.KindEntity.Mutable.cs",
+        "sha256": "sha256:ff7b35ed94d8e4b36804e629bc694be257731bde9b7f647da928079f2d80cbb1"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.KindEntity.cs",
+        "sha256": "sha256:aad0cc05ed03aaee4b83a4d03c98e37a29fc4ff1d4ece9d7fc11a395e6bd242b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.Mutable.cs",
+        "sha256": "sha256:8db707c2d4979b7ee2e5fb9996de6850db7c82c04faf44613d748be8e52ef57d"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionOutcome.cs",
+        "sha256": "sha256:19c1b6d0a79cd46c6de8d68b8a06cc581343d7f99607f6601c61eacbab39dfb2"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionRecordedAnswer.JsonSchema.cs",
+        "sha256": "sha256:8d2ceb660646c6baddaef033655e5594c044085c86177b6ec99e39462e909a91"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionRecordedAnswer.Mutable.cs",
+        "sha256": "sha256:c9732e17b0122d5c61a752ff5620c70017966951812cfa0673cb269350b395e3"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionRecordedAnswer.cs",
+        "sha256": "sha256:a44ddf3f09930900d1d3f19a2fc0f105afb88bc8d7327a824a617073c3b31cdf"
+      },
+      {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionControl.JsonSchema.cs",
         "sha256": "sha256:e978c0dc7363b6fec891384b24f9ef5905b8f47cf7a165145386c2b1ad5998d5"
       },
@@ -25250,6 +25622,42 @@
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionControl.cs",
         "sha256": "sha256:06fd8a7d54e6610825beac52b4023ebf039fcd5deb5e3d1b67db6253ab6d8f5a"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionIdentities.JsonSchema.cs",
+        "sha256": "sha256:5ebd14aee6e71c4c243f231ab7c27bf75b4985463990bce9d978afbbd30212c3"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionIdentities.Mutable.cs",
+        "sha256": "sha256:924f097c16b6e5a260ed9290b897b65a2ca125e06187ef12853abc6a0c7c70c5"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionSessionIdentities.cs",
+        "sha256": "sha256:f805ce9daf09bd9cb7313a1dfd3a1e19dcef4e0f55414dd9ef6317c4fd424032"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.JsonSchema.cs",
+        "sha256": "sha256:e4249b9534889fc0b8b196b6e993d71611d6c27e047e1d63a0f80d50fd1f38de"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.Mutable.cs",
+        "sha256": "sha256:365ac4aa4d7edc39805489d56e5d105a90e251655741b7d0f7bb1bad1306c99b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.StatusEntity.JsonSchema.cs",
+        "sha256": "sha256:dccdee07937cf0108b73e262c74f50bf01328e59b7b7080f1f792ab03d1a89d9"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.StatusEntity.Mutable.cs",
+        "sha256": "sha256:a410972303353b81d22097e6c0c5605b9c5d89d117b8d54df5e3532d11cf6c63"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.StatusEntity.cs",
+        "sha256": "sha256:6b37f001fa6e3e22525927e30588504438f877e08ba6ac3b2c4f7950f0e44e9b"
+      },
+      {
+        "file": "generated/dotnet/SapphirusContractsCatalog.BmadSessionToolProposal.cs",
+        "sha256": "sha256:f122826adac15213222b3d48535844cb3944705051e466d0ffa0b37ebc64cf5e"
       },
       {
         "file": "generated/dotnet/SapphirusContractsCatalog.BmadSkillPackage.ActionsArray.JsonSchema.cs",
@@ -36605,15 +37013,15 @@
       },
       {
         "file": "generated/rust/bmad.rs",
-        "sha256": "sha256:f531465a50d5d5a3bf2f23dcf9976294342e6ad1e6047db51f1f4257cc63c652"
+        "sha256": "sha256:6c7924ba5d0c06206115820f26b253c74ecd1843d659c1b44b3203e5381ee0c4"
       },
       {
         "file": "generated/rust/contracts.rs",
-        "sha256": "sha256:43dbd3f9096a281d76ef76d4f7b0a08d02140de0e7cae383d5dc7b89c3b8d95d"
+        "sha256": "sha256:0956eae4f4c7e6b75da3da2f5ec1387409f08729a82017a5f3f6444cca513688"
       },
       {
         "file": "generated/typescript/bmad.ts",
-        "sha256": "sha256:83c08e03880590d84f69a435ecceeb74592dfd5091a21d1802bee71888fbf494"
+        "sha256": "sha256:b4db29f6b247a469f404e16d6457db678411cfde9f5a3dc4d0d02b79fe62b05b"
       },
       {
         "file": "generated/typescript/canonical-json.mjs",
@@ -36705,7 +37113,7 @@
       },
       {
         "file": "generated/typescript/schema/bmad-session.ts",
-        "sha256": "sha256:bc4f7e51520508ca157df3798d2467bce270ffcf2bfb9744198961b7aee7fdb3"
+        "sha256": "sha256:d9e605a0bd5e85edc7c7788a5d5a6522e0f24b799eb58bc36a79e0d5abb4d3d0"
       },
       {
         "file": "generated/typescript/schema/bmad-skill-package.ts",
@@ -36862,7 +37270,7 @@
     ]
   },
   "fixtureTree": {
-    "sha256": "sha256:59f46fa2456f59a99d5140dbd59499480ef5d435fb153546dc400a5d20a234ce",
+    "sha256": "sha256:6ec596954f94c5b3d06ea2b89bb223c8272cda2e066e4a94bc7da7df7307fb22",
     "files": [
       {
         "file": "fixtures/bmad/catalog.json",
@@ -36910,7 +37318,7 @@
       },
       {
         "file": "fixtures/bmad/rejected/bmad-session-unknown-property.json",
-        "sha256": "sha256:bf0d81514eb89ed0bc420febc3546f9173a98514d2a74b9a68e92dd736a59b2c"
+        "sha256": "sha256:a392f888ed5e4db117edc9a24874b30fc05d0c44ca4e32daac9dbfe0f716fd8e"
       },
       {
         "file": "fixtures/bmad/rejected/bmad-skill-package-unknown-property.json",
@@ -37578,7 +37986,7 @@
       },
       {
         "file": "fixtures/bmad/valid/session.json",
-        "sha256": "sha256:b4ac2d4d2b8a2b754e5d4fe7bd45b8b018a33b0ee5f0f4358128bf8e87729ae0"
+        "sha256": "sha256:3ee76a22f38a95aaac39f587c24237ee61dfd7d6d35feeb297e82860a9401585"
       },
       {
         "file": "fixtures/bmad/valid/skill-package.json",

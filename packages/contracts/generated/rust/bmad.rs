@@ -21573,18 +21573,36 @@ impl<'de> ::serde::Deserialize<'de> for BmadScriptPlanPlanStepStepId {
 #[doc = "    \"capabilityId\","]
 #[doc = "    \"control\","]
 #[doc = "    \"evidence\","]
+#[doc = "    \"evidenceHash\","]
+#[doc = "    \"identities\","]
 #[doc = "    \"mode\","]
 #[doc = "    \"schemaVersion\","]
 #[doc = "    \"sessionId\","]
-#[doc = "    \"state\""]
+#[doc = "    \"state\","]
+#[doc = "    \"version\""]
 #[doc = "  ],"]
 #[doc = "  \"properties\": {"]
+#[doc = "    \"action\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 256,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
 #[doc = "    \"agentProfile\": {"]
 #[doc = "      \"enum\": ["]
 #[doc = "        \"stateless\","]
 #[doc = "        \"memory\","]
 #[doc = "        \"autonomous_pulse\""]
 #[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"answers\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadSessionRecordedAnswer\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 1024"]
+#[doc = "    },"]
+#[doc = "    \"approvalRequest\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSessionApprovalRequest\""]
 #[doc = "    },"]
 #[doc = "    \"artifacts\": {"]
 #[doc = "      \"type\": \"array\","]
@@ -21613,6 +21631,12 @@ impl<'de> ::serde::Deserialize<'de> for BmadScriptPlanPlanStepStepId {
 #[doc = "      },"]
 #[doc = "      \"maxItems\": 4096"]
 #[doc = "    },"]
+#[doc = "    \"evidenceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"identities\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSessionSessionIdentities\""]
+#[doc = "    },"]
 #[doc = "    \"inputRequest\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadSessionInputRequest\""]
 #[doc = "    },"]
@@ -21622,22 +21646,53 @@ impl<'de> ::serde::Deserialize<'de> for BmadScriptPlanPlanStepStepId {
 #[doc = "        \"headless\""]
 #[doc = "      ]"]
 #[doc = "    },"]
+#[doc = "    \"modelCalls\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadSessionModelCall\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 1024"]
+#[doc = "    },"]
+#[doc = "    \"outcome\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadSessionOutcome\""]
+#[doc = "    },"]
 #[doc = "    \"schemaVersion\": {"]
 #[doc = "      \"const\": \"sapphirus.bmad-session.v1\""]
 #[doc = "    },"]
 #[doc = "    \"sessionId\": {"]
 #[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
 #[doc = "    },"]
+#[doc = "    \"stage\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 256,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
 #[doc = "    \"state\": {"]
 #[doc = "      \"enum\": ["]
 #[doc = "        \"created\","]
-#[doc = "        \"running\","]
+#[doc = "        \"resolving\","]
 #[doc = "        \"input_required\","]
+#[doc = "        \"ready\","]
+#[doc = "        \"running\","]
+#[doc = "        \"awaiting_approval\","]
 #[doc = "        \"paused\","]
+#[doc = "        \"validating\","]
 #[doc = "        \"completed\","]
 #[doc = "        \"failed\","]
 #[doc = "        \"cancelled\""]
 #[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"toolProposals\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadSessionToolProposal\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 1024"]
+#[doc = "    },"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1048576.0,"]
+#[doc = "      \"minimum\": 1.0"]
 #[doc = "    }"]
 #[doc = "  },"]
 #[doc = "  \"additionalProperties\": false"]
@@ -21647,8 +21702,18 @@ impl<'de> ::serde::Deserialize<'de> for BmadScriptPlanPlanStepStepId {
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct BmadSession {
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub action: ::std::option::Option<BmadSessionAction>,
     #[serde(rename = "agentProfile")]
     pub agent_profile: BmadSessionAgentProfile,
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub answers: ::std::vec::Vec<BmadSessionRecordedAnswer>,
+    #[serde(
+        rename = "approvalRequest",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub approval_request: ::std::option::Option<BmadSessionApprovalRequest>,
     pub artifacts: ::std::vec::Vec<CommonContractId>,
     #[serde(rename = "capabilityId")]
     pub capability_id: CommonContractId,
@@ -21660,6 +21725,9 @@ pub struct BmadSession {
     pub completion_hooks: ::std::vec::Vec<BmadSessionCompletionHook>,
     pub control: BmadSessionSessionControl,
     pub evidence: ::std::vec::Vec<CommonSha256>,
+    #[serde(rename = "evidenceHash")]
+    pub evidence_hash: CommonSha256,
+    pub identities: BmadSessionSessionIdentities,
     #[serde(
         rename = "inputRequest",
         default,
@@ -21667,15 +21735,104 @@ pub struct BmadSession {
     )]
     pub input_request: ::std::option::Option<BmadSessionInputRequest>,
     pub mode: BmadSessionMode,
+    #[serde(
+        rename = "modelCalls",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub model_calls: ::std::vec::Vec<BmadSessionModelCall>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub outcome: ::std::option::Option<BmadSessionOutcome>,
     #[serde(rename = "schemaVersion")]
     pub schema_version: ::serde_json::Value,
     #[serde(rename = "sessionId")]
     pub session_id: CommonContractId,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub stage: ::std::option::Option<BmadSessionStage>,
     pub state: BmadSessionState,
+    #[serde(
+        rename = "toolProposals",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub tool_proposals: ::std::vec::Vec<BmadSessionToolProposal>,
+    pub version: ::std::num::NonZeroU64,
 }
 impl BmadSession {
     pub fn builder() -> builder::BmadSession {
         Default::default()
+    }
+}
+#[doc = "`BmadSessionAction`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSessionAction(::std::string::String);
+impl ::std::ops::Deref for BmadSessionAction {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSessionAction> for ::std::string::String {
+    fn from(value: BmadSessionAction) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSessionAction {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionAction {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionAction {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionAction {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSessionAction {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
     }
 }
 #[doc = "`BmadSessionAgentProfile`"]
@@ -21747,6 +21904,152 @@ impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionAgentProfile
     }
 }
 impl ::std::convert::TryFrom<::std::string::String> for BmadSessionAgentProfile {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSessionApprovalRequest`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"effectClass\","]
+#[doc = "    \"planHash\","]
+#[doc = "    \"requestId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"effectClass\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"filesystem\","]
+#[doc = "        \"process\","]
+#[doc = "        \"network\","]
+#[doc = "        \"installation\","]
+#[doc = "        \"publication\","]
+#[doc = "        \"schedule\","]
+#[doc = "        \"secret\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"planHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSessionApprovalRequest {
+    #[serde(rename = "effectClass")]
+    pub effect_class: BmadSessionApprovalRequestEffectClass,
+    #[serde(rename = "planHash")]
+    pub plan_hash: CommonSha256,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+}
+impl BmadSessionApprovalRequest {
+    pub fn builder() -> builder::BmadSessionApprovalRequest {
+        Default::default()
+    }
+}
+#[doc = "`BmadSessionApprovalRequestEffectClass`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"filesystem\","]
+#[doc = "    \"process\","]
+#[doc = "    \"network\","]
+#[doc = "    \"installation\","]
+#[doc = "    \"publication\","]
+#[doc = "    \"schedule\","]
+#[doc = "    \"secret\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSessionApprovalRequestEffectClass {
+    #[serde(rename = "filesystem")]
+    Filesystem,
+    #[serde(rename = "process")]
+    Process,
+    #[serde(rename = "network")]
+    Network,
+    #[serde(rename = "installation")]
+    Installation,
+    #[serde(rename = "publication")]
+    Publication,
+    #[serde(rename = "schedule")]
+    Schedule,
+    #[serde(rename = "secret")]
+    Secret,
+}
+impl ::std::fmt::Display for BmadSessionApprovalRequestEffectClass {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Filesystem => f.write_str("filesystem"),
+            Self::Process => f.write_str("process"),
+            Self::Network => f.write_str("network"),
+            Self::Installation => f.write_str("installation"),
+            Self::Publication => f.write_str("publication"),
+            Self::Schedule => f.write_str("schedule"),
+            Self::Secret => f.write_str("secret"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSessionApprovalRequestEffectClass {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "filesystem" => Ok(Self::Filesystem),
+            "process" => Ok(Self::Process),
+            "network" => Ok(Self::Network),
+            "installation" => Ok(Self::Installation),
+            "publication" => Ok(Self::Publication),
+            "schedule" => Ok(Self::Schedule),
+            "secret" => Ok(Self::Secret),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionApprovalRequestEffectClass {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionApprovalRequestEffectClass {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionApprovalRequestEffectClass {
     type Error = self::error::ConversionError;
     fn try_from(
         value: ::std::string::String,
@@ -22060,6 +22363,364 @@ impl ::std::convert::TryFrom<::std::string::String> for BmadSessionMode {
         value.parse()
     }
 }
+#[doc = "`BmadSessionModelCall`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"callId\","]
+#[doc = "    \"modelId\","]
+#[doc = "    \"requestHash\","]
+#[doc = "    \"responseHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"callId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"modelId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"requestHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"responseHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSessionModelCall {
+    #[serde(rename = "callId")]
+    pub call_id: CommonContractId,
+    #[serde(rename = "modelId")]
+    pub model_id: CommonContractId,
+    #[serde(rename = "requestHash")]
+    pub request_hash: CommonSha256,
+    #[serde(rename = "responseHash")]
+    pub response_hash: CommonSha256,
+}
+impl BmadSessionModelCall {
+    pub fn builder() -> builder::BmadSessionModelCall {
+        Default::default()
+    }
+}
+#[doc = "`BmadSessionOutcome`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"code\","]
+#[doc = "    \"kind\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"code\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "    },"]
+#[doc = "    \"detail\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 4096,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"kind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"completed\","]
+#[doc = "        \"failed\","]
+#[doc = "        \"cancelled\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSessionOutcome {
+    pub code: BmadSessionOutcomeCode,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub detail: ::std::option::Option<BmadSessionOutcomeDetail>,
+    pub kind: BmadSessionOutcomeKind,
+}
+impl BmadSessionOutcome {
+    pub fn builder() -> builder::BmadSessionOutcome {
+        Default::default()
+    }
+}
+#[doc = "`BmadSessionOutcomeCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSessionOutcomeCode(::std::string::String);
+impl ::std::ops::Deref for BmadSessionOutcomeCode {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSessionOutcomeCode> for ::std::string::String {
+    fn from(value: BmadSessionOutcomeCode) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSessionOutcomeCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionOutcomeCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionOutcomeCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionOutcomeCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSessionOutcomeCode {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSessionOutcomeDetail`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 4096,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSessionOutcomeDetail(::std::string::String);
+impl ::std::ops::Deref for BmadSessionOutcomeDetail {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSessionOutcomeDetail> for ::std::string::String {
+    fn from(value: BmadSessionOutcomeDetail) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSessionOutcomeDetail {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 4096usize {
+            return Err("longer than 4096 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionOutcomeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionOutcomeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionOutcomeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSessionOutcomeDetail {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadSessionOutcomeKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"completed\","]
+#[doc = "    \"failed\","]
+#[doc = "    \"cancelled\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSessionOutcomeKind {
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "failed")]
+    Failed,
+    #[serde(rename = "cancelled")]
+    Cancelled,
+}
+impl ::std::fmt::Display for BmadSessionOutcomeKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Completed => f.write_str("completed"),
+            Self::Failed => f.write_str("failed"),
+            Self::Cancelled => f.write_str("cancelled"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSessionOutcomeKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "completed" => Ok(Self::Completed),
+            "failed" => Ok(Self::Failed),
+            "cancelled" => Ok(Self::Cancelled),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionOutcomeKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionOutcomeKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionOutcomeKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSessionRecordedAnswer`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"answerHash\","]
+#[doc = "    \"requestId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"answerHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"requestId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSessionRecordedAnswer {
+    #[serde(rename = "answerHash")]
+    pub answer_hash: CommonSha256,
+    #[serde(rename = "requestId")]
+    pub request_id: CommonContractId,
+}
+impl BmadSessionRecordedAnswer {
+    pub fn builder() -> builder::BmadSessionRecordedAnswer {
+        Default::default()
+    }
+}
 #[doc = "`BmadSessionSessionControl`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -22102,6 +22763,150 @@ impl BmadSessionSessionControl {
         Default::default()
     }
 }
+#[doc = "`BmadSessionSessionIdentities`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"configHash\","]
+#[doc = "    \"customizationHash\","]
+#[doc = "    \"modelId\","]
+#[doc = "    \"packageId\","]
+#[doc = "    \"policyHash\","]
+#[doc = "    \"sourceId\","]
+#[doc = "    \"taskId\","]
+#[doc = "    \"workspaceId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"configHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"customizationHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"modelId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"packageId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"policyHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"sourceId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"taskId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"workspaceId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSessionSessionIdentities {
+    #[serde(rename = "configHash")]
+    pub config_hash: CommonSha256,
+    #[serde(rename = "customizationHash")]
+    pub customization_hash: CommonSha256,
+    #[serde(rename = "modelId")]
+    pub model_id: CommonContractId,
+    #[serde(rename = "packageId")]
+    pub package_id: CommonContractId,
+    #[serde(rename = "policyHash")]
+    pub policy_hash: CommonSha256,
+    #[serde(rename = "sourceId")]
+    pub source_id: CommonContractId,
+    #[serde(rename = "taskId")]
+    pub task_id: CommonContractId,
+    #[serde(rename = "workspaceId")]
+    pub workspace_id: CommonContractId,
+}
+impl BmadSessionSessionIdentities {
+    pub fn builder() -> builder::BmadSessionSessionIdentities {
+        Default::default()
+    }
+}
+#[doc = "`BmadSessionStage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadSessionStage(::std::string::String);
+impl ::std::ops::Deref for BmadSessionStage {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadSessionStage> for ::std::string::String {
+    fn from(value: BmadSessionStage) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadSessionStage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionStage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionStage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionStage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadSessionStage {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`BmadSessionState`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -22110,9 +22915,13 @@ impl BmadSessionSessionControl {
 #[doc = "{"]
 #[doc = "  \"enum\": ["]
 #[doc = "    \"created\","]
-#[doc = "    \"running\","]
+#[doc = "    \"resolving\","]
 #[doc = "    \"input_required\","]
+#[doc = "    \"ready\","]
+#[doc = "    \"running\","]
+#[doc = "    \"awaiting_approval\","]
 #[doc = "    \"paused\","]
+#[doc = "    \"validating\","]
 #[doc = "    \"completed\","]
 #[doc = "    \"failed\","]
 #[doc = "    \"cancelled\""]
@@ -22135,12 +22944,20 @@ impl BmadSessionSessionControl {
 pub enum BmadSessionState {
     #[serde(rename = "created")]
     Created,
-    #[serde(rename = "running")]
-    Running,
+    #[serde(rename = "resolving")]
+    Resolving,
     #[serde(rename = "input_required")]
     InputRequired,
+    #[serde(rename = "ready")]
+    Ready,
+    #[serde(rename = "running")]
+    Running,
+    #[serde(rename = "awaiting_approval")]
+    AwaitingApproval,
     #[serde(rename = "paused")]
     Paused,
+    #[serde(rename = "validating")]
+    Validating,
     #[serde(rename = "completed")]
     Completed,
     #[serde(rename = "failed")]
@@ -22152,9 +22969,13 @@ impl ::std::fmt::Display for BmadSessionState {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match *self {
             Self::Created => f.write_str("created"),
-            Self::Running => f.write_str("running"),
+            Self::Resolving => f.write_str("resolving"),
             Self::InputRequired => f.write_str("input_required"),
+            Self::Ready => f.write_str("ready"),
+            Self::Running => f.write_str("running"),
+            Self::AwaitingApproval => f.write_str("awaiting_approval"),
             Self::Paused => f.write_str("paused"),
+            Self::Validating => f.write_str("validating"),
             Self::Completed => f.write_str("completed"),
             Self::Failed => f.write_str("failed"),
             Self::Cancelled => f.write_str("cancelled"),
@@ -22166,9 +22987,13 @@ impl ::std::str::FromStr for BmadSessionState {
     fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
         match value {
             "created" => Ok(Self::Created),
-            "running" => Ok(Self::Running),
+            "resolving" => Ok(Self::Resolving),
             "input_required" => Ok(Self::InputRequired),
+            "ready" => Ok(Self::Ready),
+            "running" => Ok(Self::Running),
+            "awaiting_approval" => Ok(Self::AwaitingApproval),
             "paused" => Ok(Self::Paused),
+            "validating" => Ok(Self::Validating),
             "completed" => Ok(Self::Completed),
             "failed" => Ok(Self::Failed),
             "cancelled" => Ok(Self::Cancelled),
@@ -22191,6 +23016,133 @@ impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionState {
     }
 }
 impl ::std::convert::TryFrom<::std::string::String> for BmadSessionState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadSessionToolProposal`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"planHash\","]
+#[doc = "    \"proposalId\","]
+#[doc = "    \"status\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"planHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"proposalId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"status\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"proposed\","]
+#[doc = "        \"approved\","]
+#[doc = "        \"rejected\","]
+#[doc = "        \"expired\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadSessionToolProposal {
+    #[serde(rename = "planHash")]
+    pub plan_hash: CommonSha256,
+    #[serde(rename = "proposalId")]
+    pub proposal_id: CommonContractId,
+    pub status: BmadSessionToolProposalStatus,
+}
+impl BmadSessionToolProposal {
+    pub fn builder() -> builder::BmadSessionToolProposal {
+        Default::default()
+    }
+}
+#[doc = "`BmadSessionToolProposalStatus`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"proposed\","]
+#[doc = "    \"approved\","]
+#[doc = "    \"rejected\","]
+#[doc = "    \"expired\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadSessionToolProposalStatus {
+    #[serde(rename = "proposed")]
+    Proposed,
+    #[serde(rename = "approved")]
+    Approved,
+    #[serde(rename = "rejected")]
+    Rejected,
+    #[serde(rename = "expired")]
+    Expired,
+}
+impl ::std::fmt::Display for BmadSessionToolProposalStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Proposed => f.write_str("proposed"),
+            Self::Approved => f.write_str("approved"),
+            Self::Rejected => f.write_str("rejected"),
+            Self::Expired => f.write_str("expired"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadSessionToolProposalStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "proposed" => Ok(Self::Proposed),
+            "approved" => Ok(Self::Approved),
+            "rejected" => Ok(Self::Rejected),
+            "expired" => Ok(Self::Expired),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadSessionToolProposalStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadSessionToolProposalStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadSessionToolProposalStatus {
     type Error = self::error::ConversionError;
     fn try_from(
         value: ::std::string::String,
@@ -72193,7 +73145,19 @@ pub mod builder {
     }
     #[derive(Clone, Debug)]
     pub struct BmadSession {
+        action: ::std::result::Result<
+            ::std::option::Option<super::BmadSessionAction>,
+            ::std::string::String,
+        >,
         agent_profile: ::std::result::Result<super::BmadSessionAgentProfile, ::std::string::String>,
+        answers: ::std::result::Result<
+            ::std::vec::Vec<super::BmadSessionRecordedAnswer>,
+            ::std::string::String,
+        >,
+        approval_request: ::std::result::Result<
+            ::std::option::Option<super::BmadSessionApprovalRequest>,
+            ::std::string::String,
+        >,
         artifacts:
             ::std::result::Result<::std::vec::Vec<super::CommonContractId>, ::std::string::String>,
         capability_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
@@ -72204,33 +73168,73 @@ pub mod builder {
         control: ::std::result::Result<super::BmadSessionSessionControl, ::std::string::String>,
         evidence:
             ::std::result::Result<::std::vec::Vec<super::CommonSha256>, ::std::string::String>,
+        evidence_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        identities:
+            ::std::result::Result<super::BmadSessionSessionIdentities, ::std::string::String>,
         input_request: ::std::result::Result<
             ::std::option::Option<super::BmadSessionInputRequest>,
             ::std::string::String,
         >,
         mode: ::std::result::Result<super::BmadSessionMode, ::std::string::String>,
+        model_calls: ::std::result::Result<
+            ::std::vec::Vec<super::BmadSessionModelCall>,
+            ::std::string::String,
+        >,
+        outcome: ::std::result::Result<
+            ::std::option::Option<super::BmadSessionOutcome>,
+            ::std::string::String,
+        >,
         schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
         session_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        stage: ::std::result::Result<
+            ::std::option::Option<super::BmadSessionStage>,
+            ::std::string::String,
+        >,
         state: ::std::result::Result<super::BmadSessionState, ::std::string::String>,
+        tool_proposals: ::std::result::Result<
+            ::std::vec::Vec<super::BmadSessionToolProposal>,
+            ::std::string::String,
+        >,
+        version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
     }
     impl ::std::default::Default for BmadSession {
         fn default() -> Self {
             Self {
+                action: Ok(Default::default()),
                 agent_profile: Err("no value supplied for agent_profile".to_string()),
+                answers: Ok(Default::default()),
+                approval_request: Ok(Default::default()),
                 artifacts: Err("no value supplied for artifacts".to_string()),
                 capability_id: Err("no value supplied for capability_id".to_string()),
                 completion_hooks: Ok(Default::default()),
                 control: Err("no value supplied for control".to_string()),
                 evidence: Err("no value supplied for evidence".to_string()),
+                evidence_hash: Err("no value supplied for evidence_hash".to_string()),
+                identities: Err("no value supplied for identities".to_string()),
                 input_request: Ok(Default::default()),
                 mode: Err("no value supplied for mode".to_string()),
+                model_calls: Ok(Default::default()),
+                outcome: Ok(Default::default()),
                 schema_version: Err("no value supplied for schema_version".to_string()),
                 session_id: Err("no value supplied for session_id".to_string()),
+                stage: Ok(Default::default()),
                 state: Err("no value supplied for state".to_string()),
+                tool_proposals: Ok(Default::default()),
+                version: Err("no value supplied for version".to_string()),
             }
         }
     }
     impl BmadSession {
+        pub fn action<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSessionAction>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.action = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for action: {e}"));
+            self
+        }
         pub fn agent_profile<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<super::BmadSessionAgentProfile>,
@@ -72239,6 +73243,26 @@ pub mod builder {
             self.agent_profile = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for agent_profile: {e}"));
+            self
+        }
+        pub fn answers<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadSessionRecordedAnswer>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.answers = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for answers: {e}"));
+            self
+        }
+        pub fn approval_request<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSessionApprovalRequest>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.approval_request = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for approval_request: {e}"));
             self
         }
         pub fn artifacts<T>(mut self, value: T) -> Self
@@ -72291,6 +73315,26 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for evidence: {e}"));
             self
         }
+        pub fn evidence_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.evidence_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for evidence_hash: {e}"));
+            self
+        }
+        pub fn identities<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionSessionIdentities>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.identities = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for identities: {e}"));
+            self
+        }
         pub fn input_request<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::BmadSessionInputRequest>>,
@@ -72309,6 +73353,26 @@ pub mod builder {
             self.mode = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for mode: {e}"));
+            self
+        }
+        pub fn model_calls<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadSessionModelCall>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_calls = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_calls: {e}"));
+            self
+        }
+        pub fn outcome<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSessionOutcome>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.outcome = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for outcome: {e}"));
             self
         }
         pub fn schema_version<T>(mut self, value: T) -> Self
@@ -72331,6 +73395,16 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for session_id: {e}"));
             self
         }
+        pub fn stage<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSessionStage>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.stage = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for stage: {e}"));
+            self
+        }
         pub fn state<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<super::BmadSessionState>,
@@ -72341,6 +73415,26 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for state: {e}"));
             self
         }
+        pub fn tool_proposals<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadSessionToolProposal>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.tool_proposals = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for tool_proposals: {e}"));
+            self
+        }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
     }
     impl ::std::convert::TryFrom<BmadSession> for super::BmadSession {
         type Error = super::error::ConversionError;
@@ -72348,34 +73442,125 @@ pub mod builder {
             value: BmadSession,
         ) -> ::std::result::Result<Self, super::error::ConversionError> {
             Ok(Self {
+                action: value.action?,
                 agent_profile: value.agent_profile?,
+                answers: value.answers?,
+                approval_request: value.approval_request?,
                 artifacts: value.artifacts?,
                 capability_id: value.capability_id?,
                 completion_hooks: value.completion_hooks?,
                 control: value.control?,
                 evidence: value.evidence?,
+                evidence_hash: value.evidence_hash?,
+                identities: value.identities?,
                 input_request: value.input_request?,
                 mode: value.mode?,
+                model_calls: value.model_calls?,
+                outcome: value.outcome?,
                 schema_version: value.schema_version?,
                 session_id: value.session_id?,
+                stage: value.stage?,
                 state: value.state?,
+                tool_proposals: value.tool_proposals?,
+                version: value.version?,
             })
         }
     }
     impl ::std::convert::From<super::BmadSession> for BmadSession {
         fn from(value: super::BmadSession) -> Self {
             Self {
+                action: Ok(value.action),
                 agent_profile: Ok(value.agent_profile),
+                answers: Ok(value.answers),
+                approval_request: Ok(value.approval_request),
                 artifacts: Ok(value.artifacts),
                 capability_id: Ok(value.capability_id),
                 completion_hooks: Ok(value.completion_hooks),
                 control: Ok(value.control),
                 evidence: Ok(value.evidence),
+                evidence_hash: Ok(value.evidence_hash),
+                identities: Ok(value.identities),
                 input_request: Ok(value.input_request),
                 mode: Ok(value.mode),
+                model_calls: Ok(value.model_calls),
+                outcome: Ok(value.outcome),
                 schema_version: Ok(value.schema_version),
                 session_id: Ok(value.session_id),
+                stage: Ok(value.stage),
                 state: Ok(value.state),
+                tool_proposals: Ok(value.tool_proposals),
+                version: Ok(value.version),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSessionApprovalRequest {
+        effect_class: ::std::result::Result<
+            super::BmadSessionApprovalRequestEffectClass,
+            ::std::string::String,
+        >,
+        plan_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSessionApprovalRequest {
+        fn default() -> Self {
+            Self {
+                effect_class: Err("no value supplied for effect_class".to_string()),
+                plan_hash: Err("no value supplied for plan_hash".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+            }
+        }
+    }
+    impl BmadSessionApprovalRequest {
+        pub fn effect_class<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionApprovalRequestEffectClass>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.effect_class = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for effect_class: {e}"));
+            self
+        }
+        pub fn plan_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.plan_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for plan_hash: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSessionApprovalRequest> for super::BmadSessionApprovalRequest {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSessionApprovalRequest,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                effect_class: value.effect_class?,
+                plan_hash: value.plan_hash?,
+                request_id: value.request_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSessionApprovalRequest> for BmadSessionApprovalRequest {
+        fn from(value: super::BmadSessionApprovalRequest) -> Self {
+            Self {
+                effect_class: Ok(value.effect_class),
+                plan_hash: Ok(value.plan_hash),
+                request_id: Ok(value.request_id),
             }
         }
     }
@@ -72502,6 +73687,213 @@ pub mod builder {
         }
     }
     #[derive(Clone, Debug)]
+    pub struct BmadSessionModelCall {
+        call_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        model_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        request_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        response_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSessionModelCall {
+        fn default() -> Self {
+            Self {
+                call_id: Err("no value supplied for call_id".to_string()),
+                model_id: Err("no value supplied for model_id".to_string()),
+                request_hash: Err("no value supplied for request_hash".to_string()),
+                response_hash: Err("no value supplied for response_hash".to_string()),
+            }
+        }
+    }
+    impl BmadSessionModelCall {
+        pub fn call_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.call_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for call_id: {e}"));
+            self
+        }
+        pub fn model_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_id: {e}"));
+            self
+        }
+        pub fn request_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_hash: {e}"));
+            self
+        }
+        pub fn response_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.response_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for response_hash: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSessionModelCall> for super::BmadSessionModelCall {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSessionModelCall,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                call_id: value.call_id?,
+                model_id: value.model_id?,
+                request_hash: value.request_hash?,
+                response_hash: value.response_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSessionModelCall> for BmadSessionModelCall {
+        fn from(value: super::BmadSessionModelCall) -> Self {
+            Self {
+                call_id: Ok(value.call_id),
+                model_id: Ok(value.model_id),
+                request_hash: Ok(value.request_hash),
+                response_hash: Ok(value.response_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSessionOutcome {
+        code: ::std::result::Result<super::BmadSessionOutcomeCode, ::std::string::String>,
+        detail: ::std::result::Result<
+            ::std::option::Option<super::BmadSessionOutcomeDetail>,
+            ::std::string::String,
+        >,
+        kind: ::std::result::Result<super::BmadSessionOutcomeKind, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSessionOutcome {
+        fn default() -> Self {
+            Self {
+                code: Err("no value supplied for code".to_string()),
+                detail: Ok(Default::default()),
+                kind: Err("no value supplied for kind".to_string()),
+            }
+        }
+    }
+    impl BmadSessionOutcome {
+        pub fn code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionOutcomeCode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for code: {e}"));
+            self
+        }
+        pub fn detail<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadSessionOutcomeDetail>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.detail = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for detail: {e}"));
+            self
+        }
+        pub fn kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionOutcomeKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kind: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSessionOutcome> for super::BmadSessionOutcome {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSessionOutcome,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                code: value.code?,
+                detail: value.detail?,
+                kind: value.kind?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSessionOutcome> for BmadSessionOutcome {
+        fn from(value: super::BmadSessionOutcome) -> Self {
+            Self {
+                code: Ok(value.code),
+                detail: Ok(value.detail),
+                kind: Ok(value.kind),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSessionRecordedAnswer {
+        answer_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        request_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSessionRecordedAnswer {
+        fn default() -> Self {
+            Self {
+                answer_hash: Err("no value supplied for answer_hash".to_string()),
+                request_id: Err("no value supplied for request_id".to_string()),
+            }
+        }
+    }
+    impl BmadSessionRecordedAnswer {
+        pub fn answer_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.answer_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for answer_hash: {e}"));
+            self
+        }
+        pub fn request_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.request_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for request_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSessionRecordedAnswer> for super::BmadSessionRecordedAnswer {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSessionRecordedAnswer,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                answer_hash: value.answer_hash?,
+                request_id: value.request_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSessionRecordedAnswer> for BmadSessionRecordedAnswer {
+        fn from(value: super::BmadSessionRecordedAnswer) -> Self {
+            Self {
+                answer_hash: Ok(value.answer_hash),
+                request_id: Ok(value.request_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
     pub struct BmadSessionSessionControl {
         cancel_allowed: ::std::result::Result<bool, ::std::string::String>,
         pause_allowed: ::std::result::Result<bool, ::std::string::String>,
@@ -72566,6 +73958,212 @@ pub mod builder {
                 cancel_allowed: Ok(value.cancel_allowed),
                 pause_allowed: Ok(value.pause_allowed),
                 resume_allowed: Ok(value.resume_allowed),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSessionSessionIdentities {
+        config_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        customization_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        model_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        package_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        policy_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        source_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        task_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        workspace_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSessionSessionIdentities {
+        fn default() -> Self {
+            Self {
+                config_hash: Err("no value supplied for config_hash".to_string()),
+                customization_hash: Err("no value supplied for customization_hash".to_string()),
+                model_id: Err("no value supplied for model_id".to_string()),
+                package_id: Err("no value supplied for package_id".to_string()),
+                policy_hash: Err("no value supplied for policy_hash".to_string()),
+                source_id: Err("no value supplied for source_id".to_string()),
+                task_id: Err("no value supplied for task_id".to_string()),
+                workspace_id: Err("no value supplied for workspace_id".to_string()),
+            }
+        }
+    }
+    impl BmadSessionSessionIdentities {
+        pub fn config_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.config_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for config_hash: {e}"));
+            self
+        }
+        pub fn customization_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.customization_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for customization_hash: {e}")
+            });
+            self
+        }
+        pub fn model_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.model_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for model_id: {e}"));
+            self
+        }
+        pub fn package_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.package_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for package_id: {e}"));
+            self
+        }
+        pub fn policy_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.policy_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for policy_hash: {e}"));
+            self
+        }
+        pub fn source_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_id: {e}"));
+            self
+        }
+        pub fn task_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.task_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for task_id: {e}"));
+            self
+        }
+        pub fn workspace_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.workspace_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for workspace_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSessionSessionIdentities> for super::BmadSessionSessionIdentities {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSessionSessionIdentities,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                config_hash: value.config_hash?,
+                customization_hash: value.customization_hash?,
+                model_id: value.model_id?,
+                package_id: value.package_id?,
+                policy_hash: value.policy_hash?,
+                source_id: value.source_id?,
+                task_id: value.task_id?,
+                workspace_id: value.workspace_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSessionSessionIdentities> for BmadSessionSessionIdentities {
+        fn from(value: super::BmadSessionSessionIdentities) -> Self {
+            Self {
+                config_hash: Ok(value.config_hash),
+                customization_hash: Ok(value.customization_hash),
+                model_id: Ok(value.model_id),
+                package_id: Ok(value.package_id),
+                policy_hash: Ok(value.policy_hash),
+                source_id: Ok(value.source_id),
+                task_id: Ok(value.task_id),
+                workspace_id: Ok(value.workspace_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadSessionToolProposal {
+        plan_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        proposal_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        status: ::std::result::Result<super::BmadSessionToolProposalStatus, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadSessionToolProposal {
+        fn default() -> Self {
+            Self {
+                plan_hash: Err("no value supplied for plan_hash".to_string()),
+                proposal_id: Err("no value supplied for proposal_id".to_string()),
+                status: Err("no value supplied for status".to_string()),
+            }
+        }
+    }
+    impl BmadSessionToolProposal {
+        pub fn plan_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.plan_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for plan_hash: {e}"));
+            self
+        }
+        pub fn proposal_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.proposal_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for proposal_id: {e}"));
+            self
+        }
+        pub fn status<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadSessionToolProposalStatus>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.status = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for status: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadSessionToolProposal> for super::BmadSessionToolProposal {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadSessionToolProposal,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                plan_hash: value.plan_hash?,
+                proposal_id: value.proposal_id?,
+                status: value.status?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadSessionToolProposal> for BmadSessionToolProposal {
+        fn from(value: super::BmadSessionToolProposal) -> Self {
+            Self {
+                plan_hash: Ok(value.plan_hash),
+                proposal_id: Ok(value.proposal_id),
+                status: Ok(value.status),
             }
         }
     }

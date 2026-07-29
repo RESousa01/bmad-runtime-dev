@@ -15,8 +15,20 @@
       "cancelAllowed": true
     },
     "artifacts": [],
-    "evidence": []
+    "evidence": [],
+    "version": 1,
+    "identities": {
+      "sourceId": "source_01J00000000000000000000000",
+      "packageId": "package_01J00000000000000000000000",
+      "configHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "customizationHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "modelId": "model_01J00000000000000000000000",
+      "taskId": "task_01J00000000000000000000000",
+      "workspaceId": "workspace_01J00000000000000000000000",
+      "policyHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "evidenceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
   },
-  "canonicalJson": "{\"agentProfile\":\"stateless\",\"artifacts\":[],\"capabilityId\":\"capability_01J00000000000000000000000\",\"control\":{\"cancelAllowed\":true,\"pauseAllowed\":true,\"resumeAllowed\":false},\"evidence\":[],\"mode\":\"interactive\",\"schemaVersion\":\"sapphirus.bmad-session.v1\",\"sessionId\":\"session_01J00000000000000000000000\",\"state\":\"running\"}",
-  "expectedHash": "sha256:8e5ff6dd026294b3526e99b8faa1f48d82a5427afdd6778b5a2b13963dfa2a14"
+  "canonicalJson": "{\"agentProfile\":\"stateless\",\"artifacts\":[],\"capabilityId\":\"capability_01J00000000000000000000000\",\"control\":{\"cancelAllowed\":true,\"pauseAllowed\":true,\"resumeAllowed\":false},\"evidence\":[],\"evidenceHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"identities\":{\"configHash\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"customizationHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"modelId\":\"model_01J00000000000000000000000\",\"packageId\":\"package_01J00000000000000000000000\",\"policyHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"sourceId\":\"source_01J00000000000000000000000\",\"taskId\":\"task_01J00000000000000000000000\",\"workspaceId\":\"workspace_01J00000000000000000000000\"},\"mode\":\"interactive\",\"schemaVersion\":\"sapphirus.bmad-session.v1\",\"sessionId\":\"session_01J00000000000000000000000\",\"state\":\"running\",\"version\":1}",
+  "expectedHash": "sha256:20a13b62fcf91083a75d415d7061f34ea25badbf2ea6a2af621560643777af64"
 }

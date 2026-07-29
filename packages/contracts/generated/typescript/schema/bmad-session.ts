@@ -6,9 +6,38 @@ export interface SapphirusBmadSessionV1 {
   capabilityId: string;
   mode: "interactive" | "headless";
   agentProfile: "stateless" | "memory" | "autonomous_pulse";
-  state: "created" | "running" | "input_required" | "paused" | "completed" | "failed" | "cancelled";
+  state:
+    | "created"
+    | "resolving"
+    | "input_required"
+    | "ready"
+    | "running"
+    | "awaiting_approval"
+    | "paused"
+    | "validating"
+    | "completed"
+    | "failed"
+    | "cancelled";
+  version: number;
+  identities: SessionIdentities;
+  evidenceHash: string;
   control: SessionControl;
+  stage?: string;
+  action?: string;
   inputRequest?: InputRequest;
+  approvalRequest?: ApprovalRequest;
+  /**
+   * @maxItems 1024
+   */
+  answers?: RecordedAnswer[];
+  /**
+   * @maxItems 1024
+   */
+  modelCalls?: ModelCall[];
+  /**
+   * @maxItems 1024
+   */
+  toolProposals?: ToolProposal[];
   /**
    * @maxItems 1024
    */
@@ -17,10 +46,21 @@ export interface SapphirusBmadSessionV1 {
    * @maxItems 32
    */
   completionHooks?: CompletionHook[];
+  outcome?: Outcome;
   /**
    * @maxItems 4096
    */
   evidence: string[];
+}
+export interface SessionIdentities {
+  sourceId: string;
+  packageId: string;
+  configHash: string;
+  customizationHash: string;
+  modelId: string;
+  taskId: string;
+  workspaceId: string;
+  policyHash: string;
 }
 export interface SessionControl {
   pauseAllowed: boolean;
@@ -32,7 +72,32 @@ export interface InputRequest {
   prompt: string;
   responseSchemaHash: string;
 }
+export interface ApprovalRequest {
+  requestId: string;
+  planHash: string;
+  effectClass: "filesystem" | "process" | "network" | "installation" | "publication" | "schedule" | "secret";
+}
+export interface RecordedAnswer {
+  requestId: string;
+  answerHash: string;
+}
+export interface ModelCall {
+  callId: string;
+  modelId: string;
+  requestHash: string;
+  responseHash: string;
+}
+export interface ToolProposal {
+  proposalId: string;
+  planHash: string;
+  status: "proposed" | "approved" | "rejected" | "expired";
+}
 export interface CompletionHook {
   hook: "persist_artifacts" | "emit_receipt" | "notify_local" | "schedule_followup";
   enabled: boolean;
+}
+export interface Outcome {
+  kind: "completed" | "failed" | "cancelled";
+  code: string;
+  detail?: string;
 }

@@ -60,6 +60,22 @@ public readonly partial struct SapphirusContractsCatalog
         public static BmadSession DefaultInstance { get; }
 
         /// <summary>
+        /// Gets the (optional) <c>action</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.ActionEntity Action
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ActionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.ActionEntity value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the <c>agentProfile</c> property.
         /// </summary>
         /// <remarks>
@@ -72,6 +88,38 @@ public readonly partial struct SapphirusContractsCatalog
             get
             {
                 if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.AgentProfileUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.AgentProfileEntity value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>answers</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.AnswersArray Answers
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.AnswersUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.AnswersArray value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>approvalRequest</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSessionApprovalRequest ApprovalRequest
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ApprovalRequestUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSessionApprovalRequest value))
                 {
                     return value;
                 }
@@ -181,6 +229,48 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the <c>evidenceHash</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 EvidenceHash
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.EvidenceHashUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256 value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <c>identities</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSessionSessionIdentities Identities
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.IdentitiesUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSessionSessionIdentities value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the (optional) <c>inputRequest</c> property.
         /// </summary>
         public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSessionInputRequest InputRequest
@@ -209,6 +299,38 @@ public readonly partial struct SapphirusContractsCatalog
             get
             {
                 if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModeUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.ModeEntity value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>modelCalls</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.ModelCallsArray ModelCalls
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ModelCallsUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.ModelCallsArray value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>outcome</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSessionOutcome Outcome
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.OutcomeUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSessionOutcome value))
                 {
                     return value;
                 }
@@ -260,6 +382,22 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the (optional) <c>stage</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.StageEntity Stage
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.StageUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.StageEntity value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the <c>state</c> property.
         /// </summary>
         /// <remarks>
@@ -272,6 +410,43 @@ public readonly partial struct SapphirusContractsCatalog
             get
             {
                 if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.StateUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.StateEntity value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>toolProposals</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.ToolProposalsArray ToolProposals
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ToolProposalsUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.ToolProposalsArray value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <c>version</c> property.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+        /// </para>
+        /// </remarks>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.VersionEntity Version
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.VersionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.VersionEntity value))
                 {
                     return value;
                 }
@@ -714,9 +889,24 @@ public readonly partial struct SapphirusContractsCatalog
         public static class JsonPropertyNames
         {
             /// <summary>
+            /// Gets the JSON property name for <see cref="Action"/>.
+            /// </summary>
+            public const string Action = "action";
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="AgentProfile"/>.
             /// </summary>
             public const string AgentProfile = "agentProfile";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Answers"/>.
+            /// </summary>
+            public const string Answers = "answers";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="ApprovalRequest"/>.
+            /// </summary>
+            public const string ApprovalRequest = "approvalRequest";
 
             /// <summary>
             /// Gets the JSON property name for <see cref="Artifacts"/>.
@@ -744,6 +934,16 @@ public readonly partial struct SapphirusContractsCatalog
             public const string Evidence = "evidence";
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="EvidenceHash"/>.
+            /// </summary>
+            public const string EvidenceHash = "evidenceHash";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Identities"/>.
+            /// </summary>
+            public const string Identities = "identities";
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="InputRequest"/>.
             /// </summary>
             public const string InputRequest = "inputRequest";
@@ -752,6 +952,16 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the JSON property name for <see cref="Mode"/>.
             /// </summary>
             public const string Mode = "mode";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="ModelCalls"/>.
+            /// </summary>
+            public const string ModelCalls = "modelCalls";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Outcome"/>.
+            /// </summary>
+            public const string Outcome = "outcome";
 
             /// <summary>
             /// Gets the JSON property name for <see cref="SchemaVersion"/>.
@@ -764,14 +974,44 @@ public readonly partial struct SapphirusContractsCatalog
             public const string SessionId = "sessionId";
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="Stage"/>.
+            /// </summary>
+            public const string Stage = "stage";
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="State"/>.
             /// </summary>
             public const string State = "state";
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="ToolProposals"/>.
+            /// </summary>
+            public const string ToolProposals = "toolProposals";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Version"/>.
+            /// </summary>
+            public const string Version = "version";
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Action"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ActionUtf8 => "action"u8;
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="AgentProfile"/>.
             /// </summary>
             public static ReadOnlySpan<byte> AgentProfileUtf8 => "agentProfile"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Answers"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> AnswersUtf8 => "answers"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="ApprovalRequest"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ApprovalRequestUtf8 => "approvalRequest"u8;
 
             /// <summary>
             /// Gets the JSON property name for <see cref="Artifacts"/>.
@@ -799,6 +1039,16 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> EvidenceUtf8 => "evidence"u8;
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="EvidenceHash"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> EvidenceHashUtf8 => "evidenceHash"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Identities"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> IdentitiesUtf8 => "identities"u8;
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="InputRequest"/>.
             /// </summary>
             public static ReadOnlySpan<byte> InputRequestUtf8 => "inputRequest"u8;
@@ -807,6 +1057,16 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the JSON property name for <see cref="Mode"/>.
             /// </summary>
             public static ReadOnlySpan<byte> ModeUtf8 => "mode"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="ModelCalls"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ModelCallsUtf8 => "modelCalls"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Outcome"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> OutcomeUtf8 => "outcome"u8;
 
             /// <summary>
             /// Gets the JSON property name for <see cref="SchemaVersion"/>.
@@ -819,9 +1079,24 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> SessionIdUtf8 => "sessionId"u8;
 
             /// <summary>
+            /// Gets the JSON property name for <see cref="Stage"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> StageUtf8 => "stage"u8;
+
+            /// <summary>
             /// Gets the JSON property name for <see cref="State"/>.
             /// </summary>
             public static ReadOnlySpan<byte> StateUtf8 => "state"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="ToolProposals"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ToolProposalsUtf8 => "toolProposals"u8;
+
+            /// <summary>
+            /// Gets the JSON property name for <see cref="Version"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> VersionUtf8 => "version"u8;
         }
 
         /// <summary>
@@ -830,9 +1105,24 @@ public readonly partial struct SapphirusContractsCatalog
         private static class JsonPropertyNamesEscaped
         {
             /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Action"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Action => "action"u8;
+
+            /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="AgentProfile"/>.
             /// </summary>
             public static ReadOnlySpan<byte> AgentProfile => "agentProfile"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Answers"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Answers => "answers"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="ApprovalRequest"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ApprovalRequest => "approvalRequest"u8;
 
             /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="Artifacts"/>.
@@ -860,6 +1150,16 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> Evidence => "evidence"u8;
 
             /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="EvidenceHash"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> EvidenceHash => "evidenceHash"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Identities"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Identities => "identities"u8;
+
+            /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="InputRequest"/>.
             /// </summary>
             public static ReadOnlySpan<byte> InputRequest => "inputRequest"u8;
@@ -868,6 +1168,16 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the escaped UTF-8 JSON property name for <see cref="Mode"/>.
             /// </summary>
             public static ReadOnlySpan<byte> Mode => "mode"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="ModelCalls"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ModelCalls => "modelCalls"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Outcome"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Outcome => "outcome"u8;
 
             /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="SchemaVersion"/>.
@@ -880,9 +1190,24 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> SessionId => "sessionId"u8;
 
             /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Stage"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Stage => "stage"u8;
+
+            /// <summary>
             /// Gets the escaped UTF-8 JSON property name for <see cref="State"/>.
             /// </summary>
             public static ReadOnlySpan<byte> State => "state"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="ToolProposals"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ToolProposals => "toolProposals"u8;
+
+            /// <summary>
+            /// Gets the escaped UTF-8 JSON property name for <see cref="Version"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Version => "version"u8;
         }
 
         /// <summary>
@@ -892,9 +1217,24 @@ public readonly partial struct SapphirusContractsCatalog
         private static class JsonPropertyNamesPrebaked
         {
             /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Action"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Action => [0x85, 0x00, 0x00, 0x00, 0x22, 0x61, 0x63, 0x74, 0x69, 0x6F, 0x6E, 0x22];
+
+            /// <summary>
             /// Gets the pre-baked property name blob for <see cref="AgentProfile"/>.
             /// </summary>
             public static ReadOnlySpan<byte> AgentProfile => [0xE5, 0x00, 0x00, 0x00, 0x22, 0x61, 0x67, 0x65, 0x6E, 0x74, 0x50, 0x72, 0x6F, 0x66, 0x69, 0x6C, 0x65, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Answers"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Answers => [0x95, 0x00, 0x00, 0x00, 0x22, 0x61, 0x6E, 0x73, 0x77, 0x65, 0x72, 0x73, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="ApprovalRequest"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ApprovalRequest => [0x15, 0x01, 0x00, 0x00, 0x22, 0x61, 0x70, 0x70, 0x72, 0x6F, 0x76, 0x61, 0x6C, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22];
 
             /// <summary>
             /// Gets the pre-baked property name blob for <see cref="Artifacts"/>.
@@ -922,6 +1262,16 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> Evidence => [0xA5, 0x00, 0x00, 0x00, 0x22, 0x65, 0x76, 0x69, 0x64, 0x65, 0x6E, 0x63, 0x65, 0x22];
 
             /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="EvidenceHash"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> EvidenceHash => [0xE5, 0x00, 0x00, 0x00, 0x22, 0x65, 0x76, 0x69, 0x64, 0x65, 0x6E, 0x63, 0x65, 0x48, 0x61, 0x73, 0x68, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Identities"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Identities => [0xC5, 0x00, 0x00, 0x00, 0x22, 0x69, 0x64, 0x65, 0x6E, 0x74, 0x69, 0x74, 0x69, 0x65, 0x73, 0x22];
+
+            /// <summary>
             /// Gets the pre-baked property name blob for <see cref="InputRequest"/>.
             /// </summary>
             public static ReadOnlySpan<byte> InputRequest => [0xE5, 0x00, 0x00, 0x00, 0x22, 0x69, 0x6E, 0x70, 0x75, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22];
@@ -930,6 +1280,16 @@ public readonly partial struct SapphirusContractsCatalog
             /// Gets the pre-baked property name blob for <see cref="Mode"/>.
             /// </summary>
             public static ReadOnlySpan<byte> Mode => [0x65, 0x00, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="ModelCalls"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ModelCalls => [0xC5, 0x00, 0x00, 0x00, 0x22, 0x6D, 0x6F, 0x64, 0x65, 0x6C, 0x43, 0x61, 0x6C, 0x6C, 0x73, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Outcome"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Outcome => [0x95, 0x00, 0x00, 0x00, 0x22, 0x6F, 0x75, 0x74, 0x63, 0x6F, 0x6D, 0x65, 0x22];
 
             /// <summary>
             /// Gets the pre-baked property name blob for <see cref="SchemaVersion"/>.
@@ -942,9 +1302,24 @@ public readonly partial struct SapphirusContractsCatalog
             public static ReadOnlySpan<byte> SessionId => [0xB5, 0x00, 0x00, 0x00, 0x22, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6F, 0x6E, 0x49, 0x64, 0x22];
 
             /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Stage"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Stage => [0x75, 0x00, 0x00, 0x00, 0x22, 0x73, 0x74, 0x61, 0x67, 0x65, 0x22];
+
+            /// <summary>
             /// Gets the pre-baked property name blob for <see cref="State"/>.
             /// </summary>
             public static ReadOnlySpan<byte> State => [0x75, 0x00, 0x00, 0x00, 0x22, 0x73, 0x74, 0x61, 0x74, 0x65, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="ToolProposals"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> ToolProposals => [0xF5, 0x00, 0x00, 0x00, 0x22, 0x74, 0x6F, 0x6F, 0x6C, 0x50, 0x72, 0x6F, 0x70, 0x6F, 0x73, 0x61, 0x6C, 0x73, 0x22];
+
+            /// <summary>
+            /// Gets the pre-baked property name blob for <see cref="Version"/>.
+            /// </summary>
+            public static ReadOnlySpan<byte> Version => [0x95, 0x00, 0x00, 0x00, 0x22, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x22];
         }
     }
 }

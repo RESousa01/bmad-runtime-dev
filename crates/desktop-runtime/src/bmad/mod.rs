@@ -23,6 +23,7 @@ mod resources;
 mod service;
 mod session;
 mod source;
+mod state_machine;
 pub mod toml_subset;
 pub mod workflow;
 
@@ -124,6 +125,10 @@ pub use resources::{
 pub use service::{MethodServiceError, MethodSessionService};
 pub use session::{BmadSessionIntent, BmadSessionTransitionError};
 pub use source::{BmadSourcePackage, BmadSourceService};
+pub use state_machine::{
+    apply_command, is_terminal, project, BmadSessionCommand, BmadSessionCommandError,
+    BmadSessionEvent, BmadSessionProjection,
+};
 pub use toml_subset::{parse_toml_subset, TomlSubsetError};
 pub use workflow::{BmadWorkflowGraph, BmadWorkflowPhase, BmadWorkflowState, BmadWorkflowStep};
 
