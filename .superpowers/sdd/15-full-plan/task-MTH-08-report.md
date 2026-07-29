@@ -219,3 +219,69 @@ BigBrain consulted and updated:
 
 Unresolved questions or TODOs: none for MTH-08. Coordinator state/lease removal
 and dependent-task unblocking remain coordinator-owned operations.
+
+## Reviewer fix round 3
+
+Date: 2026-07-29
+Status: `DONE`
+
+The canonical receipt now makes its Git and updater semantics explicit:
+
+- `cfdaef333bb285f8126e844d6225bafd85b2ad3c` is the verified
+  implementation commit, with tested implementation tree
+  `820fe9a065202499403a21f0d317b15dbe89fd17`.
+- `07d1ae3de5f17fdffdd98bdb5d0adfa693f34cf2` is the first evidence-only
+  receipt/report commit, with tree
+  `57436ca4021257be8f91514d01b48e2f5b267a0f`. The receipt and report are
+  descendants of the tested implementation; they do not claim to have been
+  inputs to their own recorded verification commands.
+- The updater contract binds `patch.final_tree`,
+  `repository.worktree_tree`, and every required `command.source_tree` to the
+  same tested implementation tree. It does not require the later Git commit
+  containing the receipt to equal the implementation commit.
+
+The exact updater acceptance check was:
+
+```powershell
+@'
+import { readFileSync } from "node:fs";
+import { transitionTask } from "./tools/bmad100/update-run-state.mjs";
+const artifact = JSON.parse(readFileSync("artifacts/bmad100/tasks/MTH-08.json", "utf8"));
+const baselineTree = artifact.source_hashes.baseline_task_source_tree;
+const finalTree = artifact.source_hashes.final_task_source_tree;
+const manifest = { task_index: { "MTH-08": { phase: 2, priority: "P0", order: 1, depends: [] } } };
+const task = { id: "MTH-08", phase: 2, priority: "P0", order: 1, dependencies: [], status: "in_progress", baseline_tree: baselineTree, final_tree: null, changed_files: [], commands: [], counts: {}, evidence_hashes: {}, blocker: null, replacement_task_id: null };
+const state = { schema_version: "1.0", run_id: "mth08-round3", repository: { commit: artifact.commit, branch: "codex/bmad100-mth08-final", worktree_tree: finalTree, dirty: false }, source_hashes: { method: "2993e558a9bc45b98589756fda6be8a95e573e0ac4ae6237386133987c83126f" }, tasks: [task], current_task: "MTH-08", next_ready: [], checkpoints: [], updated_at: "2026-07-29T21:50:00+02:00" };
+const next = transitionTask(state, manifest, "MTH-08", "complete", { baseline_tree: baselineTree, final_tree: finalTree, changed_files: artifact.files_changed, commands: artifact.commands, counts: artifact.counts, evidence_hashes: artifact.evidence_hashes, blocker: null, updated_at: "2026-07-29T21:50:00+02:00" });
+const result = next.tasks[0];
+console.log(`transitionTask accepted: task=${result.id} status=${result.status} final_tree=${result.final_tree} commands=${result.commands.length} repository.worktree_tree=${next.repository.worktree_tree}`);
+'@ | node --input-type=module
+```
+
+Exact output:
+
+```text
+transitionTask accepted: task=MTH-08 status=passed final_tree=820fe9a065202499403a21f0d317b15dbe89fd17 commands=8 repository.worktree_tree=820fe9a065202499403a21f0d317b15dbe89fd17
+```
+
+Scope resolution for the two clean-topology files is also explicit:
+
+- `packages/bmad-foundation/source/method/6.10.0/.vscode/settings.json`
+  (`sha256:0e391501f65d10db323be3cadd0bfcf6118ed270f5e134c13cefcbbcb331ee12`)
+- `packages/bmad-foundation/source/method/6.10.0/package-lock.json`
+  (`sha256:c1e0de1fe219b251097ac78f275c42250595c075f63fab39b47800fbd92e883d`)
+
+Both were retained by the reviewer-round-2 clean source-topology requirement,
+are covered by the completed SRC-03 source-retention lease
+`packages/bmad-foundation/source/method/6.10.0/**`, and are required members of
+the pinned Method source tree consumed by MTH-08 closure verification. An
+executable lease-and-hash assertion reported:
+
+```text
+scope accepted: lease=packages/bmad-foundation/source/method/6.10.0/** files=2 hashes=matched
+```
+
+The focused diff from the verified implementation commit contains only this
+report and the canonical MTH-08 artifact. The candidate-base-to-HEAD diff
+contains no Foundry/FND path. No unrelated files or unresolved MTH-08 concerns
+remain.

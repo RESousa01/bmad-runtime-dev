@@ -8,6 +8,29 @@
     "candidate_base_tree": "50591fd383442be9b4b20c8ca76dbb29a13a76d9",
     "final_task_source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17"
   },
+  "evidence_semantics": {
+    "verified_implementation_commit": "cfdaef333bb285f8126e844d6225bafd85b2ad3c",
+    "verified_implementation_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+    "initial_receipt_commit": "07d1ae3de5f17fdffdd98bdb5d0adfa693f34cf2",
+    "initial_receipt_tree": "57436ca4021257be8f91514d01b48e2f5b267a0f",
+    "relationship": "final_task_source_tree is the exact tested implementation tree supplied as repository.worktree_tree to transitionTask. The canonical receipt and report are evidence-only descendants committed after that tree; they do not redefine or claim to have been inputs to their own recorded commands.",
+    "updater_contract": "requirePassEvidence requires patch.final_tree to equal repository.worktree_tree and every required command.source_tree to equal patch.final_tree. It does not require the Git commit containing the receipt to equal the verified implementation commit."
+  },
+  "scope_resolution": [
+    {
+      "paths": [
+        "packages/bmad-foundation/source/method/6.10.0/.vscode/settings.json",
+        "packages/bmad-foundation/source/method/6.10.0/package-lock.json"
+      ],
+      "resolution": "Retained by the reviewer-required clean source-topology repair. Both paths are covered by the completed SRC-03 source-retention lease packages/bmad-foundation/source/method/6.10.0/** and are required members of the pinned Method source tree consumed by MTH-08 closure verification.",
+      "source_lease_artifact": "artifacts/bmad100/tasks/SRC-03.json",
+      "reviewer_scope": "MTH-08 reviewer round 2 clean-topology requirement",
+      "content_hashes": {
+        ".vscode/settings.json": "0e391501f65d10db323be3cadd0bfcf6118ed270f5e134c13cefcbbcb331ee12",
+        "package-lock.json": "c1e0de1fe219b251097ac78f275c42250595c075f63fab39b47800fbd92e883d"
+      }
+    }
+  ],
   "row_id": "method:src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
   "decision": "adapt",
   "support_state": "exact",
