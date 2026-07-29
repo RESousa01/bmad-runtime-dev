@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-rejection.v1",
+  "id": "bmad-installation-unknown-property",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-installation.schema.json",
+  "reason": "unknown_property",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-installation.v1",
+    "installationId": "installation_01J00000000000000000000000",
+    "packageId": "package_01J00000000000000000000000",
+    "workspaceId": "workspace_01J00000000000000000000000",
+    "state": "planned",
+    "version": 1,
+    "packageVersion": "2.1.0",
+    "manifest": {
+      "destinations": [
+        {
+          "relativePath": "_bmad/skills/example/SKILL.md",
+          "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "operation": "create"
+        }
+      ],
+      "manifestHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "activation": {
+      "active": false,
+      "catalogHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "validations": [
+      {
+        "check": "collision",
+        "passed": true
+      }
+    ],
+    "installationHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "futureAuthority": true
+  }
+}

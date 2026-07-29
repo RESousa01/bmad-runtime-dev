@@ -78,6 +78,8 @@ const productionRoots = Object.freeze([
   ["bmad-review-result.schema.json", "BmadReviewResult"],
   ["bmad-problem.schema.json", "BmadProblem"],
   ["bmad-context-contribution.schema.json", "BmadContextContribution"],
+  ["bmad-installation.schema.json", "BmadInstallation"],
+  ["builder-capability.schema.json", "BuilderCapability"],
   ["bmad-memory.schema.json", "BmadMemory"],
   ["bmad-method-advance-result.schema.json", "MethodAdvanceResult"],
   ["bmad-method-help-proposal.schema.json", "MethodHelpProposal"],

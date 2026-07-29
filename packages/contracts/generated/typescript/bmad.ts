@@ -1172,6 +1172,117 @@ export interface BmadContextContributionReportedUsage {
   completionTokens: number;
 }
 
+export interface BmadInstallationSapphirusBmadInstallationV1 {
+  schemaVersion: "sapphirus.bmad-installation.v1";
+  installationId: string;
+  packageId: string;
+  workspaceId: string;
+  state: "planned" | "reviewed" | "approved" | "checkpointed" | "written" | "validated" | "activated" | "rolled_back";
+  version: number;
+  packageVersion?: string;
+  manifest: BmadInstallationInstallManifest;
+  activation: BmadInstallationActivation;
+  checkpoint?: BmadInstallationCheckpoint;
+  /**
+   * @maxItems 64
+   */
+  validations?: BmadInstallationValidationOutcome[];
+  installationHash: string;
+}
+export interface BmadInstallationInstallManifest {
+  /**
+   * @maxItems 4096
+   */
+  destinations: BmadInstallationDestination[];
+  manifestHash: string;
+}
+export interface BmadInstallationDestination {
+  relativePath: string;
+  contentHash: string;
+  operation: "create" | "replace" | "remove";
+}
+export interface BmadInstallationActivation {
+  active: boolean;
+  catalogHash: string;
+  activatedFromInstallationId?: string;
+  supersededInstallationId?: string;
+}
+export interface BmadInstallationCheckpoint {
+  checkpointId: string;
+  priorCatalogHash: string;
+  priorFilesHash?: string;
+}
+export interface BmadInstallationValidationOutcome {
+  check: "collision" | "alias" | "config" | "help" | "dependency" | "license" | "script" | "path" | "catalog_rebuild";
+  passed: boolean;
+  detail?: string;
+}
+
+export interface BuilderCapabilitySapphirusBuilderCapabilityV1 {
+  schemaVersion: "sapphirus.builder-capability.v1";
+  capabilityId: string;
+  action: string;
+  exposure: "public" | "internal";
+  module: string;
+  skill: string;
+  displayName: string;
+  menuCode?: string;
+  description?: string;
+  phase?: string;
+  predecessor?: string;
+  follower?: string;
+  required?: boolean;
+  /**
+   * @maxItems 64
+   */
+  args?: BuilderCapabilityArgument[];
+  outputs?: BuilderCapabilityOutputs;
+  provenance: BuilderCapabilityProvenance;
+  /**
+   * @maxItems 512
+   */
+  dependencies: BuilderCapabilityDependency[];
+  /**
+   * @maxItems 32
+   */
+  aliases?: BuilderCapabilityAlias[];
+  capabilityHash: string;
+}
+export interface BuilderCapabilityArgument {
+  name: string;
+  required: boolean;
+  valueKind?: "string" | "integer" | "boolean" | "path" | "enum" | "reference";
+}
+export interface BuilderCapabilityOutputs {
+  outputContractId: string;
+  outputLocation?: string;
+}
+export interface BuilderCapabilityProvenance {
+  sourceId: string;
+  sourceFile: string;
+  sourceHash: string;
+  sourceRow?: number;
+}
+export interface BuilderCapabilityDependency {
+  id: string;
+  kind:
+    | "source_resource"
+    | "runtime_port"
+    | "configuration"
+    | "model_profile"
+    | "script_plan"
+    | "output_contract"
+    | "ui_support";
+  edge: "required" | "optional" | "conditional";
+  condition?: string;
+}
+export interface BuilderCapabilityAlias {
+  legacyId: string;
+  status: "supported" | "deprecated" | "removed";
+  translation?: "identity" | "input_mapped" | "output_mapped" | "evidence_mapped";
+  removeAfterVersion?: string;
+}
+
 export interface BmadMemorySapphirusBmadMemoryV1 {
   schemaVersion: "sapphirus.bmad-memory.v1";
   memoryId: string;

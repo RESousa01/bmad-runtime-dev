@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-installation.schema.json",
+  "branch": "sapphirus.bmad-installation.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-installation.v1",
+    "installationId": "installation_01J00000000000000000000000",
+    "packageId": "package_01J00000000000000000000000",
+    "workspaceId": "workspace_01J00000000000000000000000",
+    "state": "planned",
+    "version": 1,
+    "packageVersion": "2.1.0",
+    "manifest": {
+      "destinations": [
+        {
+          "relativePath": "_bmad/skills/example/SKILL.md",
+          "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "operation": "create"
+        }
+      ],
+      "manifestHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "activation": {
+      "active": false,
+      "catalogHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "validations": [
+      {
+        "check": "collision",
+        "passed": true
+      }
+    ],
+    "installationHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "canonicalJson": "{\"activation\":{\"active\":false,\"catalogHash\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\"},\"installationHash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"installationId\":\"installation_01J00000000000000000000000\",\"manifest\":{\"destinations\":[{\"contentHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"operation\":\"create\",\"relativePath\":\"_bmad/skills/example/SKILL.md\"}],\"manifestHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"packageId\":\"package_01J00000000000000000000000\",\"packageVersion\":\"2.1.0\",\"schemaVersion\":\"sapphirus.bmad-installation.v1\",\"state\":\"planned\",\"validations\":[{\"check\":\"collision\",\"passed\":true}],\"version\":1,\"workspaceId\":\"workspace_01J00000000000000000000000\"}",
+  "expectedHash": "sha256:0d60ac942ad1cf59fcf6a609c439d600553ea404290846a61f987cc27370fe22"
+}

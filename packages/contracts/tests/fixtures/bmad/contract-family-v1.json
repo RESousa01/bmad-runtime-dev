@@ -412,6 +412,87 @@
       }
     },
     {
+      "schema": "bmad-installation.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-installation.v1",
+        "installationId": "installation_01J00000000000000000000000",
+        "packageId": "package_01J00000000000000000000000",
+        "workspaceId": "workspace_01J00000000000000000000000",
+        "state": "planned",
+        "version": 1,
+        "packageVersion": "2.1.0",
+        "manifest": {
+          "destinations": [
+            {
+              "relativePath": "_bmad/skills/example/SKILL.md",
+              "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "operation": "create"
+            }
+          ],
+          "manifestHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "activation": {
+          "active": false,
+          "catalogHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "validations": [
+          {
+            "check": "collision",
+            "passed": true
+          }
+        ],
+        "installationHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    },
+    {
+      "schema": "builder-capability.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.builder-capability.v1",
+        "capabilityId": "capability_01J00000000000000000000000",
+        "action": "create-module",
+        "exposure": "public",
+        "module": "bmb",
+        "skill": "bmad-create-module",
+        "displayName": "Create Module",
+        "menuCode": "3",
+        "description": "Scaffold a new module.",
+        "phase": "build",
+        "required": true,
+        "args": [
+          {
+            "name": "module_name",
+            "required": true,
+            "valueKind": "string"
+          }
+        ],
+        "outputs": {
+          "outputContractId": "sapphirus.bmad-artifact.v1",
+          "outputLocation": "_bmad/modules"
+        },
+        "provenance": {
+          "sourceId": "source_01J00000000000000000000000",
+          "sourceFile": "skills/module-help.csv",
+          "sourceHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "sourceRow": 7
+        },
+        "dependencies": [
+          {
+            "id": "source_resource_skill_md",
+            "kind": "source_resource",
+            "edge": "required"
+          }
+        ],
+        "aliases": [
+          {
+            "legacyId": "forge.builder.createModule",
+            "status": "deprecated",
+            "translation": "identity"
+          }
+        ],
+        "capabilityHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+      }
+    },
+    {
       "schema": "bmad-memory.schema.json",
       "value": {
         "schemaVersion": "sapphirus.bmad-memory.v1",

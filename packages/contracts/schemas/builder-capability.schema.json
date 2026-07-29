@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/builder-capability.schema.json",
+  "title": "sapphirus.builder-capability.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "capabilityId", "action", "exposure", "module", "skill", "displayName", "provenance", "dependencies", "capabilityHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.builder-capability.v1" },
+    "capabilityId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "action": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9-]*$" },
+    "exposure": { "enum": ["public", "internal"] },
+    "module": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9-]*$" },
+    "skill": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9-]*$" },
+    "displayName": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "menuCode": { "type": "string", "minLength": 1, "maxLength": 32, "pattern": "^[A-Za-z0-9._-]+$" },
+    "description": { "type": "string", "minLength": 1, "maxLength": 4096 },
+    "phase": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-z][a-z0-9-]*$" },
+    "predecessor": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9-]*$" },
+    "follower": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9-]*$" },
+    "required": { "type": "boolean" },
+    "args": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/Argument" }
+    },
+    "outputs": { "$ref": "#/$defs/Outputs" },
+    "provenance": { "$ref": "#/$defs/Provenance" },
+    "dependencies": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/Dependency" }
+    },
+    "aliases": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/Alias" }
+    },
+    "capabilityHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "Argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "required"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" },
+        "required": { "type": "boolean" },
+        "valueKind": { "enum": ["string", "integer", "boolean", "path", "enum", "reference"] }
+      }
+    },
+    "Outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outputContractId"],
+      "properties": {
+        "outputContractId": { "type": "string", "minLength": 1, "maxLength": 256, "pattern": "^sapphirus\\.[a-z0-9.-]+\\.v[0-9]+$" },
+        "outputLocation": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$" }
+      }
+    },
+    "Provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "sourceFile", "sourceHash"],
+      "properties": {
+        "sourceId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "sourceFile": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$" },
+        "sourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "sourceRow": { "type": "integer", "minimum": 1, "maximum": 65536 }
+      }
+    },
+    "Dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "edge"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_-]*$" },
+        "kind": { "enum": ["source_resource", "runtime_port", "configuration", "model_profile", "script_plan", "output_contract", "ui_support"] },
+        "edge": { "enum": ["required", "optional", "conditional"] },
+        "condition": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" }
+      }
+    },
+    "Alias": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["legacyId", "status"],
+      "properties": {
+        "legacyId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "status": { "enum": ["supported", "deprecated", "removed"] },
+        "translation": { "enum": ["identity", "input_mapped", "output_mapped", "evidence_mapped"] },
+        "removeAfterVersion": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+      }
+    }
+  }
+}

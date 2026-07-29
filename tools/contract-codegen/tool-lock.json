@@ -108,6 +108,16 @@
           "typeName": "BmadContextContribution"
         },
         {
+          "file": "bmad-installation.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-installation.schema.json",
+          "typeName": "BmadInstallation"
+        },
+        {
+          "file": "builder-capability.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/builder-capability.schema.json",
+          "typeName": "BuilderCapability"
+        },
+        {
           "file": "bmad-memory.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-memory.schema.json",
           "typeName": "BmadMemory"

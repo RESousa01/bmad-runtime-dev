@@ -128,6 +128,20 @@
       "csharpType": "BmadContextContribution"
     },
     {
+      "name": "bmad-installation",
+      "schemaId": "https://schemas.sapphirus.dev/v1/bmad-installation.schema.json",
+      "protocolVersion": "sapphirus.bmad-installation.v1",
+      "rustType": "BmadInstallation",
+      "csharpType": "BmadInstallation"
+    },
+    {
+      "name": "builder-capability",
+      "schemaId": "https://schemas.sapphirus.dev/v1/builder-capability.schema.json",
+      "protocolVersion": "sapphirus.builder-capability.v1",
+      "rustType": "BuilderCapability",
+      "csharpType": "BuilderCapability"
+    },
+    {
       "name": "bmad-memory",
       "schemaId": "https://schemas.sapphirus.dev/v1/bmad-memory.schema.json",
       "protocolVersion": "sapphirus.bmad-memory.v1",
@@ -167,6 +181,7 @@
     "fixtures/bmad/valid/context-contribution.json",
     "fixtures/bmad/valid/customization.json",
     "fixtures/bmad/valid/eval.json",
+    "fixtures/bmad/valid/installation.json",
     "fixtures/bmad/valid/invocation.json",
     "fixtures/bmad/valid/memory.json",
     "fixtures/bmad/valid/module.json",
@@ -187,6 +202,7 @@
     "fixtures/bmad/valid/promotion-superseded-to-uninstalled.json",
     "fixtures/bmad/valid/promotion-validated-to-analysed.json",
     "fixtures/bmad/valid/review-result.json",
+    "fixtures/bmad/valid/sapphirus-builder-capability.json",
     "fixtures/bmad/valid/script-plan.json",
     "fixtures/bmad/valid/session.json",
     "fixtures/bmad/valid/skill-package.json",
@@ -204,6 +220,7 @@
     "fixtures/bmad/rejected/bmad-context-contribution-unknown-property.json",
     "fixtures/bmad/rejected/bmad-customization-unknown-property.json",
     "fixtures/bmad/rejected/bmad-eval-unknown-property.json",
+    "fixtures/bmad/rejected/bmad-installation-unknown-property.json",
     "fixtures/bmad/rejected/bmad-invocation-unknown-property.json",
     "fixtures/bmad/rejected/bmad-memory-unknown-property.json",
     "fixtures/bmad/rejected/bmad-module-unknown-property.json",
@@ -215,6 +232,7 @@
     "fixtures/bmad/rejected/bmad-source-accounting-unknown-property.json",
     "fixtures/bmad/rejected/bmad-source-identity-unknown-property.json",
     "fixtures/bmad/rejected/bmad-upgrade-unknown-property.json",
+    "fixtures/bmad/rejected/builder-capability-unknown-property.json",
     "fixtures/bmad/rejected/promotion-active-to-active.json",
     "fixtures/bmad/rejected/promotion-active-to-analysed.json",
     "fixtures/bmad/rejected/promotion-active-to-approved.json",

@@ -22,6 +22,8 @@ export const BMAD_CROSS_LANGUAGE_SCHEMAS = Object.freeze([
   ["bmad-review-result", "BmadReviewResult", "BmadReviewResult"],
   ["bmad-problem", "BmadProblem", "BmadProblem"],
   ["bmad-context-contribution", "BmadContextContribution", "BmadContextContribution"],
+  ["bmad-installation", "BmadInstallation", "BmadInstallation"],
+  ["builder-capability", "BuilderCapability", "BuilderCapability"],
   ["bmad-memory", "BmadMemory", "BmadMemory"],
   ["bmad-upgrade", "BmadUpgrade", "BmadUpgrade"],
 ]);

@@ -28,6 +28,8 @@ const requiredSchemas = [
   "bmad-review-result.schema.json",
   "bmad-problem.schema.json",
   "bmad-context-contribution.schema.json",
+  "bmad-installation.schema.json",
+  "builder-capability.schema.json",
   "bmad-memory.schema.json",
   "bmad-upgrade.schema.json",
 ];

@@ -15121,6 +15121,871 @@ impl ::std::convert::TryFrom<::std::string::String> for BmadEvalState {
         value.parse()
     }
 }
+#[doc = "`BmadInstallation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-installation.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"activation\","]
+#[doc = "    \"installationHash\","]
+#[doc = "    \"installationId\","]
+#[doc = "    \"manifest\","]
+#[doc = "    \"packageId\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"state\","]
+#[doc = "    \"version\","]
+#[doc = "    \"workspaceId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"activation\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadInstallationActivation\""]
+#[doc = "    },"]
+#[doc = "    \"checkpoint\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadInstallationCheckpoint\""]
+#[doc = "    },"]
+#[doc = "    \"installationHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"installationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"manifest\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadInstallationInstallManifest\""]
+#[doc = "    },"]
+#[doc = "    \"packageId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"packageVersion\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[0-9]+\\\\.[0-9]+\\\\.[0-9]+$\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-installation.v1\""]
+#[doc = "    },"]
+#[doc = "    \"state\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"planned\","]
+#[doc = "        \"reviewed\","]
+#[doc = "        \"approved\","]
+#[doc = "        \"checkpointed\","]
+#[doc = "        \"written\","]
+#[doc = "        \"validated\","]
+#[doc = "        \"activated\","]
+#[doc = "        \"rolled_back\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"validations\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadInstallationValidationOutcome\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64"]
+#[doc = "    },"]
+#[doc = "    \"version\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1048576.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    },"]
+#[doc = "    \"workspaceId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInstallation {
+    pub activation: BmadInstallationActivation,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub checkpoint: ::std::option::Option<BmadInstallationCheckpoint>,
+    #[serde(rename = "installationHash")]
+    pub installation_hash: CommonSha256,
+    #[serde(rename = "installationId")]
+    pub installation_id: CommonContractId,
+    pub manifest: BmadInstallationInstallManifest,
+    #[serde(rename = "packageId")]
+    pub package_id: CommonContractId,
+    #[serde(
+        rename = "packageVersion",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub package_version: ::std::option::Option<BmadInstallationPackageVersion>,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub state: BmadInstallationState,
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub validations: ::std::vec::Vec<BmadInstallationValidationOutcome>,
+    pub version: ::std::num::NonZeroU64,
+    #[serde(rename = "workspaceId")]
+    pub workspace_id: CommonContractId,
+}
+impl BmadInstallation {
+    pub fn builder() -> builder::BmadInstallation {
+        Default::default()
+    }
+}
+#[doc = "`BmadInstallationActivation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"active\","]
+#[doc = "    \"catalogHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"activatedFromInstallationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"active\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"catalogHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"supersededInstallationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInstallationActivation {
+    #[serde(
+        rename = "activatedFromInstallationId",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub activated_from_installation_id: ::std::option::Option<CommonContractId>,
+    pub active: bool,
+    #[serde(rename = "catalogHash")]
+    pub catalog_hash: CommonSha256,
+    #[serde(
+        rename = "supersededInstallationId",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub superseded_installation_id: ::std::option::Option<CommonContractId>,
+}
+impl BmadInstallationActivation {
+    pub fn builder() -> builder::BmadInstallationActivation {
+        Default::default()
+    }
+}
+#[doc = "`BmadInstallationCheckpoint`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"checkpointId\","]
+#[doc = "    \"priorCatalogHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"checkpointId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"priorCatalogHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"priorFilesHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInstallationCheckpoint {
+    #[serde(rename = "checkpointId")]
+    pub checkpoint_id: CommonContractId,
+    #[serde(rename = "priorCatalogHash")]
+    pub prior_catalog_hash: CommonSha256,
+    #[serde(
+        rename = "priorFilesHash",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub prior_files_hash: ::std::option::Option<CommonSha256>,
+}
+impl BmadInstallationCheckpoint {
+    pub fn builder() -> builder::BmadInstallationCheckpoint {
+        Default::default()
+    }
+}
+#[doc = "`BmadInstallationDestination`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"contentHash\","]
+#[doc = "    \"operation\","]
+#[doc = "    \"relativePath\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"contentHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"operation\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"create\","]
+#[doc = "        \"replace\","]
+#[doc = "        \"remove\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"relativePath\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1024,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInstallationDestination {
+    #[serde(rename = "contentHash")]
+    pub content_hash: CommonSha256,
+    pub operation: BmadInstallationDestinationOperation,
+    #[serde(rename = "relativePath")]
+    pub relative_path: BmadInstallationDestinationRelativePath,
+}
+impl BmadInstallationDestination {
+    pub fn builder() -> builder::BmadInstallationDestination {
+        Default::default()
+    }
+}
+#[doc = "`BmadInstallationDestinationOperation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"create\","]
+#[doc = "    \"replace\","]
+#[doc = "    \"remove\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadInstallationDestinationOperation {
+    #[serde(rename = "create")]
+    Create,
+    #[serde(rename = "replace")]
+    Replace,
+    #[serde(rename = "remove")]
+    Remove,
+}
+impl ::std::fmt::Display for BmadInstallationDestinationOperation {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Create => f.write_str("create"),
+            Self::Replace => f.write_str("replace"),
+            Self::Remove => f.write_str("remove"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadInstallationDestinationOperation {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "create" => Ok(Self::Create),
+            "replace" => Ok(Self::Replace),
+            "remove" => Ok(Self::Remove),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInstallationDestinationOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInstallationDestinationOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInstallationDestinationOperation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadInstallationDestinationRelativePath`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1024,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInstallationDestinationRelativePath(::std::string::String);
+impl ::std::ops::Deref for BmadInstallationDestinationRelativePath {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInstallationDestinationRelativePath> for ::std::string::String {
+    fn from(value: BmadInstallationDestinationRelativePath) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInstallationDestinationRelativePath {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1024usize {
+            return Err("longer than 1024 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInstallationDestinationRelativePath {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInstallationDestinationRelativePath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInstallationDestinationRelativePath {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInstallationDestinationRelativePath {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInstallationInstallManifest`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"destinations\","]
+#[doc = "    \"manifestHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"destinations\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadInstallationDestination\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 4096"]
+#[doc = "    },"]
+#[doc = "    \"manifestHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInstallationInstallManifest {
+    pub destinations: ::std::vec::Vec<BmadInstallationDestination>,
+    #[serde(rename = "manifestHash")]
+    pub manifest_hash: CommonSha256,
+}
+impl BmadInstallationInstallManifest {
+    pub fn builder() -> builder::BmadInstallationInstallManifest {
+        Default::default()
+    }
+}
+#[doc = "`BmadInstallationPackageVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[0-9]+\\\\.[0-9]+\\\\.[0-9]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInstallationPackageVersion(::std::string::String);
+impl ::std::ops::Deref for BmadInstallationPackageVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInstallationPackageVersion> for ::std::string::String {
+    fn from(value: BmadInstallationPackageVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInstallationPackageVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[0-9]+\\.[0-9]+\\.[0-9]+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[0-9]+\\.[0-9]+\\.[0-9]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInstallationPackageVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInstallationPackageVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInstallationPackageVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInstallationPackageVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInstallationState`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"planned\","]
+#[doc = "    \"reviewed\","]
+#[doc = "    \"approved\","]
+#[doc = "    \"checkpointed\","]
+#[doc = "    \"written\","]
+#[doc = "    \"validated\","]
+#[doc = "    \"activated\","]
+#[doc = "    \"rolled_back\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadInstallationState {
+    #[serde(rename = "planned")]
+    Planned,
+    #[serde(rename = "reviewed")]
+    Reviewed,
+    #[serde(rename = "approved")]
+    Approved,
+    #[serde(rename = "checkpointed")]
+    Checkpointed,
+    #[serde(rename = "written")]
+    Written,
+    #[serde(rename = "validated")]
+    Validated,
+    #[serde(rename = "activated")]
+    Activated,
+    #[serde(rename = "rolled_back")]
+    RolledBack,
+}
+impl ::std::fmt::Display for BmadInstallationState {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Planned => f.write_str("planned"),
+            Self::Reviewed => f.write_str("reviewed"),
+            Self::Approved => f.write_str("approved"),
+            Self::Checkpointed => f.write_str("checkpointed"),
+            Self::Written => f.write_str("written"),
+            Self::Validated => f.write_str("validated"),
+            Self::Activated => f.write_str("activated"),
+            Self::RolledBack => f.write_str("rolled_back"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadInstallationState {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "planned" => Ok(Self::Planned),
+            "reviewed" => Ok(Self::Reviewed),
+            "approved" => Ok(Self::Approved),
+            "checkpointed" => Ok(Self::Checkpointed),
+            "written" => Ok(Self::Written),
+            "validated" => Ok(Self::Validated),
+            "activated" => Ok(Self::Activated),
+            "rolled_back" => Ok(Self::RolledBack),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInstallationState {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInstallationState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInstallationState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadInstallationValidationOutcome`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"check\","]
+#[doc = "    \"passed\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"check\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"collision\","]
+#[doc = "        \"alias\","]
+#[doc = "        \"config\","]
+#[doc = "        \"help\","]
+#[doc = "        \"dependency\","]
+#[doc = "        \"license\","]
+#[doc = "        \"script\","]
+#[doc = "        \"path\","]
+#[doc = "        \"catalog_rebuild\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"detail\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 2048,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"passed\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInstallationValidationOutcome {
+    pub check: BmadInstallationValidationOutcomeCheck,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub detail: ::std::option::Option<BmadInstallationValidationOutcomeDetail>,
+    pub passed: bool,
+}
+impl BmadInstallationValidationOutcome {
+    pub fn builder() -> builder::BmadInstallationValidationOutcome {
+        Default::default()
+    }
+}
+#[doc = "`BmadInstallationValidationOutcomeCheck`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"collision\","]
+#[doc = "    \"alias\","]
+#[doc = "    \"config\","]
+#[doc = "    \"help\","]
+#[doc = "    \"dependency\","]
+#[doc = "    \"license\","]
+#[doc = "    \"script\","]
+#[doc = "    \"path\","]
+#[doc = "    \"catalog_rebuild\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadInstallationValidationOutcomeCheck {
+    #[serde(rename = "collision")]
+    Collision,
+    #[serde(rename = "alias")]
+    Alias,
+    #[serde(rename = "config")]
+    Config,
+    #[serde(rename = "help")]
+    Help,
+    #[serde(rename = "dependency")]
+    Dependency,
+    #[serde(rename = "license")]
+    License,
+    #[serde(rename = "script")]
+    Script,
+    #[serde(rename = "path")]
+    Path,
+    #[serde(rename = "catalog_rebuild")]
+    CatalogRebuild,
+}
+impl ::std::fmt::Display for BmadInstallationValidationOutcomeCheck {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Collision => f.write_str("collision"),
+            Self::Alias => f.write_str("alias"),
+            Self::Config => f.write_str("config"),
+            Self::Help => f.write_str("help"),
+            Self::Dependency => f.write_str("dependency"),
+            Self::License => f.write_str("license"),
+            Self::Script => f.write_str("script"),
+            Self::Path => f.write_str("path"),
+            Self::CatalogRebuild => f.write_str("catalog_rebuild"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadInstallationValidationOutcomeCheck {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "collision" => Ok(Self::Collision),
+            "alias" => Ok(Self::Alias),
+            "config" => Ok(Self::Config),
+            "help" => Ok(Self::Help),
+            "dependency" => Ok(Self::Dependency),
+            "license" => Ok(Self::License),
+            "script" => Ok(Self::Script),
+            "path" => Ok(Self::Path),
+            "catalog_rebuild" => Ok(Self::CatalogRebuild),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInstallationValidationOutcomeCheck {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInstallationValidationOutcomeCheck {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInstallationValidationOutcomeCheck {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadInstallationValidationOutcomeDetail`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 2048,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInstallationValidationOutcomeDetail(::std::string::String);
+impl ::std::ops::Deref for BmadInstallationValidationOutcomeDetail {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInstallationValidationOutcomeDetail> for ::std::string::String {
+    fn from(value: BmadInstallationValidationOutcomeDetail) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInstallationValidationOutcomeDetail {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 2048usize {
+            return Err("longer than 2048 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInstallationValidationOutcomeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInstallationValidationOutcomeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInstallationValidationOutcomeDetail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInstallationValidationOutcomeDetail {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`BmadInvocation`"]
 #[doc = r""]
 #[doc = r" <details><summary>JSON schema</summary>"]
@@ -38448,6 +39313,2264 @@ pub struct BuilderAuthoringObjectBuilderProposedFileSet {
 impl BuilderAuthoringObjectBuilderProposedFileSet {
     pub fn builder() -> builder::BuilderAuthoringObjectBuilderProposedFileSet {
         Default::default()
+    }
+}
+#[doc = "`BuilderCapability`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.builder-capability.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"action\","]
+#[doc = "    \"capabilityHash\","]
+#[doc = "    \"capabilityId\","]
+#[doc = "    \"dependencies\","]
+#[doc = "    \"displayName\","]
+#[doc = "    \"exposure\","]
+#[doc = "    \"module\","]
+#[doc = "    \"provenance\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"skill\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"action\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "    },"]
+#[doc = "    \"aliases\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BuilderCapabilityAlias\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 32"]
+#[doc = "    },"]
+#[doc = "    \"args\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BuilderCapabilityArgument\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64"]
+#[doc = "    },"]
+#[doc = "    \"capabilityHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"capabilityId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"dependencies\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BuilderCapabilityDependency\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 512"]
+#[doc = "    },"]
+#[doc = "    \"description\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 4096,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"displayName\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 256,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"exposure\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"public\","]
+#[doc = "        \"internal\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"follower\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "    },"]
+#[doc = "    \"menuCode\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 32,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[A-Za-z0-9._-]+$\""]
+#[doc = "    },"]
+#[doc = "    \"module\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "    },"]
+#[doc = "    \"outputs\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BuilderCapabilityOutputs\""]
+#[doc = "    },"]
+#[doc = "    \"phase\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "    },"]
+#[doc = "    \"predecessor\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "    },"]
+#[doc = "    \"provenance\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BuilderCapabilityProvenance\""]
+#[doc = "    },"]
+#[doc = "    \"required\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.builder-capability.v1\""]
+#[doc = "    },"]
+#[doc = "    \"skill\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BuilderCapability {
+    pub action: BuilderCapabilityAction,
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub aliases: ::std::vec::Vec<BuilderCapabilityAlias>,
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub args: ::std::vec::Vec<BuilderCapabilityArgument>,
+    #[serde(rename = "capabilityHash")]
+    pub capability_hash: CommonSha256,
+    #[serde(rename = "capabilityId")]
+    pub capability_id: CommonContractId,
+    pub dependencies: ::std::vec::Vec<BuilderCapabilityDependency>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub description: ::std::option::Option<BuilderCapabilityDescription>,
+    #[serde(rename = "displayName")]
+    pub display_name: BuilderCapabilityDisplayName,
+    pub exposure: BuilderCapabilityExposure,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub follower: ::std::option::Option<BuilderCapabilityFollower>,
+    #[serde(
+        rename = "menuCode",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub menu_code: ::std::option::Option<BuilderCapabilityMenuCode>,
+    pub module: BuilderCapabilityModule,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub outputs: ::std::option::Option<BuilderCapabilityOutputs>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub phase: ::std::option::Option<BuilderCapabilityPhase>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub predecessor: ::std::option::Option<BuilderCapabilityPredecessor>,
+    pub provenance: BuilderCapabilityProvenance,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub required: ::std::option::Option<bool>,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    pub skill: BuilderCapabilitySkill,
+}
+impl BuilderCapability {
+    pub fn builder() -> builder::BuilderCapability {
+        Default::default()
+    }
+}
+#[doc = "`BuilderCapabilityAction`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityAction(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityAction {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityAction> for ::std::string::String {
+    fn from(value: BuilderCapabilityAction) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityAction {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9-]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityAction {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityAction {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityAction {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityAction {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityAlias`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"legacyId\","]
+#[doc = "    \"status\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"legacyId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"removeAfterVersion\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 64,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[0-9]+\\\\.[0-9]+\\\\.[0-9]+$\""]
+#[doc = "    },"]
+#[doc = "    \"status\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"supported\","]
+#[doc = "        \"deprecated\","]
+#[doc = "        \"removed\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"translation\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"identity\","]
+#[doc = "        \"input_mapped\","]
+#[doc = "        \"output_mapped\","]
+#[doc = "        \"evidence_mapped\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BuilderCapabilityAlias {
+    #[serde(rename = "legacyId")]
+    pub legacy_id: BuilderCapabilityAliasLegacyId,
+    #[serde(
+        rename = "removeAfterVersion",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub remove_after_version: ::std::option::Option<BuilderCapabilityAliasRemoveAfterVersion>,
+    pub status: BuilderCapabilityAliasStatus,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub translation: ::std::option::Option<BuilderCapabilityAliasTranslation>,
+}
+impl BuilderCapabilityAlias {
+    pub fn builder() -> builder::BuilderCapabilityAlias {
+        Default::default()
+    }
+}
+#[doc = "`BuilderCapabilityAliasLegacyId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityAliasLegacyId(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityAliasLegacyId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityAliasLegacyId> for ::std::string::String {
+    fn from(value: BuilderCapabilityAliasLegacyId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityAliasLegacyId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityAliasLegacyId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityAliasLegacyId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityAliasLegacyId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityAliasLegacyId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityAliasRemoveAfterVersion`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[0-9]+\\\\.[0-9]+\\\\.[0-9]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityAliasRemoveAfterVersion(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityAliasRemoveAfterVersion {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityAliasRemoveAfterVersion> for ::std::string::String {
+    fn from(value: BuilderCapabilityAliasRemoveAfterVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityAliasRemoveAfterVersion {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^[0-9]+\\.[0-9]+\\.[0-9]+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[0-9]+\\.[0-9]+\\.[0-9]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityAliasRemoveAfterVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityAliasRemoveAfterVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityAliasRemoveAfterVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityAliasRemoveAfterVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityAliasStatus`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"supported\","]
+#[doc = "    \"deprecated\","]
+#[doc = "    \"removed\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderCapabilityAliasStatus {
+    #[serde(rename = "supported")]
+    Supported,
+    #[serde(rename = "deprecated")]
+    Deprecated,
+    #[serde(rename = "removed")]
+    Removed,
+}
+impl ::std::fmt::Display for BuilderCapabilityAliasStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Supported => f.write_str("supported"),
+            Self::Deprecated => f.write_str("deprecated"),
+            Self::Removed => f.write_str("removed"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityAliasStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "supported" => Ok(Self::Supported),
+            "deprecated" => Ok(Self::Deprecated),
+            "removed" => Ok(Self::Removed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityAliasStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityAliasStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityAliasStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderCapabilityAliasTranslation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"identity\","]
+#[doc = "    \"input_mapped\","]
+#[doc = "    \"output_mapped\","]
+#[doc = "    \"evidence_mapped\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderCapabilityAliasTranslation {
+    #[serde(rename = "identity")]
+    Identity,
+    #[serde(rename = "input_mapped")]
+    InputMapped,
+    #[serde(rename = "output_mapped")]
+    OutputMapped,
+    #[serde(rename = "evidence_mapped")]
+    EvidenceMapped,
+}
+impl ::std::fmt::Display for BuilderCapabilityAliasTranslation {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Identity => f.write_str("identity"),
+            Self::InputMapped => f.write_str("input_mapped"),
+            Self::OutputMapped => f.write_str("output_mapped"),
+            Self::EvidenceMapped => f.write_str("evidence_mapped"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityAliasTranslation {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "identity" => Ok(Self::Identity),
+            "input_mapped" => Ok(Self::InputMapped),
+            "output_mapped" => Ok(Self::OutputMapped),
+            "evidence_mapped" => Ok(Self::EvidenceMapped),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityAliasTranslation {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityAliasTranslation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityAliasTranslation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderCapabilityArgument`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"name\","]
+#[doc = "    \"required\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"name\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "    },"]
+#[doc = "    \"required\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"valueKind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"string\","]
+#[doc = "        \"integer\","]
+#[doc = "        \"boolean\","]
+#[doc = "        \"path\","]
+#[doc = "        \"enum\","]
+#[doc = "        \"reference\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BuilderCapabilityArgument {
+    pub name: BuilderCapabilityArgumentName,
+    pub required: bool,
+    #[serde(
+        rename = "valueKind",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub value_kind: ::std::option::Option<BuilderCapabilityArgumentValueKind>,
+}
+impl BuilderCapabilityArgument {
+    pub fn builder() -> builder::BuilderCapabilityArgument {
+        Default::default()
+    }
+}
+#[doc = "`BuilderCapabilityArgumentName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityArgumentName(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityArgumentName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityArgumentName> for ::std::string::String {
+    fn from(value: BuilderCapabilityArgumentName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityArgumentName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityArgumentName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityArgumentName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityArgumentName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityArgumentName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityArgumentValueKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"string\","]
+#[doc = "    \"integer\","]
+#[doc = "    \"boolean\","]
+#[doc = "    \"path\","]
+#[doc = "    \"enum\","]
+#[doc = "    \"reference\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderCapabilityArgumentValueKind {
+    #[serde(rename = "string")]
+    String,
+    #[serde(rename = "integer")]
+    Integer,
+    #[serde(rename = "boolean")]
+    Boolean,
+    #[serde(rename = "path")]
+    Path,
+    #[serde(rename = "enum")]
+    Enum,
+    #[serde(rename = "reference")]
+    Reference,
+}
+impl ::std::fmt::Display for BuilderCapabilityArgumentValueKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::String => f.write_str("string"),
+            Self::Integer => f.write_str("integer"),
+            Self::Boolean => f.write_str("boolean"),
+            Self::Path => f.write_str("path"),
+            Self::Enum => f.write_str("enum"),
+            Self::Reference => f.write_str("reference"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityArgumentValueKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "string" => Ok(Self::String),
+            "integer" => Ok(Self::Integer),
+            "boolean" => Ok(Self::Boolean),
+            "path" => Ok(Self::Path),
+            "enum" => Ok(Self::Enum),
+            "reference" => Ok(Self::Reference),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityArgumentValueKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityArgumentValueKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityArgumentValueKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderCapabilityDependency`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"edge\","]
+#[doc = "    \"id\","]
+#[doc = "    \"kind\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"condition\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "    },"]
+#[doc = "    \"edge\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"required\","]
+#[doc = "        \"optional\","]
+#[doc = "        \"conditional\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"id\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_-]*$\""]
+#[doc = "    },"]
+#[doc = "    \"kind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"source_resource\","]
+#[doc = "        \"runtime_port\","]
+#[doc = "        \"configuration\","]
+#[doc = "        \"model_profile\","]
+#[doc = "        \"script_plan\","]
+#[doc = "        \"output_contract\","]
+#[doc = "        \"ui_support\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BuilderCapabilityDependency {
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub condition: ::std::option::Option<BuilderCapabilityDependencyCondition>,
+    pub edge: BuilderCapabilityDependencyEdge,
+    pub id: BuilderCapabilityDependencyId,
+    pub kind: BuilderCapabilityDependencyKind,
+}
+impl BuilderCapabilityDependency {
+    pub fn builder() -> builder::BuilderCapabilityDependency {
+        Default::default()
+    }
+}
+#[doc = "`BuilderCapabilityDependencyCondition`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityDependencyCondition(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityDependencyCondition {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityDependencyCondition> for ::std::string::String {
+    fn from(value: BuilderCapabilityDependencyCondition) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityDependencyCondition {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityDependencyCondition {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityDependencyCondition {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityDependencyCondition {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityDependencyCondition {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityDependencyEdge`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"required\","]
+#[doc = "    \"optional\","]
+#[doc = "    \"conditional\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderCapabilityDependencyEdge {
+    #[serde(rename = "required")]
+    Required,
+    #[serde(rename = "optional")]
+    Optional,
+    #[serde(rename = "conditional")]
+    Conditional,
+}
+impl ::std::fmt::Display for BuilderCapabilityDependencyEdge {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Required => f.write_str("required"),
+            Self::Optional => f.write_str("optional"),
+            Self::Conditional => f.write_str("conditional"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityDependencyEdge {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "required" => Ok(Self::Required),
+            "optional" => Ok(Self::Optional),
+            "conditional" => Ok(Self::Conditional),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityDependencyEdge {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityDependencyEdge {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityDependencyEdge {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderCapabilityDependencyId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_-]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityDependencyId(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityDependencyId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityDependencyId> for ::std::string::String {
+    fn from(value: BuilderCapabilityDependencyId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityDependencyId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_-]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_-]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityDependencyId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityDependencyId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityDependencyId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityDependencyId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityDependencyKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"source_resource\","]
+#[doc = "    \"runtime_port\","]
+#[doc = "    \"configuration\","]
+#[doc = "    \"model_profile\","]
+#[doc = "    \"script_plan\","]
+#[doc = "    \"output_contract\","]
+#[doc = "    \"ui_support\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderCapabilityDependencyKind {
+    #[serde(rename = "source_resource")]
+    SourceResource,
+    #[serde(rename = "runtime_port")]
+    RuntimePort,
+    #[serde(rename = "configuration")]
+    Configuration,
+    #[serde(rename = "model_profile")]
+    ModelProfile,
+    #[serde(rename = "script_plan")]
+    ScriptPlan,
+    #[serde(rename = "output_contract")]
+    OutputContract,
+    #[serde(rename = "ui_support")]
+    UiSupport,
+}
+impl ::std::fmt::Display for BuilderCapabilityDependencyKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::SourceResource => f.write_str("source_resource"),
+            Self::RuntimePort => f.write_str("runtime_port"),
+            Self::Configuration => f.write_str("configuration"),
+            Self::ModelProfile => f.write_str("model_profile"),
+            Self::ScriptPlan => f.write_str("script_plan"),
+            Self::OutputContract => f.write_str("output_contract"),
+            Self::UiSupport => f.write_str("ui_support"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityDependencyKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "source_resource" => Ok(Self::SourceResource),
+            "runtime_port" => Ok(Self::RuntimePort),
+            "configuration" => Ok(Self::Configuration),
+            "model_profile" => Ok(Self::ModelProfile),
+            "script_plan" => Ok(Self::ScriptPlan),
+            "output_contract" => Ok(Self::OutputContract),
+            "ui_support" => Ok(Self::UiSupport),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityDependencyKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityDependencyKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityDependencyKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderCapabilityDescription`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 4096,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityDescription(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityDescription {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityDescription> for ::std::string::String {
+    fn from(value: BuilderCapabilityDescription) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityDescription {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 4096usize {
+            return Err("longer than 4096 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityDescription {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityDescription {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityDescription {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityDescription {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityDisplayName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityDisplayName(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityDisplayName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityDisplayName> for ::std::string::String {
+    fn from(value: BuilderCapabilityDisplayName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityDisplayName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityDisplayName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityDisplayName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityExposure`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"public\","]
+#[doc = "    \"internal\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BuilderCapabilityExposure {
+    #[serde(rename = "public")]
+    Public,
+    #[serde(rename = "internal")]
+    Internal,
+}
+impl ::std::fmt::Display for BuilderCapabilityExposure {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Public => f.write_str("public"),
+            Self::Internal => f.write_str("internal"),
+        }
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityExposure {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "public" => Ok(Self::Public),
+            "internal" => Ok(Self::Internal),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityExposure {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityExposure {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityExposure {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BuilderCapabilityFollower`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityFollower(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityFollower {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityFollower> for ::std::string::String {
+    fn from(value: BuilderCapabilityFollower) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityFollower {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9-]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityFollower {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityFollower {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityFollower {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityFollower {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityMenuCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 32,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[A-Za-z0-9._-]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityMenuCode(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityMenuCode {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityMenuCode> for ::std::string::String {
+    fn from(value: BuilderCapabilityMenuCode) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityMenuCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 32usize {
+            return Err("longer than 32 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[A-Za-z0-9._-]+$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[A-Za-z0-9._-]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityMenuCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityMenuCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityMenuCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityMenuCode {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityModule`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityModule(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityModule {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityModule> for ::std::string::String {
+    fn from(value: BuilderCapabilityModule) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityModule {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9-]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityModule {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityModule {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityModule {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityModule {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityOutputs`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"outputContractId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"outputContractId\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 256,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^sapphirus\\\\.[a-z0-9.-]+\\\\.v[0-9]+$\""]
+#[doc = "    },"]
+#[doc = "    \"outputLocation\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1024,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BuilderCapabilityOutputs {
+    #[serde(rename = "outputContractId")]
+    pub output_contract_id: BuilderCapabilityOutputsOutputContractId,
+    #[serde(
+        rename = "outputLocation",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub output_location: ::std::option::Option<BuilderCapabilityOutputsOutputLocation>,
+}
+impl BuilderCapabilityOutputs {
+    pub fn builder() -> builder::BuilderCapabilityOutputs {
+        Default::default()
+    }
+}
+#[doc = "`BuilderCapabilityOutputsOutputContractId`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^sapphirus\\\\.[a-z0-9.-]+\\\\.v[0-9]+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityOutputsOutputContractId(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityOutputsOutputContractId {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityOutputsOutputContractId> for ::std::string::String {
+    fn from(value: BuilderCapabilityOutputsOutputContractId) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityOutputsOutputContractId {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^sapphirus\\.[a-z0-9.-]+\\.v[0-9]+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^sapphirus\\.[a-z0-9.-]+\\.v[0-9]+$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityOutputsOutputContractId {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityOutputsOutputContractId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityOutputsOutputContractId {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityOutputsOutputContractId {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityOutputsOutputLocation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1024,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityOutputsOutputLocation(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityOutputsOutputLocation {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityOutputsOutputLocation> for ::std::string::String {
+    fn from(value: BuilderCapabilityOutputsOutputLocation) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityOutputsOutputLocation {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1024usize {
+            return Err("longer than 1024 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityOutputsOutputLocation {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityOutputsOutputLocation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityOutputsOutputLocation {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityOutputsOutputLocation {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityPhase`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 64,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityPhase(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityPhase {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityPhase> for ::std::string::String {
+    fn from(value: BuilderCapabilityPhase) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityPhase {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9-]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityPhase {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityPhase {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityPhase {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityPhase {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityPredecessor`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityPredecessor(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityPredecessor {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityPredecessor> for ::std::string::String {
+    fn from(value: BuilderCapabilityPredecessor) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityPredecessor {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9-]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityPredecessor {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityPredecessor {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityPredecessor {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityPredecessor {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilityProvenance`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"sourceFile\","]
+#[doc = "    \"sourceHash\","]
+#[doc = "    \"sourceId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"sourceFile\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 1024,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "    },"]
+#[doc = "    \"sourceHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"sourceId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"sourceRow\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 65536.0,"]
+#[doc = "      \"minimum\": 1.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BuilderCapabilityProvenance {
+    #[serde(rename = "sourceFile")]
+    pub source_file: BuilderCapabilityProvenanceSourceFile,
+    #[serde(rename = "sourceHash")]
+    pub source_hash: CommonSha256,
+    #[serde(rename = "sourceId")]
+    pub source_id: CommonContractId,
+    #[serde(
+        rename = "sourceRow",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub source_row: ::std::option::Option<::std::num::NonZeroU64>,
+}
+impl BuilderCapabilityProvenance {
+    pub fn builder() -> builder::BuilderCapabilityProvenance {
+        Default::default()
+    }
+}
+#[doc = "`BuilderCapabilityProvenanceSourceFile`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 1024,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilityProvenanceSourceFile(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilityProvenanceSourceFile {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilityProvenanceSourceFile> for ::std::string::String {
+    fn from(value: BuilderCapabilityProvenanceSourceFile) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilityProvenanceSourceFile {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1024usize {
+            return Err("longer than 1024 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| {
+                ::regress::Regex::new("^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$").unwrap()
+            });
+        if PATTERN.find(value).is_none() {
+            return Err(
+                "doesn't match pattern \"^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$\"".into(),
+            );
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilityProvenanceSourceFile {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilityProvenanceSourceFile {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilityProvenanceSourceFile {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilityProvenanceSourceFile {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BuilderCapabilitySkill`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BuilderCapabilitySkill(::std::string::String);
+impl ::std::ops::Deref for BuilderCapabilitySkill {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BuilderCapabilitySkill> for ::std::string::String {
+    fn from(value: BuilderCapabilitySkill) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BuilderCapabilitySkill {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9-]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BuilderCapabilitySkill {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BuilderCapabilitySkill {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BuilderCapabilitySkill {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BuilderCapabilitySkill {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
     }
 }
 #[doc = "`CandidateAction`"]
@@ -70058,6 +73181,9 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"bmadEval\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadEval\""]
 #[doc = "    },"]
+#[doc = "    \"bmadInstallation\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadInstallation\""]
+#[doc = "    },"]
 #[doc = "    \"bmadInvocation\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadInvocation\""]
 #[doc = "    },"]
@@ -70099,6 +73225,9 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    },"]
 #[doc = "    \"builderAuthoringObject\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BuilderAuthoringObject\""]
+#[doc = "    },"]
+#[doc = "    \"builderCapability\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BuilderCapability\""]
 #[doc = "    },"]
 #[doc = "    \"candidateAction\": {"]
 #[doc = "      \"$ref\": \"#/$defs/CandidateAction\""]
@@ -70265,6 +73394,12 @@ pub struct SapphirusContractsCatalog {
     )]
     pub bmad_eval: ::std::option::Option<BmadEval>,
     #[serde(
+        rename = "bmadInstallation",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_installation: ::std::option::Option<BmadInstallation>,
+    #[serde(
         rename = "bmadInvocation",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
@@ -70348,6 +73483,12 @@ pub struct SapphirusContractsCatalog {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub builder_authoring_object: ::std::option::Option<BuilderAuthoringObject>,
+    #[serde(
+        rename = "builderCapability",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub builder_capability: ::std::option::Option<BuilderCapability>,
     #[serde(
         rename = "candidateAction",
         default,
@@ -70532,6 +73673,7 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             bmad_context_contribution: Default::default(),
             bmad_customization: Default::default(),
             bmad_eval: Default::default(),
+            bmad_installation: Default::default(),
             bmad_invocation: Default::default(),
             bmad_memory: Default::default(),
             bmad_module: Default::default(),
@@ -70546,6 +73688,7 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             bmad_upgrade: Default::default(),
             bmad_validation_report: Default::default(),
             builder_authoring_object: Default::default(),
+            builder_capability: Default::default(),
             candidate_action: Default::default(),
             contract_error: Default::default(),
             desktop_device_registration: Default::default(),
@@ -76932,6 +80075,586 @@ pub mod builder {
                 criterion_id: Ok(value.criterion_id),
                 evidence_hash: Ok(value.evidence_hash),
                 result: Ok(value.result),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInstallation {
+        activation: ::std::result::Result<super::BmadInstallationActivation, ::std::string::String>,
+        checkpoint: ::std::result::Result<
+            ::std::option::Option<super::BmadInstallationCheckpoint>,
+            ::std::string::String,
+        >,
+        installation_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        installation_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        manifest:
+            ::std::result::Result<super::BmadInstallationInstallManifest, ::std::string::String>,
+        package_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        package_version: ::std::result::Result<
+            ::std::option::Option<super::BmadInstallationPackageVersion>,
+            ::std::string::String,
+        >,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        state: ::std::result::Result<super::BmadInstallationState, ::std::string::String>,
+        validations: ::std::result::Result<
+            ::std::vec::Vec<super::BmadInstallationValidationOutcome>,
+            ::std::string::String,
+        >,
+        version: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
+        workspace_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadInstallation {
+        fn default() -> Self {
+            Self {
+                activation: Err("no value supplied for activation".to_string()),
+                checkpoint: Ok(Default::default()),
+                installation_hash: Err("no value supplied for installation_hash".to_string()),
+                installation_id: Err("no value supplied for installation_id".to_string()),
+                manifest: Err("no value supplied for manifest".to_string()),
+                package_id: Err("no value supplied for package_id".to_string()),
+                package_version: Ok(Default::default()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                state: Err("no value supplied for state".to_string()),
+                validations: Ok(Default::default()),
+                version: Err("no value supplied for version".to_string()),
+                workspace_id: Err("no value supplied for workspace_id".to_string()),
+            }
+        }
+    }
+    impl BmadInstallation {
+        pub fn activation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInstallationActivation>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.activation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for activation: {e}"));
+            self
+        }
+        pub fn checkpoint<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadInstallationCheckpoint>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.checkpoint = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for checkpoint: {e}"));
+            self
+        }
+        pub fn installation_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.installation_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for installation_hash: {e}"));
+            self
+        }
+        pub fn installation_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.installation_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for installation_id: {e}"));
+            self
+        }
+        pub fn manifest<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInstallationInstallManifest>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.manifest = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for manifest: {e}"));
+            self
+        }
+        pub fn package_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.package_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for package_id: {e}"));
+            self
+        }
+        pub fn package_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadInstallationPackageVersion>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.package_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for package_version: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn state<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInstallationState>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.state = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for state: {e}"));
+            self
+        }
+        pub fn validations<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadInstallationValidationOutcome>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.validations = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for validations: {e}"));
+            self
+        }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {e}"));
+            self
+        }
+        pub fn workspace_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.workspace_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for workspace_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInstallation> for super::BmadInstallation {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInstallation,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                activation: value.activation?,
+                checkpoint: value.checkpoint?,
+                installation_hash: value.installation_hash?,
+                installation_id: value.installation_id?,
+                manifest: value.manifest?,
+                package_id: value.package_id?,
+                package_version: value.package_version?,
+                schema_version: value.schema_version?,
+                state: value.state?,
+                validations: value.validations?,
+                version: value.version?,
+                workspace_id: value.workspace_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInstallation> for BmadInstallation {
+        fn from(value: super::BmadInstallation) -> Self {
+            Self {
+                activation: Ok(value.activation),
+                checkpoint: Ok(value.checkpoint),
+                installation_hash: Ok(value.installation_hash),
+                installation_id: Ok(value.installation_id),
+                manifest: Ok(value.manifest),
+                package_id: Ok(value.package_id),
+                package_version: Ok(value.package_version),
+                schema_version: Ok(value.schema_version),
+                state: Ok(value.state),
+                validations: Ok(value.validations),
+                version: Ok(value.version),
+                workspace_id: Ok(value.workspace_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInstallationActivation {
+        activated_from_installation_id: ::std::result::Result<
+            ::std::option::Option<super::CommonContractId>,
+            ::std::string::String,
+        >,
+        active: ::std::result::Result<bool, ::std::string::String>,
+        catalog_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        superseded_installation_id: ::std::result::Result<
+            ::std::option::Option<super::CommonContractId>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadInstallationActivation {
+        fn default() -> Self {
+            Self {
+                activated_from_installation_id: Ok(Default::default()),
+                active: Err("no value supplied for active".to_string()),
+                catalog_hash: Err("no value supplied for catalog_hash".to_string()),
+                superseded_installation_id: Ok(Default::default()),
+            }
+        }
+    }
+    impl BmadInstallationActivation {
+        pub fn activated_from_installation_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonContractId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.activated_from_installation_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for activated_from_installation_id: {e}")
+            });
+            self
+        }
+        pub fn active<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.active = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for active: {e}"));
+            self
+        }
+        pub fn catalog_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.catalog_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for catalog_hash: {e}"));
+            self
+        }
+        pub fn superseded_installation_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonContractId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.superseded_installation_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for superseded_installation_id: {e}")
+            });
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInstallationActivation> for super::BmadInstallationActivation {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInstallationActivation,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                activated_from_installation_id: value.activated_from_installation_id?,
+                active: value.active?,
+                catalog_hash: value.catalog_hash?,
+                superseded_installation_id: value.superseded_installation_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInstallationActivation> for BmadInstallationActivation {
+        fn from(value: super::BmadInstallationActivation) -> Self {
+            Self {
+                activated_from_installation_id: Ok(value.activated_from_installation_id),
+                active: Ok(value.active),
+                catalog_hash: Ok(value.catalog_hash),
+                superseded_installation_id: Ok(value.superseded_installation_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInstallationCheckpoint {
+        checkpoint_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        prior_catalog_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        prior_files_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadInstallationCheckpoint {
+        fn default() -> Self {
+            Self {
+                checkpoint_id: Err("no value supplied for checkpoint_id".to_string()),
+                prior_catalog_hash: Err("no value supplied for prior_catalog_hash".to_string()),
+                prior_files_hash: Ok(Default::default()),
+            }
+        }
+    }
+    impl BmadInstallationCheckpoint {
+        pub fn checkpoint_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.checkpoint_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for checkpoint_id: {e}"));
+            self
+        }
+        pub fn prior_catalog_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.prior_catalog_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for prior_catalog_hash: {e}")
+            });
+            self
+        }
+        pub fn prior_files_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.prior_files_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for prior_files_hash: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInstallationCheckpoint> for super::BmadInstallationCheckpoint {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInstallationCheckpoint,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                checkpoint_id: value.checkpoint_id?,
+                prior_catalog_hash: value.prior_catalog_hash?,
+                prior_files_hash: value.prior_files_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInstallationCheckpoint> for BmadInstallationCheckpoint {
+        fn from(value: super::BmadInstallationCheckpoint) -> Self {
+            Self {
+                checkpoint_id: Ok(value.checkpoint_id),
+                prior_catalog_hash: Ok(value.prior_catalog_hash),
+                prior_files_hash: Ok(value.prior_files_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInstallationDestination {
+        content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        operation: ::std::result::Result<
+            super::BmadInstallationDestinationOperation,
+            ::std::string::String,
+        >,
+        relative_path: ::std::result::Result<
+            super::BmadInstallationDestinationRelativePath,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadInstallationDestination {
+        fn default() -> Self {
+            Self {
+                content_hash: Err("no value supplied for content_hash".to_string()),
+                operation: Err("no value supplied for operation".to_string()),
+                relative_path: Err("no value supplied for relative_path".to_string()),
+            }
+        }
+    }
+    impl BmadInstallationDestination {
+        pub fn content_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.content_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for content_hash: {e}"));
+            self
+        }
+        pub fn operation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInstallationDestinationOperation>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.operation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for operation: {e}"));
+            self
+        }
+        pub fn relative_path<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInstallationDestinationRelativePath>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.relative_path = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for relative_path: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInstallationDestination> for super::BmadInstallationDestination {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInstallationDestination,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                content_hash: value.content_hash?,
+                operation: value.operation?,
+                relative_path: value.relative_path?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInstallationDestination> for BmadInstallationDestination {
+        fn from(value: super::BmadInstallationDestination) -> Self {
+            Self {
+                content_hash: Ok(value.content_hash),
+                operation: Ok(value.operation),
+                relative_path: Ok(value.relative_path),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInstallationInstallManifest {
+        destinations: ::std::result::Result<
+            ::std::vec::Vec<super::BmadInstallationDestination>,
+            ::std::string::String,
+        >,
+        manifest_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadInstallationInstallManifest {
+        fn default() -> Self {
+            Self {
+                destinations: Err("no value supplied for destinations".to_string()),
+                manifest_hash: Err("no value supplied for manifest_hash".to_string()),
+            }
+        }
+    }
+    impl BmadInstallationInstallManifest {
+        pub fn destinations<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadInstallationDestination>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.destinations = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for destinations: {e}"));
+            self
+        }
+        pub fn manifest_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.manifest_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for manifest_hash: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInstallationInstallManifest>
+        for super::BmadInstallationInstallManifest
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInstallationInstallManifest,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                destinations: value.destinations?,
+                manifest_hash: value.manifest_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInstallationInstallManifest>
+        for BmadInstallationInstallManifest
+    {
+        fn from(value: super::BmadInstallationInstallManifest) -> Self {
+            Self {
+                destinations: Ok(value.destinations),
+                manifest_hash: Ok(value.manifest_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInstallationValidationOutcome {
+        check: ::std::result::Result<
+            super::BmadInstallationValidationOutcomeCheck,
+            ::std::string::String,
+        >,
+        detail: ::std::result::Result<
+            ::std::option::Option<super::BmadInstallationValidationOutcomeDetail>,
+            ::std::string::String,
+        >,
+        passed: ::std::result::Result<bool, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadInstallationValidationOutcome {
+        fn default() -> Self {
+            Self {
+                check: Err("no value supplied for check".to_string()),
+                detail: Ok(Default::default()),
+                passed: Err("no value supplied for passed".to_string()),
+            }
+        }
+    }
+    impl BmadInstallationValidationOutcome {
+        pub fn check<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInstallationValidationOutcomeCheck>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.check = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for check: {e}"));
+            self
+        }
+        pub fn detail<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadInstallationValidationOutcomeDetail>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.detail = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for detail: {e}"));
+            self
+        }
+        pub fn passed<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.passed = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for passed: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInstallationValidationOutcome>
+        for super::BmadInstallationValidationOutcome
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInstallationValidationOutcome,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                check: value.check?,
+                detail: value.detail?,
+                passed: value.passed?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInstallationValidationOutcome>
+        for BmadInstallationValidationOutcome
+    {
+        fn from(value: super::BmadInstallationValidationOutcome) -> Self {
+            Self {
+                check: Ok(value.check),
+                detail: Ok(value.detail),
+                passed: Ok(value.passed),
             }
         }
     }
@@ -86643,6 +90366,730 @@ pub mod builder {
             Self {
                 files: Ok(value.files),
                 limit_profile: Ok(value.limit_profile),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BuilderCapability {
+        action: ::std::result::Result<super::BuilderCapabilityAction, ::std::string::String>,
+        aliases: ::std::result::Result<
+            ::std::vec::Vec<super::BuilderCapabilityAlias>,
+            ::std::string::String,
+        >,
+        args: ::std::result::Result<
+            ::std::vec::Vec<super::BuilderCapabilityArgument>,
+            ::std::string::String,
+        >,
+        capability_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        capability_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        dependencies: ::std::result::Result<
+            ::std::vec::Vec<super::BuilderCapabilityDependency>,
+            ::std::string::String,
+        >,
+        description: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityDescription>,
+            ::std::string::String,
+        >,
+        display_name:
+            ::std::result::Result<super::BuilderCapabilityDisplayName, ::std::string::String>,
+        exposure: ::std::result::Result<super::BuilderCapabilityExposure, ::std::string::String>,
+        follower: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityFollower>,
+            ::std::string::String,
+        >,
+        menu_code: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityMenuCode>,
+            ::std::string::String,
+        >,
+        module: ::std::result::Result<super::BuilderCapabilityModule, ::std::string::String>,
+        outputs: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityOutputs>,
+            ::std::string::String,
+        >,
+        phase: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityPhase>,
+            ::std::string::String,
+        >,
+        predecessor: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityPredecessor>,
+            ::std::string::String,
+        >,
+        provenance:
+            ::std::result::Result<super::BuilderCapabilityProvenance, ::std::string::String>,
+        required: ::std::result::Result<::std::option::Option<bool>, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        skill: ::std::result::Result<super::BuilderCapabilitySkill, ::std::string::String>,
+    }
+    impl ::std::default::Default for BuilderCapability {
+        fn default() -> Self {
+            Self {
+                action: Err("no value supplied for action".to_string()),
+                aliases: Ok(Default::default()),
+                args: Ok(Default::default()),
+                capability_hash: Err("no value supplied for capability_hash".to_string()),
+                capability_id: Err("no value supplied for capability_id".to_string()),
+                dependencies: Err("no value supplied for dependencies".to_string()),
+                description: Ok(Default::default()),
+                display_name: Err("no value supplied for display_name".to_string()),
+                exposure: Err("no value supplied for exposure".to_string()),
+                follower: Ok(Default::default()),
+                menu_code: Ok(Default::default()),
+                module: Err("no value supplied for module".to_string()),
+                outputs: Ok(Default::default()),
+                phase: Ok(Default::default()),
+                predecessor: Ok(Default::default()),
+                provenance: Err("no value supplied for provenance".to_string()),
+                required: Ok(Default::default()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                skill: Err("no value supplied for skill".to_string()),
+            }
+        }
+    }
+    impl BuilderCapability {
+        pub fn action<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityAction>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.action = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for action: {e}"));
+            self
+        }
+        pub fn aliases<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BuilderCapabilityAlias>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.aliases = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for aliases: {e}"));
+            self
+        }
+        pub fn args<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BuilderCapabilityArgument>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.args = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for args: {e}"));
+            self
+        }
+        pub fn capability_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.capability_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for capability_hash: {e}"));
+            self
+        }
+        pub fn capability_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.capability_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for capability_id: {e}"));
+            self
+        }
+        pub fn dependencies<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BuilderCapabilityDependency>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.dependencies = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for dependencies: {e}"));
+            self
+        }
+        pub fn description<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BuilderCapabilityDescription>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.description = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for description: {e}"));
+            self
+        }
+        pub fn display_name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityDisplayName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.display_name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for display_name: {e}"));
+            self
+        }
+        pub fn exposure<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityExposure>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.exposure = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for exposure: {e}"));
+            self
+        }
+        pub fn follower<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BuilderCapabilityFollower>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.follower = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for follower: {e}"));
+            self
+        }
+        pub fn menu_code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BuilderCapabilityMenuCode>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.menu_code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for menu_code: {e}"));
+            self
+        }
+        pub fn module<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityModule>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.module = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for module: {e}"));
+            self
+        }
+        pub fn outputs<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BuilderCapabilityOutputs>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.outputs = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for outputs: {e}"));
+            self
+        }
+        pub fn phase<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BuilderCapabilityPhase>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.phase = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for phase: {e}"));
+            self
+        }
+        pub fn predecessor<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BuilderCapabilityPredecessor>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.predecessor = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for predecessor: {e}"));
+            self
+        }
+        pub fn provenance<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityProvenance>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.provenance = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for provenance: {e}"));
+            self
+        }
+        pub fn required<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<bool>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.required = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for required: {e}"));
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn skill<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilitySkill>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.skill = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for skill: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BuilderCapability> for super::BuilderCapability {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BuilderCapability,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                action: value.action?,
+                aliases: value.aliases?,
+                args: value.args?,
+                capability_hash: value.capability_hash?,
+                capability_id: value.capability_id?,
+                dependencies: value.dependencies?,
+                description: value.description?,
+                display_name: value.display_name?,
+                exposure: value.exposure?,
+                follower: value.follower?,
+                menu_code: value.menu_code?,
+                module: value.module?,
+                outputs: value.outputs?,
+                phase: value.phase?,
+                predecessor: value.predecessor?,
+                provenance: value.provenance?,
+                required: value.required?,
+                schema_version: value.schema_version?,
+                skill: value.skill?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BuilderCapability> for BuilderCapability {
+        fn from(value: super::BuilderCapability) -> Self {
+            Self {
+                action: Ok(value.action),
+                aliases: Ok(value.aliases),
+                args: Ok(value.args),
+                capability_hash: Ok(value.capability_hash),
+                capability_id: Ok(value.capability_id),
+                dependencies: Ok(value.dependencies),
+                description: Ok(value.description),
+                display_name: Ok(value.display_name),
+                exposure: Ok(value.exposure),
+                follower: Ok(value.follower),
+                menu_code: Ok(value.menu_code),
+                module: Ok(value.module),
+                outputs: Ok(value.outputs),
+                phase: Ok(value.phase),
+                predecessor: Ok(value.predecessor),
+                provenance: Ok(value.provenance),
+                required: Ok(value.required),
+                schema_version: Ok(value.schema_version),
+                skill: Ok(value.skill),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BuilderCapabilityAlias {
+        legacy_id:
+            ::std::result::Result<super::BuilderCapabilityAliasLegacyId, ::std::string::String>,
+        remove_after_version: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityAliasRemoveAfterVersion>,
+            ::std::string::String,
+        >,
+        status: ::std::result::Result<super::BuilderCapabilityAliasStatus, ::std::string::String>,
+        translation: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityAliasTranslation>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BuilderCapabilityAlias {
+        fn default() -> Self {
+            Self {
+                legacy_id: Err("no value supplied for legacy_id".to_string()),
+                remove_after_version: Ok(Default::default()),
+                status: Err("no value supplied for status".to_string()),
+                translation: Ok(Default::default()),
+            }
+        }
+    }
+    impl BuilderCapabilityAlias {
+        pub fn legacy_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityAliasLegacyId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.legacy_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for legacy_id: {e}"));
+            self
+        }
+        pub fn remove_after_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BuilderCapabilityAliasRemoveAfterVersion>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.remove_after_version = value.try_into().map_err(|e| {
+                format!("error converting supplied value for remove_after_version: {e}")
+            });
+            self
+        }
+        pub fn status<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityAliasStatus>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.status = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for status: {e}"));
+            self
+        }
+        pub fn translation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BuilderCapabilityAliasTranslation>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.translation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for translation: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BuilderCapabilityAlias> for super::BuilderCapabilityAlias {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BuilderCapabilityAlias,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                legacy_id: value.legacy_id?,
+                remove_after_version: value.remove_after_version?,
+                status: value.status?,
+                translation: value.translation?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BuilderCapabilityAlias> for BuilderCapabilityAlias {
+        fn from(value: super::BuilderCapabilityAlias) -> Self {
+            Self {
+                legacy_id: Ok(value.legacy_id),
+                remove_after_version: Ok(value.remove_after_version),
+                status: Ok(value.status),
+                translation: Ok(value.translation),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BuilderCapabilityArgument {
+        name: ::std::result::Result<super::BuilderCapabilityArgumentName, ::std::string::String>,
+        required: ::std::result::Result<bool, ::std::string::String>,
+        value_kind: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityArgumentValueKind>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BuilderCapabilityArgument {
+        fn default() -> Self {
+            Self {
+                name: Err("no value supplied for name".to_string()),
+                required: Err("no value supplied for required".to_string()),
+                value_kind: Ok(Default::default()),
+            }
+        }
+    }
+    impl BuilderCapabilityArgument {
+        pub fn name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityArgumentName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for name: {e}"));
+            self
+        }
+        pub fn required<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.required = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for required: {e}"));
+            self
+        }
+        pub fn value_kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BuilderCapabilityArgumentValueKind>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.value_kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for value_kind: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BuilderCapabilityArgument> for super::BuilderCapabilityArgument {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BuilderCapabilityArgument,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                name: value.name?,
+                required: value.required?,
+                value_kind: value.value_kind?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BuilderCapabilityArgument> for BuilderCapabilityArgument {
+        fn from(value: super::BuilderCapabilityArgument) -> Self {
+            Self {
+                name: Ok(value.name),
+                required: Ok(value.required),
+                value_kind: Ok(value.value_kind),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BuilderCapabilityDependency {
+        condition: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityDependencyCondition>,
+            ::std::string::String,
+        >,
+        edge: ::std::result::Result<super::BuilderCapabilityDependencyEdge, ::std::string::String>,
+        id: ::std::result::Result<super::BuilderCapabilityDependencyId, ::std::string::String>,
+        kind: ::std::result::Result<super::BuilderCapabilityDependencyKind, ::std::string::String>,
+    }
+    impl ::std::default::Default for BuilderCapabilityDependency {
+        fn default() -> Self {
+            Self {
+                condition: Ok(Default::default()),
+                edge: Err("no value supplied for edge".to_string()),
+                id: Err("no value supplied for id".to_string()),
+                kind: Err("no value supplied for kind".to_string()),
+            }
+        }
+    }
+    impl BuilderCapabilityDependency {
+        pub fn condition<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BuilderCapabilityDependencyCondition>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.condition = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for condition: {e}"));
+            self
+        }
+        pub fn edge<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityDependencyEdge>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.edge = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for edge: {e}"));
+            self
+        }
+        pub fn id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityDependencyId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for id: {e}"));
+            self
+        }
+        pub fn kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityDependencyKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for kind: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BuilderCapabilityDependency> for super::BuilderCapabilityDependency {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BuilderCapabilityDependency,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                condition: value.condition?,
+                edge: value.edge?,
+                id: value.id?,
+                kind: value.kind?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BuilderCapabilityDependency> for BuilderCapabilityDependency {
+        fn from(value: super::BuilderCapabilityDependency) -> Self {
+            Self {
+                condition: Ok(value.condition),
+                edge: Ok(value.edge),
+                id: Ok(value.id),
+                kind: Ok(value.kind),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BuilderCapabilityOutputs {
+        output_contract_id: ::std::result::Result<
+            super::BuilderCapabilityOutputsOutputContractId,
+            ::std::string::String,
+        >,
+        output_location: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapabilityOutputsOutputLocation>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BuilderCapabilityOutputs {
+        fn default() -> Self {
+            Self {
+                output_contract_id: Err("no value supplied for output_contract_id".to_string()),
+                output_location: Ok(Default::default()),
+            }
+        }
+    }
+    impl BuilderCapabilityOutputs {
+        pub fn output_contract_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityOutputsOutputContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_contract_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for output_contract_id: {e}")
+            });
+            self
+        }
+        pub fn output_location<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BuilderCapabilityOutputsOutputLocation>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.output_location = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for output_location: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BuilderCapabilityOutputs> for super::BuilderCapabilityOutputs {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BuilderCapabilityOutputs,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                output_contract_id: value.output_contract_id?,
+                output_location: value.output_location?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BuilderCapabilityOutputs> for BuilderCapabilityOutputs {
+        fn from(value: super::BuilderCapabilityOutputs) -> Self {
+            Self {
+                output_contract_id: Ok(value.output_contract_id),
+                output_location: Ok(value.output_location),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BuilderCapabilityProvenance {
+        source_file: ::std::result::Result<
+            super::BuilderCapabilityProvenanceSourceFile,
+            ::std::string::String,
+        >,
+        source_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        source_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        source_row: ::std::result::Result<
+            ::std::option::Option<::std::num::NonZeroU64>,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BuilderCapabilityProvenance {
+        fn default() -> Self {
+            Self {
+                source_file: Err("no value supplied for source_file".to_string()),
+                source_hash: Err("no value supplied for source_hash".to_string()),
+                source_id: Err("no value supplied for source_id".to_string()),
+                source_row: Ok(Default::default()),
+            }
+        }
+    }
+    impl BuilderCapabilityProvenance {
+        pub fn source_file<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BuilderCapabilityProvenanceSourceFile>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_file = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_file: {e}"));
+            self
+        }
+        pub fn source_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_hash: {e}"));
+            self
+        }
+        pub fn source_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_id: {e}"));
+            self
+        }
+        pub fn source_row<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<::std::num::NonZeroU64>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_row = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_row: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BuilderCapabilityProvenance> for super::BuilderCapabilityProvenance {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BuilderCapabilityProvenance,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                source_file: value.source_file?,
+                source_hash: value.source_hash?,
+                source_id: value.source_id?,
+                source_row: value.source_row?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BuilderCapabilityProvenance> for BuilderCapabilityProvenance {
+        fn from(value: super::BuilderCapabilityProvenance) -> Self {
+            Self {
+                source_file: Ok(value.source_file),
+                source_hash: Ok(value.source_hash),
+                source_id: Ok(value.source_id),
+                source_row: Ok(value.source_row),
             }
         }
     }
@@ -107600,6 +112047,10 @@ pub mod builder {
         >,
         bmad_eval:
             ::std::result::Result<::std::option::Option<super::BmadEval>, ::std::string::String>,
+        bmad_installation: ::std::result::Result<
+            ::std::option::Option<super::BmadInstallation>,
+            ::std::string::String,
+        >,
         bmad_invocation: ::std::result::Result<
             ::std::option::Option<super::BmadInvocation>,
             ::std::string::String,
@@ -107644,6 +112095,10 @@ pub mod builder {
         >,
         builder_authoring_object: ::std::result::Result<
             ::std::option::Option<super::BuilderAuthoringObject>,
+            ::std::string::String,
+        >,
+        builder_capability: ::std::result::Result<
+            ::std::option::Option<super::BuilderCapability>,
             ::std::string::String,
         >,
         candidate_action: ::std::result::Result<
@@ -107774,6 +112229,7 @@ pub mod builder {
                 bmad_context_contribution: Ok(Default::default()),
                 bmad_customization: Ok(Default::default()),
                 bmad_eval: Ok(Default::default()),
+                bmad_installation: Ok(Default::default()),
                 bmad_invocation: Ok(Default::default()),
                 bmad_memory: Ok(Default::default()),
                 bmad_module: Ok(Default::default()),
@@ -107788,6 +112244,7 @@ pub mod builder {
                 bmad_upgrade: Ok(Default::default()),
                 bmad_validation_report: Ok(Default::default()),
                 builder_authoring_object: Ok(Default::default()),
+                builder_capability: Ok(Default::default()),
                 candidate_action: Ok(Default::default()),
                 contract_error: Ok(Default::default()),
                 desktop_device_registration: Ok(Default::default()),
@@ -107940,6 +112397,16 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for bmad_eval: {e}"));
             self
         }
+        pub fn bmad_installation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadInstallation>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_installation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_installation: {e}"));
+            self
+        }
         pub fn bmad_invocation<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::BmadInvocation>>,
@@ -108077,6 +112544,16 @@ pub mod builder {
         {
             self.builder_authoring_object = value.try_into().map_err(|e| {
                 format!("error converting supplied value for builder_authoring_object: {e}")
+            });
+            self
+        }
+        pub fn builder_capability<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BuilderCapability>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.builder_capability = value.try_into().map_err(|e| {
+                format!("error converting supplied value for builder_capability: {e}")
             });
             self
         }
@@ -108379,6 +112856,7 @@ pub mod builder {
                 bmad_context_contribution: value.bmad_context_contribution?,
                 bmad_customization: value.bmad_customization?,
                 bmad_eval: value.bmad_eval?,
+                bmad_installation: value.bmad_installation?,
                 bmad_invocation: value.bmad_invocation?,
                 bmad_memory: value.bmad_memory?,
                 bmad_module: value.bmad_module?,
@@ -108393,6 +112871,7 @@ pub mod builder {
                 bmad_upgrade: value.bmad_upgrade?,
                 bmad_validation_report: value.bmad_validation_report?,
                 builder_authoring_object: value.builder_authoring_object?,
+                builder_capability: value.builder_capability?,
                 candidate_action: value.candidate_action?,
                 contract_error: value.contract_error?,
                 desktop_device_registration: value.desktop_device_registration?,
@@ -108439,6 +112918,7 @@ pub mod builder {
                 bmad_context_contribution: Ok(value.bmad_context_contribution),
                 bmad_customization: Ok(value.bmad_customization),
                 bmad_eval: Ok(value.bmad_eval),
+                bmad_installation: Ok(value.bmad_installation),
                 bmad_invocation: Ok(value.bmad_invocation),
                 bmad_memory: Ok(value.bmad_memory),
                 bmad_module: Ok(value.bmad_module),
@@ -108453,6 +112933,7 @@ pub mod builder {
                 bmad_upgrade: Ok(value.bmad_upgrade),
                 bmad_validation_report: Ok(value.bmad_validation_report),
                 builder_authoring_object: Ok(value.builder_authoring_object),
+                builder_capability: Ok(value.builder_capability),
                 candidate_action: Ok(value.candidate_action),
                 contract_error: Ok(value.contract_error),
                 desktop_device_registration: Ok(value.desktop_device_registration),

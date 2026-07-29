@@ -18,6 +18,7 @@ mod help_binding;
 mod help_materialization;
 mod help_run;
 mod help_session;
+mod installation;
 mod invocation;
 mod kernel_error;
 pub mod memlog;
@@ -134,6 +135,7 @@ pub use help_session::{
     CreateInertBmadHelpSession, InertBmadHelpSession, InertBmadHelpSessionCoordinator,
     InertBmadHelpSessionError, InertBmadHelpSessionPreparationError,
 };
+pub use installation::BmadInstallationError;
 pub use invocation::{
     is_headless, BmadInvocationError, BmadInvocationRequest, BmadInvocationResolver,
     BmadInvocationSuppliedValue,

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-installation.schema.json",
+  "title": "sapphirus.bmad-installation.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "installationId", "packageId", "workspaceId", "state", "version", "manifest", "activation", "installationHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-installation.v1" },
+    "installationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "packageId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "workspaceId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "state": { "enum": ["planned", "reviewed", "approved", "checkpointed", "written", "validated", "activated", "rolled_back"] },
+    "version": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+    "packageVersion": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "manifest": { "$ref": "#/$defs/InstallManifest" },
+    "activation": { "$ref": "#/$defs/Activation" },
+    "checkpoint": { "$ref": "#/$defs/Checkpoint" },
+    "validations": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/ValidationOutcome" }
+    },
+    "installationHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "InstallManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["destinations", "manifestHash"],
+      "properties": {
+        "destinations": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": { "$ref": "#/$defs/Destination" }
+        },
+        "manifestHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "Destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relativePath", "contentHash", "operation"],
+      "properties": {
+        "relativePath": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$" },
+        "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "operation": { "enum": ["create", "replace", "remove"] }
+      }
+    },
+    "Activation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["active", "catalogHash"],
+      "properties": {
+        "active": { "type": "boolean" },
+        "catalogHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "activatedFromInstallationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "supersededInstallationId": { "$ref": "./common.schema.json#/$defs/ContractId" }
+      }
+    },
+    "Checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkpointId", "priorCatalogHash"],
+      "properties": {
+        "checkpointId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "priorCatalogHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "priorFilesHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "ValidationOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check", "passed"],
+      "properties": {
+        "check": { "enum": ["collision", "alias", "config", "help", "dependency", "license", "script", "path", "catalog_rebuild"] },
+        "passed": { "type": "boolean" },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    }
+  }
+}

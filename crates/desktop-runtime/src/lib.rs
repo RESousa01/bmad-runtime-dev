@@ -65,7 +65,7 @@ pub use bmad::{
     BmadHelpBindingCompiler, BmadHelpCatalogSource, BmadHelpConfidence, BmadHelpEvidenceClass,
     BmadHelpEvidenceToken, BmadHelpIntent, BmadHelpMaterializer, BmadHelpNoRecommendationReason,
     BmadHelpRecommendation, BmadHelpRecordIds, BmadHelpSourceRef, BmadHostInputReplacement,
-    BmadInactiveBuilderDraft, BmadInstalledSkillRecord, BmadInvocationError, BmadInvocationRequest,
+    BmadInactiveBuilderDraft, BmadInstalledSkillRecord, BmadInstallationError, BmadInvocationError, BmadInvocationRequest,
     BmadInvocationResolver, BmadInvocationSuppliedValue, BmadKernelError, BmadKernelErrorCode,
     BmadLoadedMethodPackage, BmadLoadedPackage, BmadLoadedSkill, BmadLocationClass,
     BmadMemoryError, BmadMemoryProjectedEntry, BmadMenuTargetKind, BmadMethodHelpRecommendation,

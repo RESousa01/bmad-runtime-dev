@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/builder-capability.schema.json",
+  "branch": "sapphirus.builder-capability.v1",
+  "document": {
+    "schemaVersion": "sapphirus.builder-capability.v1",
+    "capabilityId": "capability_01J00000000000000000000000",
+    "action": "create-module",
+    "exposure": "public",
+    "module": "bmb",
+    "skill": "bmad-create-module",
+    "displayName": "Create Module",
+    "menuCode": "3",
+    "description": "Scaffold a new module.",
+    "phase": "build",
+    "required": true,
+    "args": [
+      {
+        "name": "module_name",
+        "required": true,
+        "valueKind": "string"
+      }
+    ],
+    "outputs": {
+      "outputContractId": "sapphirus.bmad-artifact.v1",
+      "outputLocation": "_bmad/modules"
+    },
+    "provenance": {
+      "sourceId": "source_01J00000000000000000000000",
+      "sourceFile": "skills/module-help.csv",
+      "sourceHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "sourceRow": 7
+    },
+    "dependencies": [
+      {
+        "id": "source_resource_skill_md",
+        "kind": "source_resource",
+        "edge": "required"
+      }
+    ],
+    "aliases": [
+      {
+        "legacyId": "forge.builder.createModule",
+        "status": "deprecated",
+        "translation": "identity"
+      }
+    ],
+    "capabilityHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "canonicalJson": "{\"action\":\"create-module\",\"aliases\":[{\"legacyId\":\"forge.builder.createModule\",\"status\":\"deprecated\",\"translation\":\"identity\"}],\"args\":[{\"name\":\"module_name\",\"required\":true,\"valueKind\":\"string\"}],\"capabilityHash\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"capabilityId\":\"capability_01J00000000000000000000000\",\"dependencies\":[{\"edge\":\"required\",\"id\":\"source_resource_skill_md\",\"kind\":\"source_resource\"}],\"description\":\"Scaffold a new module.\",\"displayName\":\"Create Module\",\"exposure\":\"public\",\"menuCode\":\"3\",\"module\":\"bmb\",\"outputs\":{\"outputContractId\":\"sapphirus.bmad-artifact.v1\",\"outputLocation\":\"_bmad/modules\"},\"phase\":\"build\",\"provenance\":{\"sourceFile\":\"skills/module-help.csv\",\"sourceHash\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\",\"sourceId\":\"source_01J00000000000000000000000\",\"sourceRow\":7},\"required\":true,\"schemaVersion\":\"sapphirus.builder-capability.v1\",\"skill\":\"bmad-create-module\"}",
+  "expectedHash": "sha256:5b2ba7e8f8a524acdc271f2bb0d790d1220d10794b54c37ae048f85bcde9a556"
+}
