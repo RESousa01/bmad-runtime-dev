@@ -2,13 +2,18 @@
 //!
 //! Three rules shape everything in this module.
 //!
-//! * **Connection authority is not representable.** A projection here carries a
-//!   profile identifier, a variant identifier and display text. It has no field
-//!   for a deployment, an endpoint, a credential, a capability set, a limit, or
-//!   an Azure resource identifier, so no host mistake can leak one through this
-//!   lane. Display text is additionally scanned, because a support plane that
-//!   put an endpoint inside a profile name would otherwise route around the
-//!   type.
+//! * **Connection authority is not representable, but the organization's own
+//!   published model metadata is not withheld either.** A profile projection
+//!   carries its identity, its display text, its capabilities, its limits, its
+//!   variants and when it was qualified -- FND-051 and FND-052 need every one
+//!   of those to build the picker and the context-window rows. What it still
+//!   has no field for, structurally, is a deployment name, a project endpoint,
+//!   a subscription or resource identifier, a role assignment, a managed
+//!   identity, an API version, or a credential: the canonical contract this
+//!   projection mirrors was written so that none of those has anywhere to go,
+//!   so no host mistake can leak one through this lane. Display text is
+//!   additionally scanned, because a support plane that put an endpoint inside
+//!   a profile name would otherwise route around the type.
 //! * **Streamed text is display-only, not evidence.**
 //!   [`ModelStreamEventInput::OutputProgress`] and
 //!   [`ModelStreamEventInput::ToolCallArguments`] carry the actual delta text
@@ -51,9 +56,20 @@ const MAX_VARIANTS_PER_PROFILE: usize = 8;
 const MIN_VARIANTS_PER_PROFILE: usize = 1;
 const MAX_IDENTIFIER_BYTES: usize = 128;
 const MAX_DISPLAY_NAME_BYTES: usize = 128;
-const MAX_SUMMARY_BYTES: usize = 512;
+const MAX_DESCRIPTION_BYTES: usize = 256;
+const MAX_FAMILY_BYTES: usize = 64;
+const MAX_STATUS_DETAIL_BYTES: usize = 160;
+const MAX_VARIANT_DISPLAY_NAME_BYTES: usize = 32;
 const MAX_REASON_BYTES: usize = 256;
 const MAX_TOOL_NAME_BYTES: usize = 128;
+/// Mirrors `ProjectedLimits.contextTokens` / `.maxInputTokens` in the canonical
+/// schema.
+const MAX_CONTEXT_OR_INPUT_TOKENS: u64 = 100_000_000;
+/// Mirrors `ProjectedLimits.maxOutputTokens` and `ModelVariantProjection`'s
+/// own `maxOutputTokens`.
+const MAX_OUTPUT_TOKENS: u64 = 10_000_000;
+/// Mirrors `ProjectedLimits.maxAttachmentBytes`.
+const MAX_ATTACHMENT_BYTES: u64 = 134_217_728;
 /// Ceiling for one forwarded output-text delta. Well under the whole event's
 /// [`MAX_MODEL_STREAM_EVENT_PROJECTION_BYTES`] ceiling, which still applies on
 /// top of this and is what actually stops an oversized delta.
@@ -142,6 +158,103 @@ pub enum ModelCatalogStateProjection {
     Degraded,
 }
 
+/// Availability of a profile the user may invoke.
+///
+/// Deliberately a separate closed vocabulary from
+/// [`ModelBlockedAvailabilityProjection`]: the canonical contract splits them
+/// so a selectable projection cannot describe itself as blocked.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ModelSelectableAvailabilityProjection {
+    /// Fully usable.
+    Available,
+    /// Usable, with a short qualifier in `statusDetail`.
+    Degraded,
+}
+
+/// How much a variant is asked to reason before answering.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ModelReasoningEffortProjection {
+    /// No deliberate reasoning step.
+    None,
+    /// Low effort.
+    Low,
+    /// Medium effort.
+    Medium,
+    /// High effort.
+    High,
+}
+
+/// What a model profile can do. Every field is a fact the organization
+/// published, not a connection detail: booleans cannot carry a deployment
+/// name or an endpoint, so nothing here needed a separate input/output split.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "mirrors the canonical ProjectedCapabilities schema field for field; each \
+              boolean is an independent published capability, not a state machine"
+)]
+pub struct ModelCapabilitiesProjection {
+    /// Accepts text input.
+    pub text_input: bool,
+    /// Accepts image input.
+    pub image_input: bool,
+    /// Accepts PDF input.
+    pub pdf_input: bool,
+    /// Accepts file attachments.
+    pub attachments: bool,
+    /// Supports tool calling.
+    pub tool_calling: bool,
+    /// Supports structured output.
+    pub structured_output: bool,
+    /// Supports an explicit reasoning step.
+    pub reasoning: bool,
+}
+
+/// Limits Forge will actually enforce for one profile.
+///
+/// Every field is nullable and that nullability is load-bearing: `None` means
+/// the organization published no qualified value for it, and the renderer
+/// must show that as unknown, never as zero or unlimited. Nothing here is
+/// collapsed to a default in this module or any caller.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelLimitsProjection {
+    /// The context window, in tokens.
+    pub context_tokens: Option<u64>,
+    /// The maximum input size, in tokens.
+    pub max_input_tokens: Option<u64>,
+    /// The maximum output size, in tokens.
+    pub max_output_tokens: Option<u64>,
+    /// The maximum total attachment size, in bytes.
+    pub max_attachment_bytes: Option<u64>,
+}
+
+/// One named operating point of a profile, as the host holds it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ModelVariantInput {
+    /// The stable variant identifier.
+    pub variant_id: String,
+    /// The operator-authored display name.
+    pub display_name: String,
+    /// How much this variant reasons before answering.
+    pub reasoning_effort: ModelReasoningEffortProjection,
+    /// The output budget for this variant.
+    pub max_output_tokens: u64,
+}
+
+/// One named operating point of a profile, as the renderer sees it.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelVariantProjection {
+    variant_id: String,
+    display_name: String,
+    reasoning_effort: ModelReasoningEffortProjection,
+    max_output_tokens: u64,
+}
+
 /// One selectable profile, as the host holds it.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ModelProfileInput {
@@ -149,10 +262,29 @@ pub struct ModelProfileInput {
     pub profile_id: String,
     /// The operator-authored display name.
     pub display_name: String,
-    /// Optional one-line description.
-    pub summary: Option<String>,
+    /// The operator-authored description.
+    pub description: String,
+    /// The model family, when the organization named one.
+    pub family: Option<String>,
+    /// Whether this profile is fully available or degraded right now.
+    pub availability: ModelSelectableAvailabilityProjection,
+    /// A short qualifier for a degraded profile.
+    pub status_detail: Option<String>,
+    /// What this profile can do.
+    pub capabilities: ModelCapabilitiesProjection,
+    /// The limits Forge will enforce for this profile.
+    pub limits: ModelLimitsProjection,
     /// The selectable variants of this profile, in catalog order.
-    pub variant_ids: Vec<String>,
+    pub variants: Vec<ModelVariantInput>,
+    /// The variant selected when none is named explicitly.
+    pub default_variant_id: String,
+    /// When this profile's qualification evidence was recorded, if the
+    /// organization published one. Carried through as the canonical
+    /// `UtcInstant` string rather than converted to a numeric instant: the
+    /// renderer only ever displays this value, and a string preserves the
+    /// guarantee that what is shown is exactly what the catalog published,
+    /// with no crate needed to parse the fixed-width shape.
+    pub qualified_at: Option<String>,
 }
 
 /// One selectable profile, as the renderer sees it.
@@ -161,9 +293,24 @@ pub struct ModelProfileInput {
 pub struct ModelProfileProjection {
     profile_id: String,
     display_name: String,
-    summary: Option<String>,
-    variant_ids: Vec<String>,
+    description: String,
+    family: Option<String>,
+    /// Constant across every profile: the canonical contract fixes this as
+    /// `microsoft_foundry` so the field can carry a value without ever
+    /// becoming a place a different provider identity could leak through.
+    provider: &'static str,
+    availability: ModelSelectableAvailabilityProjection,
+    status_detail: Option<String>,
+    capabilities: ModelCapabilitiesProjection,
+    limits: ModelLimitsProjection,
+    variants: Vec<ModelVariantProjection>,
+    default_variant_id: String,
+    qualified_at: Option<String>,
 }
+
+/// The only provider a projected profile may name. A constant, not a lookup,
+/// because Azure authority is not representable here at all.
+const MODEL_PROFILE_PROVIDER: &str = "microsoft_foundry";
 
 /// Why a visible profile is not currently invocable.
 ///
@@ -915,6 +1062,71 @@ fn project_receipt_summary(
     })
 }
 
+/// Projects one selectable profile.
+///
+/// Split out of [`project_model_catalog`] to keep that function under the
+/// repo's line ceiling; the two profile-uniqueness checks (identifier
+/// uniqueness across selectable and unavailable profiles) stay in the caller
+/// because they need the shared `seen_profiles` set.
+fn project_profile(
+    profile: &ModelProfileInput,
+) -> Result<ModelProfileProjection, ModelCatalogProjectionError> {
+    check_catalog_identifier(&profile.profile_id)?;
+    check_catalog_display_text(&profile.display_name, MAX_DISPLAY_NAME_BYTES)?;
+    check_catalog_display_text(&profile.description, MAX_DESCRIPTION_BYTES)?;
+    if let Some(family) = profile.family.as_deref() {
+        check_catalog_display_text(family, MAX_FAMILY_BYTES)?;
+    }
+    if let Some(status_detail) = profile.status_detail.as_deref() {
+        check_catalog_display_text(status_detail, MAX_STATUS_DETAIL_BYTES)?;
+    }
+    check_limits(&profile.limits)?;
+    if let Some(qualified_at) = profile.qualified_at.as_deref() {
+        check_utc_instant(qualified_at)?;
+    }
+    if profile.variants.len() < MIN_VARIANTS_PER_PROFILE
+        || profile.variants.len() > MAX_VARIANTS_PER_PROFILE
+    {
+        return Err(ModelCatalogProjectionError::Unavailable);
+    }
+    let mut seen_variants: HashSet<&str> = HashSet::new();
+    let mut variants = Vec::with_capacity(profile.variants.len());
+    for variant in &profile.variants {
+        check_catalog_identifier(&variant.variant_id)?;
+        if !seen_variants.insert(variant.variant_id.as_str()) {
+            return Err(ModelCatalogProjectionError::Unavailable);
+        }
+        check_catalog_display_text(&variant.display_name, MAX_VARIANT_DISPLAY_NAME_BYTES)?;
+        if variant.max_output_tokens == 0 || variant.max_output_tokens > MAX_OUTPUT_TOKENS {
+            return Err(ModelCatalogProjectionError::Unavailable);
+        }
+        variants.push(ModelVariantProjection {
+            variant_id: variant.variant_id.clone(),
+            display_name: variant.display_name.clone(),
+            reasoning_effort: variant.reasoning_effort,
+            max_output_tokens: variant.max_output_tokens,
+        });
+    }
+    check_catalog_identifier(&profile.default_variant_id)?;
+    if !seen_variants.contains(profile.default_variant_id.as_str()) {
+        return Err(ModelCatalogProjectionError::Unavailable);
+    }
+    Ok(ModelProfileProjection {
+        profile_id: profile.profile_id.clone(),
+        display_name: profile.display_name.clone(),
+        description: profile.description.clone(),
+        family: profile.family.clone(),
+        provider: MODEL_PROFILE_PROVIDER,
+        availability: profile.availability,
+        status_detail: profile.status_detail.clone(),
+        capabilities: profile.capabilities,
+        limits: profile.limits,
+        variants,
+        default_variant_id: profile.default_variant_id.clone(),
+        qualified_at: profile.qualified_at.clone(),
+    })
+}
+
 /// Projects one verified catalog for the renderer.
 ///
 /// Everything is checked here rather than trusted from the transport: profile
@@ -963,28 +1175,7 @@ pub fn project_model_catalog(
         if !seen_profiles.insert(profile.profile_id.as_str()) {
             return Err(ModelCatalogProjectionError::Unavailable);
         }
-        check_catalog_display_text(&profile.display_name, MAX_DISPLAY_NAME_BYTES)?;
-        if let Some(summary) = profile.summary.as_deref() {
-            check_catalog_display_text(summary, MAX_SUMMARY_BYTES)?;
-        }
-        if profile.variant_ids.len() < MIN_VARIANTS_PER_PROFILE
-            || profile.variant_ids.len() > MAX_VARIANTS_PER_PROFILE
-        {
-            return Err(ModelCatalogProjectionError::Unavailable);
-        }
-        let mut seen_variants: HashSet<&str> = HashSet::new();
-        for variant_id in &profile.variant_ids {
-            check_catalog_identifier(variant_id)?;
-            if !seen_variants.insert(variant_id.as_str()) {
-                return Err(ModelCatalogProjectionError::Unavailable);
-            }
-        }
-        profiles.push(ModelProfileProjection {
-            profile_id: profile.profile_id.clone(),
-            display_name: profile.display_name.clone(),
-            summary: profile.summary.clone(),
-            variant_ids: profile.variant_ids.clone(),
-        });
+        profiles.push(project_profile(profile)?);
     }
 
     let mut unavailable_profiles = Vec::with_capacity(input.unavailable_profiles.len());
@@ -1160,6 +1351,72 @@ fn check_catalog_display_text(
     check_disclosure(value).map_err(|()| ModelCatalogProjectionError::DisclosesConnectionAuthority)
 }
 
+/// The exact length of a canonical `UtcInstant`: `YYYY-MM-DDTHH:MM:SS.mmmZ`.
+/// The schema's pattern admits no variation in width, so a length check plus
+/// a per-position check is a complete validator -- no date/time crate needed.
+const UTC_INSTANT_BYTES: usize = 24;
+
+/// Validates the canonical `UtcInstant` shape byte for byte:
+/// `^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\.[0-9]{3}Z$`.
+///
+/// This is a shape check, not a calendar check: it rejects anything that does
+/// not fit the fixed positional grammar, but (like the schema itself) does not
+/// reject a calendar-impossible date such as `2026-02-31`. Renderer display
+/// text has never needed calendar validity, only a safe, bounded, correctly
+/// shaped string to show.
+fn check_utc_instant(value: &str) -> Result<(), ModelCatalogProjectionError> {
+    let bytes = value.as_bytes();
+    let digit = |index: usize| bytes.get(index).copied().filter(u8::is_ascii_digit);
+    let matches = bytes.len() == UTC_INSTANT_BYTES
+        && (0..4).all(|index| digit(index).is_some())
+        && bytes[4] == b'-'
+        && matches!(digit(5), Some(b'0'..=b'1')) && digit(6).is_some()
+        && matches!((bytes[5], bytes[6]), (b'0', b'1'..=b'9') | (b'1', b'0'..=b'2'))
+        && bytes[7] == b'-'
+        && digit(8).is_some() && digit(9).is_some()
+        && matches!((bytes[8], bytes[9]), (b'0'..=b'2', b'0'..=b'9') | (b'3', b'0'..=b'1'))
+        && bytes[10] == b'T'
+        && digit(11).is_some() && digit(12).is_some()
+        && matches!((bytes[11], bytes[12]), (b'0'..=b'1', b'0'..=b'9') | (b'2', b'0'..=b'3'))
+        && bytes[13] == b':'
+        && matches!(bytes[14], b'0'..=b'5') && digit(15).is_some()
+        && bytes[16] == b':'
+        && matches!(bytes[17], b'0'..=b'5') && digit(18).is_some()
+        && bytes[19] == b'.'
+        && (20..23).all(|index| digit(index).is_some())
+        && bytes[23] == b'Z';
+    if matches {
+        Ok(())
+    } else {
+        Err(ModelCatalogProjectionError::Unavailable)
+    }
+}
+
+/// Bounds one profile's limits, leaving `None` exactly as `None`.
+///
+/// Nullable is load-bearing here: a limit the organization did not publish
+/// stays absent, never becomes `0` or a synthesized ceiling. Only a *present*
+/// value is range-checked, against the same ceilings the canonical schema
+/// declares.
+fn check_limits(limits: &ModelLimitsProjection) -> Result<(), ModelCatalogProjectionError> {
+    if limits
+        .context_tokens
+        .is_some_and(|value| value == 0 || value > MAX_CONTEXT_OR_INPUT_TOKENS)
+        || limits
+            .max_input_tokens
+            .is_some_and(|value| value == 0 || value > MAX_CONTEXT_OR_INPUT_TOKENS)
+        || limits
+            .max_output_tokens
+            .is_some_and(|value| value == 0 || value > MAX_OUTPUT_TOKENS)
+        || limits
+            .max_attachment_bytes
+            .is_some_and(|value| value > MAX_ATTACHMENT_BYTES)
+    {
+        return Err(ModelCatalogProjectionError::Unavailable);
+    }
+    Ok(())
+}
+
 fn check_identifier(value: &str) -> Result<(), ModelStreamProjectionError> {
     if value.is_empty() || value.len() > MAX_IDENTIFIER_BYTES {
         return Err(ModelStreamProjectionError::Unavailable);
@@ -1232,27 +1489,64 @@ mod tests {
     use desktop_runtime::{ContractId, UnixMillis};
 
     use super::{
-        project_model_catalog, project_model_selection, ModelCatalogInput,
-        ModelCatalogProjectionError, ModelCatalogStateProjection, ModelProfileInput,
-        ModelReceiptSummaryInput, ModelSelectionBlockedProjection, ModelSelectionInput,
+        project_model_catalog, project_model_selection, ModelCapabilitiesProjection,
+        ModelCatalogInput, ModelCatalogProjectionError, ModelCatalogStateProjection,
+        ModelLimitsProjection, ModelProfileInput, ModelReasoningEffortProjection,
+        ModelReceiptSummaryInput, ModelSelectableAvailabilityProjection,
+        ModelSelectionBlockedProjection, ModelSelectionInput,
         ModelBlockedAvailabilityProjection, ModelRecoveryActionProjection,
         ModelSelectionOutcomeInput, ModelSelectionSourceProjection,
         ModelStreamCancellationSourceProjection,
         ModelStreamEventEnvelope, ModelStreamEventInput, ModelStreamProjectionError,
         ModelStreamPublisher, ModelStreamSubscription, ModelStreamTerminalProjection,
-        ModelUnavailableProfileInput,
+        ModelUnavailableProfileInput, ModelVariantInput,
     };
 
     fn id(value: &str) -> Result<ContractId, Box<dyn std::error::Error>> {
         Ok(ContractId::new(value)?)
     }
 
+    fn full_capabilities() -> ModelCapabilitiesProjection {
+        ModelCapabilitiesProjection {
+            text_input: true,
+            image_input: false,
+            pdf_input: false,
+            attachments: true,
+            tool_calling: true,
+            structured_output: true,
+            reasoning: false,
+        }
+    }
+
+    /// Every limit unset, on purpose: the null-limit property this projection
+    /// is most likely to lose is exercised against this fixture.
+    fn no_published_limits() -> ModelLimitsProjection {
+        ModelLimitsProjection {
+            context_tokens: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            max_attachment_bytes: None,
+        }
+    }
+
     fn profile(profile_id: &str) -> ModelProfileInput {
         ModelProfileInput {
             profile_id: profile_id.to_owned(),
             display_name: "Balanced reasoning".to_owned(),
-            summary: Some("General drafting and review.".to_owned()),
-            variant_ids: vec!["standard".to_owned()],
+            description: "General drafting and review.".to_owned(),
+            family: Some("balanced-family".to_owned()),
+            availability: ModelSelectableAvailabilityProjection::Available,
+            status_detail: None,
+            capabilities: full_capabilities(),
+            limits: no_published_limits(),
+            variants: vec![ModelVariantInput {
+                variant_id: "standard".to_owned(),
+                display_name: "Standard".to_owned(),
+                reasoning_effort: ModelReasoningEffortProjection::Medium,
+                max_output_tokens: 4_096,
+            }],
+            default_variant_id: "standard".to_owned(),
+            qualified_at: Some("2026-01-01T00:00:00.000Z".to_owned()),
         }
     }
 
@@ -1321,7 +1615,14 @@ mod tests {
             serde_json::json!("sapphirus.model-catalog-projection.v1")
         );
         assert_eq!(encoded["profiles"][0]["profileId"], "balanced");
-        assert_eq!(encoded["profiles"][0]["variantIds"][0], "standard");
+        assert_eq!(encoded["profiles"][0]["variants"][0]["variantId"], "standard");
+        assert_eq!(encoded["profiles"][0]["defaultVariantId"], "standard");
+        assert_eq!(encoded["profiles"][0]["provider"], "microsoft_foundry");
+        assert_eq!(encoded["profiles"][0]["availability"], "available");
+        assert_eq!(encoded["profiles"][0]["capabilities"]["toolCalling"], true);
+        // Nullable is load-bearing: the fixture publishes no limits, and that
+        // must survive as null, never as 0.
+        assert_eq!(encoded["profiles"][0]["limits"]["contextTokens"], serde_json::Value::Null);
         assert_eq!(encoded["unavailableProfiles"][0]["profileId"], "vision");
         // A closed reason vocabulary, not the catalog's free text. "the
         // deployment is missing" is a reason; it is not a deployment name.
@@ -1334,24 +1635,64 @@ mod tests {
             "contact_administrator"
         );
 
-        // The connection vocabulary has no field to arrive in. `capabilities`
-        // and `limits` exist on the canonical profile and are dropped here:
-        // neither is something the renderer is allowed to know or to set.
+        // The connection vocabulary still has no field to arrive in even
+        // though capabilities and limits are now projected: none of these
+        // strings should ever appear regardless of what the fixture carries.
         let text = serde_json::to_string(&encoded)?.to_ascii_lowercase();
-        for forbidden in [
-            "endpoint",
-            "apikey",
-            "credential",
-            "capabilit",
-            "limits",
-            "azure",
-            "deploymentname",
-        ] {
+        for forbidden in ["endpoint", "apikey", "credential", "azure", "deploymentname"] {
             assert!(
                 !text.contains(forbidden),
                 "catalog projection disclosed {forbidden}"
             );
         }
+        Ok(())
+    }
+
+    /// The property most likely to be lost by a careless default: a limit the
+    /// organization did not publish must stay `null` through the Rust
+    /// projection, never collapse to `0` or to an invented ceiling.
+    #[test]
+    fn a_null_limit_survives_the_rust_projection() -> Result<(), Box<dyn std::error::Error>> {
+        let mut input = catalog_input()?;
+        input.profiles[0].limits = ModelLimitsProjection {
+            context_tokens: Some(128_000),
+            max_input_tokens: None,
+            max_output_tokens: Some(8_192),
+            max_attachment_bytes: None,
+        };
+        let projection = project_model_catalog(input)?;
+        let encoded = serde_json::to_value(&projection)?;
+        let limits = &encoded["profiles"][0]["limits"];
+        assert_eq!(limits["contextTokens"], serde_json::json!(128_000));
+        assert_eq!(limits["maxInputTokens"], serde_json::Value::Null);
+        assert_eq!(limits["maxOutputTokens"], serde_json::json!(8_192));
+        assert_eq!(limits["maxAttachmentBytes"], serde_json::Value::Null);
+        Ok(())
+    }
+
+    /// `qualifiedAt` is carried through as the canonical `UtcInstant` string
+    /// rather than converted to a numeric instant, so this is a shape check on
+    /// that string, not a range check on a parsed value.
+    #[test]
+    fn a_malformed_qualified_at_is_refused() -> Result<(), Box<dyn std::error::Error>> {
+        let mut input = catalog_input()?;
+        input.profiles[0].qualified_at = Some("2026-01-01 00:00:00".to_owned());
+        assert_eq!(
+            project_model_catalog(input),
+            Err(ModelCatalogProjectionError::Unavailable)
+        );
+        Ok(())
+    }
+
+    /// A null `qualifiedAt` -- the organization named no qualification
+    /// instant -- must still project successfully.
+    #[test]
+    fn a_null_qualified_at_survives_the_projection() -> Result<(), Box<dyn std::error::Error>> {
+        let mut input = catalog_input()?;
+        input.profiles[0].qualified_at = None;
+        let projection = project_model_catalog(input)?;
+        let encoded = serde_json::to_value(&projection)?;
+        assert_eq!(encoded["profiles"][0]["qualifiedAt"], serde_json::Value::Null);
         Ok(())
     }
 

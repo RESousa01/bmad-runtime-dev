@@ -163,29 +163,40 @@ fn the_response_lifecycle_is_never_served_from_the_reply_cache() {
     );
 }
 
-/// The renderer projection carries no way to reach a provider.
+/// The renderer projection carries the organization's own published model
+/// metadata, but no way to reach a provider.
 ///
-/// `capabilities` and `limits` exist on the canonical catalog profile and are
-/// dropped by `catalog_projection_input`; nothing below it could reintroduce
-/// them, because the projection type has no field for either.
+/// `capabilities`, `limits`, `family`, `availability`, `statusDetail`,
+/// `variants` and `qualifiedAt` are now read off the canonical catalog profile
+/// -- FND-051 and FND-052 need them for the picker and the context-window
+/// rows -- but `catalog_projection_input` still has no way to read a
+/// deployment name, an endpoint, a subscription/resource identifier, or
+/// either policy/deployment-snapshot hash, because the canonical profile type
+/// itself carries none of them into this function's reach.
 #[test]
-fn the_catalog_projection_drops_connection_and_capability_authority() {
+fn the_catalog_projection_reads_published_metadata_but_no_connection_authority() {
     let source = read("src/commands/model.rs");
     let start = source
         .find("fn catalog_projection_input(")
         .expect("catalog_projection_input is defined");
     let end = source[start..]
-        .find("\nfn map_blocked_availability(")
+        .find("\nfn map_selectable_availability(")
         .map(|offset| start + offset)
         .expect("catalog_projection_input closes");
     let body = &source[start..end];
+    for expected in ["capabilities", "limits", "family", "availability", "variants"] {
+        assert!(
+            body.contains(expected),
+            "catalog_projection_input no longer reads `{expected}` off the canonical profile"
+        );
+    }
     for forbidden in [
-        "capabilities",
-        "limits",
         "deployment_snapshot_hash",
         "policy_hash",
-        "provider",
+        "deployment_name",
         "endpoint",
+        "subscription",
+        "credential",
     ] {
         assert!(
             !body.contains(forbidden),

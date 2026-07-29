@@ -19,11 +19,16 @@ use crate::wire::HostCommandData;
 
 /// Turns the held catalog into the renderer projection.
 ///
-/// Everything the canonical profile carries beyond identity and display text —
-/// `capabilities`, `limits`, `provider`, `qualifiedAt`, the deployment snapshot
-/// hash, the policy hash — is dropped here rather than filtered downstream. The
-/// projection type has no field for any of it, so this function could not pass
-/// one along even by mistake.
+/// Everything the canonical profile carries beyond what the renderer needs to
+/// display and act on the catalog — the deployment snapshot hash, the policy
+/// hash, the Foundry deployment name itself — is dropped here rather than
+/// filtered downstream. `capabilities`, `limits`, `family`, `availability`,
+/// `statusDetail`, `variants` and `qualifiedAt` are carried through: FND-051
+/// needs capabilities and limits for the picker, FND-052 needs the limits for
+/// the context-window rows, and the projection type has no field for a
+/// deployment name, an endpoint, or any other connection detail, so nothing
+/// beyond the organization's own published model metadata could pass here even
+/// by mistake.
 fn catalog_projection_input(
     workspace_id: &ContractId,
     workspace_grant_epoch: u64,
@@ -38,12 +43,30 @@ fn catalog_projection_input(
         .map(|profile| desktop_ipc::ModelProfileInput {
             profile_id: profile.profile_id.as_str().to_owned(),
             display_name: profile.display_name.as_str().to_owned(),
-            summary: Some(profile.description.as_str().to_owned()),
-            variant_ids: profile
+            description: profile.description.as_str().to_owned(),
+            family: profile.family.as_ref().map(|family| family.as_str().to_owned()),
+            availability: map_selectable_availability(profile.availability),
+            status_detail: profile
+                .status_detail
+                .as_ref()
+                .map(|detail| detail.as_str().to_owned()),
+            capabilities: map_capabilities(&profile.capabilities),
+            limits: map_limits(&profile.limits),
+            variants: profile
                 .variants
                 .iter()
-                .map(|variant| variant.variant_id.as_str().to_owned())
+                .map(|variant| desktop_ipc::ModelVariantInput {
+                    variant_id: variant.variant_id.as_str().to_owned(),
+                    display_name: variant.display_name.as_str().to_owned(),
+                    reasoning_effort: map_reasoning_effort(variant.reasoning_effort),
+                    max_output_tokens: variant.max_output_tokens.get(),
+                })
                 .collect(),
+            default_variant_id: profile.default_variant_id.as_str().to_owned(),
+            qualified_at: profile
+                .qualified_at
+                .as_ref()
+                .map(|instant| instant.as_str().to_owned()),
         })
         .collect();
     let unavailable_profiles = catalog
@@ -76,6 +99,59 @@ fn catalog_projection_input(
         generated_at: verified.generated_at(),
         expires_at: verified.expires_at(),
         refreshed_at: held.refreshed_at,
+    }
+}
+
+fn map_selectable_availability(
+    availability: desktop_runtime::generated_contracts::ModelCatalogSelectableAvailability,
+) -> desktop_ipc::ModelSelectableAvailabilityProjection {
+    use desktop_runtime::generated_contracts::ModelCatalogSelectableAvailability as Selectable;
+    match availability {
+        Selectable::Available => desktop_ipc::ModelSelectableAvailabilityProjection::Available,
+        Selectable::Degraded => desktop_ipc::ModelSelectableAvailabilityProjection::Degraded,
+    }
+}
+
+fn map_reasoning_effort(
+    effort: desktop_runtime::generated_contracts::ModelProfileReasoningEffort,
+) -> desktop_ipc::ModelReasoningEffortProjection {
+    use desktop_runtime::generated_contracts::ModelProfileReasoningEffort as Effort;
+    match effort {
+        Effort::None => desktop_ipc::ModelReasoningEffortProjection::None,
+        Effort::Low => desktop_ipc::ModelReasoningEffortProjection::Low,
+        Effort::Medium => desktop_ipc::ModelReasoningEffortProjection::Medium,
+        Effort::High => desktop_ipc::ModelReasoningEffortProjection::High,
+    }
+}
+
+fn map_capabilities(
+    capabilities: &desktop_runtime::generated_contracts::ModelCatalogProjectedCapabilities,
+) -> desktop_ipc::ModelCapabilitiesProjection {
+    desktop_ipc::ModelCapabilitiesProjection {
+        text_input: capabilities.text_input,
+        image_input: capabilities.image_input,
+        pdf_input: capabilities.pdf_input,
+        attachments: capabilities.attachments,
+        tool_calling: capabilities.tool_calling,
+        structured_output: capabilities.structured_output,
+        reasoning: capabilities.reasoning,
+    }
+}
+
+/// Carries each limit through exactly as published. `None` stays `None`: the
+/// organization published no qualified value, and the renderer must show that
+/// as unknown rather than as zero or unlimited, so no default is substituted
+/// here.
+fn map_limits(
+    limits: &desktop_runtime::generated_contracts::ModelCatalogProjectedLimits,
+) -> desktop_ipc::ModelLimitsProjection {
+    desktop_ipc::ModelLimitsProjection {
+        context_tokens: limits.context_tokens.map(std::num::NonZeroU64::get),
+        max_input_tokens: limits.max_input_tokens.map(std::num::NonZeroU64::get),
+        max_output_tokens: limits.max_output_tokens.map(std::num::NonZeroU64::get),
+        max_attachment_bytes: limits
+            .max_attachment_bytes
+            .and_then(|bytes| u64::try_from(bytes).ok()),
     }
 }
 

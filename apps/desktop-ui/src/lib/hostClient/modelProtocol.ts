@@ -40,7 +40,10 @@ import { parseDispatchReply } from "./workspaceProtocol";
 
 const MAX_IDENTIFIER_BYTES = 128;
 const MAX_DISPLAY_NAME_BYTES = 128;
-const MAX_SUMMARY_BYTES = 512;
+const MAX_DESCRIPTION_BYTES = 256;
+const MAX_FAMILY_BYTES = 64;
+const MAX_STATUS_DETAIL_BYTES = 160;
+const MAX_VARIANT_DISPLAY_NAME_BYTES = 32;
 const MAX_REASON_BYTES = 256;
 const MAX_TOOL_NAME_BYTES = 128;
 const MAX_TEXT_DELTA_BYTES = 4 * 1024;
@@ -50,6 +53,19 @@ const MAX_PROFILES = 64;
 const MAX_UNAVAILABLE_PROFILES = 64;
 const MAX_VARIANTS_PER_PROFILE = 8;
 const MIN_VARIANTS_PER_PROFILE = 1;
+
+/// Mirrors `ProjectedLimits.contextTokens` / `.maxInputTokens` and
+/// `MAX_CONTEXT_OR_INPUT_TOKENS` in `model.rs`.
+const MAX_CONTEXT_OR_INPUT_TOKENS = 100_000_000;
+/// Mirrors `ProjectedLimits.maxOutputTokens`, `ModelVariantProjection`'s own
+/// `maxOutputTokens`, and `MAX_OUTPUT_TOKENS` in `model.rs`.
+const MAX_OUTPUT_TOKENS = 10_000_000;
+/// Mirrors `ProjectedLimits.maxAttachmentBytes` and `MAX_ATTACHMENT_BYTES` in
+/// `model.rs`.
+const MAX_ATTACHMENT_BYTES = 134_217_728;
+/// The only provider a projected profile may name. A constant, not a lookup:
+/// Azure authority is not representable here at all.
+const MODEL_PROFILE_PROVIDER = "microsoft_foundry" as const;
 
 export const MODEL_CATALOG_SCHEMA = "sapphirus.model-catalog-projection.v1" as const;
 export const MODEL_SELECTION_SCHEMA = "sapphirus.model-selection-projection.v1" as const;
@@ -130,11 +146,70 @@ function asModelCatalogState(value: unknown): ModelCatalogState {
   return state as ModelCatalogState;
 }
 
+/// Availability of a profile the user may invoke. Deliberately a separate
+/// closed vocabulary from `ModelBlockedAvailability` -- the canonical contract
+/// splits them so a selectable projection cannot describe itself as blocked.
+export type ModelSelectableAvailability = "available" | "degraded";
+
+const modelSelectableAvailabilities: ReadonlySet<string> = new Set<ModelSelectableAvailability>([
+  "available",
+  "degraded",
+]);
+
+/// How much a variant is asked to reason before answering.
+export type ModelReasoningEffort = "none" | "low" | "medium" | "high";
+
+const modelReasoningEfforts: ReadonlySet<string> = new Set<ModelReasoningEffort>([
+  "none",
+  "low",
+  "medium",
+  "high",
+]);
+
+/// What a model profile can do. Every field is a fact the organization
+/// published, not a connection detail.
+export interface ModelCapabilitiesProjection {
+  readonly textInput: boolean;
+  readonly imageInput: boolean;
+  readonly pdfInput: boolean;
+  readonly attachments: boolean;
+  readonly toolCalling: boolean;
+  readonly structuredOutput: boolean;
+  readonly reasoning: boolean;
+}
+
+/// Limits Forge will actually enforce for one profile. Every field is
+/// nullable and that nullability is load-bearing: `null` means the
+/// organization published no qualified value for it, and callers must render
+/// that as unknown, never as zero or unlimited.
+export interface ModelLimitsProjection {
+  readonly contextTokens: number | null;
+  readonly maxInputTokens: number | null;
+  readonly maxOutputTokens: number | null;
+  readonly maxAttachmentBytes: number | null;
+}
+
+/// One named operating point of a profile.
+export interface ModelVariantProjection {
+  readonly variantId: string;
+  readonly displayName: string;
+  readonly reasoningEffort: ModelReasoningEffort;
+  readonly maxOutputTokens: number;
+}
+
 export interface ModelProfileProjection {
   readonly profileId: string;
   readonly displayName: string;
-  readonly summary: string | null;
-  readonly variantIds: readonly string[];
+  readonly description: string;
+  readonly family: string | null;
+  readonly provider: typeof MODEL_PROFILE_PROVIDER;
+  readonly availability: ModelSelectableAvailability;
+  readonly statusDetail: string | null;
+  readonly capabilities: ModelCapabilitiesProjection;
+  readonly limits: ModelLimitsProjection;
+  readonly variants: readonly ModelVariantProjection[];
+  readonly defaultVariantId: string;
+  readonly qualifiedAt: string | null;
 }
 
 export type ModelBlockedAvailability =
@@ -190,24 +265,149 @@ export interface ModelCatalogProjection {
   readonly refreshedAt: number;
 }
 
+/// Mirrors `check_utc_instant` in `model.rs`: the canonical `UtcInstant`
+/// shape is `^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):
+/// [0-5][0-9]:[0-5][0-9]\.[0-9]{3}Z$`, a fixed 24-byte width that admits no
+/// variation, so a single frozen regex is a complete and honest mirror of the
+/// Rust byte-position validator -- not an approximation of it.
+const UTC_INSTANT_PATTERN =
+  /^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\.[0-9]{3}Z$/u;
+
+/// Carried through as the canonical `UtcInstant` string rather than parsed
+/// into a numeric instant: the renderer only ever displays this value, and a
+/// string preserves the guarantee that what is shown is exactly what the
+/// catalog published.
+function asUtcInstant(value: unknown): string {
+  if (typeof value !== "string" || !UTC_INSTANT_PATTERN.test(value)) {
+    return fail();
+  }
+  return value;
+}
+
+/// A nullable limit: `null` stays `null`, never collapses to `0`. Mirrors
+/// `check_limits` in `model.rs`, including the per-field ceiling.
+function asNullableLimit(value: unknown, maximumBytes: number): number | null {
+  if (value === null) return null;
+  const parsed = asUnsignedInteger(value);
+  if (parsed === 0 || parsed > maximumBytes) return fail();
+  return parsed;
+}
+
+function parseModelCapabilities(value: unknown): ModelCapabilitiesProjection {
+  const capabilities = asRecord(value);
+  assertExactKeys(capabilities, [
+    "textInput",
+    "imageInput",
+    "pdfInput",
+    "attachments",
+    "toolCalling",
+    "structuredOutput",
+    "reasoning",
+  ]);
+  return {
+    textInput: asBoolean(capabilities.textInput),
+    imageInput: asBoolean(capabilities.imageInput),
+    pdfInput: asBoolean(capabilities.pdfInput),
+    attachments: asBoolean(capabilities.attachments),
+    toolCalling: asBoolean(capabilities.toolCalling),
+    structuredOutput: asBoolean(capabilities.structuredOutput),
+    reasoning: asBoolean(capabilities.reasoning),
+  };
+}
+
+function parseModelLimits(value: unknown): ModelLimitsProjection {
+  const limits = asRecord(value);
+  assertExactKeys(limits, [
+    "contextTokens",
+    "maxInputTokens",
+    "maxOutputTokens",
+    "maxAttachmentBytes",
+  ]);
+  const contextTokens = asNullableLimit(limits.contextTokens, MAX_CONTEXT_OR_INPUT_TOKENS);
+  const maxInputTokens = asNullableLimit(limits.maxInputTokens, MAX_CONTEXT_OR_INPUT_TOKENS);
+  const maxOutputTokens = asNullableLimit(limits.maxOutputTokens, MAX_OUTPUT_TOKENS);
+  const maxAttachmentBytes = limits.maxAttachmentBytes === null
+    ? null
+    : (() => {
+      const parsed = asUnsignedInteger(limits.maxAttachmentBytes);
+      if (parsed > MAX_ATTACHMENT_BYTES) return fail();
+      return parsed;
+    })();
+  return { contextTokens, maxInputTokens, maxOutputTokens, maxAttachmentBytes };
+}
+
+function parseModelVariant(value: unknown): ModelVariantProjection {
+  const variant = asRecord(value);
+  assertExactKeys(variant, ["variantId", "displayName", "reasoningEffort", "maxOutputTokens"]);
+  const reasoningEffort = asBmadNonemptySafeText(variant.reasoningEffort, 16);
+  if (!modelReasoningEfforts.has(reasoningEffort)) return fail();
+  const maxOutputTokens = asUnsignedInteger(variant.maxOutputTokens);
+  if (maxOutputTokens === 0 || maxOutputTokens > MAX_OUTPUT_TOKENS) return fail();
+  return {
+    variantId: asModelIdentifier(variant.variantId),
+    displayName: asModelDisplayText(variant.displayName, MAX_VARIANT_DISPLAY_NAME_BYTES),
+    reasoningEffort: reasoningEffort as ModelReasoningEffort,
+    maxOutputTokens,
+  };
+}
+
 function parseModelProfile(value: unknown): ModelProfileProjection {
   const profile = asRecord(value);
-  assertExactKeys(profile, ["profileId", "displayName", "summary", "variantIds"]);
+  assertExactKeys(profile, [
+    "profileId",
+    "displayName",
+    "description",
+    "family",
+    "provider",
+    "availability",
+    "statusDetail",
+    "capabilities",
+    "limits",
+    "variants",
+    "defaultVariantId",
+    "qualifiedAt",
+  ]);
   const profileId = asModelIdentifier(profile.profileId);
   const displayName = asModelDisplayText(profile.displayName, MAX_DISPLAY_NAME_BYTES);
-  const summary = profile.summary === null
+  const description = asModelDisplayText(profile.description, MAX_DESCRIPTION_BYTES);
+  const family = profile.family === null
     ? null
-    : asModelDisplayText(profile.summary, MAX_SUMMARY_BYTES);
+    : asModelDisplayText(profile.family, MAX_FAMILY_BYTES);
+  if (profile.provider !== MODEL_PROFILE_PROVIDER) return fail();
+  const availability = asBmadNonemptySafeText(profile.availability, 16);
+  if (!modelSelectableAvailabilities.has(availability)) return fail();
+  const statusDetail = profile.statusDetail === null
+    ? null
+    : asModelDisplayText(profile.statusDetail, MAX_STATUS_DETAIL_BYTES);
+  const capabilities = parseModelCapabilities(profile.capabilities);
+  const limits = parseModelLimits(profile.limits);
   if (
-    !Array.isArray(profile.variantIds)
-    || profile.variantIds.length < MIN_VARIANTS_PER_PROFILE
-    || profile.variantIds.length > MAX_VARIANTS_PER_PROFILE
+    !Array.isArray(profile.variants)
+    || profile.variants.length < MIN_VARIANTS_PER_PROFILE
+    || profile.variants.length > MAX_VARIANTS_PER_PROFILE
   ) {
     return fail();
   }
-  const variantIds = profile.variantIds.map(asModelIdentifier);
+  const variants = profile.variants.map(parseModelVariant);
+  const variantIds = variants.map((variant) => variant.variantId);
   if (new Set(variantIds).size !== variantIds.length) return fail();
-  return { profileId, displayName, summary, variantIds };
+  const defaultVariantId = asModelIdentifier(profile.defaultVariantId);
+  if (!variantIds.includes(defaultVariantId)) return fail();
+  const qualifiedAt = profile.qualifiedAt === null ? null : asUtcInstant(profile.qualifiedAt);
+  return {
+    profileId,
+    displayName,
+    description,
+    family,
+    provider: MODEL_PROFILE_PROVIDER,
+    availability: availability as ModelSelectableAvailability,
+    statusDetail,
+    capabilities,
+    limits,
+    variants,
+    defaultVariantId,
+    qualifiedAt,
+  };
 }
 
 function parseUnavailableModelProfile(value: unknown): ModelUnavailableProfileProjection {
