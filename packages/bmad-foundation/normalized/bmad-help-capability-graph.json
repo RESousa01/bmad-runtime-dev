@@ -1,8 +1,8 @@
 {
   "schemaVersion": "sapphirus.bmad-help-capability-graph.v1",
   "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
-  "sourceCatalogSha256": "56e4a4583b6e35790afbe8f968b2cc5f78d6d8baee54ec5167a8bf4db03b1875",
-  "sourceAliasCatalogSha256": "d0e7ea9d2caf0c1a72afcebe658213a69b485ef6ddda3ef5c83668de2c31287e",
+  "sourceCatalogSha256": "93ed7312aefb638ee7a0b7b48310a04374aeb4dcdbd30da661e5eff1bfba3466",
+  "sourceAliasCatalogSha256": "bd8f4a8da3303f25c64e384b410b0cd709ae3ee151ffed5d61e5a3a86b539b71",
   "nodeCount": 45,
   "nodes": [
     {
@@ -128,11 +128,11 @@
         "governed_artifact"
       ],
       "supportState": "exact",
-      "uiState": "planned",
+      "uiState": "runtime_available",
       "rowIds": [
         "method:src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md"
       ],
-      "nodeHash": "sha256:976c507704d4f1ba376e33e318f9a76a13f75571ba8db90b459aae538b20f286"
+      "nodeHash": "sha256:b13375120be1005ba1b60648c5ad971d742a1557eaa714ff33b110f0b73fcbe0"
     },
     {
       "id": "bmm:bmad-checkpoint-preview",
@@ -831,5 +831,5 @@
       "deprecated": true
     }
   ],
-  "graphHash": "sha256:d6b774a77181addc64c428a136881a6340b0af8ac699263ad9e2eab3bf76da14"
+  "graphHash": "sha256:ee754088695f5a58787e5e7e234df447249daa7dbefd5b60a6279e07f8b46404"
 }

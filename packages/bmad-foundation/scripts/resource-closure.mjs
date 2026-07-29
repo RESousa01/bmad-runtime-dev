@@ -6,6 +6,8 @@ import {
   readFileSync,
   realpathSync,
   readdirSync,
+  rmSync,
+  writeFileSync,
 } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -91,10 +93,40 @@ function fail(message) {
 }
 
 function parseArgs(argv) {
-  if (argv.length !== 1 || !["--check", "--self-test"].includes(argv[0])) {
-    fail("usage: node packages/bmad-foundation/scripts/resource-closure.mjs --check|--self-test");
+  if (argv.length === 1 && argv[0] === "--self-test") {
+    return { selfTest: true, check: false, source: null, skill: null, json: null };
   }
-  return argv[0];
+  const flags = {
+    selfTest: false,
+    check: false,
+    source: null,
+    skill: null,
+    json: null,
+  };
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === "--check") {
+      flags.check = true;
+    } else if (token === "--source") {
+      flags.source = argv[index + 1];
+      index += 1;
+      if (!flags.source) fail("missing value for --source");
+    } else if (token === "--skill") {
+      flags.skill = argv[index + 1];
+      index += 1;
+      if (!flags.skill) fail("missing value for --skill");
+    } else if (token === "--json") {
+      flags.json = argv[index + 1];
+      index += 1;
+      if (!flags.json) fail("missing value for --json");
+    } else {
+      fail("usage: node packages/bmad-foundation/scripts/resource-closure.mjs [--source <id@version>] [--skill <name>] --check|--self-test");
+    }
+  }
+  if (!flags.check) {
+    fail("usage: node packages/bmad-foundation/scripts/resource-closure.mjs [--source <id@version>] [--skill <name>] --check|--self-test");
+  }
+  return flags;
 }
 
 function sha256(bytes) {
@@ -776,9 +808,12 @@ function buildPackageClosure(source, manifest, sourceRoot) {
 }
 
 export function run(argv = process.argv.slice(2)) {
+  let receiptPath = null;
   try {
-    const mode = parseArgs(argv);
-    if (mode === "--self-test") {
+    const flags = parseArgs(argv);
+    receiptPath = flags.json;
+    if (receiptPath) rmSync(receiptPath, { force: true });
+    if (flags.selfTest) {
       runSelfTest();
       return 0;
     }
@@ -791,7 +826,29 @@ export function run(argv = process.argv.slice(2)) {
       }
       return buildPackageClosure(source, manifest, resolve(packageRoot, "source", source.id, source.version));
     });
-    const failures = packages.flatMap((closure) => [
+    const selectedPackages = packages
+      .filter((closure) => {
+        if (!flags.source) return true;
+        return (
+          `${closure.source.id}@${closure.source.version}` === flags.source
+          || closure.source.package_identity === flags.source
+        );
+      })
+      .map((closure) => ({
+        ...closure,
+        skills: flags.skill
+          ? closure.skills.filter(
+              (skill) =>
+                skill.root === flags.skill
+                || skill.root.endsWith(`/${flags.skill}/SKILL.md`),
+            )
+          : closure.skills,
+      }));
+    if (selectedPackages.length === 0) fail(`unknown source ${flags.source}`);
+    if (flags.skill && selectedPackages.reduce((count, closure) => count + closure.skills.length, 0) !== 1) {
+      fail(`skill selector ${flags.skill} did not resolve exactly once`);
+    }
+    const failures = selectedPackages.flatMap((closure) => [
       ...closure.missing.map((entry) => `${closure.source.id}: missing ${entry.literal} from ${entry.from}`),
       ...closure.invalid.map((entry) => `${closure.source.id}: unsafe ${entry.literal} from ${entry.from}`),
       ...closure.cycles.map((cycle) => `${closure.source.id}: cycle ${cycle}`),
@@ -803,7 +860,7 @@ export function run(argv = process.argv.slice(2)) {
     const summary = {
       schema_version: "sapphirus.bmad.resource-closure/v1",
       generated_by: "packages/bmad-foundation/scripts/resource-closure.mjs",
-      packages: packages.map((closure) => ({
+      packages: selectedPackages.map((closure) => ({
         source: closure.source,
         members: closure.members.length,
         cache_entries: closure.content_hash_cache.length,
@@ -835,12 +892,25 @@ export function run(argv = process.argv.slice(2)) {
           authority_identity: blocker.authority_identity,
           governance_owner: blocker.governance_owner,
         })),
+        member_accounting: closure.members.filter((member) => {
+          if (!flags.skill) return true;
+          return closure.skills.some((skill) =>
+            member.path.startsWith(skill.root.slice(0, -"SKILL.md".length)),
+          );
+        }),
         production_skills: closure.skills,
       })),
     };
-    process.stdout.write(`${JSON.stringify(summary)}\n`);
+    const serialized = `${JSON.stringify(summary)}\n`;
+    if (receiptPath) writeFileSync(receiptPath, serialized, "utf8");
+    process.stdout.write(serialized);
     return 0;
   } catch (error) {
+    if (!receiptPath) {
+      const index = argv.indexOf("--json");
+      receiptPath = index >= 0 ? argv[index + 1] : null;
+    }
+    if (receiptPath) rmSync(receiptPath, { force: true });
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     return 1;
   }

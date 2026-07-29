@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -87,4 +88,97 @@ test("generated UI projections advertise only the qualified canonical PRD row", 
   );
   assert.match(typescript, /row\.uiState === "runtime_available"/);
   assert.match(typescript, /row\.supportState !== "unavailable"/);
+});
+
+const readinessRowId =
+  "method:src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md";
+const readinessCanonicalId = "bmm:bmad-check-implementation-readiness";
+const readinessResources = [
+  "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/customize.toml",
+  "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-01-document-discovery.md",
+  "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-02-prd-analysis.md",
+  "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-03-epic-coverage-validation.md",
+  "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-04-ux-alignment.md",
+  "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-05-epic-quality-review.md",
+  "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-06-final-assessment.md",
+  "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/templates/readiness-report-template.md",
+];
+
+test("readiness normalized envelope closes the exact pinned micro-file package", async () => {
+  const envelope = await readJson(
+    "normalized/bmad-check-implementation-readiness.package.json",
+  );
+  assert.equal(envelope.capability.skillName, "bmad-check-implementation-readiness");
+  assert.equal(envelope.instructionProjection.sourceEntrypoint.treatment, "adopt");
+  assert.deepEqual(
+    envelope.instructionProjection.sourceResources.map(({ path }) => path),
+    readinessResources,
+  );
+  for (const resource of envelope.instructionProjection.sourceResources) {
+    const bytes = await readFile(new URL(`source/method/6.10.0/${resource.path}`, root));
+    const hash = createHash("sha256").update(bytes).digest("hex");
+    assert.equal(resource.contentHash, `sha256:${hash}`);
+    assert.equal(resource.treatment, "adopt");
+  }
+});
+
+test("readiness catalog Help UI Rust and runtime manifest derive one runtime state", async () => {
+  const [catalog, ledger, help, manifest, typescript, rust, normalizedBytes] =
+    await Promise.all([
+      readJson("capability-catalog.json"),
+      readJson("compatibility-ledger.json"),
+      readJson("normalized/bmad-help-capability-graph.json"),
+      readJson("runtime-manifest.json"),
+      readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
+      readFile(
+        new URL("../../crates/desktop-app/src/generated/bmad_capabilities.rs", root),
+        "utf8",
+      ),
+      readFile(
+        new URL("normalized/bmad-check-implementation-readiness.package.json", root),
+      ),
+    ]);
+  const catalogRow = catalog.capabilities.find((row) => row.rowId === readinessRowId);
+  const ledgerRow = ledger.rows.find((row) => row.rowId === readinessRowId);
+  const helpNode = help.nodes.find((node) => node.id === readinessCanonicalId);
+  const manifestResource = manifest.resources.find(
+    (resource) =>
+      resource.path === "normalized/bmad-check-implementation-readiness.package.json",
+  );
+  const normalizedHash = createHash("sha256").update(normalizedBytes).digest("hex");
+
+  assert.equal(ledgerRow.decision, "adopt");
+  assert.equal(ledgerRow.supportState, "exact");
+  assert.equal(catalogRow.supportState, "exact");
+  assert.equal(catalogRow.uiState, "runtime_available");
+  assert.equal(helpNode.supportState, "exact");
+  assert.equal(helpNode.uiState, "runtime_available");
+  assert.match(typescript, /bmm:bmad-check-implementation-readiness/);
+  assert.match(rust, /bmm:bmad-check-implementation-readiness/);
+  assert.equal(manifestResource.contentHash, `sha256:${normalizedHash}`);
+});
+
+test("readiness source-derived goldens prove parity and durable lifecycle branches", async () => {
+  const golden = await readJson(
+    "../../artifacts/bmad100/method/bmad-check-implementation-readiness/golden/source-derived-cases.json",
+  );
+  assert.deepEqual(golden.declaredModes, ["interactive", "headless"]);
+  assert.deepEqual(golden.requiredOutputs.interactive, golden.requiredOutputs.headless);
+  assert.deepEqual(golden.workflow.steps, [
+    "document_discovery",
+    "prd_analysis",
+    "epic_coverage_validation",
+    "ux_alignment",
+    "epic_quality_review",
+    "final_assessment",
+  ]);
+  assert.deepEqual(golden.lifecycleCases, [
+    "cancel",
+    "fail",
+    "retry",
+    "repair",
+    "restart",
+    "resume",
+    "upgrade",
+  ]);
 });
