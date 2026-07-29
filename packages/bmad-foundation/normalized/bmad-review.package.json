@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "core",
+    "skillName": "bmad-review",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_0000000000000000000000000000000000000000000000000000000000000000",
+    "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
+    "sourceEntrypoint": {
+      "path": "src/core-skills/bmad-review/SKILL.md",
+      "contentHash": "sha256:bc46cdf66b37b4d49d414bdc5afc54747a9b19b3fecae471d451b36959343ec3",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/core-skills/bmad-review/customize.toml",
+        "contentHash": "sha256:38470c888a809ee030dc11d38868bb1ac5c1d547f06d218b711be5df53385c00",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/core-skills/bmad-review/references/editorial-common.md",
+        "contentHash": "sha256:f0cdc72ea345b2c5dc3001477b3dfcc909ca11b78f7db8865b6763d18ffc66c8",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/core-skills/bmad-review/references/lens-adversarial.md",
+        "contentHash": "sha256:b90f69ec58d15c43d286a60e0d4d36a49223ab466f351b34a309ddda449c99b2",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/core-skills/bmad-review/references/lens-edge-case-hunter.md",
+        "contentHash": "sha256:f2709e3adb40943ea0f19d0797be379caf0875eaef9a55081dc1e170e8288b68",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/core-skills/bmad-review/references/lens-prose.md",
+        "contentHash": "sha256:4cbcb1eaea8567d272f5db7c6cdfd74ed5a8aae6831053cb2f01cbfc2cb98b98",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/core-skills/bmad-review/references/lens-structure.md",
+        "contentHash": "sha256:98c08221f517133e57ef6325013935360c3365ebd7dcb8411b2050d7df507ee3",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/core-skills/bmad-review/references/lens-verification-gap.md",
+        "contentHash": "sha256:6a424589b2f95021467dd357874163c219158d5a0acdbeb0970ba9e61692f289",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/core-skills/bmad-review/references/structure-models.md",
+        "contentHash": "sha256:f84f85070e1af75f2482757aba9d37d69d805a20826d185527e598f2ba6b9292",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/core-skills/bmad-review/scripts/tests/test_word_metrics.py",
+        "contentHash": "sha256:3b5a285d3c9f611b3cda8c9c1d52d6b214c1f72e6e64a94ea5b0e220db5a8765",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/core-skills/bmad-review/scripts/word_metrics.py",
+        "contentHash": "sha256:fb45007a7f3cfc18d13ee8bd4787facdaae297570193bc769456297dd33da78b",
+        "treatment": "adapt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/review.instructions.md",
+      "contentHash": "sha256:7e5be8df1c36113d38c89d31cb04606d5cd1867347466b764f439ed70fe14925",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "browser",
+      "external_handoff",
+      "file_read",
+      "file_write",
+      "network",
+      "process",
+      "subagent"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "browser",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "external_handoff",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "file_read",
+        "inputKind": "bounded_resource_set",
+        "inputSchemaHash": "sha256:877f8d441a8a7309ac142dec2e6b7a0686fbef21d66683d64a9f2e9db1af7ec9"
+      },
+      {
+        "toolIntent": "file_write",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "network",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "process",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "subagent",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      }
+    ],
+    "projectionHash": "sha256:2f21311006a41374538839354ce69bcf336da5c5f43760e17a3ecf58a588d605"
+  },
+  "projectionEnvelopeHash": "sha256:8bfed9f6f0e29fd56013f51d12338409196a9654449ff730470c971585dc41bc"
+}

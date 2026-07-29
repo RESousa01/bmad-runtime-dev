@@ -42,6 +42,14 @@ const QUALIFIED_METHOD_ROWS = new Map([
       releaseState: "qualified",
     },
   ],
+  [
+    "src/core-skills/bmad-review/SKILL.md",
+    {
+      supportState: "exact",
+      uiState: "runtime_available",
+      releaseState: "qualified",
+    },
+  ],
 ]);
 
 const METHOD_TASK_NAMES = [

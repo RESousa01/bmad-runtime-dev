@@ -486,7 +486,7 @@ pub const CAPABILITIES: &[GeneratedBmadCapability] = &[
         source_path: "src/core-skills/bmad-review/SKILL.md",
         action: None,
         support_state: "exact",
-        ui_state: "planned",
+        ui_state: "runtime_available",
         visibility: "public",
     },
     GeneratedBmadCapability {
@@ -774,11 +774,11 @@ pub const UI_ADVERTISED_CAPABILITIES: &[GeneratedBmadCapability] = &[
         visibility: "public",
     },
     GeneratedBmadCapability {
-        row_id: "method:src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
-        canonical_id: "bmm:bmad-check-implementation-readiness",
+        row_id: "method:src/core-skills/bmad-review/SKILL.md",
+        canonical_id: "core:bmad-review",
         source_id: "method",
         source_version: "6.10.0",
-        source_path: "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+        source_path: "src/core-skills/bmad-review/SKILL.md",
         action: None,
         support_state: "exact",
         ui_state: "runtime_available",

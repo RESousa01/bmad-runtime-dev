@@ -129,6 +129,25 @@ impl BmadTrustedHelpModelProfile {
     pub const fn request_schema_hash(&self) -> Sha256Digest {
         self.binding.data.request_schema_hash
     }
+
+    /// Rebinds the same host-validated provider profile to another sealed
+    /// Method response schema. The caller supplies only the schema digest; all
+    /// provider, deployment, capability, context, egress, and request facts
+    /// remain inherited from this trusted host assertion.
+    ///
+    /// # Errors
+    ///
+    /// Fails closed if the derived Method binding cannot be sealed.
+    pub fn method_binding_for_response_schema(
+        &self,
+        response_schema_hash: Sha256Digest,
+    ) -> Result<MethodModelBinding, BmadKernelError> {
+        let mut data = self.binding.data.clone();
+        data.response_schema_hash = response_schema_hash;
+        let binding_hash = canonical_hash("bmad-method-model-binding", 1, &data)
+            .map_err(|_| binding_mismatch())?;
+        MethodModelBinding::from_source(data, binding_hash).map_err(|_| binding_mismatch())
+    }
 }
 
 /// Exact, sealed Help composition. It remains intentionally non-runnable.

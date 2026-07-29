@@ -444,58 +444,14 @@
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {
-      "capabilityId": "bmm:bmad-review-adversarial-general",
+      "capabilityId": "core:bmad-review",
       "agentCodes": [],
       "menuCodes": [],
       "outputArchetype": "document_artifact",
       "authorityClass": "model_with_reviewed_context",
-      "sourceDecision": "verbatim_adoption_under_adr_0008",
+      "sourceDecision": "managed_projection_of_pinned_source_closure",
       "activationStatus": "active",
-      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-review-adversarial-general/SKILL.md",
-      "outputSchema": "sapphirus.bmad-document-artifact.v1"
-    },
-    {
-      "capabilityId": "bmm:bmad-review-edge-case-hunter",
-      "agentCodes": [],
-      "menuCodes": [],
-      "outputArchetype": "document_artifact",
-      "authorityClass": "model_with_reviewed_context",
-      "sourceDecision": "verbatim_adoption_under_adr_0008",
-      "activationStatus": "active",
-      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-review-edge-case-hunter/SKILL.md",
-      "outputSchema": "sapphirus.bmad-document-artifact.v1"
-    },
-    {
-      "capabilityId": "bmm:bmad-review-verification-gap",
-      "agentCodes": [],
-      "menuCodes": [],
-      "outputArchetype": "document_artifact",
-      "authorityClass": "model_with_reviewed_context",
-      "sourceDecision": "verbatim_adoption_under_adr_0008",
-      "activationStatus": "active",
-      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-review-verification-gap/SKILL.md",
-      "outputSchema": "sapphirus.bmad-document-artifact.v1"
-    },
-    {
-      "capabilityId": "bmm:bmad-editorial-review-prose",
-      "agentCodes": [],
-      "menuCodes": [],
-      "outputArchetype": "document_artifact",
-      "authorityClass": "model_with_reviewed_context",
-      "sourceDecision": "verbatim_adoption_under_adr_0008",
-      "activationStatus": "active",
-      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-editorial-review-prose/SKILL.md",
-      "outputSchema": "sapphirus.bmad-document-artifact.v1"
-    },
-    {
-      "capabilityId": "bmm:bmad-editorial-review-structure",
-      "agentCodes": [],
-      "menuCodes": [],
-      "outputArchetype": "document_artifact",
-      "authorityClass": "model_with_reviewed_context",
-      "sourceDecision": "verbatim_adoption_under_adr_0008",
-      "activationStatus": "active",
-      "managedProjection": "source/method/6.10.0/src/core-skills/bmad-editorial-review-structure/SKILL.md",
+      "managedProjection": "runtime/method/6.10.0/review.instructions.md",
       "outputSchema": "sapphirus.bmad-document-artifact.v1"
     },
     {

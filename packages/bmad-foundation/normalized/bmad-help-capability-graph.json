@@ -1,8 +1,8 @@
 {
   "schemaVersion": "sapphirus.bmad-help-capability-graph.v1",
   "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
-  "sourceCatalogSha256": "93ed7312aefb638ee7a0b7b48310a04374aeb4dcdbd30da661e5eff1bfba3466",
-  "sourceAliasCatalogSha256": "bd8f4a8da3303f25c64e384b410b0cd709ae3ee151ffed5d61e5a3a86b539b71",
+  "sourceCatalogSha256": "b0c51b033449f8b199bd9a21b0432741cef6bb4632798f63e96d5141d97b7609",
+  "sourceAliasCatalogSha256": "30c4b42017413ecafe2fd7e3c564d45dbccd30a7fdec53e815753db9e3cc77d2",
   "nodeCount": 45,
   "nodes": [
     {
@@ -726,7 +726,7 @@
         "governed_artifact"
       ],
       "supportState": "exact",
-      "uiState": "planned",
+      "uiState": "runtime_available",
       "rowIds": [
         "method:src/core-skills/bmad-review/SKILL.md",
         "method:src/core-skills/v6-shims/bmad-editorial-review-prose/SKILL.md",
@@ -736,7 +736,7 @@
         "method:src/core-skills/v6-shims/bmad-review-edge-case-hunter/SKILL.md",
         "method:src/core-skills/v6-shims/bmad-review-verification-gap/SKILL.md"
       ],
-      "nodeHash": "sha256:47b11346981772ea42792d33b7177b19ea829c0df2939b8f78da90e360c8683e"
+      "nodeHash": "sha256:353ba98e3a808d043a796671163a286a9b404f9251d01bd3700ae06b0c176769"
     }
   ],
   "aliasEdges": [
@@ -831,5 +831,5 @@
       "deprecated": true
     }
   ],
-  "graphHash": "sha256:ee754088695f5a58787e5e7e234df447249daa7dbefd5b60a6279e07f8b46404"
+  "graphHash": "sha256:1e2860d1ba3ea10feb0e7356371ef394c889e27435ca8ec5b3d5c4005115fbe6"
 }

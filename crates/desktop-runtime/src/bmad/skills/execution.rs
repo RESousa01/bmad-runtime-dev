@@ -34,6 +34,7 @@ pub enum BmadSkillToolIntent {
     FileWrite,
     Process,
     Web,
+    Network,
     Subagent,
     Browser,
     ExternalHandoff,
@@ -46,6 +47,7 @@ impl BmadSkillToolIntent {
             Self::FileWrite => "file_write",
             Self::Process => "process",
             Self::Web => "web",
+            Self::Network => "network",
             Self::Subagent => "subagent",
             Self::Browser => "browser",
             Self::ExternalHandoff => "external_handoff",
@@ -57,7 +59,9 @@ impl BmadSkillToolIntent {
     #[must_use]
     pub const fn required_plan_kind(self) -> BmadActionPlanKind {
         match self {
-            Self::FileRead | Self::Web | Self::Browser => BmadActionPlanKind::Read,
+            Self::FileRead | Self::Web | Self::Network | Self::Browser => {
+                BmadActionPlanKind::Read
+            }
             Self::FileWrite => BmadActionPlanKind::WriteProposal,
             Self::Process => BmadActionPlanKind::CommandProposal,
             Self::Subagent => BmadActionPlanKind::ModelCall,

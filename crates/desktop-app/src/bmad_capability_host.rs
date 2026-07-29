@@ -23,9 +23,9 @@ use desktop_runtime::{
     BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
     BmadCheckImplementationReadinessSkill, BmadClosureCapabilityId, BmadDocumentArtifact,
     BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft, BmadMethodSkill,
-    BmadPrdSkill, BmadSkillExecutionError, ContractId, RelativeWorkspacePath, Sha256Digest,
-    UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
-    BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+    BmadPrdSkill, BmadReviewSkill, BmadSkillExecutionError, ContractId, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+    BMAD_GOVERNED_CHANGE_SET_SCHEMA, BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -51,10 +51,11 @@ pub(crate) struct CapabilityBinding {
     pub projection_path: &'static str,
 }
 
-/// The 38 reviewed capabilities: 24 unique menu capabilities (ADR-0005),
+/// The 34 reviewed capabilities: 24 unique menu capabilities (ADR-0005),
 /// the five Builder authoring operations (ADR-0006) whose outputs are
-/// inactive drafts, and nine core skills adopted verbatim (ADR-0008).
-pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 38] = [
+/// inactive drafts, four standalone core skills adopted verbatim (ADR-0008),
+/// and the canonical review capability that owns all governed review aliases.
+pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 34] = [
     CapabilityBinding {
         id: "bmm:bmad-brainstorming",
         output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
@@ -216,34 +217,9 @@ pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 38] = [
         projection_path: "source/method/6.10.0/src/core-skills/bmad-advanced-elicitation/SKILL.md",
     },
     CapabilityBinding {
-        id: "bmm:bmad-review-adversarial-general",
+        id: "core:bmad-review",
         output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
-        projection_path:
-            "source/method/6.10.0/src/core-skills/bmad-review-adversarial-general/SKILL.md",
-    },
-    CapabilityBinding {
-        id: "bmm:bmad-review-edge-case-hunter",
-        output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
-        projection_path:
-            "source/method/6.10.0/src/core-skills/bmad-review-edge-case-hunter/SKILL.md",
-    },
-    CapabilityBinding {
-        id: "bmm:bmad-review-verification-gap",
-        output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
-        projection_path:
-            "source/method/6.10.0/src/core-skills/bmad-review-verification-gap/SKILL.md",
-    },
-    CapabilityBinding {
-        id: "bmm:bmad-editorial-review-prose",
-        output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
-        projection_path:
-            "source/method/6.10.0/src/core-skills/bmad-editorial-review-prose/SKILL.md",
-    },
-    CapabilityBinding {
-        id: "bmm:bmad-editorial-review-structure",
-        output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
-        projection_path:
-            "source/method/6.10.0/src/core-skills/bmad-editorial-review-structure/SKILL.md",
+        projection_path: "runtime/method/6.10.0/review.instructions.md",
     },
     CapabilityBinding {
         id: "bmm:bmad-shard-doc",
@@ -396,8 +372,9 @@ pub(crate) fn capability_binding(capability_id: &str) -> Option<&'static Capabil
     if !generated_catalog_shape_is_current() {
         return None;
     }
+    let canonical_id = catalog_target(capability_id)?;
     CAPABILITY_TABLE.iter().find(|binding| {
-        binding.id == capability_id && builder_binding_has_canonical_catalog_target(binding)
+        binding.id == canonical_id && builder_binding_has_canonical_catalog_target(binding)
     })
 }
 
@@ -423,8 +400,9 @@ fn generated_catalog_shape_is_current() -> bool {
 static BMAD_PRD_SKILL: BmadPrdSkill = BmadPrdSkill;
 static BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL: BmadCheckImplementationReadinessSkill =
     BmadCheckImplementationReadinessSkill;
+static BMAD_REVIEW_SKILL: BmadReviewSkill = BmadReviewSkill;
 
-fn canonical_method_skill(
+pub(crate) fn canonical_method_skill(
     capability_id: &str,
 ) -> Result<&'static dyn BmadMethodSkill, BmadSkillExecutionError> {
     let binding =
@@ -432,6 +410,7 @@ fn canonical_method_skill(
     match binding.id {
         "bmm:bmad-prd" => Ok(&BMAD_PRD_SKILL),
         "bmm:bmad-check-implementation-readiness" => Ok(&BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL),
+        "core:bmad-review" => Ok(&BMAD_REVIEW_SKILL),
         _ => Err(BmadSkillExecutionError::ContractUnavailable),
     }
 }
@@ -488,9 +467,10 @@ pub(crate) fn core_skill_capability_ids() -> Vec<&'static str> {
 /// why the library projection carries a separate Core module menu.
 #[must_use]
 pub(crate) fn is_core_skill_binding(binding: &CapabilityBinding) -> bool {
-    binding
-        .projection_path
-        .starts_with("source/method/6.10.0/src/core-skills/")
+    binding.id.starts_with("core:")
+        || binding
+            .projection_path
+            .starts_with("source/method/6.10.0/src/core-skills/")
 }
 
 pub(crate) fn runtime_capability_enabled(
@@ -499,7 +479,7 @@ pub(crate) fn runtime_capability_enabled(
 ) -> Result<bool, BmadProjectionError> {
     if matches!(
         binding.id,
-        "bmm:bmad-prd" | "bmm:bmad-check-implementation-readiness"
+        "bmm:bmad-prd" | "bmm:bmad-check-implementation-readiness" | "core:bmad-review"
     ) && (!UI_ADVERTISED_CAPABILITIES
         .iter()
         .any(|row| row.canonical_id == binding.id)

@@ -32,8 +32,6 @@ import {
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { fixtureDirName } from "../../packages/bmad-foundation/scripts/conformance.mjs";
-
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const foundationRoot = resolve(repositoryRoot, "packages/bmad-foundation");
 const catalogPath = resolve(foundationRoot, "capability-catalog.json");
@@ -99,7 +97,7 @@ function readJson(path) {
 
 function usage() {
   fail(
-    "usage: node tools/bmad100/verify-authority.mjs (--skill <rowId> | --all)",
+    "usage: node tools/bmad100/verify-authority.mjs (--skill <rowId-or-skill-id> | --all) [--json <path>]",
   );
 }
 
@@ -209,7 +207,8 @@ function checkSkill(rowId, catalog) {
     );
   }
 
-  const adapterPath = resolve(adapterDir, `${fixtureDirName(rowId)}.rs`);
+  const skillId = catalogRow.source.path.split("/").at(-2);
+  const adapterPath = resolve(adapterDir, `${skillId.replaceAll("-", "_")}.rs`);
   if (existsSync(adapterPath)) {
     const text = readFileSync(adapterPath, "utf8");
     for (const violation of violatingLines(adapterPath, text)) {

@@ -42,7 +42,7 @@ function readJson(path) {
 
 function usage() {
   fail(
-    "usage: node packages/bmad-foundation/scripts/conformance.mjs (--skill <rowId> | --all) [--all-modes] [--strict]",
+    "usage: node packages/bmad-foundation/scripts/conformance.mjs (--skill <rowId-or-skill-id> | --all) [--all-modes] [--strict] [--json <path>]",
   );
 }
 

@@ -14,9 +14,11 @@ use desktop_ipc::{
     ModelAuthStatusKindProjection, ValidatedCommandEnvelope,
 };
 use desktop_runtime::{
-    canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
-    CreateInertBmadHelpSession, InertBmadHelpSessionCoordinator, LocalCommand, LocalError,
-    LocalErrorCode, ProjectionEventKind, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    canonical_hash, sha256_bytes, BmadDomainRuntime, BmadHelpIntent, BmadLibraryProjectionScope,
+    BmadRuntimePort, BmadSkillHostBindingInput, CommandReceipt,
+    ContractId, CreateInertBmadHelpSession, CreateMethodSession, InertBmadHelpSessionCoordinator,
+    LocalCommand, LocalError, LocalErrorCode, MethodSessionRepository, MethodSessionService,
+    MethodState, ProjectionEventKind, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
 use desktop_store::{
     BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
@@ -2354,6 +2356,16 @@ fn prepare_bmad_capability_run(
         },
     )
     .map_err(map_capability_error)?;
+    prepare_canonical_method_session(
+        state,
+        foundation,
+        authority.authority(),
+        binding,
+        &configuration,
+        &project_id,
+        &prepare_input.run_id,
+        created_at,
+    )?;
     let review = state
         .bmad_capabilities
         .lock()
@@ -2366,6 +2378,136 @@ fn prepare_bmad_capability_run(
             architecture_step.map(crate::bmad_architecture::selected_step_progress),
         ),
     ))
+}
+
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the durable Method session binds each authority-bearing host fact explicitly"
+)]
+fn prepare_canonical_method_session(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    authority: &ReadyAuthorityGuard<'_>,
+    binding: &'static crate::bmad_capability_host::CapabilityBinding,
+    configuration: &crate::bmad_model::config::HelpModelConfiguration,
+    project_id: &ContractId,
+    run_id: &ContractId,
+    created_at: UnixMillis,
+) -> Result<(), LocalError> {
+    let skill = match crate::bmad_capability_host::canonical_method_skill(binding.id) {
+        Ok(skill) => skill,
+        Err(desktop_runtime::BmadSkillExecutionError::ContractUnavailable) => return Ok(()),
+        Err(_) => return Err(method_integrity_error()),
+    };
+    let descriptor = skill.describe().map_err(|_| method_integrity_error())?;
+    let customization_hash = descriptor
+        .declared_resources()
+        .iter()
+        .find(|resource| {
+            resource.path() == "src/core-skills/bmad-review/customize.toml"
+        })
+        .map(desktop_runtime::BmadResource::content_hash)
+        .ok_or_else(method_integrity_error)?;
+    let contract = skill
+        .execution_contract()
+        .map_err(|_| method_integrity_error())?;
+    let response_schema_hash = sha256_bytes(binding.output_schema_id.as_bytes());
+    let model_binding = configuration
+        .trusted_profile
+        .method_binding_for_response_schema(response_schema_hash)
+        .map_err(|_| method_integrity_error())?;
+    let request = contract
+        .bind_host_request(BmadSkillHostBindingInput {
+            mode: desktop_runtime::generated_contracts::BmadInvocationMode::Interactive,
+            action: None,
+            resolved_config_graph_hash: foundation
+                .help_invocation()
+                .central_config_graph_hash(),
+            resolved_config_hash: foundation
+                .help_invocation()
+                .central_config_resolution_hash(),
+            resolved_customization_hash: customization_hash,
+            model_binding,
+            egress_profile_hash: configuration.trusted_profile.egress_profile_hash(),
+        })
+        .map_err(|_| method_integrity_error())?;
+    let prepared = BmadDomainRuntime
+        .prepare_skill_execution(skill, request)
+        .map_err(|_| method_integrity_error())?;
+
+    let identity = state
+        .local_identity(authority)
+        .map_err(|_| method_integrity_error())?;
+    let authority_ref = identity
+        .authority_ref()
+        .map_err(|_| method_integrity_error())?;
+    let session_digest = canonical_hash(
+        "bmad-method-session-id",
+        1,
+        &(binding.id, run_id.as_str()),
+    )
+    .map_err(|_| method_integrity_error())?;
+    let session_id = crate::bmad_model::context::derived_contract_id("method", session_digest)
+        .map_err(|_| method_integrity_error())?;
+    let scope = desktop_runtime::MethodSessionScope {
+        owner_scope_ref: identity.owner_scope_ref().clone(),
+        project_id: project_id.clone(),
+        run_id: run_id.clone(),
+        authority_ref,
+    };
+    let store = state
+        .method_store(authority)
+        .map_err(|_| method_integrity_error())?;
+    if let Some(existing) = store
+        .load_method_session(&scope, &session_id)
+        .map_err(|_| method_integrity_error())?
+    {
+        return if existing.state() == MethodState::ContextReviewRequired
+            && existing.version() == 3
+            && existing.current_binding().ok() == Some(prepared.exact_binding())
+        {
+            Ok(())
+        } else {
+            Err(method_integrity_error())
+        };
+    }
+
+    let service = MethodSessionService::new(store);
+    let dispatched = BmadDomainRuntime
+        .dispatch_skill_execution(
+            &service,
+            skill,
+            request,
+            CreateMethodSession {
+            session_id: session_id.clone(),
+            owner_scope_ref: scope.owner_scope_ref.clone(),
+            project_id: project_id.clone(),
+            run_id: run_id.clone(),
+            authority_ref: scope.authority_ref.clone(),
+            created_at,
+            },
+        )
+        .map_err(|_| method_integrity_error())?;
+    if dispatched.session().state() != MethodState::CapabilityBound
+        || dispatched.session().version() != 2
+    {
+        return Err(method_integrity_error());
+    }
+    let review = service
+        .request_context_review(&scope, &session_id, 2)
+        .map_err(|_| method_integrity_error())?;
+    if review.state() != MethodState::ContextReviewRequired || review.version() != 3 {
+        return Err(method_integrity_error());
+    }
+    Ok(())
+}
+
+fn method_integrity_error() -> LocalError {
+    LocalError::new(
+        LocalErrorCode::IntegrityFailure,
+        "The canonical Method execution contract could not be prepared.",
+        false,
+    )
 }
 
 fn approve_bmad_capability_run(

@@ -3202,8 +3202,8 @@
     {
       "id": "method-233",
       "sourceId": "method",
-      "member": "src/core-skills/bmad-review-adversarial-general/SKILL.md",
-      "sha256": "3b70b004b662c3a094328a8666e0084a94cb6de2e2a7336f23d31c65bca084e7",
+      "member": "src/core-skills/bmad-review/SKILL.md",
+      "sha256": "bc46cdf66b37b4d49d414bdc5afc54747a9b19b3fecae471d451b36959343ec3",
       "treatments": [
         {
           "decision": "adopt",
@@ -3214,8 +3214,8 @@
     {
       "id": "method-234",
       "sourceId": "method",
-      "member": "src/core-skills/bmad-review-edge-case-hunter/SKILL.md",
-      "sha256": "03087a3f1e935f7a111bc2c8e1b44c2cf2cc05d9843e5af3c913a148c70d8c96",
+      "member": "src/core-skills/bmad-review/customize.toml",
+      "sha256": "38470c888a809ee030dc11d38868bb1ac5c1d547f06d218b711be5df53385c00",
       "treatments": [
         {
           "decision": "adopt",
@@ -3226,8 +3226,8 @@
     {
       "id": "method-235",
       "sourceId": "method",
-      "member": "src/core-skills/bmad-review-edge-case-hunter/references/deletion-check.md",
-      "sha256": "0f1f124e4e957147e89164a272b10bedc694ad0d9ad2618c8610ac74ee9cb0da",
+      "member": "src/core-skills/bmad-review/references/editorial-common.md",
+      "sha256": "f0cdc72ea345b2c5dc3001477b3dfcc909ca11b78f7db8865b6763d18ffc66c8",
       "treatments": [
         {
           "decision": "adopt",
@@ -3238,8 +3238,92 @@
     {
       "id": "method-236",
       "sourceId": "method",
-      "member": "src/core-skills/bmad-review-verification-gap/SKILL.md",
-      "sha256": "c18391f0f736312175a9e528d33b23ea3acaf0bd3bb4c05a4966d934075b1b28",
+      "member": "src/core-skills/bmad-review/references/lens-adversarial.md",
+      "sha256": "b90f69ec58d15c43d286a60e0d4d36a49223ab466f351b34a309ddda449c99b2",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-248",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-edge-case-hunter.md",
+      "sha256": "f2709e3adb40943ea0f19d0797be379caf0875eaef9a55081dc1e170e8288b68",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-249",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-prose.md",
+      "sha256": "4cbcb1eaea8567d272f5db7c6cdfd74ed5a8aae6831053cb2f01cbfc2cb98b98",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-250",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-structure.md",
+      "sha256": "98c08221f517133e57ef6325013935360c3365ebd7dcb8411b2050d7df507ee3",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-251",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-verification-gap.md",
+      "sha256": "6a424589b2f95021467dd357874163c219158d5a0acdbeb0970ba9e61692f289",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-252",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/structure-models.md",
+      "sha256": "f84f85070e1af75f2482757aba9d37d69d805a20826d185527e598f2ba6b9292",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-253",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/scripts/tests/test_word_metrics.py",
+      "sha256": "3b5a285d3c9f611b3cda8c9c1d52d6b214c1f72e6e64a94ea5b0e220db5a8765",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-254",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/scripts/word_metrics.py",
+      "sha256": "fb45007a7f3cfc18d13ee8bd4787facdaae297570193bc769456297dd33da78b",
       "treatments": [
         {
           "decision": "adopt",
@@ -5885,31 +5969,80 @@
     },
     {
       "sourceId": "method",
-      "member": "src/core-skills/bmad-review-adversarial-general/SKILL.md",
-      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review-adversarial-general/SKILL.md",
-      "sha256": "3b70b004b662c3a094328a8666e0084a94cb6de2e2a7336f23d31c65bca084e7",
-      "byteLength": 1447
+      "member": "src/core-skills/bmad-review/SKILL.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/SKILL.md",
+      "sha256": "bc46cdf66b37b4d49d414bdc5afc54747a9b19b3fecae471d451b36959343ec3",
+      "byteLength": 7470
     },
     {
       "sourceId": "method",
-      "member": "src/core-skills/bmad-review-edge-case-hunter/SKILL.md",
-      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review-edge-case-hunter/SKILL.md",
-      "sha256": "03087a3f1e935f7a111bc2c8e1b44c2cf2cc05d9843e5af3c913a148c70d8c96",
-      "byteLength": 4775
+      "member": "src/core-skills/bmad-review/customize.toml",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/customize.toml",
+      "sha256": "38470c888a809ee030dc11d38868bb1ac5c1d547f06d218b711be5df53385c00",
+      "byteLength": 5903
     },
     {
       "sourceId": "method",
-      "member": "src/core-skills/bmad-review-edge-case-hunter/references/deletion-check.md",
-      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review-edge-case-hunter/references/deletion-check.md",
-      "sha256": "0f1f124e4e957147e89164a272b10bedc694ad0d9ad2618c8610ac74ee9cb0da",
-      "byteLength": 1009
+      "member": "src/core-skills/bmad-review/references/editorial-common.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/references/editorial-common.md",
+      "sha256": "f0cdc72ea345b2c5dc3001477b3dfcc909ca11b78f7db8865b6763d18ffc66c8",
+      "byteLength": 5811
     },
     {
       "sourceId": "method",
-      "member": "src/core-skills/bmad-review-verification-gap/SKILL.md",
-      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review-verification-gap/SKILL.md",
-      "sha256": "c18391f0f736312175a9e528d33b23ea3acaf0bd3bb4c05a4966d934075b1b28",
-      "byteLength": 8793
+      "member": "src/core-skills/bmad-review/references/lens-adversarial.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/references/lens-adversarial.md",
+      "sha256": "b90f69ec58d15c43d286a60e0d4d36a49223ab466f351b34a309ddda449c99b2",
+      "byteLength": 1357
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-edge-case-hunter.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/references/lens-edge-case-hunter.md",
+      "sha256": "f2709e3adb40943ea0f19d0797be379caf0875eaef9a55081dc1e170e8288b68",
+      "byteLength": 3845
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-prose.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/references/lens-prose.md",
+      "sha256": "4cbcb1eaea8567d272f5db7c6cdfd74ed5a8aae6831053cb2f01cbfc2cb98b98",
+      "byteLength": 1354
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-structure.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/references/lens-structure.md",
+      "sha256": "98c08221f517133e57ef6325013935360c3365ebd7dcb8411b2050d7df507ee3",
+      "byteLength": 1582
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-verification-gap.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/references/lens-verification-gap.md",
+      "sha256": "6a424589b2f95021467dd357874163c219158d5a0acdbeb0970ba9e61692f289",
+      "byteLength": 8446
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/structure-models.md",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/references/structure-models.md",
+      "sha256": "f84f85070e1af75f2482757aba9d37d69d805a20826d185527e598f2ba6b9292",
+      "byteLength": 1972
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/scripts/tests/test_word_metrics.py",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/scripts/tests/test_word_metrics.py",
+      "sha256": "3b5a285d3c9f611b3cda8c9c1d52d6b214c1f72e6e64a94ea5b0e220db5a8765",
+      "byteLength": 1556
+    },
+    {
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/scripts/word_metrics.py",
+      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/scripts/word_metrics.py",
+      "sha256": "fb45007a7f3cfc18d13ee8bd4787facdaae297570193bc769456297dd33da78b",
+      "byteLength": 3441
     },
     {
       "sourceId": "method",

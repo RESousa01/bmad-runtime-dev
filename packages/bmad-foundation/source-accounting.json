@@ -13073,9 +13073,9 @@
         "authority_negative",
         "output_conformance"
       ],
-      "support_state": "implementation_pending",
-      "ui_state": "planned",
-      "release_state": "blocked_pending_conformance"
+      "support_state": "exact",
+      "ui_state": "runtime_available",
+      "release_state": "qualified"
     },
     {
       "member_key": "method:src/core-skills/module-help.csv",

@@ -117,6 +117,17 @@ impl MethodStepTable {
         &self.table_hash
     }
 
+    #[must_use]
+    pub fn ordered_keys(&self) -> Vec<&str> {
+        let mut ordered = Vec::with_capacity(self.steps.len());
+        let mut current = Some(self.initial_step_key.as_str());
+        while let Some(key) = current {
+            ordered.push(key);
+            current = self.steps.get(key).and_then(Option::as_deref);
+        }
+        ordered
+    }
+
     fn expected_next(&self, current: &str) -> Option<&Option<String>> {
         self.steps.get(current)
     }

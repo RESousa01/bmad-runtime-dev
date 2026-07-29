@@ -430,6 +430,7 @@ fn validate_execution_profile_data(data: &MethodExecutionProfileData) -> Result<
                     | "file_write"
                     | "process"
                     | "web"
+                    | "network"
                     | "subagent"
                     | "browser"
                     | "external_handoff"
