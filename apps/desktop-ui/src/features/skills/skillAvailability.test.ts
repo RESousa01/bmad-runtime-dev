@@ -205,10 +205,10 @@ describe("skillVerdict — what the coverage matrix adds", () => {
     expect(verdict.coverage).toEqual({
       kind: "recorded",
       runtimeState: "active_projection",
-      snapshotState: "modified",
-      decision: null,
+      snapshotState: "identical",
+      decision: "adopt",
       summary: expect.stringContaining("active in the closure ledger"),
-      sourceNote: "This build's copy of the source differs from the pinned upstream.",
+      sourceNote: "This build's copy of the source matches the pinned upstream.",
     });
   });
 
@@ -259,7 +259,7 @@ describe("capabilityCompatibility", () => {
       "bmad-architecture",
       "bmad-create-architecture",
     ]);
-    expect(compatibility.decisionRecorded).toBe(false);
+    expect(compatibility.decisionRecorded).toBe(true);
   });
 
   it("keeps the verb agreeing with the subject when several names forward", () => {
@@ -271,9 +271,9 @@ describe("capabilityCompatibility", () => {
   /// Reported as a different identity rather than as upstream's own: nothing
   /// upstream carries this name, so calling it "projected from" it would be a
   /// parity claim the matrix does not make.
-  it("says so when a capability is reached only through a legacy name", () => {
-    expect(capabilityCompatibility("bmm:bmad-domain-research").summary).toContain(
-      "Reached only through the legacy upstream name bmad-domain-research",
+  it("names generated legacy aliases beside their canonical capability", () => {
+    expect(capabilityCompatibility("core:bmad-deep-recon").summary).toContain(
+      "the legacy names bmad-domain-research, bmad-market-research, bmad-technical-research forward to it",
     );
   });
 

@@ -2432,11 +2432,14 @@ export const builderActions = bmadCapabilities.filter(
   (row) => row.source.id === "builder",
 );
 
+const hasRuntimeSupport = (row: { supportState: string }) =>
+  row.supportState !== "unavailable";
+
 // Presentation code must consume this projection instead of advertising rows
 // whose native closure has not yet been proved.
 export const uiAdvertisedBmadCapabilities = bmadCapabilities.filter(
   (row) =>
     row.visibility === "public"
     && row.uiState === "runtime_available"
-    && row.supportState !== "unavailable",
+    && hasRuntimeSupport(row),
 );

@@ -14,8 +14,8 @@ use crate::{canonical_hash, ContractId, Sha256Digest};
 
 use super::harness::{BmadMethodSkill, BmadSkillDescriptor, BmadSkillSupportState};
 use crate::bmad::{
-    BmadResource, BmadResourceSet, MethodArtifactExpectation, MethodExactBinding,
-    MethodExecutionProfile, MethodStepTable,
+    BmadCapabilityKey, BmadResource, BmadResourceSet, MethodArtifactExpectation,
+    MethodExactBinding, MethodExecutionProfile, MethodModelBinding, MethodStepTable,
 };
 
 const MAX_WORKFLOW_STEPS: usize = 64;
@@ -50,18 +50,42 @@ impl BmadSkillToolIntent {
         }
     }
 
-    /// Returns the only generic action-plan kind this intent may ask the host
-    /// to construct. Approval remains an action-plan and host concern.
+    /// Returns the governed host authority this source intent requires.
+    ///
+    /// Web lookup, browser control, and external handoff remain distinct:
+    /// collapsing them to a generic read or artifact plan would erase the
+    /// policy boundary the host must authorize.
     #[must_use]
-    pub const fn required_plan_kind(self) -> BmadActionPlanKind {
+    pub const fn authority_requirement(self) -> BmadSkillAuthorityRequirement {
         match self {
-            Self::FileRead | Self::Web | Self::Browser => BmadActionPlanKind::Read,
-            Self::FileWrite => BmadActionPlanKind::WriteProposal,
-            Self::Process => BmadActionPlanKind::CommandProposal,
-            Self::Subagent => BmadActionPlanKind::ModelCall,
-            Self::ExternalHandoff => BmadActionPlanKind::ArtifactPlan,
+            Self::FileRead => BmadSkillAuthorityRequirement::ActionPlan(BmadActionPlanKind::Read),
+            Self::FileWrite => {
+                BmadSkillAuthorityRequirement::ActionPlan(BmadActionPlanKind::WriteProposal)
+            }
+            Self::Process => {
+                BmadSkillAuthorityRequirement::ActionPlan(BmadActionPlanKind::CommandProposal)
+            }
+            Self::Subagent => {
+                BmadSkillAuthorityRequirement::ActionPlan(BmadActionPlanKind::ModelCall)
+            }
+            Self::Web => BmadSkillAuthorityRequirement::WebAccess,
+            Self::Browser => BmadSkillAuthorityRequirement::BrowserControl,
+            Self::ExternalHandoff => BmadSkillAuthorityRequirement::ExternalHandoff,
         }
     }
+}
+
+/// A host-governed authority requirement emitted by a source-bound contract.
+///
+/// `ActionPlan` reuses the established plan/Airlock vocabulary. The remaining
+/// variants deliberately have no generic plan substitute and must be handled
+/// by a host port that preserves their distinct approval and evidence policy.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum BmadSkillAuthorityRequirement {
+    ActionPlan(BmadActionPlanKind),
+    WebAccess,
+    BrowserControl,
+    ExternalHandoff,
 }
 
 /// Recovery declaration consumed by the existing Method session lifecycle.
@@ -89,6 +113,16 @@ pub struct BmadSkillExecutionWorkflow {
     pub steps: Vec<BmadSkillExecutionStep>,
 }
 
+/// One executable action/mode branch selected before a Method session binds.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BmadSkillExecutionBranch {
+    pub action: String,
+    pub mode: BmadInvocationMode,
+    pub workflow: BmadSkillExecutionWorkflow,
+    pub artifact_expectations: Vec<MethodArtifactExpectation>,
+    pub required_status_fields: Vec<String>,
+}
+
 /// Trusted, explicit opt-in data for one executable Method skill.
 ///
 /// Constructing this contract checks the source descriptor, resource closure,
@@ -109,9 +143,8 @@ pub struct BmadSkillExecutionContractInput {
     pub execution_profile: MethodExecutionProfile,
     pub validation_profile_hash: Sha256Digest,
     pub method_schema_hash: Sha256Digest,
-    pub workflow: BmadSkillExecutionWorkflow,
+    pub branches: Vec<BmadSkillExecutionBranch>,
     pub tool_intents: Vec<BmadSkillToolIntent>,
-    pub artifact_expectations: Vec<MethodArtifactExpectation>,
     pub recovery: BmadSkillRecoverySemantics,
 }
 
@@ -136,9 +169,8 @@ pub struct BmadSkillExecutionContract {
     validation_profile_hash: Sha256Digest,
     method_schema_hash: Sha256Digest,
     resource_set_hash: Sha256Digest,
-    workflow: BmadSkillExecutionWorkflow,
+    branches: Vec<BmadSkillExecutionBranch>,
     tool_intents: Vec<BmadSkillToolIntent>,
-    artifact_expectations: Vec<MethodArtifactExpectation>,
     recovery: BmadSkillRecoverySemantics,
 }
 
@@ -158,7 +190,10 @@ impl BmadSkillExecutionContract {
                 BmadSkillSupportState::Exact | BmadSkillSupportState::Adapted
             )
             || input.tool_intents.len() > MAX_TOOL_INTENTS
-            || input.artifact_expectations.len() > MAX_ARTIFACT_EXPECTATIONS
+            || input
+                .branches
+                .iter()
+                .any(|branch| branch.artifact_expectations.len() > MAX_ARTIFACT_EXPECTATIONS)
         {
             return Err(BmadSkillExecutionError::ContractInvalid);
         }
@@ -177,11 +212,7 @@ impl BmadSkillExecutionContract {
         }
         validate_execution_profile(&input.descriptor, &input.execution_profile)?;
         validate_tool_intents(&input.execution_profile, &input.tool_intents)?;
-        validate_artifact_expectations(
-            input.descriptor.artifact_kinds(),
-            &input.artifact_expectations,
-        )?;
-        validate_workflow(&input.workflow, &descriptor_resources)?;
+        validate_branches(&input.descriptor, &input.branches, &descriptor_resources)?;
 
         let descriptor_hash = descriptor_hash(&input.descriptor)?;
         let resource_set_hash = Self::resource_set_hash(&descriptor_resources)?;
@@ -201,9 +232,8 @@ impl BmadSkillExecutionContract {
             validation_profile_hash: input.validation_profile_hash,
             method_schema_hash: input.method_schema_hash,
             resource_set_hash,
-            workflow: input.workflow,
+            branches: input.branches,
             tool_intents: input.tool_intents,
-            artifact_expectations: input.artifact_expectations,
             recovery: input.recovery,
         })
     }
@@ -216,6 +246,66 @@ impl BmadSkillExecutionContract {
     #[must_use]
     pub fn package_version(&self) -> &str {
         &self.package_version
+    }
+
+    /// Builds the exact per-invocation request from host-owned model/config
+    /// facts and this source-sealed contract.
+    ///
+    /// # Errors
+    ///
+    /// Returns a closed invocation error when the requested action/mode has no
+    /// source-derived branch or the resulting exact binding is invalid.
+    pub fn execution_request(
+        &self,
+        input: BmadSkillExecutionBindingInput,
+    ) -> Result<BmadSkillExecutionRequest, BmadSkillExecutionError> {
+        let branch = self.branch(input.mode, &input.action)?;
+        let resources = BmadResourceSet::new(self.descriptor.declared_resources().to_vec())
+            .map_err(|_| BmadSkillExecutionError::ResourceMismatch)?;
+        let (module_code, skill_name) = canonical_skill_identity(&self.descriptor)?;
+        let exact_binding = MethodExactBinding {
+            capability_key: BmadCapabilityKey {
+                package_version_id: self.package_version_id.clone(),
+                module_code: module_code.to_owned(),
+                skill_name: skill_name.to_owned(),
+                normalized_action: Some(input.action.clone()),
+            },
+            package_descriptor_hash: self.package_descriptor_hash,
+            package_source_hash: self.package_source_hash,
+            instruction_projection_hash: self.instruction_projection_hash,
+            capability_catalog_hash: self.capability_catalog_hash,
+            agent_roster_hash: None,
+            agent_binding_hash: None,
+            agent_binding: None,
+            distribution_profile: self.distribution_profile.clone(),
+            install_profile: self.install_profile.clone(),
+            entrypoint_kind: self.execution_profile.data.entrypoint_kind.clone(),
+            execution_profile_hash: self.execution_profile.profile_hash,
+            execution_profile: self.execution_profile.clone(),
+            validation_profile: self.execution_profile.data.validation_profile.clone(),
+            validation_profile_hash: self.validation_profile_hash,
+            config_graph_hash: input.resolved_config_graph_hash,
+            config_resolution_hash: input.resolved_config_hash,
+            customization_hash: input.resolved_customization_hash,
+            resource_set_hash: self.resource_set_hash,
+            model_binding_hash: input.model_binding.binding_hash,
+            model_binding: input.model_binding,
+            method_schema_hash: self.method_schema_hash,
+            egress_profile_hash: input.egress_profile_hash,
+            artifact_expectations: branch.artifact_expectations.clone(),
+        };
+        exact_binding
+            .binding_hash()
+            .map_err(|_| BmadSkillExecutionError::BindingMismatch)?;
+        Ok(BmadSkillExecutionRequest {
+            mode: input.mode,
+            action: Some(input.action),
+            exact_binding,
+            resources,
+            resolved_config_graph_hash: input.resolved_config_graph_hash,
+            resolved_config_hash: input.resolved_config_hash,
+            resolved_customization_hash: input.resolved_customization_hash,
+        })
     }
 
     /// Computes the sealed resource-set digest used in an exact Method binding.
@@ -248,11 +338,25 @@ impl BmadSkillExecutionContract {
         validate_invocation(&descriptor, &self.execution_profile, &request)?;
         validate_resources(&descriptor, request.resources(), self.resource_set_hash)?;
         validate_binding(self, &request)?;
-        let step_table = build_step_table(&self.workflow)?;
-        let required_plan_kinds = self
+        let action = request
+            .action
+            .as_deref()
+            .ok_or(BmadSkillExecutionError::UnsupportedInvocation)?;
+        let branch = self.branch(request.mode, action)?.clone();
+        let step_table = build_step_table(&branch.workflow)?;
+        let authority_requirements = self
             .tool_intents
             .iter()
-            .map(|intent| intent.required_plan_kind())
+            .map(|intent| intent.authority_requirement())
+            .collect::<Vec<_>>();
+        let required_plan_kinds = authority_requirements
+            .iter()
+            .filter_map(|requirement| match requirement {
+                BmadSkillAuthorityRequirement::ActionPlan(kind) => Some(*kind),
+                BmadSkillAuthorityRequirement::WebAccess
+                | BmadSkillAuthorityRequirement::BrowserControl
+                | BmadSkillAuthorityRequirement::ExternalHandoff => None,
+            })
             .collect();
         Ok(BmadPreparedSkillExecution {
             descriptor,
@@ -261,12 +365,38 @@ impl BmadSkillExecutionContract {
             exact_binding: request.exact_binding,
             resources: request.resources,
             step_table,
+            workflow: branch.workflow,
             tool_intents: self.tool_intents.clone(),
+            authority_requirements,
             required_plan_kinds,
-            artifact_expectations: self.artifact_expectations.clone(),
+            artifact_expectations: branch.artifact_expectations,
+            required_status_fields: branch.required_status_fields,
             recovery: self.recovery,
         })
     }
+
+    fn branch(
+        &self,
+        mode: BmadInvocationMode,
+        action: &str,
+    ) -> Result<&BmadSkillExecutionBranch, BmadSkillExecutionError> {
+        self.branches
+            .iter()
+            .find(|branch| branch.mode == mode && branch.action == action)
+            .ok_or(BmadSkillExecutionError::UnsupportedInvocation)
+    }
+}
+
+/// Host-owned dynamic inputs used to bind one source-sealed branch.
+#[derive(Clone, Debug)]
+pub struct BmadSkillExecutionBindingInput {
+    pub mode: BmadInvocationMode,
+    pub action: String,
+    pub model_binding: MethodModelBinding,
+    pub resolved_config_graph_hash: Sha256Digest,
+    pub resolved_config_hash: Sha256Digest,
+    pub resolved_customization_hash: Sha256Digest,
+    pub egress_profile_hash: Sha256Digest,
 }
 
 /// Per-invocation, host-supplied immutable inputs for one preparation attempt.
@@ -319,9 +449,12 @@ pub struct BmadPreparedSkillExecution {
     exact_binding: MethodExactBinding,
     resources: BmadResourceSet,
     step_table: MethodStepTable,
+    workflow: BmadSkillExecutionWorkflow,
     tool_intents: Vec<BmadSkillToolIntent>,
+    authority_requirements: Vec<BmadSkillAuthorityRequirement>,
     required_plan_kinds: Vec<BmadActionPlanKind>,
     artifact_expectations: Vec<MethodArtifactExpectation>,
+    required_status_fields: Vec<String>,
     recovery: BmadSkillRecoverySemantics,
 }
 
@@ -357,6 +490,11 @@ impl BmadPreparedSkillExecution {
     }
 
     #[must_use]
+    pub fn workflow_steps(&self) -> &[BmadSkillExecutionStep] {
+        &self.workflow.steps
+    }
+
+    #[must_use]
     pub fn tool_intents(&self) -> &[BmadSkillToolIntent] {
         &self.tool_intents
     }
@@ -367,8 +505,18 @@ impl BmadPreparedSkillExecution {
     }
 
     #[must_use]
+    pub fn authority_requirements(&self) -> &[BmadSkillAuthorityRequirement] {
+        &self.authority_requirements
+    }
+
+    #[must_use]
     pub fn artifact_expectations(&self) -> &[MethodArtifactExpectation] {
         &self.artifact_expectations
+    }
+
+    #[must_use]
+    pub fn required_status_fields(&self) -> &[String] {
+        &self.required_status_fields
     }
 
     #[must_use]
@@ -525,6 +673,60 @@ fn validate_artifact_expectations(
     Ok(())
 }
 
+fn validate_branches(
+    descriptor: &BmadSkillDescriptor,
+    branches: &[BmadSkillExecutionBranch],
+    resources: &BmadResourceSet,
+) -> Result<(), BmadSkillExecutionError> {
+    if branches.is_empty() {
+        return Err(BmadSkillExecutionError::WorkflowInvalid);
+    }
+    let declared_actions = descriptor
+        .declared_actions()
+        .iter()
+        .map(|action| action.name.to_string())
+        .collect::<BTreeSet<_>>();
+    let declared_modes = descriptor
+        .supported_modes()
+        .iter()
+        .copied()
+        .collect::<BTreeSet<_>>();
+    let mut observed = BTreeSet::new();
+    for branch in branches {
+        if !declared_actions.contains(&branch.action)
+            || !declared_modes.contains(&branch.mode)
+            || !observed.insert((branch.action.as_str(), branch.mode))
+            || branch.required_status_fields.len() > 32
+            || branch.required_status_fields.iter().any(|field| {
+                !valid_token(field)
+                    || field.len() > MAX_PACKAGE_ID_BYTES
+                    || branch
+                        .required_status_fields
+                        .iter()
+                        .filter(|candidate| *candidate == field)
+                        .count()
+                        > 1
+            })
+        {
+            return Err(BmadSkillExecutionError::ContractInvalid);
+        }
+        validate_artifact_expectations(descriptor.artifact_kinds(), &branch.artifact_expectations)?;
+        validate_workflow(&branch.workflow, resources)?;
+    }
+    let expected = declared_actions
+        .iter()
+        .flat_map(|action| {
+            declared_modes
+                .iter()
+                .map(move |mode| (action.as_str(), *mode))
+        })
+        .collect::<BTreeSet<_>>();
+    if observed != expected {
+        return Err(BmadSkillExecutionError::ContractInvalid);
+    }
+    Ok(())
+}
+
 fn validate_workflow(
     workflow: &BmadSkillExecutionWorkflow,
     resources: &BmadResourceSet,
@@ -605,6 +807,16 @@ fn validate_binding(
         .map_err(|_| BmadSkillExecutionError::BindingMismatch)?;
     let (module, skill) = canonical_skill_identity(&contract.descriptor)?;
     let binding = &request.exact_binding;
+    let branch = request
+        .action
+        .as_deref()
+        .and_then(|action| {
+            contract
+                .branches
+                .iter()
+                .find(|branch| branch.mode == request.mode && branch.action == action)
+        })
+        .ok_or(BmadSkillExecutionError::UnsupportedInvocation)?;
     if binding.capability_key.package_version_id != contract.package_version_id
         || binding.capability_key.module_code != module
         || binding.capability_key.skill_name != skill
@@ -622,7 +834,7 @@ fn validate_binding(
         || binding.config_graph_hash != request.resolved_config_graph_hash
         || binding.config_resolution_hash != request.resolved_config_hash
         || binding.customization_hash != request.resolved_customization_hash
-        || binding.artifact_expectations != contract.artifact_expectations
+        || binding.artifact_expectations != branch.artifact_expectations
     {
         return Err(BmadSkillExecutionError::BindingMismatch);
     }

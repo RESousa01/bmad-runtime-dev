@@ -22,9 +22,8 @@ use desktop_runtime::{
     canonical_hash, deserialize_strict_json, sha256_bytes, BmadAgentRoster, BmadBuilderDraftFile,
     BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput, BmadClosureCapabilityId,
     BmadDocumentArtifact, BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft,
-    BmadMethodSkill, BmadPrdSkill, BmadSkillExecutionError, ContractId, RelativeWorkspacePath,
-    Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
-    BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+    ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+    BMAD_GOVERNED_CHANGE_SET_SCHEMA, BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -419,19 +418,6 @@ fn generated_catalog_shape_is_current() -> bool {
             == BUILDER_INTERNAL_ACTION_ROW_COUNT
 }
 
-static BMAD_PRD_SKILL: BmadPrdSkill = BmadPrdSkill;
-
-fn canonical_method_skill(
-    capability_id: &str,
-) -> Result<&'static dyn BmadMethodSkill, BmadSkillExecutionError> {
-    let binding =
-        capability_binding(capability_id).ok_or(BmadSkillExecutionError::ContractUnavailable)?;
-    match binding.id {
-        "bmm:bmad-prd" => Ok(&BMAD_PRD_SKILL),
-        _ => Err(BmadSkillExecutionError::ContractUnavailable),
-    }
-}
-
 fn catalog_target(capability_id: &str) -> Option<&'static str> {
     if let Some(capability) = GENERATED_CAPABILITIES
         .iter()
@@ -494,12 +480,9 @@ pub(crate) fn runtime_capability_enabled(
     binding: &CapabilityBinding,
 ) -> Result<bool, BmadProjectionError> {
     if binding.id == "bmm:bmad-prd"
-        && (!UI_ADVERTISED_CAPABILITIES
+        && !UI_ADVERTISED_CAPABILITIES
             .iter()
             .any(|row| row.canonical_id == binding.id)
-            || canonical_method_skill(binding.id)
-                .and_then(|skill| skill.execution_contract())
-                .is_err())
     {
         return Err(BmadProjectionError::Unavailable);
     }
@@ -1427,11 +1410,11 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::{
-        canonical_method_skill, capability_binding, catalog_target, context_candidate,
-        memlog_candidate, parse_capability_result, reviewed_method_menu_bindings,
-        sealed_instruction_candidate, validate_method_menu_capability_bindings,
-        WireCapabilityOutputVerifier, CAPABILITY_MANIFEST_LIFETIME_MS, CAPABILITY_TABLE,
-        MAX_CAPABILITY_CONTEXT_BYTES, MAX_CAPABILITY_CONTEXT_ITEMS, METHOD_MENU_CAPABILITY_TABLE,
+        capability_binding, catalog_target, context_candidate, memlog_candidate,
+        parse_capability_result, reviewed_method_menu_bindings, sealed_instruction_candidate,
+        validate_method_menu_capability_bindings, WireCapabilityOutputVerifier,
+        CAPABILITY_MANIFEST_LIFETIME_MS, CAPABILITY_TABLE, MAX_CAPABILITY_CONTEXT_BYTES,
+        MAX_CAPABILITY_CONTEXT_ITEMS, METHOD_MENU_CAPABILITY_TABLE,
     };
     use crate::bmad_foundation::load_bmad_foundation;
     use crate::bmad_model::capability_coordinator::BmadCapabilityOutputVerifier;
@@ -1442,8 +1425,8 @@ mod tests {
     };
     use desktop_ipc::BmadProjectionError;
     use desktop_runtime::{
-        sha256_bytes, BmadClosureCapabilityId, BmadSkillExecutionError, ContractId,
-        RelativeWorkspacePath, Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        sha256_bytes, BmadClosureCapabilityId, ContractId, RelativeWorkspacePath, Sha256Digest,
+        UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
     };
 
     fn foundation_path() -> std::path::PathBuf {
@@ -1506,25 +1489,6 @@ mod tests {
             assert!(canonical.starts_with("builder:bmad-"));
             assert!(capability_binding(binding.id).is_some());
         }
-    }
-
-    // Break caught: keeping PRD in the reviewed menu/catalog tables while the
-    // app host has no canonical route to the opted-in runtime adapter makes
-    // the capability visible but still unreachable.
-    #[test]
-    fn canonical_prd_dispatch_resolves_the_explicit_generic_runtime_adapter() {
-        let skill = canonical_method_skill("bmm:bmad-prd")
-            .expect("reviewed PRD capability resolves to its runtime adapter");
-        assert_eq!(skill.descriptor().canonical_id(), "bmm:bmad-prd");
-        assert!(skill.execution_contract().is_ok());
-        assert!(matches!(
-            canonical_method_skill("bmm:bmad-product-brief"),
-            Err(BmadSkillExecutionError::ContractUnavailable)
-        ));
-        assert!(matches!(
-            canonical_method_skill("bmm:not-reviewed"),
-            Err(BmadSkillExecutionError::ContractUnavailable)
-        ));
     }
 
     #[test]

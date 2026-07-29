@@ -4,14 +4,14 @@
 
 use desktop_runtime::{
     generated_contracts::{
-        BmadActionPlanKind, BmadArtifactCompletionHookRunHook, BmadArtifactKind, BmadInvocationMode,
+        BmadActionPlanKind, BmadArtifactCompletionHookRunHook, BmadArtifactKind,
+        BmadInvocationDeclaredActionName, BmadInvocationMode,
     },
-    sha256_bytes, BmadCapabilityKey, BmadDomainRuntime, BmadMethodSkill, BmadPrdSkill,
-    BmadResourceSet, BmadRuntimePort, BmadSkillExecutionContract, BmadSkillExecutionRequest,
+    sha256_bytes, BmadDomainRuntime, BmadMethodSkill, BmadPrdSkill, BmadRuntimePort,
+    BmadSkillAuthorityRequirement, BmadSkillExecutionBindingInput, BmadSkillExecutionRequest,
     BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
-    MethodArtifactExpectation, MethodEvidenceClass, MethodExactBinding, MethodExecutionProfile,
-    MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding, MethodModelBindingData,
-    MethodResourcePolicy, Sha256Digest,
+    MethodArtifactExpectation, MethodEvidenceClass, MethodModelBinding, MethodModelBindingData,
+    Sha256Digest,
 };
 
 const SKILL_ROOT: &str = "src/bmm-skills/2-plan-workflows/bmad-prd";
@@ -20,81 +20,31 @@ fn contract_id(value: &str) -> ContractId {
     ContractId::new(value).expect("canonical test identifier")
 }
 
-fn digest(value: &str) -> Sha256Digest {
-    Sha256Digest::parse(value).expect("canonical pinned digest")
-}
-
 fn test_digest(label: &str) -> Sha256Digest {
     sha256_bytes(label.as_bytes())
 }
 
-fn prd_execution_profile() -> MethodExecutionProfile {
-    MethodExecutionProfile::from_source(
-        MethodExecutionProfileData {
-            entrypoint_kind: "direct".to_owned(),
-            invocation_modes: MethodInvocationModes {
-                interactive: true,
-                headless: true,
-                actions: Vec::new(),
-            },
-            required_runtimes: Vec::new(),
-            resource_policy: MethodResourcePolicy {
-                entrypoint_timing: "invocation_start".to_owned(),
-                resource_timing: "all_declared_at_start".to_owned(),
-                declared_resource_paths: BmadPrdSkill
-                    .descriptor()
-                    .declared_resources()
-                    .iter()
-                    .map(|resource| resource.path().to_owned())
-                    .collect(),
-            },
-            declared_tool_intents: vec![
-                "file_read".to_owned(),
-                "file_write".to_owned(),
-                "process".to_owned(),
-                "web".to_owned(),
-                "subagent".to_owned(),
-                "external_handoff".to_owned(),
-            ],
-            state_hints: vec!["memlog".to_owned(), "artifact_workspace".to_owned()],
-            completion_evidence: vec![
-                "artifact".to_owned(),
-                "event".to_owned(),
-                "status_evidence".to_owned(),
-            ],
-            customization_profile: "method_skill_toml".to_owned(),
-            validation_profile: "MethodOfficialSkillV6".to_owned(),
-        },
-        digest("sha256:1e1652a19e34c8306315e5f47a5b791582d472604217f65780463ed8d768d64f"),
-    )
-    .expect("source-derived PRD execution profile")
-}
-
-fn prd_artifact_expectation() -> MethodArtifactExpectation {
+fn prd_artifact_expectation(
+    expectation_id: &str,
+    expected_media_type: &str,
+    output_hint: &str,
+) -> MethodArtifactExpectation {
     MethodArtifactExpectation::from_source(MethodArtifactExpectation {
         expectation_kind: "method_artifact".to_owned(),
-        expectation_id: contract_id("expectation_01J00000000000000000000008"),
+        expectation_id: contract_id(expectation_id),
         artifact_kind: "document".to_owned(),
         required: true,
         storage_scope: "app_local".to_owned(),
-        expected_media_type: "text/markdown".to_owned(),
+        expected_media_type: expected_media_type.to_owned(),
         expected_content_schema_hash: None,
-        source_output_hint: Some(
-            "{doc_workspace}/prd.md or {doc_workspace}/validation-report.{md,html}".to_owned(),
-        ),
+        source_output_hint: Some(output_hint.to_owned()),
         completion_evidence_class: MethodEvidenceClass::Authoritative,
-        expectation_hash: digest(
-            "sha256:3b263d0c06079b668d7a0b495a2a91b096f93084a5f529628be13c858f876c22",
-        ),
+        expectation_hash: test_digest(expectation_id),
     })
     .expect("source-derived PRD artifact expectation")
 }
 
-fn prd_request(mode: BmadInvocationMode) -> BmadSkillExecutionRequest {
-    let descriptor = BmadPrdSkill.descriptor();
-    let resources =
-        BmadResourceSet::new(descriptor.declared_resources().to_vec()).expect("closed resources");
-    let execution_profile = prd_execution_profile();
+fn prd_request(mode: BmadInvocationMode, action: &str) -> BmadSkillExecutionRequest {
     let egress_profile_hash = test_digest("test egress profile");
     let model_binding = MethodModelBinding::from_source(
         MethodModelBindingData {
@@ -112,63 +62,82 @@ fn prd_request(mode: BmadInvocationMode) -> BmadSkillExecutionRequest {
         test_digest("test model binding"),
     )
     .expect("valid inert model binding");
-    let resolved_config_graph_hash = test_digest("test config graph");
-    let resolved_config_hash = test_digest("test config resolution");
-    let resolved_customization_hash = test_digest("test customization");
-    let exact_binding = MethodExactBinding {
-        capability_key: BmadCapabilityKey {
-            package_version_id: contract_id(
-                "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+    BmadPrdSkill
+        .execution_contract()
+        .expect("PRD contract")
+        .execution_request(BmadSkillExecutionBindingInput {
+            mode,
+            action: action.to_owned(),
+            model_binding,
+            resolved_config_graph_hash: test_digest("test config graph"),
+            resolved_config_hash: test_digest("test config resolution"),
+            resolved_customization_hash: test_digest("test customization"),
+            egress_profile_hash,
+        })
+        .expect("source-derived PRD invocation request")
+}
+
+fn expected_artifacts(action: &str) -> Vec<MethodArtifactExpectation> {
+    match action {
+        "create" | "update" => vec![
+            prd_artifact_expectation(
+                "expectation_01J00000000000000000000008",
+                "text/markdown",
+                "{doc_workspace}/prd.md",
             ),
-            module_code: "bmm".to_owned(),
-            skill_name: "bmad-prd".to_owned(),
-            normalized_action: None,
-        },
-        package_descriptor_hash: digest(
-            "sha256:b3d3a62bee24df5565de4182f4774765c3abb5d829e05e3c72f362ae823601bc",
-        ),
-        package_source_hash: digest(
-            "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
-        ),
-        instruction_projection_hash: digest(
-            "sha256:020773a36111d798aaadbed06a1aaa40ae4c830140ebcd2b4f035245beb29d17",
-        ),
-        capability_catalog_hash: digest(
-            "sha256:56e4a4583b6e35790afbe8f968b2cc5f78d6d8baee54ec5167a8bf4db03b1875",
-        ),
-        agent_roster_hash: None,
-        agent_binding_hash: None,
-        agent_binding: None,
-        distribution_profile: "sapphirus_package".to_owned(),
-        install_profile: "SapphirusManagedV1".to_owned(),
-        entrypoint_kind: "direct".to_owned(),
-        execution_profile_hash: execution_profile.profile_hash,
-        execution_profile,
-        validation_profile: "MethodOfficialSkillV6".to_owned(),
-        validation_profile_hash: digest(
-            "sha256:3e851de810792a1caacb2f4e4c1ac2134359f5b9da8c3870c6c37b967b03efba",
-        ),
-        config_graph_hash: resolved_config_graph_hash,
-        config_resolution_hash: resolved_config_hash,
-        customization_hash: resolved_customization_hash,
-        resource_set_hash: BmadSkillExecutionContract::resource_set_hash(&resources)
-            .expect("closed PRD resource-set hash"),
-        model_binding_hash: model_binding.binding_hash,
-        model_binding,
-        method_schema_hash: digest(
-            "sha256:dda02f453dcf4edbb3fc66e0ad3a7c59d7087f5b44b526e40c435456c8c248c2",
-        ),
-        egress_profile_hash,
-        artifact_expectations: vec![prd_artifact_expectation()],
-    };
-    BmadSkillExecutionRequest {
-        mode,
-        action: None,
-        exact_binding,
-        resources,
-        resolved_config_graph_hash,
-        resolved_config_hash,
-        resolved_customization_hash,
+            prd_artifact_expectation(
+                "expectation_01J00000000000000000000009",
+                "text/markdown",
+                "{doc_workspace}/.memlog.md",
+            ),
+        ],
+        "validate" => vec![
+            prd_artifact_expectation(
+                "expectation_01J00000000000000000000010",
+                "text/markdown",
+                "{doc_workspace}/validation-report.md",
+            ),
+            prd_artifact_expectation(
+                "expectation_01J00000000000000000000011",
+                "text/html",
+                "{doc_workspace}/validation-report.html",
+            ),
+        ],
+        _ => panic!("unexpected PRD action"),
+    }
+}
+
+fn expected_steps(action: &str) -> Vec<&'static str> {
+    match action {
+        "create" => vec![
+            "activation",
+            "create_discovery",
+            "reviewer_gate",
+            "finalize",
+        ],
+        "update" => vec![
+            "activation",
+            "update_reconcile",
+            "reviewer_gate",
+            "finalize",
+        ],
+        "validate" => vec!["activation", "validate_reviewer_gate", "validation_report"],
+        _ => panic!("unexpected PRD action"),
+    }
+}
+
+fn action_names() -> Vec<String> {
+    BmadPrdSkill
+        .descriptor()
+        .declared_actions()
+        .iter()
+        .map(|action| action.name.to_string())
+        .collect()
+}
+
+fn assert_action_name_contract_compiles() {
+    for action in ["create", "update", "validate"] {
+        let _: BmadInvocationDeclaredActionName = action.try_into().expect("declared PRD action");
     }
 }
 
@@ -184,7 +153,8 @@ fn bmad_prd_descriptor_closes_the_pinned_skill_and_exposes_its_execution_shape()
         descriptor.source_path(),
         "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md"
     );
-    assert!(descriptor.declared_actions().is_empty());
+    assert_action_name_contract_compiles();
+    assert_eq!(action_names(), ["create", "update", "validate"]);
     assert_eq!(
         descriptor.supported_modes(),
         [
@@ -316,52 +286,66 @@ fn bmad_prd_exposes_an_explicit_generic_execution_contract() {
 fn bmad_prd_prepares_through_the_generic_runtime_in_both_declared_modes() {
     let runtime = BmadDomainRuntime;
 
-    for mode in [
-        BmadInvocationMode::Interactive,
-        BmadInvocationMode::Headless,
-    ] {
-        let prepared = runtime
-            .prepare_skill_execution(&BmadPrdSkill, prd_request(mode))
-            .expect("canonical PRD exact binding prepares");
+    for action in ["create", "update", "validate"] {
+        for mode in [
+            BmadInvocationMode::Interactive,
+            BmadInvocationMode::Headless,
+        ] {
+            let prepared = runtime
+                .prepare_skill_execution(&BmadPrdSkill, prd_request(mode, action))
+                .expect("canonical PRD action binding prepares");
 
-        assert_eq!(prepared.descriptor().canonical_id(), "bmm:bmad-prd");
-        assert_eq!(prepared.mode(), mode);
-        assert_eq!(prepared.action(), None);
-        assert_eq!(prepared.resources().resources().len(), 8);
-        assert_eq!(
-            prepared.tool_intents(),
-            [
-                BmadSkillToolIntent::FileRead,
-                BmadSkillToolIntent::FileWrite,
-                BmadSkillToolIntent::Process,
-                BmadSkillToolIntent::Web,
-                BmadSkillToolIntent::Subagent,
-                BmadSkillToolIntent::ExternalHandoff,
-            ]
-        );
-        assert_eq!(
-            prepared.required_plan_kinds(),
-            [
-                BmadActionPlanKind::Read,
-                BmadActionPlanKind::WriteProposal,
-                BmadActionPlanKind::CommandProposal,
-                BmadActionPlanKind::Read,
-                BmadActionPlanKind::ModelCall,
-                BmadActionPlanKind::ArtifactPlan,
-            ]
-        );
-        assert_eq!(
-            prepared.recovery(),
-            BmadSkillRecoverySemantics::MethodCheckpoint
-        );
-        assert_eq!(
-            prepared.artifact_expectations(),
-            [prd_artifact_expectation()]
-        );
-        assert!(prepared
-            .step_table()
-            .table_hash()
-            .to_string()
-            .starts_with("sha256:"));
+            assert_eq!(prepared.descriptor().canonical_id(), "bmm:bmad-prd");
+            assert_eq!(prepared.mode(), mode);
+            assert_eq!(prepared.action(), Some(action));
+            assert_eq!(prepared.resources().resources().len(), 8);
+            assert_eq!(
+                prepared.tool_intents(),
+                [
+                    BmadSkillToolIntent::FileRead,
+                    BmadSkillToolIntent::FileWrite,
+                    BmadSkillToolIntent::Process,
+                    BmadSkillToolIntent::Web,
+                    BmadSkillToolIntent::Subagent,
+                    BmadSkillToolIntent::Browser,
+                    BmadSkillToolIntent::ExternalHandoff,
+                ]
+            );
+            assert_eq!(
+                prepared.authority_requirements(),
+                [
+                    BmadSkillAuthorityRequirement::ActionPlan(BmadActionPlanKind::Read),
+                    BmadSkillAuthorityRequirement::ActionPlan(BmadActionPlanKind::WriteProposal),
+                    BmadSkillAuthorityRequirement::ActionPlan(BmadActionPlanKind::CommandProposal,),
+                    BmadSkillAuthorityRequirement::WebAccess,
+                    BmadSkillAuthorityRequirement::ActionPlan(BmadActionPlanKind::ModelCall),
+                    BmadSkillAuthorityRequirement::BrowserControl,
+                    BmadSkillAuthorityRequirement::ExternalHandoff,
+                ]
+            );
+            assert_eq!(
+                prepared.recovery(),
+                BmadSkillRecoverySemantics::MethodCheckpoint
+            );
+            assert_eq!(prepared.artifact_expectations(), expected_artifacts(action));
+            let expected_steps = expected_steps(action);
+            assert_eq!(
+                prepared
+                    .workflow_steps()
+                    .iter()
+                    .map(|step| step.step_key.as_str())
+                    .collect::<Vec<_>>(),
+                expected_steps,
+                "{action}/{mode:?} must retain the source-derived branch"
+            );
+            if mode == BmadInvocationMode::Headless {
+                assert_eq!(
+                    prepared.required_status_fields(),
+                    ["status", "intent", "assumptions", "open_questions"]
+                );
+            } else {
+                assert!(prepared.required_status_fields().is_empty());
+            }
+        }
     }
 }

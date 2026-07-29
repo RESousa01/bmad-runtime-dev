@@ -18,7 +18,8 @@ pub use adapters::{
     BmadPrfaqSkill, BmadProductBriefSkill, BmadReviewSkill, BmadSpecSkill, BmadUxSkill,
 };
 pub use execution::{
-    BmadPreparedSkillExecution, BmadSkillExecutionCompiler, BmadSkillExecutionContract,
+    BmadPreparedSkillExecution, BmadSkillAuthorityRequirement, BmadSkillExecutionBindingInput,
+    BmadSkillExecutionBranch, BmadSkillExecutionCompiler, BmadSkillExecutionContract,
     BmadSkillExecutionContractInput, BmadSkillExecutionError, BmadSkillExecutionPreparedPlan,
     BmadSkillExecutionRequest, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
     BmadSkillRecoverySemantics, BmadSkillToolIntent,
