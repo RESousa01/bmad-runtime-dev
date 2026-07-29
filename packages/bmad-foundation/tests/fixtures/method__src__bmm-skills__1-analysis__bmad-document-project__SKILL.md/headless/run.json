@@ -1,0 +1,17 @@
+{
+  "rowId": "method:src/bmm-skills/1-analysis/bmad-document-project/SKILL.md",
+  "canonicalId": "bmm:bmad-document-project",
+  "mode": "headless",
+  "description": "Resolves the workflow block and activation steps without waiting on interactive input, then executes ./instructions.md fully.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-document-project.toml",
+      "{project-root}/_bmad/custom/bmad-document-project.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"]
+  }
+}

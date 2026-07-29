@@ -1,0 +1,17 @@
+{
+  "rowId": "method:src/bmm-skills/1-analysis/bmad-agent-analyst/SKILL.md",
+  "canonicalId": "bmm:bmad-agent-analyst",
+  "mode": "headless",
+  "description": "Mary's activation sequence (resolve agent block, prepend/append steps, persistent facts, config load, greeting) runs without a menu presentation waiting on interactive input.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-agent-analyst.toml",
+      "{project-root}/_bmad/custom/bmad-agent-analyst.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"]
+  }
+}

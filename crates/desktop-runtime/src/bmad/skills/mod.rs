@@ -5,8 +5,13 @@
 //! is one path a downstream MTH task can `use` without reaching into a
 //! private submodule.
 
+mod adapters;
 mod harness;
 
+pub use adapters::{
+    BmadAgentAnalystSkill, BmadAgentTechWriterSkill, BmadDocumentProjectSkill, BmadPrfaqSkill,
+    BmadProductBriefSkill,
+};
 pub use harness::{
     BmadMethodSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillHarnessError,
     BmadSkillSupportState, BMAD_SKILL_HARNESS_SCHEMA,

@@ -1,0 +1,23 @@
+{
+  "rowId": "method:src/bmm-skills/1-analysis/bmad-product-brief/SKILL.md",
+  "canonicalId": "bmm:bmad-product-brief",
+  "mode": "headless",
+  "description": "Headless mode: completes the detected intent (create/update/validate) using provided or discoverable context without prompting; halts with a blocked JSON status and reason if intent stays ambiguous.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml"
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{doc_workspace}/brief.md",
+    "artifactKind": "document",
+    "statusSchema": {
+      "status": "complete | blocked",
+      "intent": "create | update | validate",
+      "brief": "{doc_workspace}/brief.md",
+      "addendum": "{doc_workspace}/addendum.md",
+      "memlog": "{doc_workspace}/.memlog.md",
+      "open_questions": [],
+      "external_handoffs": []
+    }
+  }
+}

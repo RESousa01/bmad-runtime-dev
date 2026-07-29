@@ -1,0 +1,19 @@
+{
+  "rowId": "method:src/bmm-skills/1-analysis/bmad-prfaq/SKILL.md",
+  "canonicalId": "bmm:bmad-prfaq",
+  "mode": "interactive",
+  "description": "Default mode: full interactive coaching through the five stages (Ignition, Press Release, Customer FAQ, Internal FAQ, Verdict), writing the working document progressively.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-prfaq.toml",
+      "{project-root}/_bmad/custom/bmad-prfaq.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{planning_artifacts}/prfaq-{project_name}.md",
+    "artifactKind": "document"
+  }
+}

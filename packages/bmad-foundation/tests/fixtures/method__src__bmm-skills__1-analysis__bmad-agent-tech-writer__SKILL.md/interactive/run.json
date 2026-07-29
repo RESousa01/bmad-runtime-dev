@@ -1,0 +1,17 @@
+{
+  "rowId": "method:src/bmm-skills/1-analysis/bmad-agent-tech-writer/SKILL.md",
+  "canonicalId": "bmm:bmad-agent-tech-writer",
+  "mode": "interactive",
+  "description": "Paige greets the user, renders {agent.menu} as a numbered table, and stops to wait for input before dispatching.",
+  "inputs": {
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "customization": [
+      "{skill-root}/customize.toml",
+      "{project-root}/_bmad/custom/bmad-agent-tech-writer.toml",
+      "{project-root}/_bmad/custom/bmad-agent-tech-writer.user.toml"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"]
+  }
+}

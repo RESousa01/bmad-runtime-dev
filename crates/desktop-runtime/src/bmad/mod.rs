@@ -186,8 +186,9 @@ pub use review::{
 pub use service::{MethodServiceError, MethodSessionService};
 pub use session::{BmadSessionIntent, BmadSessionTransitionError};
 pub use skills::{
-    BmadMethodSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillHarnessError,
-    BmadSkillSupportState, BMAD_SKILL_HARNESS_SCHEMA,
+    BmadAgentAnalystSkill, BmadAgentTechWriterSkill, BmadDocumentProjectSkill, BmadMethodSkill,
+    BmadPrfaqSkill, BmadProductBriefSkill, BmadSkillDescriptor, BmadSkillDescriptorInput,
+    BmadSkillHarnessError, BmadSkillSupportState, BMAD_SKILL_HARNESS_SCHEMA,
 };
 pub use source::{BmadSourcePackage, BmadSourceService};
 pub use state_machine::{

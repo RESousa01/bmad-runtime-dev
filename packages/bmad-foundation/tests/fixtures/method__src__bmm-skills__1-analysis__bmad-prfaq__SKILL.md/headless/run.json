@@ -1,0 +1,21 @@
+{
+  "rowId": "method:src/bmm-skills/1-analysis/bmad-prfaq/SKILL.md",
+  "canonicalId": "bmm:bmad-prfaq",
+  "mode": "headless",
+  "description": "--headless / -H mode: validates the required input schema (customer, problem, stakes, solution), fans out artifact-analyzer and web-researcher subagents, and produces a complete first-draft PRFAQ without interaction.",
+  "inputs": {
+    "requiredFields": ["customer", "problem", "stakes", "solution"],
+    "optionalFields": [
+      "competitive context",
+      "technical constraints",
+      "team/org context",
+      "target market",
+      "existing research"
+    ]
+  },
+  "outputs": {
+    "outputLocations": ["planning_artifacts"],
+    "artifact": "{planning_artifacts}/prfaq-{project_name}.md",
+    "artifactKind": "document"
+  }
+}
