@@ -1055,6 +1055,123 @@ export interface BmadInvocationBudget {
   maxPromptedInputs: number;
 }
 
+export interface BmadReviewResultSapphirusBmadReviewResultV1 {
+  schemaVersion: "sapphirus.bmad-review-result.v1";
+  reviewId: string;
+  lens: "security" | "quality" | "architecture" | "completeness" | "evidence_gap" | "eval_readiness";
+  targetKind: "artifact" | "skill" | "module" | "workflow" | "code_change" | "completion_evidence";
+  targetHash: string;
+  /**
+   * @maxItems 512
+   */
+  deterministicFindings: BmadReviewResultFinding[];
+  /**
+   * @maxItems 512
+   */
+  modelFindings: BmadReviewResultFinding[];
+  verification: BmadReviewResultVerification;
+  disposition: "passed" | "advisory" | "blocked";
+  resultHash: string;
+}
+export interface BmadReviewResultFinding {
+  findingId: string;
+  origin: "deterministic" | "model";
+  severity: "info" | "low" | "medium" | "high" | "critical";
+  code: string;
+  evidence: BmadReviewResultEvidenceLocation;
+  verificationState: "unverified" | "verified" | "refuted";
+  summary?: string;
+}
+export interface BmadReviewResultEvidenceLocation {
+  locator: string;
+  contentHash: string;
+  line?: number;
+}
+export interface BmadReviewResultVerification {
+  /**
+   * @maxItems 64
+   */
+  requiredEvidence: string[];
+  /**
+   * @maxItems 64
+   */
+  presentEvidence: string[];
+  gapsBlockCompletion: boolean;
+}
+
+export interface BmadProblemSapphirusBmadProblemV1 {
+  schemaVersion: "sapphirus.bmad-problem.v1";
+  problemId: string;
+  sessionId: string;
+  failureClass: "source" | "input" | "model" | "tool" | "validation" | "authority" | "store" | "cancel" | "external";
+  code: string;
+  retry: BmadProblemRetry;
+  preservedState: BmadProblemPreservedState;
+  cancellation?: BmadProblemCancellation;
+  /**
+   * @maxItems 16
+   */
+  recoveryActions: BmadProblemRecoveryAction[];
+  detail?: string;
+}
+export interface BmadProblemRetry {
+  eligible: boolean;
+  retryIdentity: string;
+  attempt: number;
+  maxAttempts: number;
+}
+export interface BmadProblemPreservedState {
+  draftsPreserved: boolean;
+  acceptedInputsPreserved: boolean;
+  stateHash: string;
+}
+export interface BmadProblemCancellation {
+  requestedAtSequence: number;
+  acknowledged: boolean;
+  acknowledgedAtSequence?: number;
+}
+export interface BmadProblemRecoveryAction {
+  action: "retry" | "repair" | "resume" | "supply_input" | "reauthorize" | "rollback" | "abandon";
+  available: boolean;
+  reason?: string;
+}
+
+export interface BmadContextContributionSapphirusBmadContextContributionV1 {
+  schemaVersion: "sapphirus.bmad-context-contribution.v1";
+  projectionId: string;
+  sessionId: string;
+  purpose: "preview" | "dispatch";
+  identities: BmadContextContributionIdentities;
+  /**
+   * @maxItems 512
+   */
+  contributions: BmadContextContributionContribution[];
+  estimatedTokens: number;
+  outputReserveTokens?: number;
+  reportedUsage?: BmadContextContributionReportedUsage;
+  projectionHash: string;
+}
+export interface BmadContextContributionIdentities {
+  sourceId: string;
+  packageId: string;
+  configHash: string;
+  modelId: string;
+  policyHash: string;
+}
+export interface BmadContextContributionContribution {
+  ordinal: number;
+  kind: "instructions" | "config" | "customization" | "artifact" | "session_state" | "tool_catalog" | "summary";
+  sourceHash: string;
+  estimatedTokens: number;
+  inclusionReason:
+    "required_by_source" | "requested_by_customization" | "carried_from_session" | "summarized_for_budget";
+  transformation: "verbatim" | "redacted" | "compacted" | "truncated";
+}
+export interface BmadContextContributionReportedUsage {
+  promptTokens: number;
+  completionTokens: number;
+}
+
 export interface BmadMemorySapphirusBmadMemoryV1 {
   schemaVersion: "sapphirus.bmad-memory.v1";
   memoryId: string;

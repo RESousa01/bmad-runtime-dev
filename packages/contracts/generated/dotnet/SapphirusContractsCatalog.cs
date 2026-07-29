@@ -199,6 +199,22 @@ public readonly partial struct SapphirusContractsCatalog
     }
 
     /// <summary>
+    /// Gets the (optional) <c>bmadContextContribution</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution BmadContextContributionValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadContextContributionValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Gets the (optional) <c>bmadCustomization</c> property.
     /// </summary>
     public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization BmadCustomizationValue
@@ -286,6 +302,38 @@ public readonly partial struct SapphirusContractsCatalog
         get
         {
             if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadPackageDescriptorValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>bmadProblem</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem BmadProblemValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadProblemValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Gets the (optional) <c>bmadReviewResult</c> property.
+    /// </summary>
+    public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult BmadReviewResultValue
+    {
+        get
+        {
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadReviewResultValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult value))
             {
                 return value;
             }
@@ -1399,6 +1447,11 @@ public readonly partial struct SapphirusContractsCatalog
         public const string BmadConfigValue = "bmadConfig";
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="BmadContextContributionValue"/>.
+        /// </summary>
+        public const string BmadContextContributionValue = "bmadContextContribution";
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="BmadCustomizationValue"/>.
         /// </summary>
         public const string BmadCustomizationValue = "bmadCustomization";
@@ -1427,6 +1480,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the JSON property name for <see cref="BmadPackageDescriptorValue"/>.
         /// </summary>
         public const string BmadPackageDescriptorValue = "bmadPackageDescriptor";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="BmadProblemValue"/>.
+        /// </summary>
+        public const string BmadProblemValue = "bmadProblem";
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="BmadReviewResultValue"/>.
+        /// </summary>
+        public const string BmadReviewResultValue = "bmadReviewResult";
 
         /// <summary>
         /// Gets the JSON property name for <see cref="BmadScriptPlanValue"/>.
@@ -1654,6 +1717,11 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> BmadConfigValueUtf8 => "bmadConfig"u8;
 
         /// <summary>
+        /// Gets the JSON property name for <see cref="BmadContextContributionValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadContextContributionValueUtf8 => "bmadContextContribution"u8;
+
+        /// <summary>
         /// Gets the JSON property name for <see cref="BmadCustomizationValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadCustomizationValueUtf8 => "bmadCustomization"u8;
@@ -1682,6 +1750,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the JSON property name for <see cref="BmadPackageDescriptorValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadPackageDescriptorValueUtf8 => "bmadPackageDescriptor"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="BmadProblemValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadProblemValueUtf8 => "bmadProblem"u8;
+
+        /// <summary>
+        /// Gets the JSON property name for <see cref="BmadReviewResultValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadReviewResultValueUtf8 => "bmadReviewResult"u8;
 
         /// <summary>
         /// Gets the JSON property name for <see cref="BmadScriptPlanValue"/>.
@@ -1915,6 +1993,11 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> BmadConfigValue => "bmadConfig"u8;
 
         /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="BmadContextContributionValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadContextContributionValue => "bmadContextContribution"u8;
+
+        /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="BmadCustomizationValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadCustomizationValue => "bmadCustomization"u8;
@@ -1943,6 +2026,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the escaped UTF-8 JSON property name for <see cref="BmadPackageDescriptorValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadPackageDescriptorValue => "bmadPackageDescriptor"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="BmadProblemValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadProblemValue => "bmadProblem"u8;
+
+        /// <summary>
+        /// Gets the escaped UTF-8 JSON property name for <see cref="BmadReviewResultValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadReviewResultValue => "bmadReviewResult"u8;
 
         /// <summary>
         /// Gets the escaped UTF-8 JSON property name for <see cref="BmadScriptPlanValue"/>.
@@ -2177,6 +2270,11 @@ public readonly partial struct SapphirusContractsCatalog
         public static ReadOnlySpan<byte> BmadConfigValue => [0xC5, 0x00, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x43, 0x6F, 0x6E, 0x66, 0x69, 0x67, 0x22];
 
         /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="BmadContextContributionValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadContextContributionValue => [0x95, 0x01, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x43, 0x6F, 0x6E, 0x74, 0x65, 0x78, 0x74, 0x43, 0x6F, 0x6E, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x69, 0x6F, 0x6E, 0x22];
+
+        /// <summary>
         /// Gets the pre-baked property name blob for <see cref="BmadCustomizationValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadCustomizationValue => [0x35, 0x01, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x43, 0x75, 0x73, 0x74, 0x6F, 0x6D, 0x69, 0x7A, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x22];
@@ -2205,6 +2303,16 @@ public readonly partial struct SapphirusContractsCatalog
         /// Gets the pre-baked property name blob for <see cref="BmadPackageDescriptorValue"/>.
         /// </summary>
         public static ReadOnlySpan<byte> BmadPackageDescriptorValue => [0x75, 0x01, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x50, 0x61, 0x63, 0x6B, 0x61, 0x67, 0x65, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x6F, 0x72, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="BmadProblemValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadProblemValue => [0xD5, 0x00, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x50, 0x72, 0x6F, 0x62, 0x6C, 0x65, 0x6D, 0x22];
+
+        /// <summary>
+        /// Gets the pre-baked property name blob for <see cref="BmadReviewResultValue"/>.
+        /// </summary>
+        public static ReadOnlySpan<byte> BmadReviewResultValue => [0x25, 0x01, 0x00, 0x00, 0x22, 0x62, 0x6D, 0x61, 0x64, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x52, 0x65, 0x73, 0x75, 0x6C, 0x74, 0x22];
 
         /// <summary>
         /// Gets the pre-baked property name blob for <see cref="BmadScriptPlanValue"/>.

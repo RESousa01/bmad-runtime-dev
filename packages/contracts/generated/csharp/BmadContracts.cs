@@ -23,6 +23,9 @@ public static class BmadContracts
         new("sapphirus.bmad-config.v1", typeof(BmadConfig)),
         new("sapphirus.bmad-customization.v1", typeof(BmadCustomization)),
         new("sapphirus.bmad-invocation.v1", typeof(BmadInvocation)),
+        new("sapphirus.bmad-review-result.v1", typeof(BmadReviewResult)),
+        new("sapphirus.bmad-problem.v1", typeof(BmadProblem)),
+        new("sapphirus.bmad-context-contribution.v1", typeof(BmadContextContribution)),
         new("sapphirus.bmad-memory.v1", typeof(BmadMemory)),
         new("sapphirus.bmad-upgrade.v1", typeof(BmadUpgrade)),
     ];

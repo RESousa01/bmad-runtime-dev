@@ -40,6 +40,7 @@ pub use bmad::{
     BmadActionPlanRequest, BmadAgentMenuRecord, BmadAgentRecord, BmadAgentRoster,
     BmadAgentRosterBuilder, BmadAgentSource, BmadArchitectureDecision, BmadArchitectureError,
     BmadArchitectureSession, BmadArchitectureStep, BmadArchitectureStepRecord,
+    BmadContextProjectionError, BmadDependencyError, BmadFailureError, BmadReviewError,
     BmadArtifactClassification, BmadArtifactEvidence, BmadArtifactEvidenceKind, BmadArtifactIntent,
     BmadArtifactIntentKind, BmadArtifactLineageView, BmadArtifactReference,
     BmadArtifactTransitionError, BmadBuilderDraftFile, BmadBuilderDraftKind, BmadCandidateChange,

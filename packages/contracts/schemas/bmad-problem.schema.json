@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-problem.schema.json",
+  "title": "sapphirus.bmad-problem.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "problemId", "sessionId", "failureClass", "code", "retry", "preservedState", "recoveryActions"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-problem.v1" },
+    "problemId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "failureClass": { "enum": ["source", "input", "model", "tool", "validation", "authority", "store", "cancel", "external"] },
+    "code": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" },
+    "retry": { "$ref": "#/$defs/Retry" },
+    "preservedState": { "$ref": "#/$defs/PreservedState" },
+    "cancellation": { "$ref": "#/$defs/Cancellation" },
+    "recoveryActions": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/RecoveryAction" } },
+    "detail": { "type": "string", "minLength": 1, "maxLength": 4096 }
+  },
+  "$defs": {
+    "Retry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eligible", "retryIdentity", "attempt", "maxAttempts"],
+      "properties": {
+        "eligible": { "type": "boolean" },
+        "retryIdentity": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "attempt": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "maxAttempts": { "type": "integer", "minimum": 0, "maximum": 64 }
+      }
+    },
+    "PreservedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["draftsPreserved", "acceptedInputsPreserved", "stateHash"],
+      "properties": {
+        "draftsPreserved": { "type": "boolean" },
+        "acceptedInputsPreserved": { "type": "boolean" },
+        "stateHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "Cancellation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestedAtSequence", "acknowledged"],
+      "properties": {
+        "requestedAtSequence": { "type": "integer", "minimum": 0, "maximum": 1048576 },
+        "acknowledged": { "type": "boolean" },
+        "acknowledgedAtSequence": { "type": "integer", "minimum": 0, "maximum": 1048576 }
+      }
+    },
+    "RecoveryAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "available"],
+      "properties": {
+        "action": { "enum": ["retry", "repair", "resume", "supply_input", "reauthorize", "rollback", "abandon"] },
+        "available": { "type": "boolean" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    }
+  }
+}

@@ -322,6 +322,96 @@
       }
     },
     {
+      "schema": "bmad-review-result.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-review-result.v1",
+        "reviewId": "review_01J00000000000000000000000",
+        "lens": "security",
+        "targetKind": "artifact",
+        "targetHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "deterministicFindings": [
+          {
+            "findingId": "secret_literal",
+            "origin": "deterministic",
+            "severity": "high",
+            "code": "secret_literal",
+            "evidence": {
+              "locator": "docs/brief.md",
+              "contentHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            },
+            "verificationState": "verified"
+          }
+        ],
+        "modelFindings": [],
+        "verification": {
+          "requiredEvidence": [
+            "schema_shape"
+          ],
+          "presentEvidence": [
+            "schema_shape"
+          ],
+          "gapsBlockCompletion": false
+        },
+        "disposition": "blocked",
+        "resultHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    },
+    {
+      "schema": "bmad-problem.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-problem.v1",
+        "problemId": "problem_01J00000000000000000000000",
+        "sessionId": "session_01J00000000000000000000000",
+        "failureClass": "model",
+        "code": "model_unavailable",
+        "retry": {
+          "eligible": true,
+          "retryIdentity": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "attempt": 1,
+          "maxAttempts": 3
+        },
+        "preservedState": {
+          "draftsPreserved": true,
+          "acceptedInputsPreserved": true,
+          "stateHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        "recoveryActions": [
+          {
+            "action": "retry",
+            "available": true
+          }
+        ]
+      }
+    },
+    {
+      "schema": "bmad-context-contribution.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-context-contribution.v1",
+        "projectionId": "projection_01J00000000000000000000000",
+        "sessionId": "session_01J00000000000000000000000",
+        "purpose": "preview",
+        "identities": {
+          "sourceId": "source_01J00000000000000000000000",
+          "packageId": "package_01J00000000000000000000000",
+          "configHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "modelId": "model_01J00000000000000000000000",
+          "policyHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        "contributions": [
+          {
+            "ordinal": 0,
+            "kind": "instructions",
+            "sourceHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "estimatedTokens": 512,
+            "inclusionReason": "required_by_source",
+            "transformation": "verbatim"
+          }
+        ],
+        "estimatedTokens": 512,
+        "projectionHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+      }
+    },
+    {
       "schema": "bmad-memory.schema.json",
       "value": {
         "schemaVersion": "sapphirus.bmad-memory.v1",

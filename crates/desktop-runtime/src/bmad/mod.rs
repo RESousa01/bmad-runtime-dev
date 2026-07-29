@@ -9,6 +9,10 @@ mod catalog;
 mod completion;
 mod config;
 mod customization;
+mod review;
+mod failure;
+mod context_projection;
+mod dependencies;
 mod error;
 mod help;
 mod help_binding;
@@ -87,6 +91,10 @@ pub use customization::{
     BmadCustomizationRequest, BmadCustomizationResolution, BmadCustomizationResolver,
     BmadCustomizationStatus, BmadCustomizationTextOverlay,
 };
+pub use review::BmadReviewError;
+pub use failure::BmadFailureError;
+pub use context_projection::BmadContextProjectionError;
+pub use dependencies::BmadDependencyError;
 pub use error::{MethodError, MethodErrorCode};
 pub use help::{
     BmadArtifactEvidence, BmadArtifactEvidenceKind, BmadHelpAdvisor, BmadHelpConfidence,

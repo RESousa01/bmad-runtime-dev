@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-problem.schema.json",
+  "branch": "sapphirus.bmad-problem.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-problem.v1",
+    "problemId": "problem_01J00000000000000000000000",
+    "sessionId": "session_01J00000000000000000000000",
+    "failureClass": "model",
+    "code": "model_unavailable",
+    "retry": {
+      "eligible": true,
+      "retryIdentity": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "attempt": 1,
+      "maxAttempts": 3
+    },
+    "preservedState": {
+      "draftsPreserved": true,
+      "acceptedInputsPreserved": true,
+      "stateHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    "recoveryActions": [
+      {
+        "action": "retry",
+        "available": true
+      }
+    ]
+  },
+  "canonicalJson": "{\"code\":\"model_unavailable\",\"failureClass\":\"model\",\"preservedState\":{\"acceptedInputsPreserved\":true,\"draftsPreserved\":true,\"stateHash\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\"},\"problemId\":\"problem_01J00000000000000000000000\",\"recoveryActions\":[{\"action\":\"retry\",\"available\":true}],\"retry\":{\"attempt\":1,\"eligible\":true,\"maxAttempts\":3,\"retryIdentity\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\"},\"schemaVersion\":\"sapphirus.bmad-problem.v1\",\"sessionId\":\"session_01J00000000000000000000000\"}",
+  "expectedHash": "sha256:5a2a42e771b214e2e22b322480684f16cbc083466e29095ed647dcae60ec87ea"
+}

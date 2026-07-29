@@ -306,6 +306,22 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Gets the (optional) <c>bmadContextContribution</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Mutable BmadContextContributionValue
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadContextContributionValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Gets the (optional) <c>bmadCustomization</c> property.
         /// </summary>
         public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Mutable BmadCustomizationValue
@@ -393,6 +409,38 @@ public readonly partial struct SapphirusContractsCatalog
             get
             {
                 if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadPackageDescriptorValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>bmadProblem</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Mutable BmadProblemValue
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadProblemValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Mutable value))
+                {
+                    return value;
+                }
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the (optional) <c>bmadReviewResult</c> property.
+        /// </summary>
+        public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Mutable BmadReviewResultValue
+        {
+            get
+            {
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadReviewResultValueUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Mutable value))
                 {
                     return value;
                 }
@@ -1786,6 +1834,87 @@ public readonly partial struct SapphirusContractsCatalog
         }
 
         /// <summary>
+        /// Set the <c>bmadContextContribution</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetBmadContextContributionValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadContextContributionValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadContextContributionValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadContextContributionValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>bmadContextContribution</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetBmadContextContributionValue<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadContextContributionValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadContextContributionValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadContextContributionValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>bmadContextContribution</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveBmadContextContributionValue()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadContextContributionValueUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
         /// Set the <c>bmadCustomization</c> property.
         /// </summary>
         /// <param name="value">The value of the property to add.</param>
@@ -2267,6 +2396,168 @@ public readonly partial struct SapphirusContractsCatalog
         {
             CheckValidInstance();
             bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadPackageDescriptorValueUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
+        /// Set the <c>bmadProblem</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetBmadProblemValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadProblemValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadProblemValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadProblemValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>bmadProblem</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetBmadProblemValue<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadProblemValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadProblemValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadProblemValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>bmadProblem</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveBmadProblemValue()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadProblemValueUtf8);
+            _documentVersion = _parent.Version;
+            return result;
+        }
+
+        /// <summary>
+        /// Set the <c>bmadReviewResult</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetBmadReviewResultValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source value)
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadReviewResultValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadReviewResultValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadReviewResultValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Set the <c>bmadReviewResult</c> property.
+        /// </summary>
+        /// <param name="value">The value of the property to add.</param>
+        public void SetBmadReviewResultValue<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source<TContext> value)
+#if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+#endif
+        {
+            CheckValidInstance();
+
+            if (value.IsUndefined)
+            {
+                JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadReviewResultValueUtf8);
+                _documentVersion = _parent.Version;
+                return;
+            }
+
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+            if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.BmadReviewResultValueUtf8, out IJsonDocument? elementParent, out int elementIdx))
+            {
+                // We are going to replace just the value
+                value.AddAsItem(ref cvb);
+                _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+            }
+            else
+            {
+                // We are going to insert the new value
+                value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadReviewResultValue, ref cvb);
+                int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+            }
+
+            _documentVersion = _parent.Version;
+        }
+
+        /// <summary>
+        /// Remove the <c>bmadReviewResult</c> property, if present.
+        /// </summary>
+        /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+        public bool RemoveBmadReviewResultValue()
+        {
+            CheckValidInstance();
+            bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.BmadReviewResultValueUtf8);
             _documentVersion = _parent.Version;
             return result;
         }
@@ -5598,12 +5889,15 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source bmadCapabilityResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source bmadCapabilityRun = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source bmadConfig = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source bmadContextContribution = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source bmadCustomization = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source bmadEval = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source bmadInvocation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source bmadMemory = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source bmadModule = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source bmadProblem = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source bmadReviewResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source bmadScriptPlan = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source bmadSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source bmadSkillPackage = default,
@@ -5650,12 +5944,15 @@ public readonly partial struct SapphirusContractsCatalog
             bmadCapabilityResult.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadCapabilityResultValue, ref builder);
             bmadCapabilityRun.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadCapabilityRunValue, ref builder);
             bmadConfig.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadConfigValue, ref builder);
+            bmadContextContribution.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadContextContributionValue, ref builder);
             bmadCustomization.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadCustomizationValue, ref builder);
             bmadEval.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadEvalValue, ref builder);
             bmadInvocation.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadInvocationValue, ref builder);
             bmadMemory.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadMemoryValue, ref builder);
             bmadModule.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadModuleValue, ref builder);
             bmadPackageDescriptor.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadPackageDescriptorValue, ref builder);
+            bmadProblem.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadProblemValue, ref builder);
+            bmadReviewResult.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadReviewResultValue, ref builder);
             bmadScriptPlan.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadScriptPlanValue, ref builder);
             bmadSession.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadSessionValue, ref builder);
             bmadSkillPackage.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadSkillPackageValue, ref builder);
@@ -5707,12 +6004,15 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source bmadCapabilityResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source bmadCapabilityRun = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source bmadConfig = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source bmadContextContribution = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source bmadCustomization = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source bmadEval = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source bmadInvocation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source bmadMemory = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source bmadModule = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source bmadProblem = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source bmadReviewResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source bmadScriptPlan = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source bmadSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source bmadSkillPackage = default,
@@ -5750,7 +6050,7 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default)
         {
-            Create(ref _builder, approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            Create(ref _builder, approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadContextContribution, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadProblem, bmadReviewResult, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         }
 
         /// <summary>
@@ -5768,12 +6068,15 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source<TContext> bmadCapabilityResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source<TContext> bmadCapabilityRun = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source<TContext> bmadConfig = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source<TContext> bmadContextContribution = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source<TContext> bmadCustomization = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source<TContext> bmadEval = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source<TContext> bmadInvocation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source<TContext> bmadMemory = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source<TContext> bmadModule = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source<TContext> bmadProblem = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source<TContext> bmadReviewResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source<TContext> bmadScriptPlan = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source<TContext> bmadSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source<TContext> bmadSkillPackage = default,
@@ -5823,12 +6126,15 @@ public readonly partial struct SapphirusContractsCatalog
             bmadCapabilityResult.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadCapabilityResultValue, ref builder);
             bmadCapabilityRun.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadCapabilityRunValue, ref builder);
             bmadConfig.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadConfigValue, ref builder);
+            bmadContextContribution.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadContextContributionValue, ref builder);
             bmadCustomization.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadCustomizationValue, ref builder);
             bmadEval.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadEvalValue, ref builder);
             bmadInvocation.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadInvocationValue, ref builder);
             bmadMemory.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadMemoryValue, ref builder);
             bmadModule.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadModuleValue, ref builder);
             bmadPackageDescriptor.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadPackageDescriptorValue, ref builder);
+            bmadProblem.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadProblemValue, ref builder);
+            bmadReviewResult.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadReviewResultValue, ref builder);
             bmadScriptPlan.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadScriptPlanValue, ref builder);
             bmadSession.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadSessionValue, ref builder);
             bmadSkillPackage.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.BmadSkillPackageValue, ref builder);
@@ -5881,12 +6187,15 @@ public readonly partial struct SapphirusContractsCatalog
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source<TContext> bmadCapabilityResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source<TContext> bmadCapabilityRun = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source<TContext> bmadConfig = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source<TContext> bmadContextContribution = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source<TContext> bmadCustomization = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source<TContext> bmadEval = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source<TContext> bmadInvocation = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source<TContext> bmadMemory = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source<TContext> bmadModule = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source<TContext> bmadProblem = default,
+            in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source<TContext> bmadReviewResult = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source<TContext> bmadScriptPlan = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source<TContext> bmadSession = default,
             in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source<TContext> bmadSkillPackage = default,
@@ -5927,7 +6236,7 @@ public readonly partial struct SapphirusContractsCatalog
         where TContext : allows ref struct
         #endif
         {
-            Create(context, ref _builder, approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            Create(context, ref _builder, approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadContextContribution, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadProblem, bmadReviewResult, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         }
 
         internal static void BuildValue(Build value, ref ComplexValueBuilder o)
@@ -6086,12 +6395,15 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="bmadCapabilityResult">The value of the property.</param>
     /// <param name="bmadCapabilityRun">The value of the property.</param>
     /// <param name="bmadConfig">The value of the property.</param>
+    /// <param name="bmadContextContribution">The value of the property.</param>
     /// <param name="bmadCustomization">The value of the property.</param>
     /// <param name="bmadEval">The value of the property.</param>
     /// <param name="bmadInvocation">The value of the property.</param>
     /// <param name="bmadMemory">The value of the property.</param>
     /// <param name="bmadModule">The value of the property.</param>
     /// <param name="bmadPackageDescriptor">The value of the property.</param>
+    /// <param name="bmadProblem">The value of the property.</param>
+    /// <param name="bmadReviewResult">The value of the property.</param>
     /// <param name="bmadScriptPlan">The value of the property.</param>
     /// <param name="bmadSession">The value of the property.</param>
     /// <param name="bmadSkillPackage">The value of the property.</param>
@@ -6130,13 +6442,13 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="specConsumptionRecord">The value of the property.</param>
     /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
     /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-    public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan.Source bmadActionPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Source bmadArtifact = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadBuilderPromotion.Source bmadBuilderPromotion = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source bmadConfig = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source bmadCustomization = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source bmadEval = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source bmadInvocation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source bmadMemory = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source bmadModule = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source bmadScriptPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source bmadSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source bmadSkillPackage = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceAccounting.Source bmadSourceAccounting = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceIdentity.Source bmadSourceIdentity = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadUpgrade.Source bmadUpgrade = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot.Source foundryDeploymentSnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessCompatibility.Source modelAccessCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceiptV2.Source modelAccessReceiptV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestV2.Source modelAccessRequestV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResultV2.Source modelAccessResultV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog.Source modelCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile.Source modelProfile = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelStreamEvent.Source modelStreamEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default, int initialCapacity = 30)
+    public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan.Source bmadActionPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Source bmadArtifact = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadBuilderPromotion.Source bmadBuilderPromotion = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source bmadConfig = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source bmadContextContribution = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source bmadCustomization = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source bmadEval = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source bmadInvocation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source bmadMemory = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source bmadModule = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source bmadProblem = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source bmadReviewResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source bmadScriptPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source bmadSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source bmadSkillPackage = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceAccounting.Source bmadSourceAccounting = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceIdentity.Source bmadSourceIdentity = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadUpgrade.Source bmadUpgrade = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot.Source foundryDeploymentSnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessCompatibility.Source modelAccessCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceiptV2.Source modelAccessReceiptV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestV2.Source modelAccessRequestV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResultV2.Source modelAccessResultV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog.Source modelCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile.Source modelProfile = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelStreamEvent.Source modelStreamEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default, int initialCapacity = 30)
     {
         JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
         ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
         cvb.StartObject();
         Builder ovb = new(cvb);
-        ovb.Create(approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+        ovb.Create(approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadContextContribution, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadProblem, bmadReviewResult, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         cvb = ovb._builder;
         cvb.EndObject();
         ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -6158,12 +6470,15 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="bmadCapabilityResult">The value of the property.</param>
     /// <param name="bmadCapabilityRun">The value of the property.</param>
     /// <param name="bmadConfig">The value of the property.</param>
+    /// <param name="bmadContextContribution">The value of the property.</param>
     /// <param name="bmadCustomization">The value of the property.</param>
     /// <param name="bmadEval">The value of the property.</param>
     /// <param name="bmadInvocation">The value of the property.</param>
     /// <param name="bmadMemory">The value of the property.</param>
     /// <param name="bmadModule">The value of the property.</param>
     /// <param name="bmadPackageDescriptor">The value of the property.</param>
+    /// <param name="bmadProblem">The value of the property.</param>
+    /// <param name="bmadReviewResult">The value of the property.</param>
     /// <param name="bmadScriptPlan">The value of the property.</param>
     /// <param name="bmadSession">The value of the property.</param>
     /// <param name="bmadSkillPackage">The value of the property.</param>
@@ -6202,7 +6517,7 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="specConsumptionRecord">The value of the property.</param>
     /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
     /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-    public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source<TContext> approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source<TContext> authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan.Source<TContext> bmadActionPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Source<TContext> bmadArtifact = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadBuilderPromotion.Source<TContext> bmadBuilderPromotion = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source<TContext> bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source<TContext> bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source<TContext> bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source<TContext> bmadConfig = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source<TContext> bmadCustomization = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source<TContext> bmadEval = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source<TContext> bmadInvocation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source<TContext> bmadMemory = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source<TContext> bmadModule = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source<TContext> bmadScriptPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source<TContext> bmadSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source<TContext> bmadSkillPackage = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceAccounting.Source<TContext> bmadSourceAccounting = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceIdentity.Source<TContext> bmadSourceIdentity = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadUpgrade.Source<TContext> bmadUpgrade = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source<TContext> bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source<TContext> desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source<TContext> desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source<TContext> desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot.Source<TContext> foundryDeploymentSnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessCompatibility.Source<TContext> modelAccessCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source<TContext> modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceiptV2.Source<TContext> modelAccessReceiptV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source<TContext> modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestV2.Source<TContext> modelAccessRequestV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source<TContext> modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResultV2.Source<TContext> modelAccessResultV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog.Source<TContext> modelCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile.Source<TContext> modelProfile = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelStreamEvent.Source<TContext> modelStreamEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source<TContext> specConsumptionRecord = default, int initialCapacity = 30)
+    public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source<TContext> approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source<TContext> authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan.Source<TContext> bmadActionPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Source<TContext> bmadArtifact = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadBuilderPromotion.Source<TContext> bmadBuilderPromotion = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source<TContext> bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source<TContext> bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source<TContext> bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source<TContext> bmadConfig = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source<TContext> bmadContextContribution = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source<TContext> bmadCustomization = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source<TContext> bmadEval = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source<TContext> bmadInvocation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source<TContext> bmadMemory = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source<TContext> bmadModule = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source<TContext> bmadProblem = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source<TContext> bmadReviewResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source<TContext> bmadScriptPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source<TContext> bmadSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source<TContext> bmadSkillPackage = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceAccounting.Source<TContext> bmadSourceAccounting = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceIdentity.Source<TContext> bmadSourceIdentity = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadUpgrade.Source<TContext> bmadUpgrade = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source<TContext> bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source<TContext> desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source<TContext> desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source<TContext> desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot.Source<TContext> foundryDeploymentSnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessCompatibility.Source<TContext> modelAccessCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source<TContext> modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceiptV2.Source<TContext> modelAccessReceiptV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source<TContext> modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestV2.Source<TContext> modelAccessRequestV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source<TContext> modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResultV2.Source<TContext> modelAccessResultV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog.Source<TContext> modelCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile.Source<TContext> modelProfile = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelStreamEvent.Source<TContext> modelStreamEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source<TContext> specConsumptionRecord = default, int initialCapacity = 30)
         #if NET9_0_OR_GREATER
         where TContext : allows ref struct
         #endif
@@ -6211,7 +6526,7 @@ public readonly partial struct SapphirusContractsCatalog
         ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
         cvb.StartObject();
         Builder ovb = new(cvb);
-        ovb.Create(context, approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+        ovb.Create(context, approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadContextContribution, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadProblem, bmadReviewResult, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
         cvb = ovb._builder;
         cvb.EndObject();
         ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -6321,12 +6636,15 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="bmadCapabilityResult">The value of the property.</param>
     /// <param name="bmadCapabilityRun">The value of the property.</param>
     /// <param name="bmadConfig">The value of the property.</param>
+    /// <param name="bmadContextContribution">The value of the property.</param>
     /// <param name="bmadCustomization">The value of the property.</param>
     /// <param name="bmadEval">The value of the property.</param>
     /// <param name="bmadInvocation">The value of the property.</param>
     /// <param name="bmadMemory">The value of the property.</param>
     /// <param name="bmadModule">The value of the property.</param>
     /// <param name="bmadPackageDescriptor">The value of the property.</param>
+    /// <param name="bmadProblem">The value of the property.</param>
+    /// <param name="bmadReviewResult">The value of the property.</param>
     /// <param name="bmadScriptPlan">The value of the property.</param>
     /// <param name="bmadSession">The value of the property.</param>
     /// <param name="bmadSkillPackage">The value of the property.</param>
@@ -6365,7 +6683,7 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="specConsumptionRecord">The value of the property.</param>
     /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
     /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
-    public static ParsedJsonDocument<SapphirusContractsCatalog> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan.Source bmadActionPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Source bmadArtifact = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadBuilderPromotion.Source bmadBuilderPromotion = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source bmadConfig = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source bmadCustomization = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source bmadEval = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source bmadInvocation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source bmadMemory = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source bmadModule = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source bmadScriptPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source bmadSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source bmadSkillPackage = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceAccounting.Source bmadSourceAccounting = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceIdentity.Source bmadSourceIdentity = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadUpgrade.Source bmadUpgrade = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot.Source foundryDeploymentSnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessCompatibility.Source modelAccessCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceiptV2.Source modelAccessReceiptV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestV2.Source modelAccessRequestV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResultV2.Source modelAccessResultV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog.Source modelCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile.Source modelProfile = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelStreamEvent.Source modelStreamEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default, int initialCapacity = 30)
+    public static ParsedJsonDocument<SapphirusContractsCatalog> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan.Source bmadActionPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Source bmadArtifact = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadBuilderPromotion.Source bmadBuilderPromotion = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source bmadConfig = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source bmadContextContribution = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source bmadCustomization = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source bmadEval = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source bmadInvocation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source bmadMemory = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source bmadModule = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source bmadProblem = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source bmadReviewResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source bmadScriptPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source bmadSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source bmadSkillPackage = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceAccounting.Source bmadSourceAccounting = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceIdentity.Source bmadSourceIdentity = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadUpgrade.Source bmadUpgrade = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot.Source foundryDeploymentSnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessCompatibility.Source modelAccessCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceiptV2.Source modelAccessReceiptV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestV2.Source modelAccessRequestV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResultV2.Source modelAccessResultV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog.Source modelCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile.Source modelProfile = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelStreamEvent.Source modelStreamEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source specConsumptionRecord = default, int initialCapacity = 30)
     {
         ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
         try
@@ -6373,7 +6691,7 @@ public readonly partial struct SapphirusContractsCatalog
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            ovb.Create(approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadContextContribution, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadProblem, bmadReviewResult, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -6399,12 +6717,15 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="bmadCapabilityResult">The value of the property.</param>
     /// <param name="bmadCapabilityRun">The value of the property.</param>
     /// <param name="bmadConfig">The value of the property.</param>
+    /// <param name="bmadContextContribution">The value of the property.</param>
     /// <param name="bmadCustomization">The value of the property.</param>
     /// <param name="bmadEval">The value of the property.</param>
     /// <param name="bmadInvocation">The value of the property.</param>
     /// <param name="bmadMemory">The value of the property.</param>
     /// <param name="bmadModule">The value of the property.</param>
     /// <param name="bmadPackageDescriptor">The value of the property.</param>
+    /// <param name="bmadProblem">The value of the property.</param>
+    /// <param name="bmadReviewResult">The value of the property.</param>
     /// <param name="bmadScriptPlan">The value of the property.</param>
     /// <param name="bmadSession">The value of the property.</param>
     /// <param name="bmadSkillPackage">The value of the property.</param>
@@ -6443,7 +6764,7 @@ public readonly partial struct SapphirusContractsCatalog
     /// <param name="specConsumptionRecord">The value of the property.</param>
     /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
     /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
-    public static ParsedJsonDocument<SapphirusContractsCatalog> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source<TContext> approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source<TContext> authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan.Source<TContext> bmadActionPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Source<TContext> bmadArtifact = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadBuilderPromotion.Source<TContext> bmadBuilderPromotion = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source<TContext> bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source<TContext> bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source<TContext> bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source<TContext> bmadConfig = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source<TContext> bmadCustomization = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source<TContext> bmadEval = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source<TContext> bmadInvocation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source<TContext> bmadMemory = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source<TContext> bmadModule = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source<TContext> bmadScriptPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source<TContext> bmadSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source<TContext> bmadSkillPackage = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceAccounting.Source<TContext> bmadSourceAccounting = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceIdentity.Source<TContext> bmadSourceIdentity = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadUpgrade.Source<TContext> bmadUpgrade = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source<TContext> bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source<TContext> desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source<TContext> desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source<TContext> desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot.Source<TContext> foundryDeploymentSnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessCompatibility.Source<TContext> modelAccessCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source<TContext> modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceiptV2.Source<TContext> modelAccessReceiptV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source<TContext> modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestV2.Source<TContext> modelAccessRequestV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source<TContext> modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResultV2.Source<TContext> modelAccessResultV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog.Source<TContext> modelCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile.Source<TContext> modelProfile = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelStreamEvent.Source<TContext> modelStreamEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source<TContext> specConsumptionRecord = default, int initialCapacity = 30)
+    public static ParsedJsonDocument<SapphirusContractsCatalog> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ApprovedExecutionSpec.Source<TContext> approvedExecutionSpec = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonAuthorityRef.Source<TContext> authorityRef = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadActionPlan.Source<TContext> bmadActionPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Source<TContext> bmadArtifact = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadBuilderPromotion.Source<TContext> bmadBuilderPromotion = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityCatalog.Source<TContext> bmadCapabilityCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityResult.Source<TContext> bmadCapabilityResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCapabilityRun.Source<TContext> bmadCapabilityRun = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadConfig.Source<TContext> bmadConfig = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadContextContribution.Source<TContext> bmadContextContribution = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadCustomization.Source<TContext> bmadCustomization = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadEval.Source<TContext> bmadEval = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadInvocation.Source<TContext> bmadInvocation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadMemory.Source<TContext> bmadMemory = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadModule.Source<TContext> bmadModule = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadPackageDescriptor.Source<TContext> bmadPackageDescriptor = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadProblem.Source<TContext> bmadProblem = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadReviewResult.Source<TContext> bmadReviewResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadScriptPlan.Source<TContext> bmadScriptPlan = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSession.Source<TContext> bmadSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSkillPackage.Source<TContext> bmadSkillPackage = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceAccounting.Source<TContext> bmadSourceAccounting = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadSourceIdentity.Source<TContext> bmadSourceIdentity = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadUpgrade.Source<TContext> bmadUpgrade = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadValidationReport.Source<TContext> bmadValidationReport = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BuilderAuthoringObject.Source<TContext> builderAuthoringObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CandidateAction.Source<TContext> candidateAction = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ContractError.Source<TContext> contractError = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopDeviceRegistration.Source<TContext> desktopDeviceRegistration = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopEntitlementLease.Source<TContext> desktopEntitlementLease = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DesktopPolicy.Source<TContext> desktopPolicy = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.DurableObject.Source<TContext> durableObject = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.EvidenceEvent.Source<TContext> evidenceEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ExecutionResultManifest.Source<TContext> executionResultManifest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FilesystemCapabilitySnapshot.Source<TContext> filesystemCapabilitySnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.FoundryDeploymentSnapshot.Source<TContext> foundryDeploymentSnapshot = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodAdvanceResult.Source<TContext> methodAdvanceResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodHelpProposal.Source<TContext> methodHelpProposal = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSessionMethodHelpRecommendation.Source<TContext> methodHelpRecommendation = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.MethodSession.Source<TContext> methodSession = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessCompatibility.Source<TContext> modelAccessCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceipt.Source<TContext> modelAccessReceipt = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessReceiptV2.Source<TContext> modelAccessReceiptV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequest.Source<TContext> modelAccessRequest = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessRequestV2.Source<TContext> modelAccessRequestV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResult.Source<TContext> modelAccessResult = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelAccessResultV2.Source<TContext> modelAccessResultV2 = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelCatalog.Source<TContext> modelCatalog = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelContextConsent.Source<TContext> modelContextConsent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelProfile.Source<TContext> modelProfile = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.ModelStreamEvent.Source<TContext> modelStreamEvent = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.PackageCompatibility.Source<TContext> packageCompatibility = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.RemoteJobHandoff.Source<TContext> remoteJobHandoff = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.SpecConsumptionRecord.Source<TContext> specConsumptionRecord = default, int initialCapacity = 30)
         #if NET9_0_OR_GREATER
         where TContext : allows ref struct
         #endif
@@ -6454,7 +6775,7 @@ public readonly partial struct SapphirusContractsCatalog
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(context, approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
+            ovb.Create(context, approvedExecutionSpec, authorityRef, bmadActionPlan, bmadArtifact, bmadBuilderPromotion, bmadCapabilityCatalog, bmadCapabilityResult, bmadCapabilityRun, bmadConfig, bmadContextContribution, bmadCustomization, bmadEval, bmadInvocation, bmadMemory, bmadModule, bmadPackageDescriptor, bmadProblem, bmadReviewResult, bmadScriptPlan, bmadSession, bmadSkillPackage, bmadSourceAccounting, bmadSourceIdentity, bmadUpgrade, bmadValidationReport, builderAuthoringObject, candidateAction, contractError, desktopDeviceRegistration, desktopEntitlementLease, desktopPolicy, durableObject, evidenceEvent, executionResultManifest, filesystemCapabilitySnapshot, foundryDeploymentSnapshot, methodAdvanceResult, methodHelpProposal, methodHelpRecommendation, methodSession, modelAccessCompatibility, modelAccessReceipt, modelAccessReceiptV2, modelAccessRequest, modelAccessRequestV2, modelAccessResult, modelAccessResultV2, modelCatalog, modelContextConsent, modelProfile, modelStreamEvent, packageCompatibility, remoteJobHandoff, specConsumptionRecord);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);

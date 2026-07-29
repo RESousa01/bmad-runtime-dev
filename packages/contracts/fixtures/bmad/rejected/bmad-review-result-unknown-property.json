@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-rejection.v1",
+  "id": "bmad-review-result-unknown-property",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-review-result.schema.json",
+  "reason": "unknown_property",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-review-result.v1",
+    "reviewId": "review_01J00000000000000000000000",
+    "lens": "security",
+    "targetKind": "artifact",
+    "targetHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "deterministicFindings": [
+      {
+        "findingId": "secret_literal",
+        "origin": "deterministic",
+        "severity": "high",
+        "code": "secret_literal",
+        "evidence": {
+          "locator": "docs/brief.md",
+          "contentHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "verificationState": "verified"
+      }
+    ],
+    "modelFindings": [],
+    "verification": {
+      "requiredEvidence": [
+        "schema_shape"
+      ],
+      "presentEvidence": [
+        "schema_shape"
+      ],
+      "gapsBlockCompletion": false
+    },
+    "disposition": "blocked",
+    "resultHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "futureAuthority": true
+  }
+}

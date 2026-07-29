@@ -25,6 +25,9 @@ const requiredSchemas = [
   "bmad-config.schema.json",
   "bmad-customization.schema.json",
   "bmad-invocation.schema.json",
+  "bmad-review-result.schema.json",
+  "bmad-problem.schema.json",
+  "bmad-context-contribution.schema.json",
   "bmad-memory.schema.json",
   "bmad-upgrade.schema.json",
 ];

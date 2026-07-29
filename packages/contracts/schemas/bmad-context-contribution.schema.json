@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-context-contribution.schema.json",
+  "title": "sapphirus.bmad-context-contribution.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "projectionId", "sessionId", "purpose", "identities", "contributions", "estimatedTokens", "projectionHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-context-contribution.v1" },
+    "projectionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "purpose": { "enum": ["preview", "dispatch"] },
+    "identities": { "$ref": "#/$defs/Identities" },
+    "contributions": { "type": "array", "maxItems": 512, "items": { "$ref": "#/$defs/Contribution" } },
+    "estimatedTokens": { "type": "integer", "minimum": 0, "maximum": 4194304 },
+    "outputReserveTokens": { "type": "integer", "minimum": 0, "maximum": 4194304 },
+    "reportedUsage": { "$ref": "#/$defs/ReportedUsage" },
+    "projectionHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+  },
+  "$defs": {
+    "Identities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "packageId", "configHash", "modelId", "policyHash"],
+      "properties": {
+        "sourceId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "packageId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "configHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "modelId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "policyHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "Contribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ordinal", "kind", "sourceHash", "estimatedTokens", "inclusionReason", "transformation"],
+      "properties": {
+        "ordinal": { "type": "integer", "minimum": 0, "maximum": 512 },
+        "kind": { "enum": ["instructions", "config", "customization", "artifact", "session_state", "tool_catalog", "summary"] },
+        "sourceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "estimatedTokens": { "type": "integer", "minimum": 0, "maximum": 4194304 },
+        "inclusionReason": { "enum": ["required_by_source", "requested_by_customization", "carried_from_session", "summarized_for_budget"] },
+        "transformation": { "enum": ["verbatim", "redacted", "compacted", "truncated"] }
+      }
+    },
+    "ReportedUsage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["promptTokens", "completionTokens"],
+      "properties": {
+        "promptTokens": { "type": "integer", "minimum": 0, "maximum": 4194304 },
+        "completionTokens": { "type": "integer", "minimum": 0, "maximum": 4194304 }
+      }
+    }
+  }
+}
