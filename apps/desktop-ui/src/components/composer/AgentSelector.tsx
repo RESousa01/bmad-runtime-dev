@@ -2,6 +2,9 @@ import { Button } from "@sapphirus/ui";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { BmadLibraryUiState } from "../../lib/bmadProjection";
+import { ModelPicker } from "../../features/models/ModelPicker";
+import type { ModelCatalogStoreState } from "../../features/models/modelCatalogStore";
+import type { ModelSelectionProjection } from "../../lib/hostClient/modelProtocol";
 
 export interface AgentSelectorProps {
   library: BmadLibraryUiState;
@@ -17,6 +20,14 @@ export interface AgentSelectorProps {
   /// Ask the BMAD Help advisor which skill fits. Explicit, because an ordinary
   /// message is an ordinary message.
   onAskMethodGuidance?: (() => void) | undefined;
+  /// The catalog-backed model picker (FND-050 Phase A). Omitted entirely --
+  /// not just empty -- when the host has not wired the catalog commands, so
+  /// this popover falls back to the plain "Model" settings row it already had.
+  modelCatalogStore?: ModelCatalogStoreState | undefined;
+  modelSelection?: ModelSelectionProjection | null | undefined;
+  recentModelProfileIds?: readonly string[] | undefined;
+  onSelectModelProfile?: ((profileId: string, variantId: string) => void) | undefined;
+  onRefreshModelCatalog?: (() => void) | undefined;
 }
 
 export function AgentSelector({
@@ -28,7 +39,15 @@ export function AgentSelector({
   selectedAgentCode,
   onSelectAgent,
   onAskMethodGuidance,
+  modelCatalogStore,
+  modelSelection,
+  recentModelProfileIds,
+  onSelectModelProfile,
+  onRefreshModelCatalog,
 }: AgentSelectorProps) {
+  const catalogPickerAvailable = modelCatalogStore !== undefined
+    && onSelectModelProfile !== undefined
+    && onRefreshModelCatalog !== undefined;
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const installedAgentCount = library.kind === "ready"
@@ -187,6 +206,21 @@ export function AgentSelector({
               <span aria-hidden="true" className="agent-selector__row-spacer" />
             )}
           </button>
+          {catalogPickerAvailable ? (
+            <details className="agent-selector__model-picker">
+              <summary aria-label="Choose a model" className="agent-selector__row">
+                <span className="agent-selector__label">Choose</span>
+                <span className="agent-selector__value">Pick a specific model</span>
+              </summary>
+              <ModelPicker
+                catalogStore={modelCatalogStore}
+                onRefresh={onRefreshModelCatalog}
+                onSelectProfile={onSelectModelProfile}
+                recentProfileIds={recentModelProfileIds ?? []}
+                selection={modelSelection ?? null}
+              />
+            </details>
+          ) : null}
         </section>
       ) : null}
     </div>
