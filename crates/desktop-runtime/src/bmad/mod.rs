@@ -113,12 +113,11 @@ pub use failure::{
     BmadFailureRequest,
 };
 pub use help::{
-    BmadHelpAliasResolution, BmadHelpAliasTable, BmadHelpAvailabilityReport,
-    BmadHelpCapabilityProjection, BmadHelpCatalogCounts, BmadHelpInvocability, BmadHelpNextStep,
-    BmadHelpProjectState, BmadHelpQuery, BmadHelpQueryError, BmadHelpSupportState,
-    BmadHelpSupportStateTable,
-    BmadArtifactEvidence, BmadArtifactEvidenceKind, BmadHelpAdvisor, BmadHelpConfidence,
-    BmadHelpIntent, BmadHelpRecommendation, BmadHelpSourceRef,
+    BmadArtifactEvidence, BmadArtifactEvidenceKind, BmadHelpAdvisor, BmadHelpAliasResolution,
+    BmadHelpAliasTable, BmadHelpAvailabilityReport, BmadHelpCapabilityProjection,
+    BmadHelpCatalogCounts, BmadHelpConfidence, BmadHelpIntent, BmadHelpInvocability,
+    BmadHelpNextStep, BmadHelpProjectState, BmadHelpQuery, BmadHelpQueryError,
+    BmadHelpRecommendation, BmadHelpSourceRef, BmadHelpSupportState, BmadHelpSupportStateTable,
 };
 pub use help_binding::{
     BmadCompiledHelpInvocation, BmadHelpBindingCompiler, BmadTrustedHelpModelProfile,
