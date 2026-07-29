@@ -14,7 +14,8 @@ mod turn_grant;
 pub use consent::{
     ApproveDecisionInput, CancelDecisionInput, ConsentService, ConsumeDecisionInput,
     ContextDecisionEvidence, DecisionConsumption, DecisionEvidenceInput, MemoryDecisionLedger,
-    ModelInvocationBinding, ModelInvocationBindingDraft, PendingContextDecision,
+    ModelInvocationBinding, ModelInvocationBindingDraft, ModelInvocationBindingV2,
+    ModelSelectionBindingV2, PendingContextDecision,
 };
 pub use manifest::{
     ContextClassification, ContextEgressManifest, ContextEgressManifestDraft, ContextExclusion,
@@ -22,7 +23,10 @@ pub use manifest::{
     RedactionRecord, RetentionMode, SecretFinding,
 };
 pub use preparation::{
-    reintroduced_redaction_marker, ContextCandidate, ContextPreparer, PatternSecretScanner,
-    PrepareContextInput, SecretScanFinding, SecretScanResult, SecretScanner, REDACTION_MARKERS,
+    local_egress_manifest_hash_v2, reintroduced_redaction_marker, ContextCandidate,
+    ContextPreparer, LocalEgressManifestV2Input, LocalEgressManifestV2Item,
+    LocalEgressManifestV2Tool, ModelRequestMode, PatternSecretScanner, PrepareContextInput,
+    SecretScanFinding, SecretScanResult, SecretScanner, LOCAL_EGRESS_MANIFEST_V2_SCHEMA,
+    REDACTION_MARKERS,
 };
 pub use turn_grant::{CallRecord, TurnEgressEntry, TurnEgressGrant, MAX_TURN_MODEL_CALLS};

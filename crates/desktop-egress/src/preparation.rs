@@ -1,6 +1,8 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
-use desktop_runtime::{sha256_bytes, ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis};
+use desktop_runtime::{
+    canonical_hash, sha256_bytes, ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::manifest::PreparedContextItemDraft;
@@ -267,6 +269,247 @@ where
         }
         .seal()
     }
+}
+
+/// The version two local egress manifest schema identifier.
+///
+/// It is the `schemaVersion` member of the hashed draft below, and it is
+/// deliberately different from the version one manifest's so that no version one
+/// draft can ever hash to a version two manifest even if the two were otherwise
+/// byte-identical.
+pub const LOCAL_EGRESS_MANIFEST_V2_SCHEMA: &str = "sapphirus.context-egress-manifest.v2";
+
+/// The mode one model request runs in. Mirrors
+/// `model-profile.schema.json#/$defs/ModelRequestMode` without importing the
+/// generated contracts into this adapter.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ModelRequestMode {
+    StructuredResponse,
+    StreamingChat,
+}
+
+/// One context part, reduced to exactly what both languages can see.
+///
+/// The bytes themselves are bound by `content_hash` rather than carried, so a
+/// server that holds the request can recompute this without the desktop having
+/// to restate the content, and a single changed byte changes the manifest.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LocalEgressManifestV2Item {
+    pub client_item_id: ContractId,
+    pub relative_label: RelativeWorkspacePath,
+    pub semantic_role: String,
+    pub language: String,
+    pub content_hash: Sha256Digest,
+    pub byte_count: u64,
+    pub classification: ContextClassification,
+}
+
+/// One declared tool, reduced to the parts that actually leave the machine.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LocalEgressManifestV2Tool {
+    pub tool_name: String,
+    pub description: String,
+    pub parameters_schema_id: ContractId,
+    pub parameters_schema_hash: Sha256Digest,
+}
+
+/// Everything the version two local egress manifest hash is computed over.
+///
+/// Every member is present in `model-access-request-v2.schema.json`, which is
+/// what makes this preimage recomputable by the support plane rather than only
+/// comparable to a number the desktop asserted.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LocalEgressManifestV2Input {
+    pub request_id: ContractId,
+    pub registration_id: ContractId,
+    pub purpose: String,
+    pub model_role: String,
+    pub request_mode: ModelRequestMode,
+    pub model_profile_id: String,
+    pub requested_variant_id: Option<String>,
+    pub catalog_version: String,
+    pub model_profile_hash: Sha256Digest,
+    pub model_capability_hash: Sha256Digest,
+    pub context_snapshot_id: ContractId,
+    pub canonical_output_schema_id: Option<ContractId>,
+    pub canonical_output_schema_hash: Option<Sha256Digest>,
+    pub retention_mode: RetentionMode,
+    pub budget_class: String,
+    pub items: Vec<LocalEgressManifestV2Item>,
+    pub tools: Vec<LocalEgressManifestV2Tool>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalEgressManifestV2ItemDraft<'a> {
+    byte_count: u64,
+    classification: ContextClassification,
+    client_item_id: &'a ContractId,
+    content_hash: Sha256Digest,
+    language: &'a str,
+    relative_label: &'a RelativeWorkspacePath,
+    semantic_role: &'a str,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalEgressManifestV2ToolDraft<'a> {
+    description: &'a str,
+    parameters_schema_hash: Sha256Digest,
+    parameters_schema_id: &'a ContractId,
+    tool_name: &'a str,
+}
+
+/// The hashed document. Every nullable member is written as JSON `null` rather
+/// than omitted, matching the version two consent envelope, so a request that
+/// names no variant and one that names the literal string `"null"` are
+/// different preimages.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalEgressManifestV2Draft<'a> {
+    schema_version: &'static str,
+    request_id: &'a ContractId,
+    registration_id: &'a ContractId,
+    purpose: &'a str,
+    model_role: &'a str,
+    request_mode: ModelRequestMode,
+    model_profile_id: &'a str,
+    requested_variant_id: Option<&'a str>,
+    catalog_version: &'a str,
+    model_profile_hash: Sha256Digest,
+    model_capability_hash: Sha256Digest,
+    context_snapshot_id: &'a ContractId,
+    canonical_output_schema_id: Option<&'a ContractId>,
+    canonical_output_schema_hash: Option<Sha256Digest>,
+    retention_mode: RetentionMode,
+    budget_class: &'a str,
+    items: Vec<LocalEgressManifestV2ItemDraft<'a>>,
+    tools: Vec<LocalEgressManifestV2ToolDraft<'a>>,
+    total_outbound_bytes: u64,
+}
+
+/// Computes the canonical version two local egress manifest hash.
+///
+/// # The gap this closes
+///
+/// Version one of the desktop request carried a manifest hash the support plane
+/// could only compare against the copy inside the signed decision, because the
+/// version one manifest is hashed over local authority — tenant, project and run
+/// references, exclusions, secret findings, token estimates — that never crosses
+/// the wire. Agreement between two numbers the same client produced is not a
+/// server-side check.
+///
+/// This preimage is built only from members of
+/// `model-access-request-v2.schema.json`, so the support plane can recompute it
+/// from the request it received and refuse a decision that was signed over
+/// different context, a different profile, a different catalog epoch, or a
+/// different tool set. The item bytes are represented by `contentHash` and
+/// `byteCount`, so the exact outbound bytes stay bound without the manifest
+/// restating them.
+///
+/// The preimage is `sapphirus:context-egress-manifest:v2\n` followed by the
+/// RFC 8785 canonical JSON of the draft above.
+///
+/// # Errors
+///
+/// Returns [`EgressError::InvalidManifest`] when a member is empty, the item
+/// list is empty or holds a duplicate identifier, or the retention mode is not
+/// the canonical transient mode; and [`EgressError::ContextBudgetExceeded`] when
+/// the outbound byte total overflows.
+pub fn local_egress_manifest_hash_v2(
+    input: &LocalEgressManifestV2Input,
+) -> Result<Sha256Digest, EgressError> {
+    validate_local_egress_manifest_v2(input)?;
+    let mut total_outbound_bytes = 0_u64;
+    for item in &input.items {
+        total_outbound_bytes = total_outbound_bytes
+            .checked_add(item.byte_count)
+            .ok_or(EgressError::ContextBudgetExceeded)?;
+    }
+    let draft = LocalEgressManifestV2Draft {
+        schema_version: LOCAL_EGRESS_MANIFEST_V2_SCHEMA,
+        request_id: &input.request_id,
+        registration_id: &input.registration_id,
+        purpose: &input.purpose,
+        model_role: &input.model_role,
+        request_mode: input.request_mode,
+        model_profile_id: &input.model_profile_id,
+        requested_variant_id: input.requested_variant_id.as_deref(),
+        catalog_version: &input.catalog_version,
+        model_profile_hash: input.model_profile_hash,
+        model_capability_hash: input.model_capability_hash,
+        context_snapshot_id: &input.context_snapshot_id,
+        canonical_output_schema_id: input.canonical_output_schema_id.as_ref(),
+        canonical_output_schema_hash: input.canonical_output_schema_hash,
+        retention_mode: input.retention_mode,
+        budget_class: &input.budget_class,
+        items: input
+            .items
+            .iter()
+            .map(|item| LocalEgressManifestV2ItemDraft {
+                byte_count: item.byte_count,
+                classification: item.classification,
+                client_item_id: &item.client_item_id,
+                content_hash: item.content_hash,
+                language: &item.language,
+                relative_label: &item.relative_label,
+                semantic_role: &item.semantic_role,
+            })
+            .collect(),
+        tools: input
+            .tools
+            .iter()
+            .map(|tool| LocalEgressManifestV2ToolDraft {
+                description: &tool.description,
+                parameters_schema_hash: tool.parameters_schema_hash,
+                parameters_schema_id: &tool.parameters_schema_id,
+                tool_name: &tool.tool_name,
+            })
+            .collect(),
+        total_outbound_bytes,
+    };
+    canonical_hash("context-egress-manifest", 2, &draft).map_err(|_| EgressError::CanonicalHash)
+}
+
+fn validate_local_egress_manifest_v2(
+    input: &LocalEgressManifestV2Input,
+) -> Result<(), EgressError> {
+    if input.retention_mode != RetentionMode::TransientNoStore
+        || input.items.is_empty()
+        || input.purpose.is_empty()
+        || input.model_role.is_empty()
+        || input.model_profile_id.is_empty()
+        || input.catalog_version.is_empty()
+        || input.budget_class.is_empty()
+        || input
+            .requested_variant_id
+            .as_ref()
+            .is_some_and(String::is_empty)
+        // A schema identifier and its hash are one fact. Carrying one without
+        // the other would let a structured request be signed with an unbound
+        // output schema.
+        || input.canonical_output_schema_id.is_some()
+            != input.canonical_output_schema_hash.is_some()
+    {
+        return Err(EgressError::InvalidManifest);
+    }
+    let mut seen = BTreeSet::new();
+    for item in &input.items {
+        if item.language.is_empty()
+            || item.semantic_role.is_empty()
+            || !seen.insert(item.client_item_id.as_str())
+        {
+            return Err(EgressError::InvalidManifest);
+        }
+    }
+    let mut seen_tools = BTreeSet::new();
+    for tool in &input.tools {
+        if tool.tool_name.is_empty() || !seen_tools.insert(tool.tool_name.as_str()) {
+            return Err(EgressError::InvalidManifest);
+        }
+    }
+    Ok(())
 }
 
 fn is_denied_label(label: &RelativeWorkspacePath) -> bool {

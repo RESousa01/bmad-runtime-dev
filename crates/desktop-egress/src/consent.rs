@@ -4,9 +4,12 @@ use desktop_runtime::{canonical_hash, ContractId, Sha256Digest, UnixMillis};
 use parking_lot::{Mutex, MutexGuard};
 use serde::{Deserialize, Serialize};
 
-use crate::{ContextEgressManifest, EgressError, RetentionMode};
+use crate::{ContextEgressManifest, EgressError, ModelRequestMode, RetentionMode};
 
 const BINDING_SCHEMA: &str = "sapphirus.model-invocation-binding.v1";
+const BINDING_SCHEMA_V2: &str = "sapphirus.model-invocation-binding.v2";
+const DISCLOSURE_SCHEMA_V2: &str = "sapphirus.model-context-disclosure.v2";
+const CONSUMPTION_SCHEMA_V2: &str = "sapphirus.decision-consumption.v2";
 const DECISION_SCHEMA: &str = "sapphirus.context-decision.v1";
 const CONSUMPTION_SCHEMA: &str = "sapphirus.decision-consumption.v1";
 const MAX_DECISION_LIFETIME_MS: u64 = 5 * 60 * 1_000;
@@ -109,6 +112,218 @@ impl ModelInvocationBinding {
             return Err(EgressError::DecisionBindingMismatch);
         }
         Ok(())
+    }
+}
+
+/// The version two model selection: what the desktop actually names when it
+/// asks for a model, now that it no longer names a deployment.
+///
+/// This is deliberately a *layer* over the sealed version one invocation
+/// binding rather than a replacement for it. The version one chain — manifest,
+/// binding, decision, consumption — keeps every guarantee it already had and is
+/// untouched. What this adds is a re-derivation of the three hashes that cross
+/// the wire, computed over the version one hash *and* the selection, so that
+/// changing the profile, the catalog epoch, the requested variant, the request
+/// mode, the context snapshot, or the capability set produces different wire
+/// hashes and therefore cannot be presented under an approval that was given for
+/// something else.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ModelSelectionBindingV2 {
+    pub request_mode: ModelRequestMode,
+    pub model_profile_id: String,
+    /// `None` asks the support plane to apply the profile's default operating
+    /// point. It is a distinct fact from naming that default explicitly, so it
+    /// is hashed as JSON `null` rather than omitted.
+    pub requested_variant_id: Option<String>,
+    pub catalog_version: String,
+    pub catalog_hash: Sha256Digest,
+    pub model_profile_hash: Sha256Digest,
+    pub model_capability_hash: Sha256Digest,
+    pub context_snapshot_id: ContractId,
+    pub budget_class: String,
+    /// The version two local egress manifest hash — the one the support plane
+    /// can recompute. See `desktop_egress::local_egress_manifest_hash_v2`.
+    pub local_egress_manifest_hash: Sha256Digest,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ModelSelectionBindingV2Draft<'a> {
+    schema_version: &'static str,
+    /// The sealed version one hash this layer is derived from. Including it is
+    /// what keeps the version two hash bound to the exact reviewed manifest,
+    /// policy, region, purpose, and role without restating any of them.
+    inner_hash: Sha256Digest,
+    request_mode: ModelRequestMode,
+    model_profile_id: &'a str,
+    requested_variant_id: Option<&'a str>,
+    catalog_version: &'a str,
+    catalog_hash: Sha256Digest,
+    model_profile_hash: Sha256Digest,
+    model_capability_hash: Sha256Digest,
+    context_snapshot_id: &'a ContractId,
+    budget_class: &'a str,
+    local_egress_manifest_hash: Sha256Digest,
+}
+
+/// A version one invocation binding sealed together with a version two model
+/// selection.
+///
+/// It cannot be constructed except from an already-verified
+/// [`ModelInvocationBinding`], so nothing here can name a selection for context
+/// that was never reviewed.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ModelInvocationBindingV2 {
+    selection: ModelSelectionBindingV2,
+    inner_binding_hash: Sha256Digest,
+    inner_consent_disclosure_hash: Sha256Digest,
+    invocation_binding_hash: Sha256Digest,
+    consent_disclosure_hash: Sha256Digest,
+}
+
+impl ModelSelectionBindingV2 {
+    /// Seals this selection against one verified version one invocation
+    /// binding.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EgressError::InvalidInvocationBinding`] when a selection member
+    /// is empty, and any [`EgressError`] the inner binding's own verification
+    /// raises.
+    pub fn seal(
+        self,
+        binding: &ModelInvocationBinding,
+    ) -> Result<ModelInvocationBindingV2, EgressError> {
+        binding.verify()?;
+        if self.model_profile_id.is_empty()
+            || self.catalog_version.is_empty()
+            || self.budget_class.is_empty()
+            || self
+                .requested_variant_id
+                .as_ref()
+                .is_some_and(String::is_empty)
+        {
+            return Err(EgressError::InvalidInvocationBinding);
+        }
+        let inner_binding_hash = binding.binding_hash;
+        let inner_consent_disclosure_hash = binding.draft.consent_disclosure_hash;
+        let invocation_binding_hash = canonical_hash(
+            "model-invocation-binding",
+            2,
+            &self.draft(BINDING_SCHEMA_V2, inner_binding_hash),
+        )
+        .map_err(|_| EgressError::CanonicalHash)?;
+        let consent_disclosure_hash = canonical_hash(
+            "model-context-disclosure",
+            2,
+            &self.draft(DISCLOSURE_SCHEMA_V2, inner_consent_disclosure_hash),
+        )
+        .map_err(|_| EgressError::CanonicalHash)?;
+        Ok(ModelInvocationBindingV2 {
+            selection: self,
+            inner_binding_hash,
+            inner_consent_disclosure_hash,
+            invocation_binding_hash,
+            consent_disclosure_hash,
+        })
+    }
+
+    fn draft<'a>(
+        &'a self,
+        schema_version: &'static str,
+        inner_hash: Sha256Digest,
+    ) -> ModelSelectionBindingV2Draft<'a> {
+        ModelSelectionBindingV2Draft {
+            schema_version,
+            inner_hash,
+            request_mode: self.request_mode,
+            model_profile_id: &self.model_profile_id,
+            requested_variant_id: self.requested_variant_id.as_deref(),
+            catalog_version: &self.catalog_version,
+            catalog_hash: self.catalog_hash,
+            model_profile_hash: self.model_profile_hash,
+            model_capability_hash: self.model_capability_hash,
+            context_snapshot_id: &self.context_snapshot_id,
+            budget_class: &self.budget_class,
+            local_egress_manifest_hash: self.local_egress_manifest_hash,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DecisionConsumptionV2Draft<'a> {
+    schema_version: &'static str,
+    inner_hash: Sha256Digest,
+    invocation_binding_hash: Sha256Digest,
+    consent_disclosure_hash: Sha256Digest,
+    decision_id: &'a ContractId,
+    invocation_id: &'a ContractId,
+    local_egress_manifest_hash: Sha256Digest,
+}
+
+impl ModelInvocationBindingV2 {
+    #[must_use]
+    pub const fn selection(&self) -> &ModelSelectionBindingV2 {
+        &self.selection
+    }
+
+    /// The version two invocation binding hash that crosses the wire.
+    #[must_use]
+    pub const fn invocation_binding_hash(&self) -> Sha256Digest {
+        self.invocation_binding_hash
+    }
+
+    /// The version two consent disclosure hash that crosses the wire.
+    #[must_use]
+    pub const fn consent_disclosure_hash(&self) -> Sha256Digest {
+        self.consent_disclosure_hash
+    }
+
+    /// The version two local egress manifest hash this selection was sealed
+    /// with.
+    #[must_use]
+    pub const fn local_egress_manifest_hash(&self) -> Sha256Digest {
+        self.selection.local_egress_manifest_hash
+    }
+
+    /// Re-derives the version two consumption hash for one consumed decision.
+    ///
+    /// The consumption a version one decision produced is the proof that a
+    /// single-use approval was spent. This binds that proof to the exact
+    /// selection the request will carry, so a consumption cannot be presented
+    /// beside a different profile, catalog epoch, or variant than the one the
+    /// user approved.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EgressError::DecisionBindingMismatch`] when the consumption was
+    /// produced for a different invocation binding, and any [`EgressError`] the
+    /// consumption's own verification raises.
+    pub fn consumption_hash_for(
+        &self,
+        consumption: &DecisionConsumption,
+    ) -> Result<Sha256Digest, EgressError> {
+        consumption.verify()?;
+        if consumption.binding_hash() != self.inner_binding_hash
+            || consumption.consent_disclosure_hash() != self.inner_consent_disclosure_hash
+        {
+            return Err(EgressError::DecisionBindingMismatch);
+        }
+        canonical_hash(
+            "decision-consumption",
+            2,
+            &DecisionConsumptionV2Draft {
+                schema_version: CONSUMPTION_SCHEMA_V2,
+                inner_hash: consumption.consumption_hash(),
+                invocation_binding_hash: self.invocation_binding_hash,
+                consent_disclosure_hash: self.consent_disclosure_hash,
+                decision_id: consumption.decision_id(),
+                invocation_id: consumption.invocation_id(),
+                local_egress_manifest_hash: self.selection.local_egress_manifest_hash,
+            },
+        )
+        .map_err(|_| EgressError::CanonicalHash)
     }
 }
 

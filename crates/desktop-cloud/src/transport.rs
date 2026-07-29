@@ -181,6 +181,67 @@ impl fmt::Debug for HttpResponse {
     }
 }
 
+/// One bounded, incrementally readable response body.
+///
+/// It exists because a model stream cannot be buffered before it is decoded:
+/// the whole point is that the first token reaches the user before the last one
+/// is produced. The source yields whatever bytes have arrived; framing, bounds,
+/// and ordering are the decoder's job (see [`crate::model_stream`]).
+#[async_trait]
+pub trait HttpChunkSource: Send {
+    /// Reads the next chunk, or `None` once the body is complete.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CloudError::TransportFailed`] when the connection breaks.
+    async fn next_chunk(&mut self) -> Result<Option<Vec<u8>>, CloudError>;
+}
+
+/// A response whose body is still arriving.
+pub struct StreamingHttpResponse {
+    status: u16,
+    content_type: Option<String>,
+    body: Box<dyn HttpChunkSource>,
+}
+
+impl StreamingHttpResponse {
+    #[must_use]
+    pub fn new(status: u16, content_type: Option<String>, body: Box<dyn HttpChunkSource>) -> Self {
+        Self {
+            status,
+            content_type,
+            body,
+        }
+    }
+
+    #[must_use]
+    pub const fn status(&self) -> u16 {
+        self.status
+    }
+
+    #[must_use]
+    pub fn content_type(&self) -> Option<&str> {
+        self.content_type.as_deref()
+    }
+
+    /// Consumes the response into its chunk source.
+    #[must_use]
+    pub fn into_body(self) -> Box<dyn HttpChunkSource> {
+        self.body
+    }
+}
+
+impl fmt::Debug for StreamingHttpResponse {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("StreamingHttpResponse")
+            .field("status", &self.status)
+            .field("content_type", &self.content_type)
+            .field("body", &"[STREAMING]")
+            .finish()
+    }
+}
+
 #[async_trait]
 pub trait HttpExecutor: Send + Sync {
     /// Executes one already-authorized request against its immutable URL.
@@ -189,6 +250,25 @@ pub trait HttpExecutor: Send + Sync {
     ///
     /// Returns only stable, sanitized cloud errors.
     async fn execute(&self, request: OutboundHttpRequest) -> Result<HttpResponse, CloudError>;
+
+    /// Opens one already-authorized request as an incrementally readable body.
+    ///
+    /// Provided rather than required so every existing executor — including the
+    /// scripted ones the offline gates run against — keeps compiling. The
+    /// default refuses, which is the fail-closed direction: an executor that has
+    /// not opted in cannot be used to open a model stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CloudError::TransportFailed`] when the executor does not
+    /// support streaming or the connection cannot be established.
+    async fn execute_stream(
+        &self,
+        request: OutboundHttpRequest,
+    ) -> Result<StreamingHttpResponse, CloudError> {
+        let _ = request;
+        Err(CloudError::TransportFailed)
+    }
 }
 
 #[derive(Debug)]
@@ -278,6 +358,13 @@ pub enum SupportStageRoute {
     /// renderer can name this variant but can never supply the path it maps
     /// to, so no renderer-controlled string ever reaches URL construction.
     ModelCatalog,
+    /// The one fixed, reviewed streaming route (FND-043, `STREAM-SURFACE`).
+    ///
+    /// It is a constant here and in `ModelStreamEndpoint.FullRoute` on the
+    /// server. The renderer never supplies a URL, and there is no path
+    /// parameter, query key, or header through which a caller could reach a
+    /// different provider surface.
+    ModelStream,
 }
 
 impl SupportStageRoute {
@@ -289,6 +376,7 @@ impl SupportStageRoute {
             Self::PolicyCurrent => "/desktop/v1/policy/current",
             Self::EntitlementLeases => "/desktop/v1/entitlements/leases",
             Self::ModelCatalog => "/desktop/v1/model-catalog",
+            Self::ModelStream => "/desktop/v1/model-access/streams",
         }
     }
 
@@ -296,7 +384,9 @@ impl SupportStageRoute {
     pub const fn method(self) -> HttpMethod {
         match self {
             Self::Bootstrap | Self::PolicyCurrent | Self::ModelCatalog => HttpMethod::Get,
-            Self::DeviceRegistrations | Self::EntitlementLeases => HttpMethod::Post,
+            Self::DeviceRegistrations | Self::EntitlementLeases | Self::ModelStream => {
+                HttpMethod::Post
+            }
         }
     }
 }
@@ -395,6 +485,84 @@ where
                 if_none_match,
             })
             .await
+    }
+
+    /// Opens the one reviewed model stream route.
+    ///
+    /// The URL is built from [`SupportStageRoute::ModelStream`] under the fixed
+    /// origin, exactly as every other stage route is; no caller supplies a path.
+    /// The response is refused unless it is a `200` carrying
+    /// `text/event-stream`, so a buffered JSON body — including a problem
+    /// document the server chose to return before the stream opened — can never
+    /// be fed to the stream decoder.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CloudError::TransportFailed`] for an oversized request body, a
+    /// non-`200` status, a media type other than `text/event-stream`, or an
+    /// executor that does not support streaming.
+    pub async fn open_model_stream(
+        &self,
+        bearer: Zeroizing<String>,
+        body: Vec<u8>,
+        idempotency_key: &str,
+    ) -> Result<StreamingHttpResponse, CloudError> {
+        if body.len() > MAX_REQUEST_BYTES || body.is_empty() || idempotency_key.is_empty() {
+            return Err(CloudError::TransportFailed);
+        }
+        let response = self
+            .executor
+            .execute_stream(OutboundHttpRequest {
+                method: HttpMethod::Post,
+                url: self.stage_url(SupportStageRoute::ModelStream),
+                body,
+                bearer,
+                idempotency_key: idempotency_key.to_owned(),
+                if_none_match: None,
+            })
+            .await?;
+        if response.status() != 200
+            || !response
+                .content_type()
+                .is_some_and(is_event_stream_content_type)
+        {
+            return Err(CloudError::TransportFailed);
+        }
+        Ok(response)
+    }
+}
+
+/// The media type the reviewed stream route must answer with.
+///
+/// Deliberately exact rather than a prefix test: accepting anything that merely
+/// starts with `text/event-stream` would also accept
+/// `text/event-stream-experimental`, which is not this contract.
+pub(crate) fn is_event_stream_content_type(value: &str) -> bool {
+    value
+        .split_once(';')
+        .map_or(value, |(media_type, _)| media_type)
+        .trim()
+        .eq_ignore_ascii_case("text/event-stream")
+}
+
+/// Reads a `reqwest` response body one arriving chunk at a time.
+///
+/// `Response::chunk` is used rather than `bytes_stream` deliberately: it is the
+/// same primitive the buffered executor above already reads with, so streaming
+/// adds no new way for bytes to enter the process.
+struct ReqwestChunkSource {
+    response: reqwest::Response,
+}
+
+#[async_trait]
+impl HttpChunkSource for ReqwestChunkSource {
+    async fn next_chunk(&mut self) -> Result<Option<Vec<u8>>, CloudError> {
+        let chunk = self
+            .response
+            .chunk()
+            .await
+            .map_err(|_| CloudError::TransportFailed)?;
+        Ok(chunk.map(|bytes| bytes.to_vec()))
     }
 }
 
@@ -502,6 +670,47 @@ impl HttpExecutor for ReqwestHttpExecutor {
             response_body.extend_from_slice(&chunk);
         }
         Ok(HttpResponse::new(status, content_type, content_length, response_body).with_etag(etag))
+    }
+
+    async fn execute_stream(
+        &self,
+        request: OutboundHttpRequest,
+    ) -> Result<StreamingHttpResponse, CloudError> {
+        let OutboundHttpRequest {
+            method,
+            url,
+            body,
+            bearer,
+            idempotency_key,
+            if_none_match,
+        } = request;
+        // A stream is opened by exactly one method. Anything else would mean the
+        // caller reached this through a route that is not the reviewed one.
+        if method != HttpMethod::Post || if_none_match.is_some() {
+            return Err(CloudError::TransportFailed);
+        }
+        let response = self
+            .client
+            .post(url)
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .header(reqwest::header::ACCEPT, "text/event-stream")
+            .header("Idempotency-Key", idempotency_key)
+            .bearer_auth(bearer.as_str())
+            .body(body)
+            .send()
+            .await
+            .map_err(|_| CloudError::TransportFailed)?;
+        let status = response.status().as_u16();
+        let content_type = response
+            .headers()
+            .get(reqwest::header::CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .map(str::to_owned);
+        Ok(StreamingHttpResponse::new(
+            status,
+            content_type,
+            Box::new(ReqwestChunkSource { response }),
+        ))
     }
 }
 

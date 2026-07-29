@@ -13,6 +13,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::identity::{CloudSession, IdentityBroker};
 use crate::model::{AuthorizedModelRequest, DispatchedModelRequest, RawModelOutput};
+use crate::model_catalog::{
+    resolve_model_selection, CachedModelCatalog, ModelCatalogFetch, ModelCatalogRequest,
+    ModelSelectionOutcome, PersistedModelSelection, ResolvedModelSelection, VerifiedModelCatalog,
+};
 use crate::production::{
     CanonicalReceiptProof, ProductionSupportClient, SignedDesktopPolicyDoc,
     SignedEntitlementLeaseDoc,
@@ -262,4 +266,171 @@ where
 
         Ok((dispatched, output))
     }
+}
+
+/// What the desktop already holds when it asks for a catalog, and what it will
+/// resolve a selection against.
+#[derive(Clone, Copy, Debug)]
+pub struct ModelSelectionStage<'a> {
+    /// The pseudonymous identifier of the currently authenticated subject.
+    pub subject_hash: &'a str,
+    /// The catalog this desktop already holds, offered only as a conditional
+    /// request validator.
+    pub cached: Option<&'a CachedModelCatalog>,
+    /// The user's own current selection, if there is one.
+    pub current: Option<&'a PersistedModelSelection>,
+    /// Still-valid prior selections, newest-first order not required.
+    pub recent: &'a [PersistedModelSelection],
+}
+
+/// A catalog that was fetched for review, together with the selection it
+/// resolved to.
+#[derive(Clone, Debug)]
+pub struct ReviewableModelSelection {
+    fetch: ModelCatalogFetch,
+    outcome: ModelSelectionOutcome,
+}
+
+impl ReviewableModelSelection {
+    /// The catalog this selection was resolved against.
+    #[must_use]
+    pub const fn fetch(&self) -> &ModelCatalogFetch {
+        &self.fetch
+    }
+
+    #[must_use]
+    pub const fn catalog(&self) -> &VerifiedModelCatalog {
+        self.fetch.cached().catalog()
+    }
+
+    /// What resolution produced. A `RequiresExplicitChoice` outcome must reach
+    /// the user; nothing here picks a replacement model on their behalf.
+    #[must_use]
+    pub const fn outcome(&self) -> &ModelSelectionOutcome {
+        &self.outcome
+    }
+
+    /// The resolved selection, when resolution settled on one.
+    #[must_use]
+    pub const fn selection(&self) -> Option<&ResolvedModelSelection> {
+        match &self.outcome {
+            ModelSelectionOutcome::Selected { selection, .. } => Some(selection),
+            ModelSelectionOutcome::RequiresExplicitChoice { .. }
+            | ModelSelectionOutcome::NoneSelectable => None,
+        }
+    }
+}
+
+impl<B, E> ProductionRoundTrip<B, E>
+where
+    B: IdentityBroker,
+    E: HttpExecutor,
+{
+    /// Stage 0: fetch the effective catalog and resolve which model will answer,
+    /// **before** the review surface is built.
+    ///
+    /// # Why this comes first
+    ///
+    /// Review is the moment the user authorizes exact bytes to leave the
+    /// machine, and what they are authorizing is bytes going to *a particular
+    /// model*. Resolving the selection afterwards would mean the review named a
+    /// model the dispatch did not use, and the profile's own limits — which
+    /// decide whether the context even fits — would not have been consulted
+    /// while the context was still editable.
+    ///
+    /// # Errors
+    ///
+    /// Returns the [`CloudError`] the catalog fetch produced: a stale or
+    /// unusable catalog is [`CloudError::ModelCatalogUnavailable`], a body that
+    /// fails validation is [`CloudError::ModelCatalogIntegrity`], and a build the
+    /// support plane no longer accepts is
+    /// [`CloudError::ContractUpgradeRequired`].
+    pub async fn catalog_for_review(
+        &self,
+        stage: ModelSelectionStage<'_>,
+        now: UnixMillis,
+    ) -> Result<ReviewableModelSelection, CloudError> {
+        let access = self.session.acquire_access(now).await?;
+        let fetch = self
+            .transport
+            .fetch_model_catalog(
+                access.bearer_copy(),
+                &ModelCatalogRequest {
+                    subject_hash: stage.subject_hash,
+                    cached: stage.cached,
+                    idempotency_key: "model-catalog",
+                },
+                now,
+            )
+            .await?;
+        let outcome = resolve_model_selection(
+            fetch.cached().catalog(),
+            stage.current,
+            stage.recent,
+        );
+        Ok(ReviewableModelSelection { fetch, outcome })
+    }
+
+    /// The complete reviewed sequence with the catalog gate in front of it.
+    ///
+    /// Identical to [`ProductionRoundTrip::send`] except that the catalog and the
+    /// selected profile are revalidated immediately before the model call, so a
+    /// catalog that expired or a profile that was withdrawn during review stops
+    /// the dispatch instead of spending the approval.
+    ///
+    /// # Errors
+    ///
+    /// Fails closed with a stable [`CloudError`] at the first stage whose
+    /// document cannot be verified, or at the revalidation gate.
+    pub async fn send_with_selection(
+        &self,
+        request: AuthorizedModelRequest,
+        catalog: &VerifiedModelCatalog,
+        selection: &ResolvedModelSelection,
+        now: UnixMillis,
+    ) -> Result<(DispatchedModelRequest, RawModelOutput), CloudError> {
+        revalidate_before_dispatch(catalog, selection, now)?;
+        self.send(request, now).await
+    }
+}
+
+/// Revalidates the catalog and the selected profile immediately before
+/// dispatch.
+///
+/// # Why again
+///
+/// The catalog that was fetched for review has an expiry, and a profile can
+/// be withdrawn between the moment a user approves and the moment the
+/// request is sent. Sending anyway would spend the approval on a model the
+/// organization has since stopped offering, and — because the consent
+/// decision is single-use — there would be no approval left to retry with.
+///
+/// # Errors
+///
+/// Returns [`CloudError::ModelCatalogUnavailable`] when the catalog has
+/// expired at `now`, and [`CloudError::ModelCatalogIntegrity`] when the
+/// selection no longer names a selectable profile and variant in the exact
+/// catalog it was resolved against.
+pub fn revalidate_before_dispatch(
+    catalog: &VerifiedModelCatalog,
+    selection: &ResolvedModelSelection,
+    now: UnixMillis,
+) -> Result<(), CloudError> {
+    if now.0 >= catalog.expires_at().0 {
+        return Err(CloudError::ModelCatalogUnavailable);
+    }
+    if selection.catalog_version() != catalog.catalog_version()
+        || selection.catalog_hash() != catalog.catalog_hash()
+    {
+        return Err(CloudError::ModelCatalogIntegrity);
+    }
+    if !catalog.is_selectable(selection.profile_id())
+        || !catalog
+            .variant_ids(selection.profile_id())
+            .iter()
+            .any(|variant| *variant == selection.variant_id())
+    {
+        return Err(CloudError::ModelCatalogIntegrity);
+    }
+    Ok(())
 }

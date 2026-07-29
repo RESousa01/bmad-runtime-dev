@@ -84,6 +84,7 @@ const retentionCategoryLabels: Record<string, string> = {
   execution_checkpoints: "Change checkpoints",
   execution_results: "Change results",
   help_runs: "Help runs",
+  model_selections: "Model choices",
 };
 
 export interface SettingsDialogProps {

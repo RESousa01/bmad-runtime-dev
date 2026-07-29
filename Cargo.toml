@@ -33,7 +33,7 @@ ignore = "=0.4.30"
 jsonschema = "=0.44.1"
 parking_lot = "=0.12.5"
 rand = "=0.10.2"
-reqwest = { version = "=0.13.4", default-features = false, features = ["rustls"] }
+reqwest = { version = "=0.13.4", default-features = false, features = ["rustls", "stream"] }
 regex = "=1.13.1"
 regress = "=0.10.5"
 rusqlite = { version = "=0.37.0", features = ["backup", "bundled", "functions"] }

@@ -14,6 +14,7 @@ mod installation_identity;
 mod model;
 mod model_access_compatibility;
 mod model_catalog;
+mod model_stream;
 mod production;
 mod production_round_trip;
 // Not gated on `direct-provider`. This is the taxonomy that says *why* a model
@@ -63,24 +64,37 @@ pub use model_catalog::{
     ModelCatalogRequest, ModelSelectionBlocked, ModelSelectionOutcome, ModelSelectionSource,
     PersistedModelSelection, ResolvedModelSelection, VerifiedModelCatalog,
 };
+pub use model_stream::{
+    read_model_stream, verify_terminal_receipt, CompletedModelStream, ModelStreamBinding,
+    ModelStreamDecoder, ModelStreamError, SafeStreamEvent, StreamCancellation,
+    StreamReceiptProofVerifier, StreamTerminal, MAX_STREAM_AGGREGATE_BYTES, MAX_STREAM_EVENTS,
+    MAX_STREAM_EVENT_BYTES, MAX_STREAM_OUTPUT_BYTES, MAX_TOOL_ARGUMENTS_BYTES, MAX_TOOL_CALLS,
+};
 pub use production::{
     pinned_key_from_point, verify_canonical_receipt_proof, CanonicalReceiptProof, PinnedProofKey,
     ProductionSessionProjection, ProductionSupportClient, ProductionSupportConfig, ProofKeyRing,
     SignedDesktopPolicyDoc, SignedEntitlementLeaseDoc, SignedStateStore, VerifiedLease,
     VerifiedSignedPolicy,
 };
-pub use production_round_trip::{ProductionRoundTrip, RegistrationMaterial};
+pub use production_round_trip::{
+    revalidate_before_dispatch, ModelSelectionStage, ProductionRoundTrip, RegistrationMaterial,
+    ReviewableModelSelection,
+};
 pub use provider_failure::{ProviderFailure, ProviderFailureKind, MAX_RETRY_AFTER};
 pub use support_contract::{
-    project_model_access_request, CanonicalProjectionInputs, ConsentProfile, ConsentSubject,
-    ConsentWindow, InstallationConsentSigner, LeaseBinding,
+    project_model_access_request, project_model_access_request_v2, validate_model_capabilities,
+    CanonicalProjectionInputs, CanonicalProjectionInputsV2, ConsentProfile, ConsentSubject,
+    ConsentWindow, DeclaredModelTool, InstallationConsentSigner, LeaseBinding,
     ModelAccessRequest as CanonicalModelAccessRequest,
     ModelAccessRequestContextItem as CanonicalModelAccessRequestContextItem,
-    ModelContextConsent as CanonicalModelContextConsent, RegistrationBinding, TenantPolicyBinding,
+    ModelAccessRequestV2 as CanonicalModelAccessRequestV2, ModelCapabilityRejection,
+    ModelContextConsent as CanonicalModelContextConsent, RegistrationBinding, RequestedModelWork,
+    TenantPolicyBinding,
 };
 pub use transport::{
-    HttpExecutor, HttpMethod, HttpResponse, OutboundHttpRequest, ReqwestHttpExecutor,
-    SupportApiOrigin, SupportApiTransport, SupportStageRoute,
+    HttpChunkSource, HttpExecutor, HttpMethod, HttpResponse, OutboundHttpRequest,
+    ReqwestHttpExecutor, StreamingHttpResponse, SupportApiOrigin, SupportApiTransport,
+    SupportStageRoute,
 };
 #[cfg(windows)]
 pub use windows_broker::{WindowsBrokerConfig, WindowsIdentityBroker};
