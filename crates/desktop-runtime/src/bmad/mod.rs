@@ -101,7 +101,11 @@ pub use customization::{
     BmadCustomizationRequest, BmadCustomizationResolution, BmadCustomizationResolver,
     BmadCustomizationStatus, BmadCustomizationTextOverlay,
 };
-pub use dependencies::BmadDependencyError;
+pub use dependencies::{
+    BmadDependencyAliasTable, BmadDependencyClosure, BmadDependencyDiagnostic, BmadDependencyEdge,
+    BmadDependencyEdgeKind, BmadDependencyError, BmadDependencyGraph, BmadDependencyNode,
+    BmadDependencyNodeKind,
+};
 pub use error::{MethodError, MethodErrorCode};
 pub use failure::{
     build_problem, BmadFailureCancellation, BmadFailureError, BmadFailureOperation,

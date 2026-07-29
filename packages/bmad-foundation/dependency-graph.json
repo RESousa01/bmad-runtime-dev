@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "sapphirus.bmad.dependency-graph/v1",
+  "generatedFrom": {
+    "method": {
+      "packageName": "bmad-method",
+      "packageVersion": "6.10.0",
+      "archiveSha256": "sha256:2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02b"
+    },
+    "builder": {
+      "packageName": "bmad-builder",
+      "packageVersion": "2.1.0",
+      "archiveSha256": "sha256:d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852"
+    }
+  },
+  "nodes": [
+    {
+      "id": "persona_bmad-agent-analyst",
+      "kind": "persona",
+      "version": null,
+      "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    {
+      "id": "script_bmad-domain-steps",
+      "kind": "script",
+      "version": null,
+      "contentHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    {
+      "id": "skill_bmad-domain-research",
+      "kind": "skill",
+      "version": "6.10.0",
+      "contentHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    {
+      "id": "skill_bmad-product-brief",
+      "kind": "skill",
+      "version": "6.10.0",
+      "contentHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    {
+      "id": "tool_bmad-write-file",
+      "kind": "tool",
+      "version": null,
+      "contentHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    }
+  ],
+  "edges": [
+    {
+      "from": "skill_bmad-domain-research",
+      "to": "script_bmad-domain-steps",
+      "kind": "required",
+      "condition": null,
+      "demandedVersion": null
+    },
+    {
+      "from": "skill_bmad-product-brief",
+      "to": "persona_bmad-agent-analyst",
+      "kind": "required",
+      "condition": null,
+      "demandedVersion": null
+    },
+    {
+      "from": "skill_bmad-product-brief",
+      "to": "skill_bmad-domain-research",
+      "kind": "conditional",
+      "condition": "cond_domain_research_requested",
+      "demandedVersion": null
+    },
+    {
+      "from": "skill_bmad-product-brief",
+      "to": "tool_bmad-write-file",
+      "kind": "optional",
+      "condition": null,
+      "demandedVersion": null
+    }
+  ]
+}
