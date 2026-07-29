@@ -66,7 +66,9 @@ internal static partial class FoundryDeploymentNormalizer
     /// </summary>
     internal static FoundryNormalizationResult Normalize(
         IReadOnlyList<FoundryDeploymentDto> providerDeployments,
-        DateTimeOffset retrievedAt)
+        DateTimeOffset retrievedAt,
+        FoundryInventoryMode inventoryMode,
+        string prerequisiteEvidenceHash)
     {
         ArgumentNullException.ThrowIfNull(providerDeployments);
         if (providerDeployments.Count > FoundryDeploymentSnapshot.MaximumDeployments)
@@ -110,18 +112,26 @@ internal static partial class FoundryDeploymentNormalizer
             ErrorCode: "",
             new FoundryDeploymentSnapshot(
                 FoundryDeploymentSnapshot.SchemaVersionValue,
-                ComputeSnapshotHash(canonical),
+                ComputeSnapshotHash(canonical, inventoryMode, prerequisiteEvidenceHash),
                 retrievedAt,
                 canonical));
     }
 
     /// <summary>
-    /// Hashes the canonical deployment set. The retrieval timestamp is
-    /// excluded on purpose: an unchanged inventory must hash identically
-    /// across refreshes so the cache can recognize a no-op.
+    /// Hashes the canonical, validated callable-route inventory together with
+    /// the operator-selected inventory mode and the prerequisite-evidence hash
+    /// that qualified it (delta compatibility decision 1). A route accepted
+    /// under one mode, or without a live qualification, must never hash
+    /// identically to the same route accepted under another mode: the mode and
+    /// the evidence are part of what was actually validated, not incidental
+    /// metadata. The retrieval timestamp is excluded on purpose: an unchanged
+    /// inventory, mode, and evidence hash must hash identically across
+    /// refreshes so the cache can recognize a no-op.
     /// </summary>
     internal static string ComputeSnapshotHash(
-        IReadOnlyList<FoundryDeployment> deployments)
+        IReadOnlyList<FoundryDeployment> deployments,
+        FoundryInventoryMode inventoryMode,
+        string prerequisiteEvidenceHash)
     {
         List<object> identities = [];
         foreach (FoundryDeployment deployment in deployments)
@@ -131,6 +141,8 @@ internal static partial class FoundryDeploymentNormalizer
         SortedDictionary<string, object?> draft = new(StringComparer.Ordinal)
         {
             ["deployments"] = identities,
+            ["inventoryMode"] = inventoryMode.ToString(),
+            ["prerequisiteEvidenceHash"] = prerequisiteEvidenceHash,
             ["schemaVersion"] = FoundryDeploymentSnapshot.SchemaVersionValue,
         };
         return CanonicalProof.Render(
