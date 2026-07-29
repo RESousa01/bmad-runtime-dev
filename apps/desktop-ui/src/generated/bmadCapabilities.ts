@@ -1434,7 +1434,7 @@ export const bmadCapabilities = [
       "governed_artifact"
     ],
     "supportState": "exact",
-    "uiState": "planned",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {

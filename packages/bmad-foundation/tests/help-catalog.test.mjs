@@ -142,6 +142,30 @@ test("BMAD Help exposes canonical PRD exact runtime availability without promoti
   );
 });
 
+test("BMAD Help exposes canonical Deep Recon and deprecated research aliases from one graph", async () => {
+  const graph = await readJson("normalized/bmad-help-capability-graph.json");
+  const recon = graph.nodes.find((node) => node.id === "core:bmad-deep-recon");
+
+  assert.equal(recon?.supportState, "exact");
+  assert.equal(recon?.uiState, "runtime_available");
+  assert.deepEqual(recon?.rowIds, [
+    "method:src/bmm-skills/v6-shims/bmad-domain-research/SKILL.md",
+    "method:src/bmm-skills/v6-shims/bmad-market-research/SKILL.md",
+    "method:src/bmm-skills/v6-shims/bmad-technical-research/SKILL.md",
+    "method:src/core-skills/bmad-deep-recon/SKILL.md",
+  ]);
+  assert.deepEqual(
+    graph.aliasEdges
+      .filter((edge) => edge.canonicalId === "core:bmad-deep-recon")
+      .map((edge) => [edge.aliasId, edge.deprecated]),
+    [
+      ["bmm:bmad-domain-research", true],
+      ["bmm:bmad-market-research", true],
+      ["bmm:bmad-technical-research", true],
+    ],
+  );
+});
+
 test("BMAD Help action graph nodes are unique and canonically ordered", async () => {
   const graph = await readJson("normalized/bmad-help-capability-graph.json");
   const ids = graph.nodes.map((node) => node.id);

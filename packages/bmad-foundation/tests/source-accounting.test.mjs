@@ -51,17 +51,28 @@ test("qualified Method source rows are runtime-available while other rows stay p
   assert.equal(readiness?.ui_state, "runtime_available");
   assert.equal(readiness?.release_state, "qualified");
   assert.deepEqual(accounting.totals.runtime_support, {
-    exact: 2,
-    implementation_pending: 51,
+    exact: 3,
+    implementation_pending: 50,
   });
   assert.deepEqual(accounting.totals.ui_support, {
-    planned: 51,
-    runtime_available: 2,
+    planned: 50,
+    runtime_available: 3,
   });
   assert.deepEqual(accounting.totals.release_state, {
-    blocked_pending_conformance: 51,
-    qualified: 2,
+    blocked_pending_conformance: 50,
+    qualified: 3,
   });
+});
+
+test("the canonical Deep Recon source row is runtime-qualified", async () => {
+  const accounting = JSON.parse(await readFile(accountingPath, "utf8"));
+  const recon = accounting.members.find(
+    (member) => member.path === "src/core-skills/bmad-deep-recon/SKILL.md",
+  );
+
+  assert.equal(recon?.support_state, "exact");
+  assert.equal(recon?.ui_state, "runtime_available");
+  assert.equal(recon?.release_state, "qualified");
 });
 
 test("missing and contradictory accounting rows fail closed", async () => {

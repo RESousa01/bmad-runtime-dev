@@ -17,9 +17,9 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:f5599c0ccbd727472101aab6e27c269a0902c9a78d4e3b28c15ae110d7afae71";
+    "sha256:9071ed557ba4bb0d30c3397da2dd247910d96a13992adb14bbed59ba0055dd97";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:eb83ab5bcec0bc5475b625fbfa57b31556f2a3373c0941556929ff09b8408595";
+    "sha256:e352a79805426c53573133d334ab628b4b0750a9116bb8c6681056526714d515";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
@@ -29,7 +29,7 @@ const WORKFLOW_GRAPH_PATH: &str = "source/method/6.10.0/src/bmm-skills/module-he
 const CORE_SKILL_CATALOG_PATH: &str = "source/method/6.10.0/src/core-skills/module-help.csv";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
 const HELP_INSTRUCTION_PATH: &str = "runtime/method/6.10.0/bmad-help.instructions.md";
-const METHOD_RUNTIME_PATHS: [&str; 31] = [
+const METHOD_RUNTIME_PATHS: [&str; 32] = [
     "runtime/method/6.10.0/analyst-persona.instructions.md",
     "runtime/method/6.10.0/architect-persona.instructions.md",
     "runtime/method/6.10.0/architecture-create.instructions.md",
@@ -40,6 +40,7 @@ const METHOD_RUNTIME_PATHS: [&str; 31] = [
     "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
     "runtime/method/6.10.0/create-story.instructions.md",
     "runtime/method/6.10.0/dev-persona.instructions.md",
+    "runtime/method/6.10.0/deep-recon.instructions.md",
     "runtime/method/6.10.0/dev-story.instructions.md",
     "runtime/method/6.10.0/document-project.instructions.md",
     "runtime/method/6.10.0/domain-research.instructions.md",
@@ -64,7 +65,7 @@ const METHOD_RUNTIME_PATHS: [&str; 31] = [
 ];
 /// ADR-0008 adopted upstream bodies live only here.
 const ADOPTED_SOURCE_ROOT: &str = "source/method/6.10.0/";
-const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 81] = [
     "NOTICE.md",
     "adoption-ledger.json",
     "licenses/BMAD-BUILDER-MIT.txt",
@@ -79,6 +80,7 @@ const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
     "normalized/bmad-create-epics-and-stories.package.json",
     "normalized/bmad-create-story.package.json",
     "normalized/bmad-dev-story.package.json",
+    "normalized/bmad-deep-recon.package.json",
     "normalized/bmad-dev.package.json",
     "normalized/bmad-document-project.package.json",
     "normalized/bmad-domain-research.package.json",
@@ -122,6 +124,7 @@ const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
     "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
     "runtime/method/6.10.0/create-story.instructions.md",
     "runtime/method/6.10.0/dev-persona.instructions.md",
+    "runtime/method/6.10.0/deep-recon.instructions.md",
     "runtime/method/6.10.0/dev-story.instructions.md",
     "runtime/method/6.10.0/document-project.instructions.md",
     "runtime/method/6.10.0/domain-research.instructions.md",

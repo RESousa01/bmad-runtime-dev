@@ -129,6 +129,22 @@ impl BmadTrustedHelpModelProfile {
     pub const fn request_schema_hash(&self) -> Sha256Digest {
         self.binding.data.request_schema_hash
     }
+
+    /// Rebinds the same trusted provider/deployment profile to a capability's
+    /// reviewed response schema.
+    ///
+    /// The returned value is immutable Method binding data, not a model port
+    /// or an authorization to call the provider.
+    pub fn method_binding_for_response(
+        &self,
+        response_schema_hash: Sha256Digest,
+    ) -> Result<MethodModelBinding, BmadKernelError> {
+        let mut data = self.binding.data.clone();
+        data.response_schema_hash = response_schema_hash;
+        let binding_hash = canonical_hash("bmad-method-model-binding", 1, &data)
+            .map_err(|_| binding_mismatch())?;
+        MethodModelBinding::from_source(data, binding_hash).map_err(|_| binding_mismatch())
+    }
 }
 
 /// Exact, sealed Help composition. It remains intentionally non-runnable.

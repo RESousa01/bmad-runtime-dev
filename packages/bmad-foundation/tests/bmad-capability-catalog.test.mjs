@@ -182,3 +182,39 @@ test("readiness source-derived goldens prove parity and durable lifecycle branch
     "upgrade",
   ]);
 });
+
+test("generated UI projections advertise one canonical Deep Recon row and retain governed aliases", async () => {
+  const catalog = await readJson("capability-catalog.json");
+  const aliases = await readJson("compatibility-aliases.json");
+  const [rust, typescript] = await Promise.all([
+    readFile(new URL("../../crates/desktop-app/src/generated/bmad_capabilities.rs", root), "utf8"),
+    readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
+  ]);
+  const rows = catalog.capabilities.filter(
+    (row) => row.canonicalId === "core:bmad-deep-recon",
+  );
+  const qualified = rows.filter(
+    (row) =>
+      row.visibility === "public"
+      && row.uiState === "runtime_available"
+      && row.supportState !== "unavailable",
+  );
+
+  assert.equal(rows.length, 4);
+  assert.deepEqual(
+    qualified.map((row) => row.rowId),
+    ["method:src/core-skills/bmad-deep-recon/SKILL.md"],
+  );
+  assert.deepEqual(
+    aliases.aliases
+      .filter((alias) => alias.target === "core:bmad-deep-recon")
+      .map((alias) => alias.alias),
+    [
+      "bmm:bmad-domain-research",
+      "bmm:bmad-market-research",
+      "bmm:bmad-technical-research",
+    ],
+  );
+  assert.match(rust, /core:bmad-deep-recon/u);
+  assert.match(typescript, /core:bmad-deep-recon/u);
+});

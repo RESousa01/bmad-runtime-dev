@@ -279,6 +279,18 @@ pub trait BmadMethodSkill {
     fn execution_contract(&self) -> Result<BmadSkillExecutionContract, BmadSkillExecutionError> {
         Err(BmadSkillExecutionError::ContractUnavailable)
     }
+
+    /// Returns the source branch selected for this invocation.
+    ///
+    /// Most skills expose one workflow and inherit this implementation.
+    /// Consolidated skills may select among source-declared workflows without
+    /// introducing another executor or state machine.
+    fn execution_contract_for_action(
+        &self,
+        _action: Option<&str>,
+    ) -> Result<BmadSkillExecutionContract, BmadSkillExecutionError> {
+        self.execution_contract()
+    }
 }
 
 #[cfg(test)]

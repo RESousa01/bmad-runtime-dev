@@ -1,8 +1,8 @@
 {
   "schemaVersion": "sapphirus.bmad-help-capability-graph.v1",
   "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
-  "sourceCatalogSha256": "93ed7312aefb638ee7a0b7b48310a04374aeb4dcdbd30da661e5eff1bfba3466",
-  "sourceAliasCatalogSha256": "bd8f4a8da3303f25c64e384b410b0cd709ae3ee151ffed5d61e5a3a86b539b71",
+  "sourceCatalogSha256": "82b1345885950bdb09fd87103fc5fd9eb35758aa509e135f1cc57da358509d97",
+  "sourceAliasCatalogSha256": "32530f009833d143dbe7548d154c80d8343a109b7a468502ce51a8b873bba936",
   "nodeCount": 45,
   "nodes": [
     {
@@ -659,14 +659,14 @@
         "governed_artifact"
       ],
       "supportState": "exact",
-      "uiState": "planned",
+      "uiState": "runtime_available",
       "rowIds": [
         "method:src/bmm-skills/v6-shims/bmad-domain-research/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-market-research/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-technical-research/SKILL.md",
         "method:src/core-skills/bmad-deep-recon/SKILL.md"
       ],
-      "nodeHash": "sha256:1d9186d4ec9ee4160ecbbea02ac8351599e80b6f18d8df880bc62a87f7d8ba49"
+      "nodeHash": "sha256:f1e18bda8fadc3844bb789c3c5600c561771b848eeabd59e96234b10171f99f5"
     },
     {
       "id": "core:bmad-forge-idea",
@@ -831,5 +831,5 @@
       "deprecated": true
     }
   ],
-  "graphHash": "sha256:ee754088695f5a58787e5e7e234df447249daa7dbefd5b60a6279e07f8b46404"
+  "graphHash": "sha256:12d1020ba64215f1304425ebbafd154401e64c3a05c49b214fe018a7bcb4b6c2"
 }

@@ -19,17 +19,19 @@ use desktop_egress::{
 };
 use desktop_ipc::{BmadProjectionError, BmadRuntimeMenuCapabilityBinding};
 use desktop_runtime::{
-    canonical_hash, deserialize_strict_json, sha256_bytes, BmadAgentRoster, BmadBuilderDraftFile,
-    BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
-    BmadCheckImplementationReadinessSkill, BmadClosureCapabilityId, BmadDocumentArtifact,
-    BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft, BmadMethodSkill,
-    BmadPrdSkill, BmadSkillExecutionError, ContractId, RelativeWorkspacePath, Sha256Digest,
-    UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
+    canonical_hash, canonical_method_skill_adapter, deserialize_strict_json, sha256_bytes,
+    BmadAgentRoster, BmadBuilderDraftFile, BmadBuilderDraftKind, BmadCandidateChange,
+    BmadCapabilityOutput, BmadClosureCapabilityId, BmadDocumentArtifact, BmadDocumentSection,
+    BmadDomainRuntime, BmadGovernedChangeSet, BmadInactiveBuilderDraft, BmadMethodSkill,
+    BmadPreparedSkillExecution, BmadRuntimePort, BmadSkillExecutionError,
+    BmadSkillHostBindingInput, ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
     BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::bmad_foundation::BmadLoadedFoundation;
 use crate::bmad_model::capability_coordinator::{
     capability_purpose, ApproveCapabilityRunInput, BmadCapabilityCoordinatorError,
     BmadCapabilityOutputVerifier, BmadCapabilityTransport, CancelCapabilityRunInput,
@@ -54,7 +56,7 @@ pub(crate) struct CapabilityBinding {
 /// The 38 reviewed capabilities: 24 unique menu capabilities (ADR-0005),
 /// the five Builder authoring operations (ADR-0006) whose outputs are
 /// inactive drafts, and nine core skills adopted verbatim (ADR-0008).
-pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 38] = [
+pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 39] = [
     CapabilityBinding {
         id: "bmm:bmad-brainstorming",
         output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
@@ -114,6 +116,11 @@ pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 38] = [
         id: "bmm:bmad-prd",
         output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
         projection_path: "runtime/method/6.10.0/prd.instructions.md",
+    },
+    CapabilityBinding {
+        id: "core:bmad-deep-recon",
+        output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        projection_path: "runtime/method/6.10.0/deep-recon.instructions.md",
     },
     CapabilityBinding {
         id: "bmm:bmad-create-epics-and-stories",
@@ -420,20 +427,12 @@ fn generated_catalog_shape_is_current() -> bool {
             == BUILDER_INTERNAL_ACTION_ROW_COUNT
 }
 
-static BMAD_PRD_SKILL: BmadPrdSkill = BmadPrdSkill;
-static BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL: BmadCheckImplementationReadinessSkill =
-    BmadCheckImplementationReadinessSkill;
-
 fn canonical_method_skill(
     capability_id: &str,
 ) -> Result<&'static dyn BmadMethodSkill, BmadSkillExecutionError> {
-    let binding =
-        capability_binding(capability_id).ok_or(BmadSkillExecutionError::ContractUnavailable)?;
-    match binding.id {
-        "bmm:bmad-prd" => Ok(&BMAD_PRD_SKILL),
-        "bmm:bmad-check-implementation-readiness" => Ok(&BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL),
-        _ => Err(BmadSkillExecutionError::ContractUnavailable),
-    }
+    let canonical =
+        catalog_target(capability_id).ok_or(BmadSkillExecutionError::ContractUnavailable)?;
+    canonical_method_skill_adapter(canonical).ok_or(BmadSkillExecutionError::ContractUnavailable)
 }
 
 fn catalog_target(capability_id: &str) -> Option<&'static str> {
@@ -497,17 +496,14 @@ pub(crate) fn runtime_capability_enabled(
     roster: &BmadAgentRoster,
     binding: &CapabilityBinding,
 ) -> Result<bool, BmadProjectionError> {
-    if matches!(
-        binding.id,
-        "bmm:bmad-prd" | "bmm:bmad-check-implementation-readiness"
-    ) && (!UI_ADVERTISED_CAPABILITIES
-        .iter()
-        .any(|row| row.canonical_id == binding.id)
-        || canonical_method_skill(binding.id)
-            .and_then(|skill| skill.execution_contract())
-            .is_err())
-    {
-        return Err(BmadProjectionError::Unavailable);
+    if let Ok(skill) = canonical_method_skill(binding.id) {
+        if !UI_ADVERTISED_CAPABILITIES
+            .iter()
+            .any(|row| row.canonical_id == skill.descriptor().canonical_id())
+            || skill.execution_contract().is_err()
+        {
+            return Err(BmadProjectionError::Unavailable);
+        }
     }
     if binding.id.starts_with("builder:") && binding.projection_path.starts_with("runtime/builder/")
     {
@@ -1245,6 +1241,49 @@ pub(crate) fn assemble_capability_prepare(
     })
 }
 
+/// Compiles one generated-catalog-resolved capability through the shared
+/// Method execution bridge. Capabilities without an opted-in adapter return
+/// `None`; adapter or binding drift fails closed.
+pub(crate) fn prepare_method_capability_execution(
+    binding: &CapabilityBinding,
+    foundation: &BmadLoadedFoundation,
+    configuration: &HelpModelConfiguration,
+) -> Result<Option<BmadPreparedSkillExecution>, BmadSkillExecutionError> {
+    let skill = match canonical_method_skill(binding.id) {
+        Ok(skill) => skill,
+        Err(BmadSkillExecutionError::ContractUnavailable) => return Ok(None),
+        Err(error) => return Err(error),
+    };
+    let canonical_id = skill.descriptor().canonical_id().to_owned();
+    let action = (canonical_id == "core:bmad-deep-recon").then(|| "run".to_owned());
+    let contract = skill.execution_contract_for_action(action.as_deref())?;
+    let response_schema_hash = sha256_bytes(binding.output_schema_id.as_bytes());
+    let model_binding = configuration
+        .trusted_profile
+        .method_binding_for_response(response_schema_hash)
+        .map_err(|_| BmadSkillExecutionError::BindingMismatch)?;
+    let customization_hash = canonical_hash(
+        "bmad-skill-host-customization",
+        1,
+        &(canonical_id, binding.id),
+    )
+    .map_err(|_| BmadSkillExecutionError::BindingMismatch)?;
+    let request = contract.bind_host_request(BmadSkillHostBindingInput {
+        mode: desktop_runtime::generated_contracts::BmadInvocationMode::Interactive,
+        action,
+        resolved_config_graph_hash: foundation.help_invocation().central_config_graph_hash(),
+        resolved_config_hash: foundation
+            .help_invocation()
+            .central_config_resolution_hash(),
+        resolved_customization_hash: customization_hash,
+        egress_profile_hash: model_binding.data.egress_profile_hash,
+        model_binding,
+    })?;
+    BmadDomainRuntime
+        .prepare_skill_execution(skill, request)
+        .map(Some)
+}
+
 struct SealCapabilityBinding<'a> {
     request_id: ContractId,
     installation_id: &'a ContractId,
@@ -1531,6 +1570,24 @@ mod tests {
             canonical_method_skill("bmm:not-reviewed"),
             Err(BmadSkillExecutionError::ContractUnavailable)
         ));
+    }
+
+    // Break caught: retaining three legacy research bindings while the host
+    // resolves each to its old one-shot implementation creates four authority
+    // paths instead of one canonical Deep Recon execution contract.
+    #[test]
+    fn deep_recon_and_legacy_research_aliases_share_one_runtime_adapter() {
+        for capability_id in [
+            "core:bmad-deep-recon",
+            "bmm:bmad-market-research",
+            "bmm:bmad-domain-research",
+            "bmm:bmad-technical-research",
+        ] {
+            let skill = canonical_method_skill(capability_id)
+                .expect("canonical Deep Recon and each governed alias resolve");
+            assert_eq!(skill.descriptor().canonical_id(), "core:bmad-deep-recon");
+            assert!(skill.execution_contract().is_ok());
+        }
     }
 
     #[test]

@@ -4270,6 +4270,11 @@
       "sha256": "4084dbda3b919635d560deb4e386a72254db257ca9a3cf8a07763362cd41fe3a"
     },
     {
+      "path": "runtime/method/6.10.0/deep-recon.instructions.md",
+      "byteLength": 2019,
+      "sha256": "da2f2c9a51315a88f2b80bffd98a7476c2509611945cc10f748e4309166731ff"
+    },
+    {
       "path": "runtime/method/6.10.0/document-project.instructions.md",
       "byteLength": 1316,
       "sha256": "f0397ced48a617cf302f18407719950b106a27b86e15e51ec0f352f632186dee"

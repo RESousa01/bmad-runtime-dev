@@ -342,3 +342,31 @@ test("package-wide check reports blockers separately and never marks bmad-ux inv
     ),
   );
 });
+
+test("the task-scoped resource-closure command selects Deep Recon exactly", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      scriptPath,
+      "--source",
+      "method@6.10.0",
+      "--skill",
+      "bmad-deep-recon",
+      "--check",
+    ],
+    {
+      cwd: packageRoot,
+      encoding: "utf8",
+      env: { ...process.env, NO_COLOR: "1" },
+    },
+  );
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const summary = JSON.parse(result.stdout);
+  assert.equal(summary.packages.length, 1);
+  assert.deepEqual(
+    summary.packages[0].production_skills.map((skill) => skill.root),
+    ["src/core-skills/bmad-deep-recon/SKILL.md"],
+  );
+  assert.equal(summary.packages[0].production_skills[0].closure_percent, 100);
+});

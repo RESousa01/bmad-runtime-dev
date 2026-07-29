@@ -15,8 +15,9 @@ use desktop_ipc::{
 };
 use desktop_runtime::{
     canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
-    CreateInertBmadHelpSession, InertBmadHelpSessionCoordinator, LocalCommand, LocalError,
-    LocalErrorCode, ProjectionEventKind, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    CreateInertBmadHelpSession, CreateMethodSession, InertBmadHelpSessionCoordinator, LocalCommand,
+    LocalError, LocalErrorCode, MethodSessionService, ProjectionEventKind, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis,
 };
 use desktop_store::{
     BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
@@ -2354,11 +2355,54 @@ fn prepare_bmad_capability_run(
         },
     )
     .map_err(map_capability_error)?;
+    let method_execution = crate::bmad_capability_host::prepare_method_capability_execution(
+        binding,
+        foundation,
+        &configuration,
+    )
+    .map_err(|_| recovery_error())?;
     let review = state
         .bmad_capabilities
         .lock()
         .prepare(prepare_input)
         .map_err(map_capability_error)?;
+    if let Some(method_execution) = method_execution {
+        let local_identity = state
+            .local_identity(authority.authority())
+            .map_err(|_| recovery_error())?;
+        let authority_ref = local_identity
+            .authority_ref()
+            .map_err(|_| recovery_error())?;
+        let store = state
+            .method_store(authority.authority())
+            .map_err(|_| recovery_error())?;
+        let service = MethodSessionService::new(store);
+        let created = service
+            .create(CreateMethodSession {
+                // The capability run is the durable Method session identity,
+                // so approval/submission/recovery can resolve it without a
+                // second host registry.
+                session_id: review.run_id.clone(),
+                owner_scope_ref: local_identity.owner_scope_ref().clone(),
+                project_id,
+                run_id: review.run_id.clone(),
+                authority_ref,
+                created_at,
+            })
+            .map_err(|_| recovery_error())?;
+        let bound = service
+            .bind_invocation(
+                &created.scope(),
+                created.session_id(),
+                created.version(),
+                method_execution.exact_binding().clone(),
+                method_execution.step_table().clone(),
+            )
+            .map_err(|_| recovery_error())?;
+        service
+            .request_context_review(&bound.scope(), bound.session_id(), bound.version())
+            .map_err(|_| recovery_error())?;
+    }
     drop(authority);
     Ok(HostCommandData::CapabilityReview(
         crate::wire::CapabilityReviewWire::new(

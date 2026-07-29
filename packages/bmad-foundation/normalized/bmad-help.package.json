@@ -31,7 +31,7 @@
   "upstreamManifestObservationHashes": [
     "sha256:7b4f67e25fb6ed90136d9e6214e9e67373c109bfa64b341a484ae6cc9dc09d83"
   ],
-  "finalCompositeInventoryHash": "sha256:24df29a5878300d9c50782dcb4cdc175ed9c00606dc7c367683ed3215349f791",
+  "finalCompositeInventoryHash": "sha256:82ec56f4508b37a57e348f4178aecedac4001468b274dfbdd14bed1d50432aaf",
   "modules": [
     {
       "moduleCode": "bmm",
@@ -1405,6 +1405,15 @@
       "runtimeUse": "instruction_data"
     },
     {
+      "path": "runtime/method/6.10.0/deep-recon.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:da2f2c9a51315a88f2b80bffd98a7476c2509611945cc10f748e4309166731ff",
+      "byteLength": 2019,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
       "path": "runtime/method/6.10.0/dev-story.instructions.md",
       "locationKind": "managed_projection",
       "contentRole": "managed_instruction",
@@ -2041,5 +2050,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:655a9e17813f44261d7b027c8306a43ee6181949e3aa75634c7ef48df6dc5d13"
+  "descriptorHash": "sha256:b0aee7c3a21373f2e160243f0934dc0c406d44a06a2fdb67cadf0228041cd483"
 }
