@@ -978,16 +978,6 @@
   height: 20px;
 }
 
-.app-shell--forge-v2 .diff-line__number,
-.app-shell--forge-v2 .diff-line__sign {
-  font-size: var(--text-meta);
-}
-
-.app-shell--forge-v2 .diff-line__code {
-  font-size: var(--text-meta);
-  padding-inline: 7px;
-}
-
 /* Modals inherit the same flat surface system. */
 
 .app-shell--forge-v2 .task-shell-layout__scrim {

@@ -875,30 +875,8 @@ code {
   background: var(--color-removed);
 }
 
-.diff-line__sign {
-  font-family: var(--font-code);
-  font-size: var(--text-meta);
-  text-align: center;
-  width: 17px;
-}
 
-.diff-line__number {
-  background: color-mix(in srgb, var(--color-surface), transparent 40%);
-  border-right: 1px solid var(--color-border-subtle);
-  color: var(--color-text-muted);
-  font-family: var(--font-code);
-  font-size: var(--text-meta);
-  padding: 0 5px;
-  text-align: right;
-  width: 31px;
-}
 
-.diff-line__code {
-  font-size: var(--text-ui);
-  overflow: hidden;
-  padding: 0 9px;
-  white-space: pre;
-}
 
 /*
  * 3a puts the decision on one line: the accented Apply changes first, then the
@@ -1882,11 +1860,6 @@ code {
 }
 
 .workspace-tree__list,
-.workspace-tree__item {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
 
 .workspace-tree__row {
   align-items: center;
