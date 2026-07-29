@@ -167,3 +167,55 @@ dispatch uses the canonical Create branch; Update and Validate are compiled and
 executable through the shared runtime/session contract but require a future IPC
 surface to select them directly. The coordinator still owns final task/tree
 binding and dependent-task unblocking.
+
+## Reviewer fix round 2
+
+Date: 2026-07-29
+Status: `DONE`
+
+The second reviewer round closes every remaining production and evidence gap:
+
+- Product IPC and UI now select Create, Update, or Validate and Interactive or
+  Headless. The selected mode is part of `MethodExactBinding`, so the two modes
+  cannot collapse to one authority identity.
+- Generated canonical catalog data selects the Method adapter and dispatch
+  branch. `commands.rs` no longer constructs a PRD adapter or hardcodes the
+  Create/Interactive branch.
+- Prepare creates or resumes/rebinds the persisted Method session. Approve
+  records the governed context decision; submit begins real Method advances,
+  persists authenticated required artifacts and checkpoints every source-bound
+  stage; cancel and provider failure persist terminal Cancelled and Incomplete
+  states.
+- Declared file, web, browser, external-handoff, process, and subagent
+  requirements are converted into distinct governed authority-evidence
+  dispositions and bound into each Method review decision.
+- The sealed foundation now admits the complete 85-resource managed topology,
+  including the reviewed root catalogs/provenance ledgers. `.gitattributes`
+  preserves pinned upstream bytes, the runtime manifest is resealed, and the
+  Method receipt regression covers short IDs and stale-receipt removal.
+- The canonical updater-compatible task record is
+  `artifacts/bmad100/tasks/MTH-08.json`. It binds lease baseline
+  `15645c295c223bc9b509adf0dc53bbe937f43c7c`, candidate base
+  `50591fd383442be9b4b20c8ca76dbb29a13a76d9`, and final verified tree
+  `820fe9a065202499403a21f0d317b15dbe89fd17`.
+
+Fresh clean-tree evidence at commit `cfdaef333bb285f8126e844d6225bafd85b2ad3c`:
+
+- exact five MTH-08 gates: passed
+- foundation package: 196/196
+- production Method entrypoints: 4/4, including six action/mode completions,
+  provider failure, and cancellation
+- runtime PRD adapter: 5/5
+- runtime Method lifecycle: 36/36
+- desktop UI: 1540/1540; typecheck and zero-warning ESLint passed
+- focused runtime clippy and desktop-app production-library clippy with
+  `-D warnings`: passed
+- repository-wide desktop-app test clippy still encounters two pre-existing
+  `clippy::panic` findings in `tests/foundry_model_commands.rs`; MTH-08 does not
+  modify that Foundry test.
+
+BigBrain consulted and updated:
+`C:\Users\rodri\source\BigBrain\03-projects\sapphirus-bmad-runtime.md`.
+
+Unresolved questions or TODOs: none for MTH-08. Coordinator state/lease removal
+and dependent-task unblocking remain coordinator-owned operations.
