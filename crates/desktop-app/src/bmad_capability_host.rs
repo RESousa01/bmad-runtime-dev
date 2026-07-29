@@ -35,6 +35,9 @@ use crate::bmad_model::capability_coordinator::{
 };
 use crate::bmad_model::config::{HelpModelConfiguration, HelpModelMode};
 use crate::bmad_model::context::derived_contract_id;
+use crate::generated::bmad_capabilities::{
+    CAPABILITIES as GENERATED_CAPABILITIES, COMPATIBILITY_ALIASES as GENERATED_ALIASES,
+};
 
 /// One reviewed menu capability binding: identity, archetype, projection.
 pub(crate) struct CapabilityBinding {
@@ -385,9 +388,26 @@ pub(crate) const METHOD_MENU_CAPABILITY_TABLE: [BmadRuntimeMenuCapabilityBinding
 ];
 
 pub(crate) fn capability_binding(capability_id: &str) -> Option<&'static CapabilityBinding> {
-    CAPABILITY_TABLE
+    CAPABILITY_TABLE.iter().find(|binding| {
+        binding.id == capability_id && builder_binding_has_canonical_catalog_target(binding)
+    })
+}
+
+fn catalog_target(capability_id: &str) -> Option<&'static str> {
+    if let Some(capability) = GENERATED_CAPABILITIES
         .iter()
-        .find(|binding| binding.id == capability_id)
+        .find(|capability| capability.canonical_id == capability_id)
+    {
+        return Some(capability.canonical_id);
+    }
+    GENERATED_ALIASES
+        .iter()
+        .find(|alias| alias.alias == capability_id)
+        .map(|alias| alias.target)
+}
+
+fn builder_binding_has_canonical_catalog_target(binding: &CapabilityBinding) -> bool {
+    !binding.id.starts_with("builder:") || catalog_target(binding.id).is_some()
 }
 
 /// The runtime-enabled Method menu paths.
@@ -1358,10 +1378,10 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::{
-        capability_binding, context_candidate, memlog_candidate, parse_capability_result,
-        reviewed_method_menu_bindings, sealed_instruction_candidate,
+        capability_binding, catalog_target, context_candidate, memlog_candidate,
+        parse_capability_result, reviewed_method_menu_bindings, sealed_instruction_candidate,
         validate_method_menu_capability_bindings, WireCapabilityOutputVerifier,
-        CAPABILITY_MANIFEST_LIFETIME_MS, MAX_CAPABILITY_CONTEXT_BYTES,
+        CAPABILITY_MANIFEST_LIFETIME_MS, CAPABILITY_TABLE, MAX_CAPABILITY_CONTEXT_BYTES,
         MAX_CAPABILITY_CONTEXT_ITEMS, METHOD_MENU_CAPABILITY_TABLE,
     };
     use crate::bmad_foundation::load_bmad_foundation;
@@ -1424,6 +1444,21 @@ mod tests {
     /// The heaviest load the host can actually assemble must seal. The declared
     /// ceiling is only honest if every item it counts fits at once — the chat
     /// lane shipped a ceiling above the egress hard cap and was inert for it.
+    #[test]
+    fn bmad_capability_catalog_governs_legacy_builder_bindings() {
+        let builder_bindings = CAPABILITY_TABLE
+            .iter()
+            .filter(|binding| binding.id.starts_with("builder:"))
+            .collect::<Vec<_>>();
+        assert_eq!(builder_bindings.len(), 5);
+        for binding in builder_bindings {
+            let canonical = catalog_target(binding.id)
+                .expect("every retained Builder binding must have one catalog target");
+            assert!(canonical.starts_with("builder:bmad-"));
+            assert!(capability_binding(binding.id).is_some());
+        }
+    }
+
     #[test]
     fn a_full_capability_context_load_seals_with_the_memlog() {
         let mut candidates = vec![

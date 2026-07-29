@@ -1452,8 +1452,7 @@ fn resolve_picked_file(root: &Path, candidate: &Path) -> Result<String, Rejected
     if !candidate.is_absolute() {
         return Err(unnamed(PickRejection::OutsideWorkspace));
     }
-    let canonical =
-        fs::canonicalize(candidate).map_err(|_| unnamed(PickRejection::Unreadable))?;
+    let canonical = fs::canonicalize(candidate).map_err(|_| unnamed(PickRejection::Unreadable))?;
     let metadata =
         fs::symlink_metadata(&canonical).map_err(|_| unnamed(PickRejection::Unreadable))?;
     if !metadata.is_file()
@@ -2375,8 +2374,8 @@ mod tests {
     /// single thing this broker exists to prevent, and it would leak through
     /// the most innocuous-looking surface there is: an error message.
     #[test]
-    fn rejections_from_outside_the_root_are_never_named(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn rejections_from_outside_the_root_are_never_named() -> Result<(), Box<dyn std::error::Error>>
+    {
         let root = tempfile::tempdir()?;
         let sibling = tempfile::tempdir()?;
         fs::write(root.path().join("keep.txt"), b"x")?;
@@ -2414,8 +2413,7 @@ mod tests {
     /// actionable -- which is the "3 files were skipped" failure the pick
     /// surface had before this.
     #[test]
-    fn rejections_from_inside_the_root_name_the_file(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn rejections_from_inside_the_root_name_the_file() -> Result<(), Box<dyn std::error::Error>> {
         let root = tempfile::tempdir()?;
         fs::create_dir_all(root.path().join("src"))?;
         fs::write(root.path().join("src").join("image.bin"), [0, 1, 2, 3])?;
@@ -2488,18 +2486,23 @@ mod tests {
     /// chose, which they never named individually. Listing them would bury the
     /// refusals that matter.
     #[test]
-    fn a_folder_walk_does_not_list_every_file_it_skips(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn a_folder_walk_does_not_list_every_file_it_skips() -> Result<(), Box<dyn std::error::Error>> {
         let root = tempfile::tempdir()?;
         fs::create_dir_all(root.path().join("src"))?;
-        fs::write(root.path().join("src").join("a.ts"), b"export const a = 1;\n")?;
+        fs::write(
+            root.path().join("src").join("a.ts"),
+            b"export const a = 1;\n",
+        )?;
         fs::write(root.path().join("src").join("image.bin"), [0, 1, 2, 3])?;
         fs::write(root.path().join("src").join(".env"), b"SECRET=1\n")?;
         let broker = WorkspaceBroker::new();
         let projection = broker.grant("project_test", root.path())?;
 
-        let picked =
-            broker.resolve_picked_folder(&projection.workspace_id, &root.path().join("src"), 100)?;
+        let picked = broker.resolve_picked_folder(
+            &projection.workspace_id,
+            &root.path().join("src"),
+            100,
+        )?;
 
         assert_eq!(picked.relative_paths, vec!["src/a.ts"]);
         assert!(picked.rejected.is_empty(), "{:?}", picked.rejected);

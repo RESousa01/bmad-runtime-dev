@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "sapphirus.bmad.current-normalized-packages/v1",
+  "baselineTree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+  "normalizedInventory": {
+    "runtimeManifestHash": "sha256:52a21580d10277e8670cec85a6684c3f1089dcd474eb44a856694a22b3b77021",
+    "contractCount": 35,
+    "paths": [
+      "normalized/bmad-analyst.package.json",
+      "normalized/bmad-architect.package.json",
+      "normalized/bmad-architecture.package.json",
+      "normalized/bmad-brainstorming.package.json",
+      "normalized/bmad-check-implementation-readiness.package.json",
+      "normalized/bmad-code-review.package.json",
+      "normalized/bmad-correct-course.package.json",
+      "normalized/bmad-create-epics-and-stories.package.json",
+      "normalized/bmad-create-story.package.json",
+      "normalized/bmad-dev-story.package.json",
+      "normalized/bmad-dev.package.json",
+      "normalized/bmad-document-project.package.json",
+      "normalized/bmad-domain-research.package.json",
+      "normalized/bmad-help-action-graph.json",
+      "normalized/bmad-help.package.json",
+      "normalized/bmad-market-research.package.json",
+      "normalized/bmad-pm.package.json",
+      "normalized/bmad-prd.package.json",
+      "normalized/bmad-prfaq.package.json",
+      "normalized/bmad-product-brief.package.json",
+      "normalized/bmad-qa-generate-e2e-tests.package.json",
+      "normalized/bmad-quick-dev.package.json",
+      "normalized/bmad-retrospective.package.json",
+      "normalized/bmad-sprint-planning.package.json",
+      "normalized/bmad-tech-writer-explain-concept.package.json",
+      "normalized/bmad-tech-writer-mermaid-gen.package.json",
+      "normalized/bmad-tech-writer-validate-doc.package.json",
+      "normalized/bmad-tech-writer-write-document.package.json",
+      "normalized/bmad-tech-writer.package.json",
+      "normalized/bmad-technical-research.package.json",
+      "normalized/bmad-ux-designer.package.json",
+      "normalized/bmad-ux.package.json",
+      "normalized/bmm-agent-roster.json",
+      "normalized/builder-agent.package.json",
+      "normalized/builder-workflow.package.json"
+    ]
+  },
+  "packages": [
+    {
+      "path": "normalized/bmad-help.package.json",
+      "contentHash": "sha256:db10c735500110d971229aa0c5c09a5320ffcf290abdd3bba7118979e84dd95d",
+      "packageName": "bmad-method",
+      "packageVersion": "6.10.0",
+      "lifecycleState": "sealed_read_only",
+      "activationAuthority": "none",
+      "actions": []
+    },
+    {
+      "path": "normalized/builder-agent.package.json",
+      "contentHash": "sha256:9ee163d13df2020d4b351b376ee41fa615e6d770e67fb61af125a13353c46add",
+      "packageName": "bmad-builder",
+      "packageVersion": "2.1.0",
+      "lifecycleState": "inactive_data",
+      "activationAuthority": "none",
+      "actions": [
+        "create_rebuild",
+        "edit",
+        "analyze"
+      ]
+    },
+    {
+      "path": "normalized/builder-workflow.package.json",
+      "contentHash": "sha256:30cbe39a06007654663529740de2c7c77ea3278e968081a1e2758367566bc30b",
+      "packageName": "bmad-builder",
+      "packageVersion": "2.1.0",
+      "lifecycleState": "inactive_data",
+      "activationAuthority": "none",
+      "actions": [
+        "build",
+        "edit",
+        "analyze"
+      ]
+    }
+  ]
+}

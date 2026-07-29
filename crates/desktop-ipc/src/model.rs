@@ -9,12 +9,20 @@
 //!   lane. Display text is additionally scanned, because a support plane that
 //!   put an endpoint inside a profile name would otherwise route around the
 //!   type.
-//! * **Content is not a stream event.** The stream projection reports
-//!   *progress* — which run advanced, by how many bytes, which tool opened, how
-//!   it terminated. The answer text itself never travels here; it reaches the
-//!   renderer through the reviewed completion projection after the host has
-//!   verified the receipt. So "the model is answering" needs no authority over
-//!   what the model said.
+//! * **Streamed text is display-only, not evidence.**
+//!   [`ModelStreamEventInput::OutputProgress`] and
+//!   [`ModelStreamEventInput::ToolCallArguments`] carry the actual delta text
+//!   alongside their byte counts, because a chat timeline cannot render an
+//!   answer from a byte counter and a tool call cannot surface as a reviewable
+//!   typed proposal without its arguments. The byte counts stay too: they are
+//!   genuinely useful for budget display on their own. But the authority for
+//!   what a run produced is the verified receipt at the terminal event, not
+//!   the accumulated deltas -- the host must keep accumulating its own
+//!   canonical transcript for receipt verification regardless of what it
+//!   forwards here, and nothing downstream may treat the displayed text as
+//!   proof of what was said. Private reasoning text never crosses this
+//!   boundary at all: the support-plane normalizer never buffers it, only a
+//!   status flag, so there is nothing here for it to travel in.
 //! * **Ownership is checked on every event, not once at subscribe.** A
 //!   [`ModelStreamPublisher`] is bound to one workspace grant, one app epoch,
 //!   one task and one run, and it refuses any envelope that disagrees with any
@@ -46,6 +54,12 @@ const MAX_DISPLAY_NAME_BYTES: usize = 128;
 const MAX_SUMMARY_BYTES: usize = 512;
 const MAX_REASON_BYTES: usize = 256;
 const MAX_TOOL_NAME_BYTES: usize = 128;
+/// Ceiling for one forwarded output-text delta. Well under the whole event's
+/// [`MAX_MODEL_STREAM_EVENT_PROJECTION_BYTES`] ceiling, which still applies on
+/// top of this and is what actually stops an oversized delta.
+const MAX_TEXT_DELTA_BYTES: usize = 4 * 1024;
+/// Ceiling for one forwarded tool-call-arguments delta.
+const MAX_ARGUMENTS_DELTA_BYTES: usize = 4 * 1024;
 
 /// The catalog projection schema the renderer parses.
 pub const MODEL_CATALOG_SCHEMA: &str = "sapphirus.model-catalog-projection.v1";
@@ -453,10 +467,14 @@ pub enum ModelStreamEventInput {
         /// The variant the provider actually resolved.
         resolved_variant_id: String,
     },
-    /// The answer grew. The bytes themselves stay host-side.
+    /// The answer grew. `delta_byte_count` is kept alongside the text for
+    /// budget display; the text itself is display-only, never evidence — see
+    /// the module doc.
     OutputProgress {
         /// Which output slot advanced.
         output_index: u8,
+        /// The fragment of the visible answer that just arrived.
+        text_delta: String,
         /// How many bytes it advanced by.
         delta_byte_count: u64,
     },
@@ -466,6 +484,19 @@ pub enum ModelStreamEventInput {
         tool_call_id: String,
         /// The tool that was asked for.
         tool_name: String,
+    },
+    /// A fragment of the arguments a tool call is assembling. Display-only,
+    /// same as [`Self::OutputProgress`]: the support plane validates the
+    /// completed arguments against the declared schema before the call may
+    /// run, so this is what lets the renderer show a reviewable typed
+    /// proposal taking shape, not an authority to act on a partial document.
+    ToolCallArguments {
+        /// The provider's identifier for the call.
+        tool_call_id: String,
+        /// The fragment of arguments that just arrived.
+        arguments_delta: String,
+        /// How many bytes it advanced by.
+        delta_byte_count: u64,
     },
     /// A tool call closed.
     ToolCallCompleted {
@@ -564,6 +595,8 @@ enum ModelStreamEventBodyProjection {
     OutputProgress {
         #[serde(rename = "outputIndex")]
         output_index: u8,
+        #[serde(rename = "textDelta")]
+        text_delta: String,
         #[serde(rename = "deltaByteCount")]
         delta_byte_count: u64,
     },
@@ -572,6 +605,14 @@ enum ModelStreamEventBodyProjection {
         tool_call_id: String,
         #[serde(rename = "toolName")]
         tool_name: String,
+    },
+    ToolCallArguments {
+        #[serde(rename = "toolCallId")]
+        tool_call_id: String,
+        #[serde(rename = "argumentsDelta")]
+        arguments_delta: String,
+        #[serde(rename = "deltaByteCount")]
+        delta_byte_count: u64,
     },
     ToolCallCompleted {
         #[serde(rename = "toolCallId")]
@@ -744,13 +785,16 @@ fn project_stream_body(
         }
         ModelStreamEventInput::OutputProgress {
             output_index,
+            text_delta,
             delta_byte_count,
         } => {
             if *delta_byte_count == 0 || *delta_byte_count > MAX_SAFE_JSON_INTEGER {
                 return Err(ModelStreamProjectionError::Unavailable);
             }
+            check_stream_text(text_delta, MAX_TEXT_DELTA_BYTES)?;
             Ok(ModelStreamEventBodyProjection::OutputProgress {
                 output_index: *output_index,
+                text_delta: text_delta.clone(),
                 delta_byte_count: *delta_byte_count,
             })
         }
@@ -763,6 +807,22 @@ fn project_stream_body(
             Ok(ModelStreamEventBodyProjection::ToolCallStarted {
                 tool_call_id: tool_call_id.clone(),
                 tool_name: tool_name.clone(),
+            })
+        }
+        ModelStreamEventInput::ToolCallArguments {
+            tool_call_id,
+            arguments_delta,
+            delta_byte_count,
+        } => {
+            check_identifier(tool_call_id)?;
+            if *delta_byte_count == 0 || *delta_byte_count > MAX_SAFE_JSON_INTEGER {
+                return Err(ModelStreamProjectionError::Unavailable);
+            }
+            check_stream_text(arguments_delta, MAX_ARGUMENTS_DELTA_BYTES)?;
+            Ok(ModelStreamEventBodyProjection::ToolCallArguments {
+                tool_call_id: tool_call_id.clone(),
+                arguments_delta: arguments_delta.clone(),
+                delta_byte_count: *delta_byte_count,
             })
         }
         ModelStreamEventInput::ToolCallCompleted {
@@ -1122,6 +1182,26 @@ fn check_display_text(value: &str, max_bytes: usize) -> Result<(), ModelStreamPr
     check_disclosure(value).map_err(|()| ModelStreamProjectionError::UnsafeDisplayText)
 }
 
+/// Bounds and safety-checks one forwarded stream-text fragment.
+///
+/// Unlike [`check_display_text`] this does not run the disclosure-marker
+/// check: `text_delta` and `arguments_delta` carry free-form model output and
+/// tool-call arguments, which may legitimately contain a URL, the word
+/// "bearer", or similar substrings without disclosing any connection
+/// authority -- there is nowhere in this projection for a connection detail to
+/// have come from in the first place. Only the same control/bidi-override
+/// scan applies, because that is a rendering-safety concern regardless of what
+/// the text says.
+fn check_stream_text(value: &str, max_bytes: usize) -> Result<(), ModelStreamProjectionError> {
+    if value.is_empty() || value.len() > max_bytes {
+        return Err(ModelStreamProjectionError::Unavailable);
+    }
+    if contains_unsafe_character(value) {
+        return Err(ModelStreamProjectionError::UnsafeDisplayText);
+    }
+    Ok(())
+}
+
 fn check_disclosure(value: &str) -> Result<(), ()> {
     let folded = value.to_ascii_lowercase();
     if DISCLOSURE_MARKERS
@@ -1384,6 +1464,7 @@ mod tests {
             2,
             ModelStreamEventInput::OutputProgress {
                 output_index: 0,
+                text_delta: "Hello".to_owned(),
                 delta_byte_count: 64,
             },
         )?)?;
@@ -1535,6 +1616,135 @@ mod tests {
                 "receipt summary disclosed {forbidden}"
             );
         }
+        Ok(())
+    }
+
+    /// The bug this module fixes: a chat timeline cannot render an answer from
+    /// a byte counter. The delta text must reach the renderer, and the byte
+    /// count must survive alongside it for budget display.
+    #[test]
+    fn output_progress_forwards_text_alongside_its_byte_count(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut publisher = ModelStreamPublisher::new(subscription()?);
+        publisher.publish(&envelope(1, started())?)?;
+        let projected = publisher.publish(&envelope(
+            2,
+            ModelStreamEventInput::OutputProgress {
+                output_index: 0,
+                text_delta: "The answer is".to_owned(),
+                delta_byte_count: 13,
+            },
+        )?)?;
+        let encoded = serde_json::to_value(&projected)?;
+        assert_eq!(encoded["value"]["textDelta"], "The answer is");
+        assert_eq!(encoded["value"]["deltaByteCount"], 13);
+        Ok(())
+    }
+
+    /// Tool call arguments have to surface as a reviewable typed proposal,
+    /// which needs the arguments themselves, not merely their size.
+    #[test]
+    fn tool_call_arguments_forward_text_alongside_their_byte_count(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut publisher = ModelStreamPublisher::new(subscription()?);
+        publisher.publish(&envelope(1, started())?)?;
+        let projected = publisher.publish(&envelope(
+            2,
+            ModelStreamEventInput::ToolCallArguments {
+                tool_call_id: "call_1".to_owned(),
+                arguments_delta: "{\"path\":".to_owned(),
+                delta_byte_count: 8,
+            },
+        )?)?;
+        let encoded = serde_json::to_value(&projected)?;
+        assert_eq!(encoded["value"]["toolCallId"], "call_1");
+        assert_eq!(encoded["value"]["argumentsDelta"], "{\"path\":");
+        assert_eq!(encoded["value"]["deltaByteCount"], 8);
+        Ok(())
+    }
+
+    /// A text delta must not become an unbounded channel: the per-fragment cap
+    /// still applies now that the fragment carries real content.
+    #[test]
+    fn an_oversized_text_delta_is_refused() -> Result<(), Box<dyn std::error::Error>> {
+        let mut publisher = ModelStreamPublisher::new(subscription()?);
+        publisher.publish(&envelope(1, started())?)?;
+        let oversized = "a".repeat(super::MAX_TEXT_DELTA_BYTES + 1);
+        assert_eq!(
+            publisher.publish(&envelope(
+                2,
+                ModelStreamEventInput::OutputProgress {
+                    output_index: 0,
+                    text_delta: oversized,
+                    delta_byte_count: 1,
+                },
+            )?),
+            Err(ModelStreamProjectionError::Unavailable)
+        );
+        Ok(())
+    }
+
+    /// Same bound, for the tool-call-arguments fragment.
+    #[test]
+    fn an_oversized_arguments_delta_is_refused() -> Result<(), Box<dyn std::error::Error>> {
+        let mut publisher = ModelStreamPublisher::new(subscription()?);
+        publisher.publish(&envelope(1, started())?)?;
+        let oversized = "a".repeat(super::MAX_ARGUMENTS_DELTA_BYTES + 1);
+        assert_eq!(
+            publisher.publish(&envelope(
+                2,
+                ModelStreamEventInput::ToolCallArguments {
+                    tool_call_id: "call_1".to_owned(),
+                    arguments_delta: oversized,
+                    delta_byte_count: 1,
+                },
+            )?),
+            Err(ModelStreamProjectionError::Unavailable)
+        );
+        Ok(())
+    }
+
+    /// A bidi-override character in a text delta is refused the same way an
+    /// unsafe catalog display name is: this is a rendering-safety scan, not a
+    /// content-disclosure scan, so it applies to free-form model text too.
+    #[test]
+    fn a_text_delta_carrying_a_bidi_override_is_refused() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let mut publisher = ModelStreamPublisher::new(subscription()?);
+        publisher.publish(&envelope(1, started())?)?;
+        assert_eq!(
+            publisher.publish(&envelope(
+                2,
+                ModelStreamEventInput::OutputProgress {
+                    output_index: 0,
+                    text_delta: "safe\u{202e}txet".to_owned(),
+                    delta_byte_count: 5,
+                },
+            )?),
+            Err(ModelStreamProjectionError::UnsafeDisplayText)
+        );
+        Ok(())
+    }
+
+    /// Free-form model output legitimately containing a URL or the word
+    /// "bearer" must still forward: the disclosure-marker scan is for catalog
+    /// display text sourced from operator-authored profile metadata, not for
+    /// answer content this projection has no way to have received a
+    /// connection detail into.
+    #[test]
+    fn a_text_delta_carrying_a_url_still_forwards() -> Result<(), Box<dyn std::error::Error>> {
+        let mut publisher = ModelStreamPublisher::new(subscription()?);
+        publisher.publish(&envelope(1, started())?)?;
+        let projected = publisher.publish(&envelope(
+            2,
+            ModelStreamEventInput::OutputProgress {
+                output_index: 0,
+                text_delta: "See https://example.com for docs.".to_owned(),
+                delta_byte_count: 34,
+            },
+        )?)?;
+        let encoded = serde_json::to_value(&projected)?;
+        assert_eq!(encoded["value"]["textDelta"], "See https://example.com for docs.");
         Ok(())
     }
 }

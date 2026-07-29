@@ -113,6 +113,10 @@ pub use failure::{
     BmadFailureRequest,
 };
 pub use help::{
+    BmadHelpAliasResolution, BmadHelpAliasTable, BmadHelpAvailabilityReport,
+    BmadHelpCapabilityProjection, BmadHelpCatalogCounts, BmadHelpInvocability, BmadHelpNextStep,
+    BmadHelpProjectState, BmadHelpQuery, BmadHelpQueryError, BmadHelpSupportState,
+    BmadHelpSupportStateTable,
     BmadArtifactEvidence, BmadArtifactEvidenceKind, BmadHelpAdvisor, BmadHelpConfidence,
     BmadHelpIntent, BmadHelpRecommendation, BmadHelpSourceRef,
 };
@@ -135,7 +139,11 @@ pub use help_session::{
     CreateInertBmadHelpSession, InertBmadHelpSession, InertBmadHelpSessionCoordinator,
     InertBmadHelpSessionError, InertBmadHelpSessionPreparationError,
 };
-pub use installation::BmadInstallationError;
+pub use installation::{
+    can_activate, has_passing_catalog_rebuild, is_served_by_catalog, plan_activation,
+    plan_rollback, validate_destination_path, validate_manifest, BmadInstallationActivationPlan,
+    BmadInstallationError,
+};
 pub use invocation::{
     is_headless, BmadInvocationError, BmadInvocationRequest, BmadInvocationResolver,
     BmadInvocationSuppliedValue,

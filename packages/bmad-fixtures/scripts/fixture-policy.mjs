@@ -8,6 +8,24 @@ import { fileURLToPath } from "node:url";
 const defaultPackageRoot = fileURLToPath(new URL("../", import.meta.url));
 const MAX_DESCRIPTOR_BYTES = 64 * 1024;
 const MAX_JSON_DEPTH = 32;
+const CURRENT_EVIDENCE = Object.freeze({
+  "fixture-migration-map.json": Object.freeze({
+    byteLength: 1079,
+    sha256: "eae8842121bf320bf34d2b61f276a20c573517e56aa0e04ff7bd6e1551a527d7",
+  }),
+  "normalized-packages.json": Object.freeze({
+    byteLength: 3268,
+    sha256: "522221a9e1c66d20a158633425db03082ca22633cf099043ee9617a1563f91d1",
+  }),
+  "runtime-outcomes.json": Object.freeze({
+    byteLength: 1455,
+    sha256: "ee77a7a509766aa6b25e77f9f21845f7bb4d1adcc77d10ce5827e0c07c5c140f",
+  }),
+  "source-and-catalog.json": Object.freeze({
+    byteLength: 2029,
+    sha256: "84b5351964e4ec7d50eb5eb2bf308dd43d4435d17f3e977a88c9e9adb154a793",
+  }),
+});
 
 const DESCRIPTOR_FIELDS = Object.freeze([
   "schemaVersion",
@@ -782,7 +800,11 @@ export async function verifyFixtureSet({
   const fixtureDirectory = path.join(packageRoot, "fixtures");
   const fixtureEntries = await readdir(fixtureDirectory, { withFileTypes: true });
   const fixtureEntryNames = fixtureEntries.map((entry) => entry.name).sort();
-  const expectedFixtureEntryNames = [...EXPECTED_DESCRIPTOR_NAMES, "payloads"].sort();
+  const expectedFixtureEntryNames = [
+    ...EXPECTED_DESCRIPTOR_NAMES,
+    "current",
+    "payloads",
+  ].sort();
   if (
     JSON.stringify(fixtureEntryNames) !==
     JSON.stringify(expectedFixtureEntryNames)
@@ -867,6 +889,53 @@ export async function verifyFixtureSet({
         "payload kind must contain only a regular SKILL.md",
       );
     }
+  }
+
+  const currentDirectoryEntry = fixtureEntries.find(
+    (entry) => entry.name === "current",
+  );
+  if (
+    currentDirectoryEntry === undefined ||
+    !currentDirectoryEntry.isDirectory() ||
+    currentDirectoryEntry.isSymbolicLink()
+  ) {
+    fail(
+      "CONTENT_FILE_TYPE",
+      path.join(fixtureDirectory, "current"),
+      "current characterization evidence must be a regular directory",
+    );
+  }
+  const currentDirectory = path.join(fixtureDirectory, "current");
+  const currentEntries = await readdir(currentDirectory, { withFileTypes: true });
+  const expectedCurrentEntries = Object.keys(CURRENT_EVIDENCE).sort();
+  if (
+    JSON.stringify(currentEntries.map((entry) => entry.name).sort()) !==
+    JSON.stringify(expectedCurrentEntries)
+  ) {
+    fail(
+      "FIXTURE_TREE_MISMATCH",
+      currentDirectory,
+      `expected exactly ${JSON.stringify(expectedCurrentEntries)}`,
+    );
+  }
+  if (
+    currentEntries.some(
+      (entry) => !entry.isFile() || entry.isSymbolicLink(),
+    )
+  ) {
+    fail(
+      "CONTENT_FILE_TYPE",
+      currentDirectory,
+      "current characterization evidence must contain only regular files",
+    );
+  }
+  for (const currentEntry of currentEntries) {
+    const content = await readFile(path.join(currentDirectory, currentEntry.name));
+    assertContentMatchesBinding(
+      CURRENT_EVIDENCE[currentEntry.name],
+      content,
+      `current/${currentEntry.name}`,
+    );
   }
 
   const descriptors = [];

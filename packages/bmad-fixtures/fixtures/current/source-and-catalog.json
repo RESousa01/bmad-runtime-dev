@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "sapphirus.bmad.current-source-catalog/v1",
+  "baselineTree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+  "sourceLedger": {
+    "schemaVersion": "sapphirus.bmad.semantic-source-ledger/v1",
+    "sourceMemberCount": 294,
+    "managedOutputCount": 40,
+    "adoptedSourceCount": 228,
+    "contentHash": "sha256:f5599c0ccbd727472101aab6e27c269a0902c9a78d4e3b28c15ae110d7afae71"
+  },
+  "closureLedger": {
+    "schemaVersion": "sapphirus.bmad-capability-closure.v1",
+    "capabilityIds": [
+      "bmm:bmad-brainstorming",
+      "bmm:bmad-market-research",
+      "bmm:bmad-domain-research",
+      "bmm:bmad-technical-research",
+      "bmm:bmad-product-brief",
+      "bmm:bmad-prfaq",
+      "bmm:bmad-document-project",
+      "bmm:tech-writer-write-document",
+      "bmm:tech-writer-mermaid-gen",
+      "bmm:tech-writer-validate-doc",
+      "bmm:tech-writer-explain-concept",
+      "bmm:bmad-prd",
+      "bmm:bmad-create-epics-and-stories",
+      "bmm:bmad-check-implementation-readiness",
+      "bmm:bmad-correct-course",
+      "bmm:bmad-ux",
+      "bmm:bmad-architecture",
+      "bmm:bmad-dev-story",
+      "bmm:bmad-quick-dev",
+      "bmm:bmad-qa-generate-e2e-tests",
+      "bmm:bmad-code-review",
+      "bmm:bmad-sprint-planning",
+      "bmm:bmad-create-story",
+      "bmm:bmad-retrospective",
+      "builder:agent.analyze",
+      "builder:agent.create_rebuild",
+      "builder:agent.edit",
+      "builder:workflow.analyze",
+      "builder:workflow.build_edit",
+      "bmm:bmad-spec",
+      "bmm:bmad-advanced-elicitation",
+      "bmm:bmad-review-adversarial-general",
+      "bmm:bmad-review-edge-case-hunter",
+      "bmm:bmad-review-verification-gap",
+      "bmm:bmad-editorial-review-prose",
+      "bmm:bmad-editorial-review-structure",
+      "bmm:bmad-shard-doc",
+      "bmm:bmad-index-docs"
+    ],
+    "builderCapabilityIds": [
+      "builder:agent.analyze",
+      "builder:agent.create_rebuild",
+      "builder:agent.edit",
+      "builder:workflow.analyze",
+      "builder:workflow.build_edit"
+    ]
+  }
+}

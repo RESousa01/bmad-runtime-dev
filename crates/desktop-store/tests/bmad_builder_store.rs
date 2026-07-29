@@ -474,7 +474,7 @@ fn v5_upgrade_and_interrupted_v10_migration_match_fresh_schema(
     let fresh_directory = tempfile::tempdir()?;
     let fresh = LocalStore::open(fresh_directory.path(), &TestProtector)?;
     let expected = fresh.schema_catalog()?;
-    assert_eq!(fresh.schema_version()?, 23);
+    assert_eq!(fresh.schema_version()?, 24);
 
     for interrupted in [false, true] {
         let directory = tempfile::tempdir()?;
@@ -491,6 +491,8 @@ DROP TABLE bmad_memory_entries;
              DROP TABLE bmad_sessions;
              DROP TABLE bmad_builder_lifecycle_events;
              DROP TABLE bmad_builder_lifecycles;
+             DROP TABLE bmad_installation_events;
+             DROP TABLE bmad_installations;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
@@ -522,7 +524,7 @@ DROP TABLE bmad_memory_entries;
         drop(connection);
 
         let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-        assert_eq!(reopened.schema_version()?, 23);
+        assert_eq!(reopened.schema_version()?, 24);
         assert_eq!(reopened.schema_catalog()?, expected);
     }
     Ok(())
@@ -805,6 +807,8 @@ fn drafts_written_before_the_v23_migration_survive_it_byte_for_byte(
         "PRAGMA foreign_keys = OFF;
          DROP TABLE bmad_builder_lifecycle_events;
          DROP TABLE bmad_builder_lifecycles;
+         DROP TABLE bmad_installation_events;
+         DROP TABLE bmad_installations;
          PRAGMA user_version = 22;",
     )?;
     let wound_back: u32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
@@ -812,7 +816,7 @@ fn drafts_written_before_the_v23_migration_survive_it_byte_for_byte(
     drop(connection);
 
     let reopened = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(reopened.schema_version()?, 23);
+    assert_eq!(reopened.schema_version()?, 24);
     let after = reopened
         .load_builder_draft(&scope, &draft_id)?
         .expect("draft survives the migration");
@@ -841,7 +845,7 @@ fn the_single_use_analysis_decision_survives_the_lifecycle_migration(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(store.schema_version()?, 23);
+    assert_eq!(store.schema_version()?, 24);
     let service = BuilderAuthoringService::new(store);
     let issued = issued_builder(&service)?;
     let scope = issued.scope().expect("scope");

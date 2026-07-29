@@ -26,7 +26,7 @@ use thiserror::Error;
 /// destroys the whole database regardless, but a user asking what is retained
 /// is entitled to see their conversations and capability results counted —
 /// this list silently fell behind two migrations and reported neither.
-pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 31] = [
+pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 33] = [
     ("workspace_and_authority_records", "aggregates"),
     ("evidence_events", "evidence_events"),
     ("stored_payloads", "payloads"),
@@ -67,6 +67,8 @@ pub(crate) const RETENTION_CATEGORIES: [(&str, &str); 31] = [
     ("memory_entries", "bmad_memory_entries"),
     ("builder_lifecycles", "bmad_builder_lifecycles"),
     ("builder_lifecycle_events", "bmad_builder_lifecycle_events"),
+    ("bmad_installations", "bmad_installations"),
+    ("bmad_installation_events", "bmad_installation_events"),
 ];
 use time::OffsetDateTime;
 use ulid::Ulid;
@@ -87,6 +89,7 @@ mod bmad_artifacts;
 mod bmad_builder;
 mod bmad_capability;
 mod bmad_config;
+mod bmad_installations;
 mod bmad_memory;
 mod bmad_method;
 mod bmad_sessions;
@@ -103,6 +106,9 @@ pub use bmad_architecture::{ArchitectureSessionStep, ResumableArchitectureSessio
 pub use bmad_artifacts::{BmadArtifactEvent, BmadArtifactEventRow, BmadArtifactRecord};
 pub use bmad_capability::BmadCapabilityRunRecord;
 pub use bmad_config::BmadConfigSnapshot;
+pub use bmad_installations::{
+    BmadInstallationActivationCommit, BmadInstallationEventRow, BmadInstallationRecord,
+};
 pub use bmad_memory::{BmadMemoryScopeQuery, StoredBmadMemoryEntry};
 pub use bmad_method::{
     BmadHelpRunCompletionReceipt, BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt,
@@ -2590,6 +2596,8 @@ DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
              DROP TABLE bmad_builder_lifecycle_events;
              DROP TABLE bmad_builder_lifecycles;
+             DROP TABLE bmad_installation_events;
+             DROP TABLE bmad_installations;
              DROP TABLE model_profile_selections;
                  DROP TABLE model_catalog_snapshots;
                  DROP TABLE payload_quarantine;
@@ -2993,6 +3001,8 @@ DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
              DROP TABLE bmad_builder_lifecycle_events;
              DROP TABLE bmad_builder_lifecycles;
+             DROP TABLE bmad_installation_events;
+             DROP TABLE bmad_installations;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
@@ -3056,6 +3066,8 @@ DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
              DROP TABLE bmad_builder_lifecycle_events;
              DROP TABLE bmad_builder_lifecycles;
+             DROP TABLE bmad_installation_events;
+             DROP TABLE bmad_installations;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;
@@ -3172,6 +3184,8 @@ DROP TABLE bmad_session_events;
              DROP TABLE bmad_sessions;
              DROP TABLE bmad_builder_lifecycle_events;
              DROP TABLE bmad_builder_lifecycles;
+             DROP TABLE bmad_installation_events;
+             DROP TABLE bmad_installations;
              DROP TABLE model_profile_selections;
              DROP TABLE model_catalog_snapshots;
              DROP TABLE chat_messages;

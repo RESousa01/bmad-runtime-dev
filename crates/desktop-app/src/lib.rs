@@ -11,6 +11,9 @@ mod chat;
 mod chat_tools;
 mod commands;
 mod edits;
+mod generated {
+    pub(crate) mod bmad_capabilities;
+}
 mod recovery;
 mod state;
 mod update;

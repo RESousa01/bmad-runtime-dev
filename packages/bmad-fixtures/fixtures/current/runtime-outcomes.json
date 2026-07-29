@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "sapphirus.bmad.current-runtime-outcomes/v1",
+  "baselineTree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+  "helpRecommendation": {
+    "confidence": "heuristic",
+    "completionClaimed": false,
+    "availability": "capability_disabled",
+    "expectedOutputs": [
+      "architecture"
+    ],
+    "requiredGuidance": true,
+    "blockerCodes": [
+      "bmad_capability_disabled"
+    ]
+  },
+  "terminalStates": [
+    "cancelled",
+    "failed",
+    "refused"
+  ],
+  "unsupportedStates": [
+    "capability_disabled",
+    "dependency_unavailable",
+    "source_prompt_unavailable"
+  ],
+  "resumeBehavior": "read_only_projection",
+  "builderProjection": {
+    "activationState": "installed_inactive",
+    "blockerCodes": [
+      "builder_engine_gated"
+    ],
+    "exposesDraftFileBytes": false
+  },
+  "knownDefects": {
+    "ordinaryChatBmadCoupling": {
+      "historicalDefect": "chat_unavailable_when_bmad_commands_missing",
+      "baselineActual": "chat_available_when_chat_send_and_model_route_are_ready",
+      "targetExpected": "chat_available_when_chat_send_and_model_route_are_ready",
+      "status": "already_repaired",
+      "replacementTestId": "SRC-05-UI-COUPLING-001"
+    },
+    "inertBuilder": {
+      "historicalActual": "five_capability_ids_project_inactive_drafts_only",
+      "targetExpected": "migration_must_preserve_drafts_before_new_lifecycle_authority",
+      "replacementTestId": "SRC-05-RUST-BUILDER-001"
+    }
+  }
+}

@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use super::StoreError;
 
-pub(crate) const LATEST_STORE_VERSION: u32 = 23;
+pub(crate) const LATEST_STORE_VERSION: u32 = 24;
 
 const V4_TABLES: [&str; 6] = [
     "aggregates",
@@ -661,6 +661,100 @@ pub(crate) const V22_TO_V23_SQL: &str = "\
    ON bmad_builder_lifecycle_events(promotion_id);
  PRAGMA user_version = 23;
  COMMIT;";
+
+/// Governed installation and atomic catalog activation (ENG-16).
+///
+/// `bmad_installations` is the accepted-state row, one per installation
+/// identity — advanced the same optimistic-CAS-plus-append shape as
+/// `bmad_sessions` and `bmad_builder_lifecycles`. It is never deleted, even
+/// once superseded: a package promoted past it still needs its original
+/// version to resolve (acceptance criterion 3), so history is retained
+/// rows, not a log a caller must replay to reconstruct one.
+///
+/// The partial unique index enforces the module's central invariant at the
+/// database layer, not only in application code: at most one row per
+/// `package_id` may have `active = 1`. Two installations of the same
+/// package cannot both be served by the catalog, no matter what the caller
+/// intended to write.
+pub(crate) const V23_TO_V24_SQL: &str = "\
+ BEGIN IMMEDIATE;
+ CREATE TABLE bmad_installations (
+   installation_id TEXT PRIMARY KEY,
+   workspace_id TEXT NOT NULL,
+   package_id TEXT NOT NULL,
+   state TEXT NOT NULL CHECK(state IN (
+     'planned', 'reviewed', 'approved', 'checkpointed', 'written',
+     'validated', 'activated', 'rolled_back')),
+   version INTEGER NOT NULL CHECK(version >= 1),
+   active INTEGER NOT NULL CHECK(active IN (0, 1)),
+   installation_hash TEXT NOT NULL
+     CHECK(length(installation_hash) = 71 AND installation_hash GLOB 'sha256:*'),
+   installation_json TEXT NOT NULL,
+   created_at_ms INTEGER NOT NULL
+     CHECK(created_at_ms >= 0 AND created_at_ms <= 9007199254740991),
+   updated_at_ms INTEGER NOT NULL
+     CHECK(updated_at_ms >= 0 AND updated_at_ms <= 9007199254740991)
+ ) STRICT;
+ CREATE UNIQUE INDEX bmad_installations_active_by_package
+   ON bmad_installations(package_id) WHERE active = 1;
+ CREATE INDEX bmad_installations_by_workspace
+   ON bmad_installations(workspace_id);
+ CREATE TABLE bmad_installation_events (
+   installation_id TEXT NOT NULL REFERENCES bmad_installations(installation_id),
+   to_version INTEGER NOT NULL CHECK(to_version >= 2),
+   from_version INTEGER NOT NULL CHECK(from_version >= 1),
+   command TEXT NOT NULL CHECK(length(command) > 0),
+   from_state TEXT NOT NULL,
+   to_state TEXT NOT NULL,
+   installation_hash TEXT NOT NULL
+     CHECK(length(installation_hash) = 71 AND installation_hash GLOB 'sha256:*'),
+   recorded_at_ms INTEGER NOT NULL
+     CHECK(recorded_at_ms >= 0 AND recorded_at_ms <= 9007199254740991),
+   CHECK(to_version = from_version + 1),
+   PRIMARY KEY(installation_id, to_version)
+ ) STRICT;
+ PRAGMA user_version = 24;
+ COMMIT;";
+
+pub(crate) const V24_TABLES: [&str; 37] = [
+    "aggregates",
+    "bmad_architecture_session_steps",
+    "bmad_architecture_sessions",
+    "bmad_artifact_events",
+    "bmad_artifacts",
+    "bmad_builder_analyses",
+    "bmad_builder_analysis_decisions",
+    "bmad_builder_drafts",
+    "bmad_builder_lifecycle_events",
+    "bmad_builder_lifecycles",
+    "bmad_builder_revisions",
+    "bmad_capability_results",
+    "bmad_capability_runs",
+    "bmad_help_run_creations",
+    "bmad_installation_events",
+    "bmad_installations",
+    "bmad_memlog_entries",
+    "bmad_memory_entries",
+    "bmad_method_artifacts",
+    "bmad_method_checkpoints",
+    "bmad_method_decision_consumptions",
+    "bmad_method_sessions",
+    "bmad_session_events",
+    "bmad_sessions",
+    "chat_messages",
+    "chat_sessions",
+    "effect_journals",
+    "evidence_events",
+    "execution_checkpoints",
+    "execution_results",
+    "model_catalog_snapshots",
+    "model_profile_selections",
+    "outbox",
+    "payload_quarantine",
+    "payloads",
+    "spec_consumptions",
+    "store_meta",
+];
 
 pub(crate) const V23_TABLES: [&str; 35] = [
     "aggregates",
@@ -1433,8 +1527,9 @@ pub(crate) fn migrate(connection: &Connection) -> Result<(), StoreError> {
             20 => run_migration_step(connection, &V20_TABLES, V20_TO_V21_SQL)?,
             21 => run_migration_step(connection, &V21_TABLES, V21_TO_V22_SQL)?,
             22 => run_migration_step(connection, &V22_TABLES, V22_TO_V23_SQL)?,
+            23 => run_migration_step(connection, &V23_TABLES, V23_TO_V24_SQL)?,
             LATEST_STORE_VERSION => {
-                require_store_tables(connection, &V23_TABLES)?;
+                require_store_tables(connection, &V24_TABLES)?;
                 require_outbox_event_uniqueness(connection)?;
                 return Ok(());
             }

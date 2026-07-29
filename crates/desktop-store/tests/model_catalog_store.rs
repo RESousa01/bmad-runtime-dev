@@ -83,7 +83,7 @@ fn the_v19_migration_adds_the_model_catalog_snapshot_and_selection_tables(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
-    assert_eq!(store.schema_version()?, 23);
+    assert_eq!(store.schema_version()?, 24);
 
     let catalog = store.schema_catalog()?;
     let names = catalog

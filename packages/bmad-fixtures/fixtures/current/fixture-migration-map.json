@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "sapphirus.bmad.current-fixture-migration/v1",
+  "baselineTree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+  "fixtures": [
+    {
+      "path": "fixtures/sealed-method-bmad-help.json",
+      "fixtureId": "bmad_method_help_v6",
+      "disposition": "retained",
+      "replacementTestId": "SRC-05-NODE-HELP-001",
+      "reason": "The sealed read-only Help descriptor remains canonical historical input."
+    },
+    {
+      "path": "fixtures/inactive-stateless-agent.json",
+      "fixtureId": "bmad_builder_stateless_agent_v1",
+      "disposition": "migrated",
+      "replacementTestId": "SRC-05-RUST-BUILDER-001",
+      "reason": "The immutable inactive agent draft migrates through the Builder aggregate characterization."
+    },
+    {
+      "path": "fixtures/inactive-simple-workflow.json",
+      "fixtureId": "bmad_builder_simple_workflow_v1",
+      "disposition": "migrated",
+      "replacementTestId": "SRC-05-RUST-BUILDER-001",
+      "reason": "The immutable inactive workflow draft migrates through the Builder aggregate characterization."
+    }
+  ]
+}
