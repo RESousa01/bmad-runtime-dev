@@ -1,4 +1,6 @@
 * text=auto eol=lf
+# Pinned upstream source is retained byte-for-byte for provenance verification.
+packages/bmad-foundation/source/** -text
 *.ps1 text eol=crlf
 *.cmd text eol=crlf
 *.bat text eol=crlf

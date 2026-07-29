@@ -1,6 +1,6 @@
 use desktop_runtime::{
-    deserialize_strict_json, ApprovalChoice, BmadHelpIntent, ContractId, GitComparison,
-    LocalCommand, ModelProviderId, ProposedFileChange, RecoveryApprovalChoice,
+    deserialize_strict_json, ApprovalChoice, BmadHelpIntent, BmadInvocationMode, ContractId,
+    GitComparison, LocalCommand, ModelProviderId, ProposedFileChange, RecoveryApprovalChoice,
     RelativeWorkspacePath, Sha256Digest, UnixMillis, HARD_MAX_CHANGED_FILES,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -1019,7 +1019,8 @@ fn valid_hyphenated_identifier(
             first.is_ascii_lowercase() || first.is_ascii_digit()
         };
         if !first_is_valid
-            || !characters.all(|character| character.is_ascii_lowercase() || character.is_ascii_digit())
+            || !characters
+                .all(|character| character.is_ascii_lowercase() || character.is_ascii_digit())
         {
             return false;
         }
@@ -1088,6 +1089,8 @@ struct BmadCapabilityPreparePayload {
     workspace_id: ContractId,
     workspace_grant_epoch: u64,
     capability_id: String,
+    action: Option<String>,
+    mode: Option<BmadInvocationMode>,
     context_paths: Vec<RelativeWorkspacePath>,
 }
 
@@ -1138,6 +1141,17 @@ fn parse_bmad_capability_prepare(payload: Value) -> Result<LocalCommand, IpcVali
     let input: BmadCapabilityPreparePayload = parse_payload(payload)?;
     validate_workspace_grant_epoch(input.workspace_grant_epoch)?;
     validate_capability_id(&input.capability_id)?;
+    if input.capability_id == "bmm:bmad-prd"
+        && (!matches!(
+            input.action.as_deref(),
+            Some("create" | "update" | "validate")
+        ) || input.mode.is_none())
+    {
+        return Err(IpcValidationError::InvalidPayload);
+    }
+    if input.capability_id != "bmm:bmad-prd" && (input.action.is_some() || input.mode.is_some()) {
+        return Err(IpcValidationError::InvalidPayload);
+    }
     if input.context_paths.is_empty() || input.context_paths.len() > MAX_CAPABILITY_CONTEXT_PATHS {
         return Err(IpcValidationError::InvalidPayload);
     }
@@ -1145,6 +1159,8 @@ fn parse_bmad_capability_prepare(payload: Value) -> Result<LocalCommand, IpcVali
         workspace_id: input.workspace_id,
         workspace_grant_epoch: input.workspace_grant_epoch,
         capability_id: input.capability_id,
+        action: input.action,
+        mode: input.mode,
         context_paths: input.context_paths,
     })
 }
@@ -1797,6 +1813,61 @@ mod tests {
             LocalCommand::PrepareBmadCapabilityRun { capability_id, .. }
                 if capability_id == "bmm:bmad-product-brief"
         ));
+        for action in ["create", "update", "validate"] {
+            for (wire_mode, expected_mode) in [
+                (
+                    "interactive",
+                    desktop_runtime::BmadInvocationMode::Interactive,
+                ),
+                ("headless", desktop_runtime::BmadInvocationMode::Headless),
+            ] {
+                let prepare = serde_json::json!({
+                    "workspaceId": "workspace_01J00000000000000000000000",
+                    "workspaceGrantEpoch": 1,
+                    "capabilityId": "bmm:bmad-prd",
+                    "action": action,
+                    "mode": wire_mode,
+                    "contextPaths": ["docs/prd.md"],
+                });
+                assert!(matches!(
+                    super::parse_bmad_capability_prepare(prepare)?,
+                    LocalCommand::PrepareBmadCapabilityRun {
+                        capability_id,
+                        action: Some(parsed_action),
+                        mode: Some(parsed_mode),
+                        ..
+                    } if capability_id == "bmm:bmad-prd"
+                        && parsed_action == action
+                        && parsed_mode == expected_mode
+                ));
+            }
+        }
+        for invalid in [
+            serde_json::json!({
+                "workspaceId": "workspace_01J00000000000000000000000",
+                "workspaceGrantEpoch": 1,
+                "capabilityId": "bmm:bmad-prd",
+                "contextPaths": [],
+            }),
+            serde_json::json!({
+                "workspaceId": "workspace_01J00000000000000000000000",
+                "workspaceGrantEpoch": 1,
+                "capabilityId": "bmm:bmad-prd",
+                "action": "delete",
+                "mode": "interactive",
+                "contextPaths": [],
+            }),
+            serde_json::json!({
+                "workspaceId": "workspace_01J00000000000000000000000",
+                "workspaceGrantEpoch": 1,
+                "capabilityId": "bmm:bmad-product-brief",
+                "action": "create",
+                "mode": "interactive",
+                "contextPaths": ["docs/brief-notes.md"],
+            }),
+        ] {
+            assert!(super::parse_bmad_capability_prepare(invalid).is_err());
+        }
         let approve = serde_json::json!({
             "workspaceId": "workspace_01J00000000000000000000000",
             "workspaceGrantEpoch": 1,

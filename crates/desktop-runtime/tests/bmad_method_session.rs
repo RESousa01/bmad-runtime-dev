@@ -63,6 +63,7 @@ fn binding(seed: u8) -> MethodExactBinding {
             skill_name: "bmad-architecture".to_owned(),
             normalized_action: Some("create".to_owned()),
         },
+        invocation_mode: desktop_runtime::BmadInvocationMode::Interactive,
         package_descriptor_hash: digest("descriptor"),
         package_source_hash: digest("source"),
         instruction_projection_hash: digest("instructions"),
@@ -1708,6 +1709,7 @@ fn canonical_bmad_fixture_maps_without_changing_source_identity() {
     let exact = MethodExactBinding {
         capability_key: serde_json::from_value(document["capabilityKey"].clone())
             .expect("capability key"),
+        invocation_mode: desktop_runtime::BmadInvocationMode::Interactive,
         package_descriptor_hash: digest("packageDescriptorHash"),
         package_source_hash: digest("packageSourceHash"),
         instruction_projection_hash: digest("instructionProjectionHash"),

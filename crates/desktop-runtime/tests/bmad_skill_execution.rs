@@ -129,6 +129,7 @@ fn exact_binding() -> MethodExactBinding {
             skill_name: "bmad-fake".to_owned(),
             normalized_action: Some("create".to_owned()),
         },
+        invocation_mode: BmadInvocationMode::Interactive,
         package_descriptor_hash: digest("package descriptor"),
         package_source_hash: digest("package source"),
         instruction_projection_hash: digest("instructions"),

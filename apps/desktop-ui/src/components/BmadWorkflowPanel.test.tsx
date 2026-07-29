@@ -339,10 +339,9 @@ describe("BmadWorkflowPanel", () => {
 
     const row = screen.getByRole("listitem");
     expect(within(row).queryByText("Not known")).toBeNull();
-    await user.click(within(row).getByRole("button", { name: "Start" }));
-    expect(onStartStep).toHaveBeenCalledWith(
-      expect.objectContaining({ key: "bmad-create-story:validate" }),
-    );
+    expect(within(row).queryByRole("button", { name: "Start" })).toBeNull();
+    expect(within(row).getByText("Cannot run here")).toBeTruthy();
+    expect(onStartStep).not.toHaveBeenCalled();
   });
 
   /// Regression guard: an incomplete step that is not yet available rendered

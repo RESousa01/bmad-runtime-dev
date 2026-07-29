@@ -438,6 +438,7 @@ fn method_binding(
             skill_name: "bmad-architecture".to_owned(),
             normalized_action: Some("create".to_owned()),
         },
+        invocation_mode: desktop_runtime::BmadInvocationMode::Interactive,
         package_descriptor_hash: digest("descriptor"),
         package_source_hash: digest("source"),
         instruction_projection_hash: digest("instructions"),

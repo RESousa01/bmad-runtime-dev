@@ -270,6 +270,7 @@ impl BmadSkillExecutionContract {
                 skill_name: skill_name.to_owned(),
                 normalized_action: Some(input.action.clone()),
             },
+            invocation_mode: input.mode,
             package_descriptor_hash: self.package_descriptor_hash,
             package_source_hash: self.package_source_hash,
             instruction_projection_hash: self.instruction_projection_hash,
@@ -821,6 +822,7 @@ fn validate_binding(
         || binding.capability_key.module_code != module
         || binding.capability_key.skill_name != skill
         || binding.capability_key.normalized_action != request.action
+        || binding.invocation_mode != request.mode
         || binding.package_descriptor_hash != contract.package_descriptor_hash
         || binding.package_source_hash != contract.package_source_hash
         || binding.instruction_projection_hash != contract.instruction_projection_hash

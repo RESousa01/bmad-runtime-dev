@@ -899,6 +899,8 @@ export class DesktopHostClient {
     workspaceId: string,
     workspaceGrantEpoch: number,
     capabilityId: string,
+    action: "create" | "update" | "validate" | null,
+    mode: "interactive" | "headless" | null,
     contextPaths: string[],
   ): Promise<CapabilityReviewProjection> {
     const bootstrap = this.requireCommand("bmad.capability.prepare");
@@ -911,6 +913,8 @@ export class DesktopHostClient {
       workspaceId,
       workspaceGrantEpoch,
       capabilityId,
+      action,
+      mode,
       contextPaths,
     );
     const reply = await this.#invoke("host_dispatch", {

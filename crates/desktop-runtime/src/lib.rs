@@ -28,6 +28,7 @@ mod strict_json;
 #[path = "../../../packages/contracts/generated/rust/contracts.rs"]
 #[doc(hidden)]
 pub mod generated_contracts;
+pub use generated_contracts::BmadInvocationMode;
 
 pub use bmad::{
     accept_model_response, apply_command as apply_bmad_session_command, artifact_lineage_view,

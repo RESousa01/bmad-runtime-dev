@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
+use crate::generated_contracts::BmadInvocationMode;
 use crate::{canonical_hash, ContractId, Sha256Digest, UnixMillis};
 
 use super::{MethodError, MethodErrorCode};
@@ -248,6 +249,7 @@ impl MethodArtifactExpectation {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct MethodExactBinding {
     pub capability_key: BmadCapabilityKey,
+    pub invocation_mode: BmadInvocationMode,
     pub package_descriptor_hash: Sha256Digest,
     pub package_source_hash: Sha256Digest,
     pub instruction_projection_hash: Sha256Digest,

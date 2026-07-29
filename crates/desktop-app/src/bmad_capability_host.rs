@@ -22,8 +22,9 @@ use desktop_runtime::{
     canonical_hash, deserialize_strict_json, sha256_bytes, BmadAgentRoster, BmadBuilderDraftFile,
     BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput, BmadClosureCapabilityId,
     BmadDocumentArtifact, BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft,
-    ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
-    BMAD_GOVERNED_CHANGE_SET_SCHEMA, BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+    BmadInvocationMode, BmadMethodSkill, BmadPrdSkill, ContractId, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
+    BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -47,6 +48,48 @@ pub(crate) struct CapabilityBinding {
     pub id: &'static str,
     pub output_schema_id: &'static str,
     pub projection_path: &'static str,
+}
+
+/// Generated-catalog-selected Method adapter and its user-selected branch.
+pub(crate) struct GeneratedMethodDispatch {
+    pub skill: Box<dyn BmadMethodSkill>,
+    pub action: String,
+    pub mode: BmadInvocationMode,
+}
+
+/// Resolves only generated, public, runtime-available canonical Method rows.
+///
+/// The generated row chooses the source adapter; command routing never keeps a
+/// second handwritten capability predicate or constructs a skill directly.
+pub(crate) fn generated_method_dispatch(
+    capability_id: &str,
+    action: Option<&str>,
+    mode: Option<BmadInvocationMode>,
+) -> Result<Option<GeneratedMethodDispatch>, BmadProjectionError> {
+    let Some(row) = UI_ADVERTISED_CAPABILITIES
+        .iter()
+        .find(|row| row.canonical_id == capability_id && row.source_id == "method")
+    else {
+        return Ok(None);
+    };
+    let (Some(action), Some(mode)) = (action, mode) else {
+        return Err(BmadProjectionError::Unavailable);
+    };
+    let skill: Box<dyn BmadMethodSkill> = match row.source_path {
+        "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md" => Box::new(BmadPrdSkill),
+        _ => return Err(BmadProjectionError::Unavailable),
+    };
+    Ok(Some(GeneratedMethodDispatch {
+        skill,
+        action: action.to_owned(),
+        mode,
+    }))
+}
+
+pub(crate) fn is_generated_method_capability(capability_id: &str) -> bool {
+    UI_ADVERTISED_CAPABILITIES
+        .iter()
+        .any(|row| row.canonical_id == capability_id && row.source_id == "method")
 }
 
 /// The 38 reviewed capabilities: 24 unique menu capabilities (ADR-0005),

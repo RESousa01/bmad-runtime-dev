@@ -3,7 +3,8 @@ use std::fmt;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::{
-    BmadHelpIntent, ContractId, ProposedFileChange, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    BmadHelpIntent, BmadInvocationMode, ContractId, ProposedFileChange, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis,
 };
 
 /// User-facing approval outcomes. Only `Apply` can lead to spec issuance.
@@ -262,6 +263,8 @@ pub enum LocalCommand {
         workspace_id: ContractId,
         workspace_grant_epoch: u64,
         capability_id: String,
+        action: Option<String>,
+        mode: Option<BmadInvocationMode>,
         context_paths: Vec<RelativeWorkspacePath>,
     },
     ApproveBmadCapabilityRun {
