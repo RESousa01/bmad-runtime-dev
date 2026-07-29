@@ -304,13 +304,23 @@ impl ::std::convert::From<CommonAuthorityRef> for AuthorityRef {
 #[doc = "    \"contentHash\","]
 #[doc = "    \"evidenceHash\","]
 #[doc = "    \"kind\","]
+#[doc = "    \"lineage\","]
+#[doc = "    \"revision\","]
 #[doc = "    \"schemaVersion\","]
 #[doc = "    \"sessionId\","]
-#[doc = "    \"state\""]
+#[doc = "    \"state\","]
+#[doc = "    \"validation\""]
 #[doc = "  ],"]
 #[doc = "  \"properties\": {"]
 #[doc = "    \"artifactId\": {"]
 #[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"completionHooks\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadArtifactCompletionHookRun\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 32"]
 #[doc = "    },"]
 #[doc = "    \"contentHash\": {"]
 #[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
@@ -328,16 +338,27 @@ impl ::std::convert::From<CommonAuthorityRef> for AuthorityRef {
 #[doc = "        \"checkpoint\""]
 #[doc = "      ]"]
 #[doc = "    },"]
+#[doc = "    \"lineage\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadArtifactLineage\""]
+#[doc = "    },"]
 #[doc = "    \"mediaType\": {"]
 #[doc = "      \"type\": \"string\","]
 #[doc = "      \"maxLength\": 128,"]
 #[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"rawOutputHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
 #[doc = "    },"]
 #[doc = "    \"relativePath\": {"]
 #[doc = "      \"type\": \"string\","]
 #[doc = "      \"maxLength\": 1024,"]
 #[doc = "      \"minLength\": 1,"]
 #[doc = "      \"pattern\": \"^(?!/)(?!.*\\\\\\\\)(?!.*(?:^|/)\\\\.\\\\.?(?:/|$)).+$\""]
+#[doc = "    },"]
+#[doc = "    \"revision\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 65536.0,"]
+#[doc = "      \"minimum\": 1.0"]
 #[doc = "    },"]
 #[doc = "    \"schemaVersion\": {"]
 #[doc = "      \"const\": \"sapphirus.bmad-artifact.v1\""]
@@ -347,11 +368,21 @@ impl ::std::convert::From<CommonAuthorityRef> for AuthorityRef {
 #[doc = "    },"]
 #[doc = "    \"state\": {"]
 #[doc = "      \"enum\": ["]
-#[doc = "        \"proposed\","]
+#[doc = "        \"draft\","]
+#[doc = "        \"revised\","]
 #[doc = "        \"validated\","]
-#[doc = "        \"persisted\","]
+#[doc = "        \"approved\","]
+#[doc = "        \"written\","]
+#[doc = "        \"superseded\","]
+#[doc = "        \"rolled_back\","]
 #[doc = "        \"rejected\""]
 #[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"supersedesArtifactId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"validation\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadArtifactValidation\""]
 #[doc = "    }"]
 #[doc = "  },"]
 #[doc = "  \"additionalProperties\": false"]
@@ -363,11 +394,18 @@ impl ::std::convert::From<CommonAuthorityRef> for AuthorityRef {
 pub struct BmadArtifact {
     #[serde(rename = "artifactId")]
     pub artifact_id: CommonContractId,
+    #[serde(
+        rename = "completionHooks",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub completion_hooks: ::std::vec::Vec<BmadArtifactCompletionHookRun>,
     #[serde(rename = "contentHash")]
     pub content_hash: CommonSha256,
     #[serde(rename = "evidenceHash")]
     pub evidence_hash: CommonSha256,
     pub kind: BmadArtifactKind,
+    pub lineage: BmadArtifactLineage,
     #[serde(
         rename = "mediaType",
         default,
@@ -375,20 +413,243 @@ pub struct BmadArtifact {
     )]
     pub media_type: ::std::option::Option<BmadArtifactMediaType>,
     #[serde(
+        rename = "rawOutputHash",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub raw_output_hash: ::std::option::Option<CommonSha256>,
+    #[serde(
         rename = "relativePath",
         default,
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub relative_path: ::std::option::Option<BmadArtifactRelativePath>,
+    pub revision: ::std::num::NonZeroU64,
     #[serde(rename = "schemaVersion")]
     pub schema_version: ::serde_json::Value,
     #[serde(rename = "sessionId")]
     pub session_id: CommonContractId,
     pub state: BmadArtifactState,
+    #[serde(
+        rename = "supersedesArtifactId",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub supersedes_artifact_id: ::std::option::Option<CommonContractId>,
+    pub validation: BmadArtifactValidation,
 }
 impl BmadArtifact {
     pub fn builder() -> builder::BmadArtifact {
         Default::default()
+    }
+}
+#[doc = "`BmadArtifactCompletionHookRun`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"hook\","]
+#[doc = "    \"status\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"hook\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"persist_artifacts\","]
+#[doc = "        \"emit_receipt\","]
+#[doc = "        \"notify_local\","]
+#[doc = "        \"schedule_followup\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"receiptHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"status\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"pending\","]
+#[doc = "        \"succeeded\","]
+#[doc = "        \"failed\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadArtifactCompletionHookRun {
+    pub hook: BmadArtifactCompletionHookRunHook,
+    #[serde(
+        rename = "receiptHash",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub receipt_hash: ::std::option::Option<CommonSha256>,
+    pub status: BmadArtifactCompletionHookRunStatus,
+}
+impl BmadArtifactCompletionHookRun {
+    pub fn builder() -> builder::BmadArtifactCompletionHookRun {
+        Default::default()
+    }
+}
+#[doc = "`BmadArtifactCompletionHookRunHook`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"persist_artifacts\","]
+#[doc = "    \"emit_receipt\","]
+#[doc = "    \"notify_local\","]
+#[doc = "    \"schedule_followup\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadArtifactCompletionHookRunHook {
+    #[serde(rename = "persist_artifacts")]
+    PersistArtifacts,
+    #[serde(rename = "emit_receipt")]
+    EmitReceipt,
+    #[serde(rename = "notify_local")]
+    NotifyLocal,
+    #[serde(rename = "schedule_followup")]
+    ScheduleFollowup,
+}
+impl ::std::fmt::Display for BmadArtifactCompletionHookRunHook {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::PersistArtifacts => f.write_str("persist_artifacts"),
+            Self::EmitReceipt => f.write_str("emit_receipt"),
+            Self::NotifyLocal => f.write_str("notify_local"),
+            Self::ScheduleFollowup => f.write_str("schedule_followup"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadArtifactCompletionHookRunHook {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "persist_artifacts" => Ok(Self::PersistArtifacts),
+            "emit_receipt" => Ok(Self::EmitReceipt),
+            "notify_local" => Ok(Self::NotifyLocal),
+            "schedule_followup" => Ok(Self::ScheduleFollowup),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadArtifactCompletionHookRunHook {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactCompletionHookRunHook {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactCompletionHookRunHook {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadArtifactCompletionHookRunStatus`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"pending\","]
+#[doc = "    \"succeeded\","]
+#[doc = "    \"failed\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadArtifactCompletionHookRunStatus {
+    #[serde(rename = "pending")]
+    Pending,
+    #[serde(rename = "succeeded")]
+    Succeeded,
+    #[serde(rename = "failed")]
+    Failed,
+}
+impl ::std::fmt::Display for BmadArtifactCompletionHookRunStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Pending => f.write_str("pending"),
+            Self::Succeeded => f.write_str("succeeded"),
+            Self::Failed => f.write_str("failed"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadArtifactCompletionHookRunStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "pending" => Ok(Self::Pending),
+            "succeeded" => Ok(Self::Succeeded),
+            "failed" => Ok(Self::Failed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadArtifactCompletionHookRunStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactCompletionHookRunStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactCompletionHookRunStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
     }
 }
 #[doc = "`BmadArtifactKind`"]
@@ -480,6 +741,61 @@ impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactKind {
         value: ::std::string::String,
     ) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
+    }
+}
+#[doc = "`BmadArtifactLineage`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"inputsHash\","]
+#[doc = "    \"sourceId\","]
+#[doc = "    \"templateHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"consumedArtifactIds\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256"]
+#[doc = "    },"]
+#[doc = "    \"inputsHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"sourceId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"templateHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadArtifactLineage {
+    #[serde(
+        rename = "consumedArtifactIds",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub consumed_artifact_ids: ::std::vec::Vec<CommonContractId>,
+    #[serde(rename = "inputsHash")]
+    pub inputs_hash: CommonSha256,
+    #[serde(rename = "sourceId")]
+    pub source_id: CommonContractId,
+    #[serde(rename = "templateHash")]
+    pub template_hash: CommonSha256,
+}
+impl BmadArtifactLineage {
+    pub fn builder() -> builder::BmadArtifactLineage {
+        Default::default()
     }
 }
 #[doc = "`BmadArtifactMediaType`"]
@@ -643,9 +959,13 @@ impl<'de> ::serde::Deserialize<'de> for BmadArtifactRelativePath {
 #[doc = r" ```json"]
 #[doc = "{"]
 #[doc = "  \"enum\": ["]
-#[doc = "    \"proposed\","]
+#[doc = "    \"draft\","]
+#[doc = "    \"revised\","]
 #[doc = "    \"validated\","]
-#[doc = "    \"persisted\","]
+#[doc = "    \"approved\","]
+#[doc = "    \"written\","]
+#[doc = "    \"superseded\","]
+#[doc = "    \"rolled_back\","]
 #[doc = "    \"rejected\""]
 #[doc = "  ]"]
 #[doc = "}"]
@@ -664,21 +984,33 @@ impl<'de> ::serde::Deserialize<'de> for BmadArtifactRelativePath {
     PartialOrd,
 )]
 pub enum BmadArtifactState {
-    #[serde(rename = "proposed")]
-    Proposed,
+    #[serde(rename = "draft")]
+    Draft,
+    #[serde(rename = "revised")]
+    Revised,
     #[serde(rename = "validated")]
     Validated,
-    #[serde(rename = "persisted")]
-    Persisted,
+    #[serde(rename = "approved")]
+    Approved,
+    #[serde(rename = "written")]
+    Written,
+    #[serde(rename = "superseded")]
+    Superseded,
+    #[serde(rename = "rolled_back")]
+    RolledBack,
     #[serde(rename = "rejected")]
     Rejected,
 }
 impl ::std::fmt::Display for BmadArtifactState {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match *self {
-            Self::Proposed => f.write_str("proposed"),
+            Self::Draft => f.write_str("draft"),
+            Self::Revised => f.write_str("revised"),
             Self::Validated => f.write_str("validated"),
-            Self::Persisted => f.write_str("persisted"),
+            Self::Approved => f.write_str("approved"),
+            Self::Written => f.write_str("written"),
+            Self::Superseded => f.write_str("superseded"),
+            Self::RolledBack => f.write_str("rolled_back"),
             Self::Rejected => f.write_str("rejected"),
         }
     }
@@ -687,9 +1019,13 @@ impl ::std::str::FromStr for BmadArtifactState {
     type Err = self::error::ConversionError;
     fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
         match value {
-            "proposed" => Ok(Self::Proposed),
+            "draft" => Ok(Self::Draft),
+            "revised" => Ok(Self::Revised),
             "validated" => Ok(Self::Validated),
-            "persisted" => Ok(Self::Persisted),
+            "approved" => Ok(Self::Approved),
+            "written" => Ok(Self::Written),
+            "superseded" => Ok(Self::Superseded),
+            "rolled_back" => Ok(Self::RolledBack),
             "rejected" => Ok(Self::Rejected),
             _ => Err("invalid value".into()),
         }
@@ -710,6 +1046,306 @@ impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactState {
     }
 }
 impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadArtifactValidation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"declaredChecks\","]
+#[doc = "    \"passedChecks\","]
+#[doc = "    \"status\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"declaredChecks\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"type\": \"string\","]
+#[doc = "        \"maxLength\": 128,"]
+#[doc = "        \"minLength\": 1,"]
+#[doc = "        \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64"]
+#[doc = "    },"]
+#[doc = "    \"passedChecks\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"type\": \"string\","]
+#[doc = "        \"maxLength\": 128,"]
+#[doc = "        \"minLength\": 1,"]
+#[doc = "        \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64"]
+#[doc = "    },"]
+#[doc = "    \"reportHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"status\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"not_run\","]
+#[doc = "        \"passed\","]
+#[doc = "        \"failed\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadArtifactValidation {
+    #[serde(rename = "declaredChecks")]
+    pub declared_checks: ::std::vec::Vec<BmadArtifactValidationDeclaredChecksItem>,
+    #[serde(rename = "passedChecks")]
+    pub passed_checks: ::std::vec::Vec<BmadArtifactValidationPassedChecksItem>,
+    #[serde(
+        rename = "reportHash",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub report_hash: ::std::option::Option<CommonSha256>,
+    pub status: BmadArtifactValidationStatus,
+}
+impl BmadArtifactValidation {
+    pub fn builder() -> builder::BmadArtifactValidation {
+        Default::default()
+    }
+}
+#[doc = "`BmadArtifactValidationDeclaredChecksItem`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadArtifactValidationDeclaredChecksItem(::std::string::String);
+impl ::std::ops::Deref for BmadArtifactValidationDeclaredChecksItem {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadArtifactValidationDeclaredChecksItem> for ::std::string::String {
+    fn from(value: BmadArtifactValidationDeclaredChecksItem) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadArtifactValidationDeclaredChecksItem {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadArtifactValidationDeclaredChecksItem {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactValidationDeclaredChecksItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactValidationDeclaredChecksItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadArtifactValidationDeclaredChecksItem {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadArtifactValidationPassedChecksItem`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadArtifactValidationPassedChecksItem(::std::string::String);
+impl ::std::ops::Deref for BmadArtifactValidationPassedChecksItem {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadArtifactValidationPassedChecksItem> for ::std::string::String {
+    fn from(value: BmadArtifactValidationPassedChecksItem) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadArtifactValidationPassedChecksItem {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadArtifactValidationPassedChecksItem {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactValidationPassedChecksItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactValidationPassedChecksItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadArtifactValidationPassedChecksItem {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadArtifactValidationStatus`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"not_run\","]
+#[doc = "    \"passed\","]
+#[doc = "    \"failed\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadArtifactValidationStatus {
+    #[serde(rename = "not_run")]
+    NotRun,
+    #[serde(rename = "passed")]
+    Passed,
+    #[serde(rename = "failed")]
+    Failed,
+}
+impl ::std::fmt::Display for BmadArtifactValidationStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::NotRun => f.write_str("not_run"),
+            Self::Passed => f.write_str("passed"),
+            Self::Failed => f.write_str("failed"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadArtifactValidationStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "not_run" => Ok(Self::NotRun),
+            "passed" => Ok(Self::Passed),
+            "failed" => Ok(Self::Failed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadArtifactValidationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadArtifactValidationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadArtifactValidationStatus {
     type Error = self::error::ConversionError;
     fn try_from(
         value: ::std::string::String,
@@ -13033,6 +13669,1418 @@ impl ::std::convert::TryFrom<&::std::string::String> for BmadEvalState {
     }
 }
 impl ::std::convert::TryFrom<::std::string::String> for BmadEvalState {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadInvocation`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"title\": \"sapphirus.bmad-invocation.v1\","]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"budget\","]
+#[doc = "    \"capabilityId\","]
+#[doc = "    \"declaredAction\","]
+#[doc = "    \"invocationId\","]
+#[doc = "    \"missingInputs\","]
+#[doc = "    \"mode\","]
+#[doc = "    \"resolvedInputs\","]
+#[doc = "    \"resolvedInputsHash\","]
+#[doc = "    \"schemaVersion\","]
+#[doc = "    \"sessionId\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"budget\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadInvocationBudget\""]
+#[doc = "    },"]
+#[doc = "    \"capabilityId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"declaredAction\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadInvocationDeclaredAction\""]
+#[doc = "    },"]
+#[doc = "    \"invocationId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    },"]
+#[doc = "    \"missingInputs\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadInvocationInputRequirement\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256"]
+#[doc = "    },"]
+#[doc = "    \"mode\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"interactive\","]
+#[doc = "        \"headless\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"ready\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"resolvedInputs\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadInvocationResolvedInput\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256"]
+#[doc = "    },"]
+#[doc = "    \"resolvedInputsHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    },"]
+#[doc = "    \"schemaVersion\": {"]
+#[doc = "      \"const\": \"sapphirus.bmad-invocation.v1\""]
+#[doc = "    },"]
+#[doc = "    \"sessionId\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonContractId\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInvocation {
+    pub budget: BmadInvocationBudget,
+    #[serde(rename = "capabilityId")]
+    pub capability_id: CommonContractId,
+    #[serde(rename = "declaredAction")]
+    pub declared_action: BmadInvocationDeclaredAction,
+    #[serde(rename = "invocationId")]
+    pub invocation_id: CommonContractId,
+    #[serde(rename = "missingInputs")]
+    pub missing_inputs: ::std::vec::Vec<BmadInvocationInputRequirement>,
+    pub mode: BmadInvocationMode,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub ready: ::std::option::Option<bool>,
+    #[serde(rename = "resolvedInputs")]
+    pub resolved_inputs: ::std::vec::Vec<BmadInvocationResolvedInput>,
+    #[serde(rename = "resolvedInputsHash")]
+    pub resolved_inputs_hash: CommonSha256,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: ::serde_json::Value,
+    #[serde(rename = "sessionId")]
+    pub session_id: CommonContractId,
+}
+impl BmadInvocation {
+    pub fn builder() -> builder::BmadInvocation {
+        Default::default()
+    }
+}
+#[doc = "`BmadInvocationBudget`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"maxModelCalls\","]
+#[doc = "    \"maxPromptedInputs\","]
+#[doc = "    \"maxRetries\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"maxModelCalls\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 1024.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"maxPromptedInputs\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 256.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    },"]
+#[doc = "    \"maxRetries\": {"]
+#[doc = "      \"type\": \"integer\","]
+#[doc = "      \"maximum\": 64.0,"]
+#[doc = "      \"minimum\": 0.0"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInvocationBudget {
+    #[serde(rename = "maxModelCalls")]
+    pub max_model_calls: i64,
+    #[serde(rename = "maxPromptedInputs")]
+    pub max_prompted_inputs: i64,
+    #[serde(rename = "maxRetries")]
+    pub max_retries: i64,
+}
+impl BmadInvocationBudget {
+    pub fn builder() -> builder::BmadInvocationBudget {
+        Default::default()
+    }
+}
+#[doc = "`BmadInvocationDeclaredAction`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"declaredInputs\","]
+#[doc = "    \"name\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"declaredInputs\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"$ref\": \"#/$defs/BmadInvocationDeclaredInput\""]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 256"]
+#[doc = "    },"]
+#[doc = "    \"name\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInvocationDeclaredAction {
+    #[serde(rename = "declaredInputs")]
+    pub declared_inputs: ::std::vec::Vec<BmadInvocationDeclaredInput>,
+    pub name: BmadInvocationDeclaredActionName,
+}
+impl BmadInvocationDeclaredAction {
+    pub fn builder() -> builder::BmadInvocationDeclaredAction {
+        Default::default()
+    }
+}
+#[doc = "`BmadInvocationDeclaredActionName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9-]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInvocationDeclaredActionName(::std::string::String);
+impl ::std::ops::Deref for BmadInvocationDeclaredActionName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInvocationDeclaredActionName> for ::std::string::String {
+    fn from(value: BmadInvocationDeclaredActionName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInvocationDeclaredActionName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9-]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9-]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationDeclaredActionName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationDeclaredActionName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationDeclaredActionName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInvocationDeclaredActionName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInvocationDeclaredInput`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"name\","]
+#[doc = "    \"required\","]
+#[doc = "    \"valueKind\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"allowedValues\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"type\": \"string\","]
+#[doc = "        \"maxLength\": 256,"]
+#[doc = "        \"minLength\": 1"]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64"]
+#[doc = "    },"]
+#[doc = "    \"name\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "    },"]
+#[doc = "    \"prompt\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 16384,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"required\": {"]
+#[doc = "      \"type\": \"boolean\""]
+#[doc = "    },"]
+#[doc = "    \"valueKind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"string\","]
+#[doc = "        \"integer\","]
+#[doc = "        \"boolean\","]
+#[doc = "        \"path\","]
+#[doc = "        \"enum\","]
+#[doc = "        \"reference\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInvocationDeclaredInput {
+    #[serde(
+        rename = "allowedValues",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub allowed_values: ::std::vec::Vec<BmadInvocationDeclaredInputAllowedValuesItem>,
+    pub name: BmadInvocationDeclaredInputName,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub prompt: ::std::option::Option<BmadInvocationDeclaredInputPrompt>,
+    pub required: bool,
+    #[serde(rename = "valueKind")]
+    pub value_kind: BmadInvocationDeclaredInputValueKind,
+}
+impl BmadInvocationDeclaredInput {
+    pub fn builder() -> builder::BmadInvocationDeclaredInput {
+        Default::default()
+    }
+}
+#[doc = "`BmadInvocationDeclaredInputAllowedValuesItem`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInvocationDeclaredInputAllowedValuesItem(::std::string::String);
+impl ::std::ops::Deref for BmadInvocationDeclaredInputAllowedValuesItem {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInvocationDeclaredInputAllowedValuesItem> for ::std::string::String {
+    fn from(value: BmadInvocationDeclaredInputAllowedValuesItem) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInvocationDeclaredInputAllowedValuesItem {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationDeclaredInputAllowedValuesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadInvocationDeclaredInputAllowedValuesItem
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadInvocationDeclaredInputAllowedValuesItem
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInvocationDeclaredInputAllowedValuesItem {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInvocationDeclaredInputName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInvocationDeclaredInputName(::std::string::String);
+impl ::std::ops::Deref for BmadInvocationDeclaredInputName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInvocationDeclaredInputName> for ::std::string::String {
+    fn from(value: BmadInvocationDeclaredInputName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInvocationDeclaredInputName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationDeclaredInputName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationDeclaredInputName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationDeclaredInputName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInvocationDeclaredInputName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInvocationDeclaredInputPrompt`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 16384,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInvocationDeclaredInputPrompt(::std::string::String);
+impl ::std::ops::Deref for BmadInvocationDeclaredInputPrompt {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInvocationDeclaredInputPrompt> for ::std::string::String {
+    fn from(value: BmadInvocationDeclaredInputPrompt) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInvocationDeclaredInputPrompt {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 16384usize {
+            return Err("longer than 16384 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationDeclaredInputPrompt {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationDeclaredInputPrompt {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationDeclaredInputPrompt {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInvocationDeclaredInputPrompt {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInvocationDeclaredInputValueKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"string\","]
+#[doc = "    \"integer\","]
+#[doc = "    \"boolean\","]
+#[doc = "    \"path\","]
+#[doc = "    \"enum\","]
+#[doc = "    \"reference\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadInvocationDeclaredInputValueKind {
+    #[serde(rename = "string")]
+    String,
+    #[serde(rename = "integer")]
+    Integer,
+    #[serde(rename = "boolean")]
+    Boolean,
+    #[serde(rename = "path")]
+    Path,
+    #[serde(rename = "enum")]
+    Enum,
+    #[serde(rename = "reference")]
+    Reference,
+}
+impl ::std::fmt::Display for BmadInvocationDeclaredInputValueKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::String => f.write_str("string"),
+            Self::Integer => f.write_str("integer"),
+            Self::Boolean => f.write_str("boolean"),
+            Self::Path => f.write_str("path"),
+            Self::Enum => f.write_str("enum"),
+            Self::Reference => f.write_str("reference"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadInvocationDeclaredInputValueKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "string" => Ok(Self::String),
+            "integer" => Ok(Self::Integer),
+            "boolean" => Ok(Self::Boolean),
+            "path" => Ok(Self::Path),
+            "enum" => Ok(Self::Enum),
+            "reference" => Ok(Self::Reference),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationDeclaredInputValueKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationDeclaredInputValueKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationDeclaredInputValueKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadInvocationInputRequirement`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"code\","]
+#[doc = "    \"name\","]
+#[doc = "    \"valueKind\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"allowedValues\": {"]
+#[doc = "      \"type\": \"array\","]
+#[doc = "      \"items\": {"]
+#[doc = "        \"type\": \"string\","]
+#[doc = "        \"maxLength\": 256,"]
+#[doc = "        \"minLength\": 1"]
+#[doc = "      },"]
+#[doc = "      \"maxItems\": 64"]
+#[doc = "    },"]
+#[doc = "    \"code\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "    },"]
+#[doc = "    \"name\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "    },"]
+#[doc = "    \"prompt\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 16384,"]
+#[doc = "      \"minLength\": 1"]
+#[doc = "    },"]
+#[doc = "    \"valueKind\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"string\","]
+#[doc = "        \"integer\","]
+#[doc = "        \"boolean\","]
+#[doc = "        \"path\","]
+#[doc = "        \"enum\","]
+#[doc = "        \"reference\""]
+#[doc = "      ]"]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInvocationInputRequirement {
+    #[serde(
+        rename = "allowedValues",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub allowed_values: ::std::vec::Vec<BmadInvocationInputRequirementAllowedValuesItem>,
+    pub code: BmadInvocationInputRequirementCode,
+    pub name: BmadInvocationInputRequirementName,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub prompt: ::std::option::Option<BmadInvocationInputRequirementPrompt>,
+    #[serde(rename = "valueKind")]
+    pub value_kind: BmadInvocationInputRequirementValueKind,
+}
+impl BmadInvocationInputRequirement {
+    pub fn builder() -> builder::BmadInvocationInputRequirement {
+        Default::default()
+    }
+}
+#[doc = "`BmadInvocationInputRequirementAllowedValuesItem`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 256,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInvocationInputRequirementAllowedValuesItem(::std::string::String);
+impl ::std::ops::Deref for BmadInvocationInputRequirementAllowedValuesItem {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInvocationInputRequirementAllowedValuesItem>
+    for ::std::string::String
+{
+    fn from(value: BmadInvocationInputRequirementAllowedValuesItem) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInvocationInputRequirementAllowedValuesItem {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationInputRequirementAllowedValuesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for BmadInvocationInputRequirementAllowedValuesItem
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String>
+    for BmadInvocationInputRequirementAllowedValuesItem
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInvocationInputRequirementAllowedValuesItem {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInvocationInputRequirementCode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInvocationInputRequirementCode(::std::string::String);
+impl ::std::ops::Deref for BmadInvocationInputRequirementCode {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInvocationInputRequirementCode> for ::std::string::String {
+    fn from(value: BmadInvocationInputRequirementCode) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInvocationInputRequirementCode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationInputRequirementCode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationInputRequirementCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationInputRequirementCode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInvocationInputRequirementCode {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInvocationInputRequirementName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInvocationInputRequirementName(::std::string::String);
+impl ::std::ops::Deref for BmadInvocationInputRequirementName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInvocationInputRequirementName> for ::std::string::String {
+    fn from(value: BmadInvocationInputRequirementName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInvocationInputRequirementName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationInputRequirementName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationInputRequirementName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationInputRequirementName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInvocationInputRequirementName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInvocationInputRequirementPrompt`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 16384,"]
+#[doc = "  \"minLength\": 1"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInvocationInputRequirementPrompt(::std::string::String);
+impl ::std::ops::Deref for BmadInvocationInputRequirementPrompt {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInvocationInputRequirementPrompt> for ::std::string::String {
+    fn from(value: BmadInvocationInputRequirementPrompt) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInvocationInputRequirementPrompt {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 16384usize {
+            return Err("longer than 16384 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationInputRequirementPrompt {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationInputRequirementPrompt {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationInputRequirementPrompt {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInvocationInputRequirementPrompt {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInvocationInputRequirementValueKind`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"string\","]
+#[doc = "    \"integer\","]
+#[doc = "    \"boolean\","]
+#[doc = "    \"path\","]
+#[doc = "    \"enum\","]
+#[doc = "    \"reference\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadInvocationInputRequirementValueKind {
+    #[serde(rename = "string")]
+    String,
+    #[serde(rename = "integer")]
+    Integer,
+    #[serde(rename = "boolean")]
+    Boolean,
+    #[serde(rename = "path")]
+    Path,
+    #[serde(rename = "enum")]
+    Enum,
+    #[serde(rename = "reference")]
+    Reference,
+}
+impl ::std::fmt::Display for BmadInvocationInputRequirementValueKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::String => f.write_str("string"),
+            Self::Integer => f.write_str("integer"),
+            Self::Boolean => f.write_str("boolean"),
+            Self::Path => f.write_str("path"),
+            Self::Enum => f.write_str("enum"),
+            Self::Reference => f.write_str("reference"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadInvocationInputRequirementValueKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "string" => Ok(Self::String),
+            "integer" => Ok(Self::Integer),
+            "boolean" => Ok(Self::Boolean),
+            "path" => Ok(Self::Path),
+            "enum" => Ok(Self::Enum),
+            "reference" => Ok(Self::Reference),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationInputRequirementValueKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationInputRequirementValueKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationInputRequirementValueKind {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadInvocationMode`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"interactive\","]
+#[doc = "    \"headless\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadInvocationMode {
+    #[serde(rename = "interactive")]
+    Interactive,
+    #[serde(rename = "headless")]
+    Headless,
+}
+impl ::std::fmt::Display for BmadInvocationMode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Interactive => f.write_str("interactive"),
+            Self::Headless => f.write_str("headless"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadInvocationMode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "interactive" => Ok(Self::Interactive),
+            "headless" => Ok(Self::Headless),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationMode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationMode {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BmadInvocationResolvedInput`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"object\","]
+#[doc = "  \"required\": ["]
+#[doc = "    \"name\","]
+#[doc = "    \"origin\","]
+#[doc = "    \"valueHash\""]
+#[doc = "  ],"]
+#[doc = "  \"properties\": {"]
+#[doc = "    \"name\": {"]
+#[doc = "      \"type\": \"string\","]
+#[doc = "      \"maxLength\": 128,"]
+#[doc = "      \"minLength\": 1,"]
+#[doc = "      \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "    },"]
+#[doc = "    \"origin\": {"]
+#[doc = "      \"enum\": ["]
+#[doc = "        \"argument\","]
+#[doc = "        \"config\","]
+#[doc = "        \"customization\","]
+#[doc = "        \"answer\","]
+#[doc = "        \"declared_default\""]
+#[doc = "      ]"]
+#[doc = "    },"]
+#[doc = "    \"valueHash\": {"]
+#[doc = "      \"$ref\": \"#/$defs/CommonSha256\""]
+#[doc = "    }"]
+#[doc = "  },"]
+#[doc = "  \"additionalProperties\": false"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct BmadInvocationResolvedInput {
+    pub name: BmadInvocationResolvedInputName,
+    pub origin: BmadInvocationResolvedInputOrigin,
+    #[serde(rename = "valueHash")]
+    pub value_hash: CommonSha256,
+}
+impl BmadInvocationResolvedInput {
+    pub fn builder() -> builder::BmadInvocationResolvedInput {
+        Default::default()
+    }
+}
+#[doc = "`BmadInvocationResolvedInputName`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"type\": \"string\","]
+#[doc = "  \"maxLength\": 128,"]
+#[doc = "  \"minLength\": 1,"]
+#[doc = "  \"pattern\": \"^[a-z][a-z0-9_]*$\""]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BmadInvocationResolvedInputName(::std::string::String);
+impl ::std::ops::Deref for BmadInvocationResolvedInputName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BmadInvocationResolvedInputName> for ::std::string::String {
+    fn from(value: BmadInvocationResolvedInputName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BmadInvocationResolvedInputName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 128usize {
+            return Err("longer than 128 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z][a-z0-9_]*$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z][a-z0-9_]*$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationResolvedInputName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationResolvedInputName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationResolvedInputName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BmadInvocationResolvedInputName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`BmadInvocationResolvedInputOrigin`"]
+#[doc = r""]
+#[doc = r" <details><summary>JSON schema</summary>"]
+#[doc = r""]
+#[doc = r" ```json"]
+#[doc = "{"]
+#[doc = "  \"enum\": ["]
+#[doc = "    \"argument\","]
+#[doc = "    \"config\","]
+#[doc = "    \"customization\","]
+#[doc = "    \"answer\","]
+#[doc = "    \"declared_default\""]
+#[doc = "  ]"]
+#[doc = "}"]
+#[doc = r" ```"]
+#[doc = r" </details>"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum BmadInvocationResolvedInputOrigin {
+    #[serde(rename = "argument")]
+    Argument,
+    #[serde(rename = "config")]
+    Config,
+    #[serde(rename = "customization")]
+    Customization,
+    #[serde(rename = "answer")]
+    Answer,
+    #[serde(rename = "declared_default")]
+    DeclaredDefault,
+}
+impl ::std::fmt::Display for BmadInvocationResolvedInputOrigin {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Argument => f.write_str("argument"),
+            Self::Config => f.write_str("config"),
+            Self::Customization => f.write_str("customization"),
+            Self::Answer => f.write_str("answer"),
+            Self::DeclaredDefault => f.write_str("declared_default"),
+        }
+    }
+}
+impl ::std::str::FromStr for BmadInvocationResolvedInputOrigin {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "argument" => Ok(Self::Argument),
+            "config" => Ok(Self::Config),
+            "customization" => Ok(Self::Customization),
+            "answer" => Ok(Self::Answer),
+            "declared_default" => Ok(Self::DeclaredDefault),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BmadInvocationResolvedInputOrigin {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for BmadInvocationResolvedInputOrigin {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BmadInvocationResolvedInputOrigin {
     type Error = self::error::ConversionError;
     fn try_from(
         value: ::std::string::String,
@@ -63888,6 +65936,9 @@ impl ::std::fmt::Display for RemoteJobHandoffUtcInstant {
 #[doc = "    \"bmadEval\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadEval\""]
 #[doc = "    },"]
+#[doc = "    \"bmadInvocation\": {"]
+#[doc = "      \"$ref\": \"#/$defs/BmadInvocation\""]
+#[doc = "    },"]
 #[doc = "    \"bmadMemory\": {"]
 #[doc = "      \"$ref\": \"#/$defs/BmadMemory\""]
 #[doc = "    },"]
@@ -64073,6 +66124,12 @@ pub struct SapphirusContractsCatalog {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub bmad_eval: ::std::option::Option<BmadEval>,
+    #[serde(
+        rename = "bmadInvocation",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub bmad_invocation: ::std::option::Option<BmadInvocation>,
     #[serde(
         rename = "bmadMemory",
         default,
@@ -64321,6 +66378,7 @@ impl ::std::default::Default for SapphirusContractsCatalog {
             bmad_config: Default::default(),
             bmad_customization: Default::default(),
             bmad_eval: Default::default(),
+            bmad_invocation: Default::default(),
             bmad_memory: Default::default(),
             bmad_module: Default::default(),
             bmad_package_descriptor: Default::default(),
@@ -64825,33 +66883,54 @@ pub mod builder {
     #[derive(Clone, Debug)]
     pub struct BmadArtifact {
         artifact_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        completion_hooks: ::std::result::Result<
+            ::std::vec::Vec<super::BmadArtifactCompletionHookRun>,
+            ::std::string::String,
+        >,
         content_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
         evidence_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
         kind: ::std::result::Result<super::BmadArtifactKind, ::std::string::String>,
+        lineage: ::std::result::Result<super::BmadArtifactLineage, ::std::string::String>,
         media_type: ::std::result::Result<
             ::std::option::Option<super::BmadArtifactMediaType>,
+            ::std::string::String,
+        >,
+        raw_output_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
             ::std::string::String,
         >,
         relative_path: ::std::result::Result<
             ::std::option::Option<super::BmadArtifactRelativePath>,
             ::std::string::String,
         >,
+        revision: ::std::result::Result<::std::num::NonZeroU64, ::std::string::String>,
         schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
         session_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
         state: ::std::result::Result<super::BmadArtifactState, ::std::string::String>,
+        supersedes_artifact_id: ::std::result::Result<
+            ::std::option::Option<super::CommonContractId>,
+            ::std::string::String,
+        >,
+        validation: ::std::result::Result<super::BmadArtifactValidation, ::std::string::String>,
     }
     impl ::std::default::Default for BmadArtifact {
         fn default() -> Self {
             Self {
                 artifact_id: Err("no value supplied for artifact_id".to_string()),
+                completion_hooks: Ok(Default::default()),
                 content_hash: Err("no value supplied for content_hash".to_string()),
                 evidence_hash: Err("no value supplied for evidence_hash".to_string()),
                 kind: Err("no value supplied for kind".to_string()),
+                lineage: Err("no value supplied for lineage".to_string()),
                 media_type: Ok(Default::default()),
+                raw_output_hash: Ok(Default::default()),
                 relative_path: Ok(Default::default()),
+                revision: Err("no value supplied for revision".to_string()),
                 schema_version: Err("no value supplied for schema_version".to_string()),
                 session_id: Err("no value supplied for session_id".to_string()),
                 state: Err("no value supplied for state".to_string()),
+                supersedes_artifact_id: Ok(Default::default()),
+                validation: Err("no value supplied for validation".to_string()),
             }
         }
     }
@@ -64864,6 +66943,16 @@ pub mod builder {
             self.artifact_id = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for artifact_id: {e}"));
+            self
+        }
+        pub fn completion_hooks<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadArtifactCompletionHookRun>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.completion_hooks = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for completion_hooks: {e}"));
             self
         }
         pub fn content_hash<T>(mut self, value: T) -> Self
@@ -64896,6 +66985,16 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for kind: {e}"));
             self
         }
+        pub fn lineage<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadArtifactLineage>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.lineage = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for lineage: {e}"));
+            self
+        }
         pub fn media_type<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::BmadArtifactMediaType>>,
@@ -64906,6 +67005,16 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for media_type: {e}"));
             self
         }
+        pub fn raw_output_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.raw_output_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for raw_output_hash: {e}"));
+            self
+        }
         pub fn relative_path<T>(mut self, value: T) -> Self
         where
             T: ::std::convert::TryInto<::std::option::Option<super::BmadArtifactRelativePath>>,
@@ -64914,6 +67023,16 @@ pub mod builder {
             self.relative_path = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for relative_path: {e}"));
+            self
+        }
+        pub fn revision<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::num::NonZeroU64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.revision = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for revision: {e}"));
             self
         }
         pub fn schema_version<T>(mut self, value: T) -> Self
@@ -64946,6 +67065,26 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for state: {e}"));
             self
         }
+        pub fn supersedes_artifact_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonContractId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.supersedes_artifact_id = value.try_into().map_err(|e| {
+                format!("error converting supplied value for supersedes_artifact_id: {e}")
+            });
+            self
+        }
+        pub fn validation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadArtifactValidation>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.validation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for validation: {e}"));
+            self
+        }
     }
     impl ::std::convert::TryFrom<BmadArtifact> for super::BmadArtifact {
         type Error = super::error::ConversionError;
@@ -64954,14 +67093,20 @@ pub mod builder {
         ) -> ::std::result::Result<Self, super::error::ConversionError> {
             Ok(Self {
                 artifact_id: value.artifact_id?,
+                completion_hooks: value.completion_hooks?,
                 content_hash: value.content_hash?,
                 evidence_hash: value.evidence_hash?,
                 kind: value.kind?,
+                lineage: value.lineage?,
                 media_type: value.media_type?,
+                raw_output_hash: value.raw_output_hash?,
                 relative_path: value.relative_path?,
+                revision: value.revision?,
                 schema_version: value.schema_version?,
                 session_id: value.session_id?,
                 state: value.state?,
+                supersedes_artifact_id: value.supersedes_artifact_id?,
+                validation: value.validation?,
             })
         }
     }
@@ -64969,14 +67114,275 @@ pub mod builder {
         fn from(value: super::BmadArtifact) -> Self {
             Self {
                 artifact_id: Ok(value.artifact_id),
+                completion_hooks: Ok(value.completion_hooks),
                 content_hash: Ok(value.content_hash),
                 evidence_hash: Ok(value.evidence_hash),
                 kind: Ok(value.kind),
+                lineage: Ok(value.lineage),
                 media_type: Ok(value.media_type),
+                raw_output_hash: Ok(value.raw_output_hash),
                 relative_path: Ok(value.relative_path),
+                revision: Ok(value.revision),
                 schema_version: Ok(value.schema_version),
                 session_id: Ok(value.session_id),
                 state: Ok(value.state),
+                supersedes_artifact_id: Ok(value.supersedes_artifact_id),
+                validation: Ok(value.validation),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadArtifactCompletionHookRun {
+        hook:
+            ::std::result::Result<super::BmadArtifactCompletionHookRunHook, ::std::string::String>,
+        receipt_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
+            ::std::string::String,
+        >,
+        status: ::std::result::Result<
+            super::BmadArtifactCompletionHookRunStatus,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadArtifactCompletionHookRun {
+        fn default() -> Self {
+            Self {
+                hook: Err("no value supplied for hook".to_string()),
+                receipt_hash: Ok(Default::default()),
+                status: Err("no value supplied for status".to_string()),
+            }
+        }
+    }
+    impl BmadArtifactCompletionHookRun {
+        pub fn hook<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadArtifactCompletionHookRunHook>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.hook = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for hook: {e}"));
+            self
+        }
+        pub fn receipt_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.receipt_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for receipt_hash: {e}"));
+            self
+        }
+        pub fn status<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadArtifactCompletionHookRunStatus>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.status = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for status: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadArtifactCompletionHookRun>
+        for super::BmadArtifactCompletionHookRun
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadArtifactCompletionHookRun,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                hook: value.hook?,
+                receipt_hash: value.receipt_hash?,
+                status: value.status?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadArtifactCompletionHookRun> for BmadArtifactCompletionHookRun {
+        fn from(value: super::BmadArtifactCompletionHookRun) -> Self {
+            Self {
+                hook: Ok(value.hook),
+                receipt_hash: Ok(value.receipt_hash),
+                status: Ok(value.status),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadArtifactLineage {
+        consumed_artifact_ids:
+            ::std::result::Result<::std::vec::Vec<super::CommonContractId>, ::std::string::String>,
+        inputs_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        source_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        template_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadArtifactLineage {
+        fn default() -> Self {
+            Self {
+                consumed_artifact_ids: Ok(Default::default()),
+                inputs_hash: Err("no value supplied for inputs_hash".to_string()),
+                source_id: Err("no value supplied for source_id".to_string()),
+                template_hash: Err("no value supplied for template_hash".to_string()),
+            }
+        }
+    }
+    impl BmadArtifactLineage {
+        pub fn consumed_artifact_ids<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::CommonContractId>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.consumed_artifact_ids = value.try_into().map_err(|e| {
+                format!("error converting supplied value for consumed_artifact_ids: {e}")
+            });
+            self
+        }
+        pub fn inputs_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.inputs_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for inputs_hash: {e}"));
+            self
+        }
+        pub fn source_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.source_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for source_id: {e}"));
+            self
+        }
+        pub fn template_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.template_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for template_hash: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadArtifactLineage> for super::BmadArtifactLineage {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadArtifactLineage,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                consumed_artifact_ids: value.consumed_artifact_ids?,
+                inputs_hash: value.inputs_hash?,
+                source_id: value.source_id?,
+                template_hash: value.template_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadArtifactLineage> for BmadArtifactLineage {
+        fn from(value: super::BmadArtifactLineage) -> Self {
+            Self {
+                consumed_artifact_ids: Ok(value.consumed_artifact_ids),
+                inputs_hash: Ok(value.inputs_hash),
+                source_id: Ok(value.source_id),
+                template_hash: Ok(value.template_hash),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadArtifactValidation {
+        declared_checks: ::std::result::Result<
+            ::std::vec::Vec<super::BmadArtifactValidationDeclaredChecksItem>,
+            ::std::string::String,
+        >,
+        passed_checks: ::std::result::Result<
+            ::std::vec::Vec<super::BmadArtifactValidationPassedChecksItem>,
+            ::std::string::String,
+        >,
+        report_hash: ::std::result::Result<
+            ::std::option::Option<super::CommonSha256>,
+            ::std::string::String,
+        >,
+        status: ::std::result::Result<super::BmadArtifactValidationStatus, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadArtifactValidation {
+        fn default() -> Self {
+            Self {
+                declared_checks: Err("no value supplied for declared_checks".to_string()),
+                passed_checks: Err("no value supplied for passed_checks".to_string()),
+                report_hash: Ok(Default::default()),
+                status: Err("no value supplied for status".to_string()),
+            }
+        }
+    }
+    impl BmadArtifactValidation {
+        pub fn declared_checks<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::vec::Vec<super::BmadArtifactValidationDeclaredChecksItem>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.declared_checks = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for declared_checks: {e}"));
+            self
+        }
+        pub fn passed_checks<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::vec::Vec<super::BmadArtifactValidationPassedChecksItem>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.passed_checks = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for passed_checks: {e}"));
+            self
+        }
+        pub fn report_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::CommonSha256>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.report_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for report_hash: {e}"));
+            self
+        }
+        pub fn status<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadArtifactValidationStatus>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.status = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for status: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadArtifactValidation> for super::BmadArtifactValidation {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadArtifactValidation,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                declared_checks: value.declared_checks?,
+                passed_checks: value.passed_checks?,
+                report_hash: value.report_hash?,
+                status: value.status?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadArtifactValidation> for BmadArtifactValidation {
+        fn from(value: super::BmadArtifactValidation) -> Self {
+            Self {
+                declared_checks: Ok(value.declared_checks),
+                passed_checks: Ok(value.passed_checks),
+                report_hash: Ok(value.report_hash),
+                status: Ok(value.status),
             }
         }
     }
@@ -69383,6 +71789,611 @@ pub mod builder {
                 criterion_id: Ok(value.criterion_id),
                 evidence_hash: Ok(value.evidence_hash),
                 result: Ok(value.result),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInvocation {
+        budget: ::std::result::Result<super::BmadInvocationBudget, ::std::string::String>,
+        capability_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        declared_action:
+            ::std::result::Result<super::BmadInvocationDeclaredAction, ::std::string::String>,
+        invocation_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+        missing_inputs: ::std::result::Result<
+            ::std::vec::Vec<super::BmadInvocationInputRequirement>,
+            ::std::string::String,
+        >,
+        mode: ::std::result::Result<super::BmadInvocationMode, ::std::string::String>,
+        ready: ::std::result::Result<::std::option::Option<bool>, ::std::string::String>,
+        resolved_inputs: ::std::result::Result<
+            ::std::vec::Vec<super::BmadInvocationResolvedInput>,
+            ::std::string::String,
+        >,
+        resolved_inputs_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+        schema_version: ::std::result::Result<::serde_json::Value, ::std::string::String>,
+        session_id: ::std::result::Result<super::CommonContractId, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadInvocation {
+        fn default() -> Self {
+            Self {
+                budget: Err("no value supplied for budget".to_string()),
+                capability_id: Err("no value supplied for capability_id".to_string()),
+                declared_action: Err("no value supplied for declared_action".to_string()),
+                invocation_id: Err("no value supplied for invocation_id".to_string()),
+                missing_inputs: Err("no value supplied for missing_inputs".to_string()),
+                mode: Err("no value supplied for mode".to_string()),
+                ready: Ok(Default::default()),
+                resolved_inputs: Err("no value supplied for resolved_inputs".to_string()),
+                resolved_inputs_hash: Err("no value supplied for resolved_inputs_hash".to_string()),
+                schema_version: Err("no value supplied for schema_version".to_string()),
+                session_id: Err("no value supplied for session_id".to_string()),
+            }
+        }
+    }
+    impl BmadInvocation {
+        pub fn budget<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationBudget>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.budget = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for budget: {e}"));
+            self
+        }
+        pub fn capability_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.capability_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for capability_id: {e}"));
+            self
+        }
+        pub fn declared_action<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationDeclaredAction>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.declared_action = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for declared_action: {e}"));
+            self
+        }
+        pub fn invocation_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.invocation_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for invocation_id: {e}"));
+            self
+        }
+        pub fn missing_inputs<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadInvocationInputRequirement>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.missing_inputs = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for missing_inputs: {e}"));
+            self
+        }
+        pub fn mode<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationMode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.mode = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for mode: {e}"));
+            self
+        }
+        pub fn ready<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<bool>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.ready = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for ready: {e}"));
+            self
+        }
+        pub fn resolved_inputs<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadInvocationResolvedInput>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_inputs = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for resolved_inputs: {e}"));
+            self
+        }
+        pub fn resolved_inputs_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.resolved_inputs_hash = value.try_into().map_err(|e| {
+                format!("error converting supplied value for resolved_inputs_hash: {e}")
+            });
+            self
+        }
+        pub fn schema_version<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::serde_json::Value>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.schema_version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for schema_version: {e}"));
+            self
+        }
+        pub fn session_id<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonContractId>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.session_id = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for session_id: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInvocation> for super::BmadInvocation {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInvocation,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                budget: value.budget?,
+                capability_id: value.capability_id?,
+                declared_action: value.declared_action?,
+                invocation_id: value.invocation_id?,
+                missing_inputs: value.missing_inputs?,
+                mode: value.mode?,
+                ready: value.ready?,
+                resolved_inputs: value.resolved_inputs?,
+                resolved_inputs_hash: value.resolved_inputs_hash?,
+                schema_version: value.schema_version?,
+                session_id: value.session_id?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInvocation> for BmadInvocation {
+        fn from(value: super::BmadInvocation) -> Self {
+            Self {
+                budget: Ok(value.budget),
+                capability_id: Ok(value.capability_id),
+                declared_action: Ok(value.declared_action),
+                invocation_id: Ok(value.invocation_id),
+                missing_inputs: Ok(value.missing_inputs),
+                mode: Ok(value.mode),
+                ready: Ok(value.ready),
+                resolved_inputs: Ok(value.resolved_inputs),
+                resolved_inputs_hash: Ok(value.resolved_inputs_hash),
+                schema_version: Ok(value.schema_version),
+                session_id: Ok(value.session_id),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInvocationBudget {
+        max_model_calls: ::std::result::Result<i64, ::std::string::String>,
+        max_prompted_inputs: ::std::result::Result<i64, ::std::string::String>,
+        max_retries: ::std::result::Result<i64, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadInvocationBudget {
+        fn default() -> Self {
+            Self {
+                max_model_calls: Err("no value supplied for max_model_calls".to_string()),
+                max_prompted_inputs: Err("no value supplied for max_prompted_inputs".to_string()),
+                max_retries: Err("no value supplied for max_retries".to_string()),
+            }
+        }
+    }
+    impl BmadInvocationBudget {
+        pub fn max_model_calls<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_model_calls = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_model_calls: {e}"));
+            self
+        }
+        pub fn max_prompted_inputs<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_prompted_inputs = value.try_into().map_err(|e| {
+                format!("error converting supplied value for max_prompted_inputs: {e}")
+            });
+            self
+        }
+        pub fn max_retries<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<i64>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.max_retries = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for max_retries: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInvocationBudget> for super::BmadInvocationBudget {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInvocationBudget,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                max_model_calls: value.max_model_calls?,
+                max_prompted_inputs: value.max_prompted_inputs?,
+                max_retries: value.max_retries?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInvocationBudget> for BmadInvocationBudget {
+        fn from(value: super::BmadInvocationBudget) -> Self {
+            Self {
+                max_model_calls: Ok(value.max_model_calls),
+                max_prompted_inputs: Ok(value.max_prompted_inputs),
+                max_retries: Ok(value.max_retries),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInvocationDeclaredAction {
+        declared_inputs: ::std::result::Result<
+            ::std::vec::Vec<super::BmadInvocationDeclaredInput>,
+            ::std::string::String,
+        >,
+        name: ::std::result::Result<super::BmadInvocationDeclaredActionName, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadInvocationDeclaredAction {
+        fn default() -> Self {
+            Self {
+                declared_inputs: Err("no value supplied for declared_inputs".to_string()),
+                name: Err("no value supplied for name".to_string()),
+            }
+        }
+    }
+    impl BmadInvocationDeclaredAction {
+        pub fn declared_inputs<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::vec::Vec<super::BmadInvocationDeclaredInput>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.declared_inputs = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for declared_inputs: {e}"));
+            self
+        }
+        pub fn name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationDeclaredActionName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for name: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInvocationDeclaredAction> for super::BmadInvocationDeclaredAction {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInvocationDeclaredAction,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                declared_inputs: value.declared_inputs?,
+                name: value.name?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInvocationDeclaredAction> for BmadInvocationDeclaredAction {
+        fn from(value: super::BmadInvocationDeclaredAction) -> Self {
+            Self {
+                declared_inputs: Ok(value.declared_inputs),
+                name: Ok(value.name),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInvocationDeclaredInput {
+        allowed_values: ::std::result::Result<
+            ::std::vec::Vec<super::BmadInvocationDeclaredInputAllowedValuesItem>,
+            ::std::string::String,
+        >,
+        name: ::std::result::Result<super::BmadInvocationDeclaredInputName, ::std::string::String>,
+        prompt: ::std::result::Result<
+            ::std::option::Option<super::BmadInvocationDeclaredInputPrompt>,
+            ::std::string::String,
+        >,
+        required: ::std::result::Result<bool, ::std::string::String>,
+        value_kind: ::std::result::Result<
+            super::BmadInvocationDeclaredInputValueKind,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadInvocationDeclaredInput {
+        fn default() -> Self {
+            Self {
+                allowed_values: Ok(Default::default()),
+                name: Err("no value supplied for name".to_string()),
+                prompt: Ok(Default::default()),
+                required: Err("no value supplied for required".to_string()),
+                value_kind: Err("no value supplied for value_kind".to_string()),
+            }
+        }
+    }
+    impl BmadInvocationDeclaredInput {
+        pub fn allowed_values<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::vec::Vec<super::BmadInvocationDeclaredInputAllowedValuesItem>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.allowed_values = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for allowed_values: {e}"));
+            self
+        }
+        pub fn name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationDeclaredInputName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for name: {e}"));
+            self
+        }
+        pub fn prompt<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadInvocationDeclaredInputPrompt>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.prompt = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for prompt: {e}"));
+            self
+        }
+        pub fn required<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<bool>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.required = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for required: {e}"));
+            self
+        }
+        pub fn value_kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationDeclaredInputValueKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.value_kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for value_kind: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInvocationDeclaredInput> for super::BmadInvocationDeclaredInput {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInvocationDeclaredInput,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                allowed_values: value.allowed_values?,
+                name: value.name?,
+                prompt: value.prompt?,
+                required: value.required?,
+                value_kind: value.value_kind?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInvocationDeclaredInput> for BmadInvocationDeclaredInput {
+        fn from(value: super::BmadInvocationDeclaredInput) -> Self {
+            Self {
+                allowed_values: Ok(value.allowed_values),
+                name: Ok(value.name),
+                prompt: Ok(value.prompt),
+                required: Ok(value.required),
+                value_kind: Ok(value.value_kind),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInvocationInputRequirement {
+        allowed_values: ::std::result::Result<
+            ::std::vec::Vec<super::BmadInvocationInputRequirementAllowedValuesItem>,
+            ::std::string::String,
+        >,
+        code:
+            ::std::result::Result<super::BmadInvocationInputRequirementCode, ::std::string::String>,
+        name:
+            ::std::result::Result<super::BmadInvocationInputRequirementName, ::std::string::String>,
+        prompt: ::std::result::Result<
+            ::std::option::Option<super::BmadInvocationInputRequirementPrompt>,
+            ::std::string::String,
+        >,
+        value_kind: ::std::result::Result<
+            super::BmadInvocationInputRequirementValueKind,
+            ::std::string::String,
+        >,
+    }
+    impl ::std::default::Default for BmadInvocationInputRequirement {
+        fn default() -> Self {
+            Self {
+                allowed_values: Ok(Default::default()),
+                code: Err("no value supplied for code".to_string()),
+                name: Err("no value supplied for name".to_string()),
+                prompt: Ok(Default::default()),
+                value_kind: Err("no value supplied for value_kind".to_string()),
+            }
+        }
+    }
+    impl BmadInvocationInputRequirement {
+        pub fn allowed_values<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::vec::Vec<super::BmadInvocationInputRequirementAllowedValuesItem>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.allowed_values = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for allowed_values: {e}"));
+            self
+        }
+        pub fn code<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationInputRequirementCode>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.code = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for code: {e}"));
+            self
+        }
+        pub fn name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationInputRequirementName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for name: {e}"));
+            self
+        }
+        pub fn prompt<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<
+                ::std::option::Option<super::BmadInvocationInputRequirementPrompt>,
+            >,
+            T::Error: ::std::fmt::Display,
+        {
+            self.prompt = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for prompt: {e}"));
+            self
+        }
+        pub fn value_kind<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationInputRequirementValueKind>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.value_kind = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for value_kind: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInvocationInputRequirement>
+        for super::BmadInvocationInputRequirement
+    {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInvocationInputRequirement,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                allowed_values: value.allowed_values?,
+                code: value.code?,
+                name: value.name?,
+                prompt: value.prompt?,
+                value_kind: value.value_kind?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInvocationInputRequirement>
+        for BmadInvocationInputRequirement
+    {
+        fn from(value: super::BmadInvocationInputRequirement) -> Self {
+            Self {
+                allowed_values: Ok(value.allowed_values),
+                code: Ok(value.code),
+                name: Ok(value.name),
+                prompt: Ok(value.prompt),
+                value_kind: Ok(value.value_kind),
+            }
+        }
+    }
+    #[derive(Clone, Debug)]
+    pub struct BmadInvocationResolvedInput {
+        name: ::std::result::Result<super::BmadInvocationResolvedInputName, ::std::string::String>,
+        origin:
+            ::std::result::Result<super::BmadInvocationResolvedInputOrigin, ::std::string::String>,
+        value_hash: ::std::result::Result<super::CommonSha256, ::std::string::String>,
+    }
+    impl ::std::default::Default for BmadInvocationResolvedInput {
+        fn default() -> Self {
+            Self {
+                name: Err("no value supplied for name".to_string()),
+                origin: Err("no value supplied for origin".to_string()),
+                value_hash: Err("no value supplied for value_hash".to_string()),
+            }
+        }
+    }
+    impl BmadInvocationResolvedInput {
+        pub fn name<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationResolvedInputName>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.name = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for name: {e}"));
+            self
+        }
+        pub fn origin<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::BmadInvocationResolvedInputOrigin>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.origin = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for origin: {e}"));
+            self
+        }
+        pub fn value_hash<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<super::CommonSha256>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.value_hash = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for value_hash: {e}"));
+            self
+        }
+    }
+    impl ::std::convert::TryFrom<BmadInvocationResolvedInput> for super::BmadInvocationResolvedInput {
+        type Error = super::error::ConversionError;
+        fn try_from(
+            value: BmadInvocationResolvedInput,
+        ) -> ::std::result::Result<Self, super::error::ConversionError> {
+            Ok(Self {
+                name: value.name?,
+                origin: value.origin?,
+                value_hash: value.value_hash?,
+            })
+        }
+    }
+    impl ::std::convert::From<super::BmadInvocationResolvedInput> for BmadInvocationResolvedInput {
+        fn from(value: super::BmadInvocationResolvedInput) -> Self {
+            Self {
+                name: Ok(value.name),
+                origin: Ok(value.origin),
+                value_hash: Ok(value.value_hash),
             }
         }
     }
@@ -98141,6 +101152,10 @@ pub mod builder {
         >,
         bmad_eval:
             ::std::result::Result<::std::option::Option<super::BmadEval>, ::std::string::String>,
+        bmad_invocation: ::std::result::Result<
+            ::std::option::Option<super::BmadInvocation>,
+            ::std::string::String,
+        >,
         bmad_memory:
             ::std::result::Result<::std::option::Option<super::BmadMemory>, ::std::string::String>,
         bmad_module:
@@ -98303,6 +101318,7 @@ pub mod builder {
                 bmad_config: Ok(Default::default()),
                 bmad_customization: Ok(Default::default()),
                 bmad_eval: Ok(Default::default()),
+                bmad_invocation: Ok(Default::default()),
                 bmad_memory: Ok(Default::default()),
                 bmad_module: Ok(Default::default()),
                 bmad_package_descriptor: Ok(Default::default()),
@@ -98444,6 +101460,16 @@ pub mod builder {
             self.bmad_eval = value
                 .try_into()
                 .map_err(|e| format!("error converting supplied value for bmad_eval: {e}"));
+            self
+        }
+        pub fn bmad_invocation<T>(mut self, value: T) -> Self
+        where
+            T: ::std::convert::TryInto<::std::option::Option<super::BmadInvocation>>,
+            T::Error: ::std::fmt::Display,
+        {
+            self.bmad_invocation = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for bmad_invocation: {e}"));
             self
         }
         pub fn bmad_memory<T>(mut self, value: T) -> Self
@@ -98853,6 +101879,7 @@ pub mod builder {
                 bmad_config: value.bmad_config?,
                 bmad_customization: value.bmad_customization?,
                 bmad_eval: value.bmad_eval?,
+                bmad_invocation: value.bmad_invocation?,
                 bmad_memory: value.bmad_memory?,
                 bmad_module: value.bmad_module?,
                 bmad_package_descriptor: value.bmad_package_descriptor?,
@@ -98908,6 +101935,7 @@ pub mod builder {
                 bmad_config: Ok(value.bmad_config),
                 bmad_customization: Ok(value.bmad_customization),
                 bmad_eval: Ok(value.bmad_eval),
+                bmad_invocation: Ok(value.bmad_invocation),
                 bmad_memory: Ok(value.bmad_memory),
                 bmad_module: Ok(value.bmad_module),
                 bmad_package_descriptor: Ok(value.bmad_package_descriptor),

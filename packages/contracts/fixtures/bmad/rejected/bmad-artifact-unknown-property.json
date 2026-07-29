@@ -11,6 +11,24 @@
     "state": "validated",
     "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
     "evidenceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "revision": 1,
+    "lineage": {
+      "sourceId": "source_01J00000000000000000000000",
+      "templateHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "inputsHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "consumedArtifactIds": []
+    },
+    "validation": {
+      "status": "passed",
+      "declaredChecks": [
+        "schema_shape",
+        "required_sections"
+      ],
+      "passedChecks": [
+        "schema_shape",
+        "required_sections"
+      ]
+    },
     "futureAuthority": true
   }
 }

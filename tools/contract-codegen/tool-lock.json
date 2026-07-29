@@ -83,6 +83,11 @@
           "typeName": "BmadEval"
         },
         {
+          "file": "bmad-invocation.schema.json",
+          "id": "https://schemas.sapphirus.dev/v1/bmad-invocation.schema.json",
+          "typeName": "BmadInvocation"
+        },
+        {
           "file": "bmad-memory.schema.json",
           "id": "https://schemas.sapphirus.dev/v1/bmad-memory.schema.json",
           "typeName": "BmadMemory"

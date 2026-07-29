@@ -9,8 +9,26 @@
     "kind": "document",
     "state": "validated",
     "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-    "evidenceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    "evidenceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "revision": 1,
+    "lineage": {
+      "sourceId": "source_01J00000000000000000000000",
+      "templateHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "inputsHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "consumedArtifactIds": []
+    },
+    "validation": {
+      "status": "passed",
+      "declaredChecks": [
+        "schema_shape",
+        "required_sections"
+      ],
+      "passedChecks": [
+        "schema_shape",
+        "required_sections"
+      ]
+    }
   },
-  "canonicalJson": "{\"artifactId\":\"artifact_01J00000000000000000000000\",\"contentHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"evidenceHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"kind\":\"document\",\"schemaVersion\":\"sapphirus.bmad-artifact.v1\",\"sessionId\":\"session_01J00000000000000000000000\",\"state\":\"validated\"}",
-  "expectedHash": "sha256:252b616c64b03586e797b01c91cc8bad0c15c046ea79992a76380b5c8cd11bc9"
+  "canonicalJson": "{\"artifactId\":\"artifact_01J00000000000000000000000\",\"contentHash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"evidenceHash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"kind\":\"document\",\"lineage\":{\"consumedArtifactIds\":[],\"inputsHash\":\"sha256:7777777777777777777777777777777777777777777777777777777777777777\",\"sourceId\":\"source_01J00000000000000000000000\",\"templateHash\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\"},\"revision\":1,\"schemaVersion\":\"sapphirus.bmad-artifact.v1\",\"sessionId\":\"session_01J00000000000000000000000\",\"state\":\"validated\",\"validation\":{\"declaredChecks\":[\"schema_shape\",\"required_sections\"],\"passedChecks\":[\"schema_shape\",\"required_sections\"],\"status\":\"passed\"}}",
+  "expectedHash": "sha256:869495054a90dd22d49a6e32aaa24379c869c00e020a0d0746ce3033920e34dc"
 }

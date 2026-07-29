@@ -23,6 +23,7 @@ const requiredSchemas = [
   "bmad-script-plan.schema.json",
   "bmad-config.schema.json",
   "bmad-customization.schema.json",
+  "bmad-invocation.schema.json",
   "bmad-memory.schema.json",
   "bmad-upgrade.schema.json",
 ];

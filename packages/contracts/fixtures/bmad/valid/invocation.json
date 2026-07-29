@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-fixture.v1",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-invocation.schema.json",
+  "branch": "sapphirus.bmad-invocation.v1",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-invocation.v1",
+    "invocationId": "invocation_01J00000000000000000000000",
+    "capabilityId": "capability_01J00000000000000000000000",
+    "sessionId": "session_01J00000000000000000000000",
+    "mode": "headless",
+    "declaredAction": {
+      "name": "produce-brief",
+      "declaredInputs": [
+        {
+          "name": "output_consumer",
+          "valueKind": "string",
+          "required": true,
+          "prompt": "Name the output consumer."
+        },
+        {
+          "name": "depth",
+          "valueKind": "enum",
+          "required": false,
+          "allowedValues": [
+            "brief",
+            "full"
+          ]
+        }
+      ]
+    },
+    "resolvedInputs": [
+      {
+        "name": "depth",
+        "valueHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "origin": "declared_default"
+      }
+    ],
+    "missingInputs": [
+      {
+        "name": "output_consumer",
+        "valueKind": "string",
+        "code": "input_required",
+        "prompt": "Name the output consumer."
+      }
+    ],
+    "budget": {
+      "maxModelCalls": 8,
+      "maxRetries": 2,
+      "maxPromptedInputs": 0
+    },
+    "resolvedInputsHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "ready": false
+  },
+  "canonicalJson": "{\"budget\":{\"maxModelCalls\":8,\"maxPromptedInputs\":0,\"maxRetries\":2},\"capabilityId\":\"capability_01J00000000000000000000000\",\"declaredAction\":{\"declaredInputs\":[{\"name\":\"output_consumer\",\"prompt\":\"Name the output consumer.\",\"required\":true,\"valueKind\":\"string\"},{\"allowedValues\":[\"brief\",\"full\"],\"name\":\"depth\",\"required\":false,\"valueKind\":\"enum\"}],\"name\":\"produce-brief\"},\"invocationId\":\"invocation_01J00000000000000000000000\",\"missingInputs\":[{\"code\":\"input_required\",\"name\":\"output_consumer\",\"prompt\":\"Name the output consumer.\",\"valueKind\":\"string\"}],\"mode\":\"headless\",\"ready\":false,\"resolvedInputs\":[{\"name\":\"depth\",\"origin\":\"declared_default\",\"valueHash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\"}],\"resolvedInputsHash\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\",\"schemaVersion\":\"sapphirus.bmad-invocation.v1\",\"sessionId\":\"session_01J00000000000000000000000\"}",
+  "expectedHash": "sha256:52fc3f05d3a9820918c5acc32b8d971a1b81ce5f18336076533ac5d53ebf2fe6"
+}

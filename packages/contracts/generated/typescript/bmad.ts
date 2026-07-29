@@ -353,11 +353,46 @@ export interface BmadArtifactSapphirusBmadArtifactV1 {
   artifactId: string;
   sessionId: string;
   kind: "document" | "file_set" | "report" | "evaluation" | "receipt" | "checkpoint";
-  state: "proposed" | "validated" | "persisted" | "rejected";
+  state: "draft" | "revised" | "validated" | "approved" | "written" | "superseded" | "rolled_back" | "rejected";
+  revision: number;
   relativePath?: string;
   mediaType?: string;
   contentHash: string;
   evidenceHash: string;
+  rawOutputHash?: string;
+  lineage: BmadArtifactLineage;
+  validation: BmadArtifactValidation;
+  supersedesArtifactId?: string;
+  /**
+   * @maxItems 32
+   */
+  completionHooks?: BmadArtifactCompletionHookRun[];
+}
+export interface BmadArtifactLineage {
+  sourceId: string;
+  templateHash: string;
+  inputsHash: string;
+  /**
+   * @maxItems 256
+   */
+  consumedArtifactIds?: string[];
+}
+export interface BmadArtifactValidation {
+  status: "not_run" | "passed" | "failed";
+  /**
+   * @maxItems 64
+   */
+  declaredChecks: string[];
+  /**
+   * @maxItems 64
+   */
+  passedChecks: string[];
+  reportHash?: string;
+}
+export interface BmadArtifactCompletionHookRun {
+  hook: "persist_artifacts" | "emit_receipt" | "notify_local" | "schedule_followup";
+  status: "pending" | "succeeded" | "failed";
+  receiptHash?: string;
 }
 
 /**
@@ -919,6 +954,63 @@ export interface BmadCustomizationConflict {
   key: string;
   previousSourceLayer: BmadCustomizationLayerKind;
   nextSourceLayer: BmadCustomizationLayerKind;
+}
+
+export interface BmadInvocationSapphirusBmadInvocationV1 {
+  schemaVersion: "sapphirus.bmad-invocation.v1";
+  invocationId: string;
+  capabilityId: string;
+  sessionId: string;
+  mode: "interactive" | "headless";
+  declaredAction: BmadInvocationDeclaredAction;
+  /**
+   * @maxItems 256
+   */
+  resolvedInputs: BmadInvocationResolvedInput[];
+  /**
+   * @maxItems 256
+   */
+  missingInputs: BmadInvocationInputRequirement[];
+  budget: BmadInvocationBudget;
+  resolvedInputsHash: string;
+  ready?: boolean;
+}
+export interface BmadInvocationDeclaredAction {
+  name: string;
+  /**
+   * @maxItems 256
+   */
+  declaredInputs: BmadInvocationDeclaredInput[];
+}
+export interface BmadInvocationDeclaredInput {
+  name: string;
+  valueKind: "string" | "integer" | "boolean" | "path" | "enum" | "reference";
+  required: boolean;
+  /**
+   * @maxItems 64
+   */
+  allowedValues?: string[];
+  prompt?: string;
+}
+export interface BmadInvocationResolvedInput {
+  name: string;
+  valueHash: string;
+  origin: "argument" | "config" | "customization" | "answer" | "declared_default";
+}
+export interface BmadInvocationInputRequirement {
+  name: string;
+  valueKind: "string" | "integer" | "boolean" | "path" | "enum" | "reference";
+  code: string;
+  prompt?: string;
+  /**
+   * @maxItems 64
+   */
+  allowedValues?: string[];
+}
+export interface BmadInvocationBudget {
+  maxModelCalls: number;
+  maxRetries: number;
+  maxPromptedInputs: number;
 }
 
 export interface BmadMemorySapphirusBmadMemoryV1 {

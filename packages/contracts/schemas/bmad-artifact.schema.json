@@ -4,16 +4,72 @@
   "title": "sapphirus.bmad-artifact.v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "artifactId", "sessionId", "kind", "state", "contentHash", "evidenceHash"],
+  "required": ["schemaVersion", "artifactId", "sessionId", "kind", "state", "contentHash", "evidenceHash", "revision", "lineage", "validation"],
   "properties": {
     "schemaVersion": { "const": "sapphirus.bmad-artifact.v1" },
     "artifactId": { "$ref": "./common.schema.json#/$defs/ContractId" },
     "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
     "kind": { "enum": ["document", "file_set", "report", "evaluation", "receipt", "checkpoint"] },
-    "state": { "enum": ["proposed", "validated", "persisted", "rejected"] },
+    "state": { "enum": ["draft", "revised", "validated", "approved", "written", "superseded", "rolled_back", "rejected"] },
+    "revision": { "type": "integer", "minimum": 1, "maximum": 65536 },
     "relativePath": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$)).+$" },
     "mediaType": { "type": "string", "minLength": 1, "maxLength": 128 },
     "contentHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
-    "evidenceHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+    "evidenceHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "rawOutputHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "lineage": { "$ref": "#/$defs/Lineage" },
+    "validation": { "$ref": "#/$defs/Validation" },
+    "supersedesArtifactId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "completionHooks": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/CompletionHookRun" }
+    }
+  },
+  "$defs": {
+    "Lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "templateHash", "inputsHash"],
+      "properties": {
+        "sourceId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+        "templateHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "inputsHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "consumedArtifactIds": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "./common.schema.json#/$defs/ContractId" }
+        }
+      }
+    },
+    "Validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "declaredChecks", "passedChecks"],
+      "properties": {
+        "status": { "enum": ["not_run", "passed", "failed"] },
+        "declaredChecks": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" }
+        },
+        "passedChecks": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" }
+        },
+        "reportHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    },
+    "CompletionHookRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hook", "status"],
+      "properties": {
+        "hook": { "enum": ["persist_artifacts", "emit_receipt", "notify_local", "schedule_followup"] },
+        "status": { "enum": ["pending", "succeeded", "failed"] },
+        "receiptHash": { "$ref": "./common.schema.json#/$defs/Sha256" }
+      }
+    }
   }
 }

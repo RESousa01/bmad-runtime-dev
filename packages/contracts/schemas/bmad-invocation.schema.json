@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sapphirus.dev/v1/bmad-invocation.schema.json",
+  "title": "sapphirus.bmad-invocation.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "invocationId", "capabilityId", "sessionId", "mode", "declaredAction", "resolvedInputs", "missingInputs", "budget", "resolvedInputsHash"],
+  "properties": {
+    "schemaVersion": { "const": "sapphirus.bmad-invocation.v1" },
+    "invocationId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "capabilityId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "sessionId": { "$ref": "./common.schema.json#/$defs/ContractId" },
+    "mode": { "enum": ["interactive", "headless"] },
+    "declaredAction": { "$ref": "#/$defs/DeclaredAction" },
+    "resolvedInputs": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "$ref": "#/$defs/ResolvedInput" }
+    },
+    "missingInputs": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "$ref": "#/$defs/InputRequirement" }
+    },
+    "budget": { "$ref": "#/$defs/Budget" },
+    "resolvedInputsHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+    "ready": { "type": "boolean" }
+  },
+  "$defs": {
+    "DeclaredAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "declaredInputs"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9-]*$" },
+        "declaredInputs": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/$defs/DeclaredInput" }
+        }
+      }
+    },
+    "DeclaredInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "valueKind", "required"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" },
+        "valueKind": { "enum": ["string", "integer", "boolean", "path", "enum", "reference"] },
+        "required": { "type": "boolean" },
+        "allowedValues": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+        },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 16384 }
+      }
+    },
+    "ResolvedInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "valueHash", "origin"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" },
+        "valueHash": { "$ref": "./common.schema.json#/$defs/Sha256" },
+        "origin": { "enum": ["argument", "config", "customization", "answer", "declared_default"] }
+      }
+    },
+    "InputRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "valueKind", "code"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" },
+        "valueKind": { "enum": ["string", "integer", "boolean", "path", "enum", "reference"] },
+        "code": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z][a-z0-9_]*$" },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "allowedValues": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+        }
+      }
+    },
+    "Budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxModelCalls", "maxRetries", "maxPromptedInputs"],
+      "properties": {
+        "maxModelCalls": { "type": "integer", "minimum": 0, "maximum": 1024 },
+        "maxRetries": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "maxPromptedInputs": { "type": "integer", "minimum": 0, "maximum": 256 }
+      }
+    }
+  }
+}

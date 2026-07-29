@@ -5,9 +5,44 @@ export interface SapphirusBmadArtifactV1 {
   artifactId: string;
   sessionId: string;
   kind: "document" | "file_set" | "report" | "evaluation" | "receipt" | "checkpoint";
-  state: "proposed" | "validated" | "persisted" | "rejected";
+  state: "draft" | "revised" | "validated" | "approved" | "written" | "superseded" | "rolled_back" | "rejected";
+  revision: number;
   relativePath?: string;
   mediaType?: string;
   contentHash: string;
   evidenceHash: string;
+  rawOutputHash?: string;
+  lineage: Lineage;
+  validation: Validation;
+  supersedesArtifactId?: string;
+  /**
+   * @maxItems 32
+   */
+  completionHooks?: CompletionHookRun[];
+}
+export interface Lineage {
+  sourceId: string;
+  templateHash: string;
+  inputsHash: string;
+  /**
+   * @maxItems 256
+   */
+  consumedArtifactIds?: string[];
+}
+export interface Validation {
+  status: "not_run" | "passed" | "failed";
+  /**
+   * @maxItems 64
+   */
+  declaredChecks: string[];
+  /**
+   * @maxItems 64
+   */
+  passedChecks: string[];
+  reportHash?: string;
+}
+export interface CompletionHookRun {
+  hook: "persist_artifacts" | "emit_receipt" | "notify_local" | "schedule_followup";
+  status: "pending" | "succeeded" | "failed";
+  receiptHash?: string;
 }

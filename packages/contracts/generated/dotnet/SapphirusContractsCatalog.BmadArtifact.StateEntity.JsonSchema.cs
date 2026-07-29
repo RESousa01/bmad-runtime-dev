@@ -43,35 +43,67 @@ public readonly partial struct SapphirusContractsCatalog
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum1 = "proposed"u8.ToArray();
+                public static readonly byte[] Enum1 = "draft"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly StateEntity EnumJson1 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"proposed\""u8]);
+                public static readonly StateEntity EnumJson1 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"draft\""u8]);
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum2 = "validated"u8.ToArray();
+                public static readonly byte[] Enum2 = "revised"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly StateEntity EnumJson2 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"validated\""u8]);
+                public static readonly StateEntity EnumJson2 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"revised\""u8]);
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum3 = "persisted"u8.ToArray();
+                public static readonly byte[] Enum3 = "validated"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly StateEntity EnumJson3 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"persisted\""u8]);
+                public static readonly StateEntity EnumJson3 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"validated\""u8]);
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly byte[] Enum4 = "rejected"u8.ToArray();
+                public static readonly byte[] Enum4 = "approved"u8.ToArray();
                 /// <summary>
                 /// A constant for the <c>enum</c> keyword.
                 /// </summary>
-                public static readonly StateEntity EnumJson4 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"rejected\""u8]);
+                public static readonly StateEntity EnumJson4 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"approved\""u8]);
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly byte[] Enum5 = "written"u8.ToArray();
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly StateEntity EnumJson5 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"written\""u8]);
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly byte[] Enum6 = "superseded"u8.ToArray();
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly StateEntity EnumJson6 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"superseded\""u8]);
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly byte[] Enum7 = "rolled_back"u8.ToArray();
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly StateEntity EnumJson7 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"rolled_back\""u8]);
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly byte[] Enum8 = "rejected"u8.ToArray();
+                /// <summary>
+                /// A constant for the <c>enum</c> keyword.
+                /// </summary>
+                public static readonly StateEntity EnumJson8 = ParsedJsonDocument<StateEntity>.StringConstant([.."\"rejected\""u8]);
             }
 
             /// <summary>
@@ -80,48 +112,92 @@ public readonly partial struct SapphirusContractsCatalog
             public static class EnumValues
             {
                 /// <summary>
-                /// Gets the string "proposed"
+                /// Gets the string "draft"
                 /// as a <see cref="StateEntity"/>.
                 /// </summary>
-                public static StateEntity Proposed { get; } = Constants.EnumJson1;
+                public static StateEntity Draft { get; } = Constants.EnumJson1;
                 /// <summary>
-                /// Gets the string "proposed"
+                /// Gets the string "draft"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> ProposedUtf8 => Constants.Enum1;
+                public static ReadOnlySpan<byte> DraftUtf8 => Constants.Enum1;
+
+                /// <summary>
+                /// Gets the string "revised"
+                /// as a <see cref="StateEntity"/>.
+                /// </summary>
+                public static StateEntity Revised { get; } = Constants.EnumJson2;
+                /// <summary>
+                /// Gets the string "revised"
+                /// as a UTF8 byte array.
+                /// </summary>
+                public static ReadOnlySpan<byte> RevisedUtf8 => Constants.Enum2;
 
                 /// <summary>
                 /// Gets the string "validated"
                 /// as a <see cref="StateEntity"/>.
                 /// </summary>
-                public static StateEntity Validated { get; } = Constants.EnumJson2;
+                public static StateEntity Validated { get; } = Constants.EnumJson3;
                 /// <summary>
                 /// Gets the string "validated"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> ValidatedUtf8 => Constants.Enum2;
+                public static ReadOnlySpan<byte> ValidatedUtf8 => Constants.Enum3;
 
                 /// <summary>
-                /// Gets the string "persisted"
+                /// Gets the string "approved"
                 /// as a <see cref="StateEntity"/>.
                 /// </summary>
-                public static StateEntity Persisted { get; } = Constants.EnumJson3;
+                public static StateEntity Approved { get; } = Constants.EnumJson4;
                 /// <summary>
-                /// Gets the string "persisted"
+                /// Gets the string "approved"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> PersistedUtf8 => Constants.Enum3;
+                public static ReadOnlySpan<byte> ApprovedUtf8 => Constants.Enum4;
+
+                /// <summary>
+                /// Gets the string "written"
+                /// as a <see cref="StateEntity"/>.
+                /// </summary>
+                public static StateEntity Written { get; } = Constants.EnumJson5;
+                /// <summary>
+                /// Gets the string "written"
+                /// as a UTF8 byte array.
+                /// </summary>
+                public static ReadOnlySpan<byte> WrittenUtf8 => Constants.Enum5;
+
+                /// <summary>
+                /// Gets the string "superseded"
+                /// as a <see cref="StateEntity"/>.
+                /// </summary>
+                public static StateEntity Superseded { get; } = Constants.EnumJson6;
+                /// <summary>
+                /// Gets the string "superseded"
+                /// as a UTF8 byte array.
+                /// </summary>
+                public static ReadOnlySpan<byte> SupersededUtf8 => Constants.Enum6;
+
+                /// <summary>
+                /// Gets the string "rolled_back"
+                /// as a <see cref="StateEntity"/>.
+                /// </summary>
+                public static StateEntity RolledBack { get; } = Constants.EnumJson7;
+                /// <summary>
+                /// Gets the string "rolled_back"
+                /// as a UTF8 byte array.
+                /// </summary>
+                public static ReadOnlySpan<byte> RolledBackUtf8 => Constants.Enum7;
 
                 /// <summary>
                 /// Gets the string "rejected"
                 /// as a <see cref="StateEntity"/>.
                 /// </summary>
-                public static StateEntity Rejected { get; } = Constants.EnumJson4;
+                public static StateEntity Rejected { get; } = Constants.EnumJson8;
                 /// <summary>
                 /// Gets the string "rejected"
                 /// as a UTF8 byte array.
                 /// </summary>
-                public static ReadOnlySpan<byte> RejectedUtf8 => Constants.Enum4;
+                public static ReadOnlySpan<byte> RejectedUtf8 => Constants.Enum8;
             }
 
             public static partial class JsonSchema
@@ -129,9 +205,13 @@ public readonly partial struct SapphirusContractsCatalog
                 private static EnumStringSet BuildEnumStringSet()
                 {
                     return new EnumStringSet([
-                        static () => "proposed"u8,
+                        static () => "draft"u8,
+                        static () => "revised"u8,
                         static () => "validated"u8,
-                        static () => "persisted"u8,
+                        static () => "approved"u8,
+                        static () => "written"u8,
+                        static () => "superseded"u8,
+                        static () => "rolled_back"u8,
                         static () => "rejected"u8,
                     ]);
                 }

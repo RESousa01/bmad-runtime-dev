@@ -93,6 +93,13 @@
       "csharpType": "BmadCustomization"
     },
     {
+      "name": "bmad-invocation",
+      "schemaId": "https://schemas.sapphirus.dev/v1/bmad-invocation.schema.json",
+      "protocolVersion": "sapphirus.bmad-invocation.v1",
+      "rustType": "BmadInvocation",
+      "csharpType": "BmadInvocation"
+    },
+    {
       "name": "bmad-memory",
       "schemaId": "https://schemas.sapphirus.dev/v1/bmad-memory.schema.json",
       "protocolVersion": "sapphirus.bmad-memory.v1",
@@ -130,6 +137,7 @@
     "fixtures/bmad/valid/config.json",
     "fixtures/bmad/valid/customization.json",
     "fixtures/bmad/valid/eval.json",
+    "fixtures/bmad/valid/invocation.json",
     "fixtures/bmad/valid/memory.json",
     "fixtures/bmad/valid/module.json",
     "fixtures/bmad/valid/promotion-active-to-rolled_back.json",
@@ -162,6 +170,7 @@
     "fixtures/bmad/rejected/bmad-config-unknown-property.json",
     "fixtures/bmad/rejected/bmad-customization-unknown-property.json",
     "fixtures/bmad/rejected/bmad-eval-unknown-property.json",
+    "fixtures/bmad/rejected/bmad-invocation-unknown-property.json",
     "fixtures/bmad/rejected/bmad-memory-unknown-property.json",
     "fixtures/bmad/rejected/bmad-module-unknown-property.json",
     "fixtures/bmad/rejected/bmad-script-plan-unknown-property.json",

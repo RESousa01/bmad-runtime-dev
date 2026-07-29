@@ -96,7 +96,25 @@
         "kind": "document",
         "state": "validated",
         "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "evidenceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        "evidenceHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "revision": 1,
+        "lineage": {
+          "sourceId": "source_01J00000000000000000000000",
+          "templateHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "inputsHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+          "consumedArtifactIds": []
+        },
+        "validation": {
+          "status": "passed",
+          "declaredChecks": [
+            "schema_shape",
+            "required_sections"
+          ],
+          "passedChecks": [
+            "schema_shape",
+            "required_sections"
+          ]
+        }
       }
     },
     {
@@ -221,6 +239,58 @@
         "resolvedHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "provenanceHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
         "sessionCustomizationHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    },
+    {
+      "schema": "bmad-invocation.schema.json",
+      "value": {
+        "schemaVersion": "sapphirus.bmad-invocation.v1",
+        "invocationId": "invocation_01J00000000000000000000000",
+        "capabilityId": "capability_01J00000000000000000000000",
+        "sessionId": "session_01J00000000000000000000000",
+        "mode": "headless",
+        "declaredAction": {
+          "name": "produce-brief",
+          "declaredInputs": [
+            {
+              "name": "output_consumer",
+              "valueKind": "string",
+              "required": true,
+              "prompt": "Name the output consumer."
+            },
+            {
+              "name": "depth",
+              "valueKind": "enum",
+              "required": false,
+              "allowedValues": [
+                "brief",
+                "full"
+              ]
+            }
+          ]
+        },
+        "resolvedInputs": [
+          {
+            "name": "depth",
+            "valueHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "origin": "declared_default"
+          }
+        ],
+        "missingInputs": [
+          {
+            "name": "output_consumer",
+            "valueKind": "string",
+            "code": "input_required",
+            "prompt": "Name the output consumer."
+          }
+        ],
+        "budget": {
+          "maxModelCalls": 8,
+          "maxRetries": 2,
+          "maxPromptedInputs": 0
+        },
+        "resolvedInputsHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "ready": false
       }
     },
     {

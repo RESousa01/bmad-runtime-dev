@@ -554,17 +554,25 @@ public readonly partial struct SapphirusContractsCatalog
             /// <typeparam name="TContext">The immutable context to pass in to the match function.</typeparam>
             /// <typeparam name="TResult">The result of calling the match function.</typeparam>
             /// <param name="context">The context to pass to the match function.</param>
-            /// <param name="matchProposed">Match 1st item.</param>
-            /// <param name="matchValidated">Match 2nd item.</param>
-            /// <param name="matchPersisted">Match 3rd item.</param>
-            /// <param name="matchRejected">Match 4th item.</param>
+            /// <param name="matchDraft">Match 1st item.</param>
+            /// <param name="matchRevised">Match 2nd item.</param>
+            /// <param name="matchValidated">Match 3rd item.</param>
+            /// <param name="matchApproved">Match 4th item.</param>
+            /// <param name="matchWritten">Match 5th item.</param>
+            /// <param name="matchSuperseded">Match 6th item.</param>
+            /// <param name="matchRolledBack">Match 7th item.</param>
+            /// <param name="matchRejected">Match 8th item.</param>
             /// <param name="defaultMatch">Match any other value.</param>
             /// <returns>An instance of the value returned by the match function.</returns>
             public TResult Match<TContext, TResult>(
                 in TContext context,
-                Func<TContext, TResult> matchProposed,
+                Func<TContext, TResult> matchDraft,
+                Func<TContext, TResult> matchRevised,
                 Func<TContext, TResult> matchValidated,
-                Func<TContext, TResult> matchPersisted,
+                Func<TContext, TResult> matchApproved,
+                Func<TContext, TResult> matchWritten,
+                Func<TContext, TResult> matchSuperseded,
+                Func<TContext, TResult> matchRolledBack,
                 Func<TContext, TResult> matchRejected,
                 Func<TContext, TResult> defaultMatch)
 #if NET9_0_OR_GREATER
@@ -573,20 +581,40 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 if (this.ValueEquals(Constants.Enum1))
                 {
-                    return matchProposed(context);
+                    return matchDraft(context);
                 }
 
                 if (this.ValueEquals(Constants.Enum2))
                 {
-                    return matchValidated(context);
+                    return matchRevised(context);
                 }
 
                 if (this.ValueEquals(Constants.Enum3))
                 {
-                    return matchPersisted(context);
+                    return matchValidated(context);
                 }
 
                 if (this.ValueEquals(Constants.Enum4))
+                {
+                    return matchApproved(context);
+                }
+
+                if (this.ValueEquals(Constants.Enum5))
+                {
+                    return matchWritten(context);
+                }
+
+                if (this.ValueEquals(Constants.Enum6))
+                {
+                    return matchSuperseded(context);
+                }
+
+                if (this.ValueEquals(Constants.Enum7))
+                {
+                    return matchRolledBack(context);
+                }
+
+                if (this.ValueEquals(Constants.Enum8))
                 {
                     return matchRejected(context);
                 }
@@ -598,35 +626,63 @@ public readonly partial struct SapphirusContractsCatalog
             /// Matches the value against the constant values, and returns the result of calling the provided match function for the first match found.
             /// </summary>
             /// <typeparam name="TResult">The result of calling the match function.</typeparam>
-            /// <param name="matchProposed">Match 1st item.</param>
-            /// <param name="matchValidated">Match 2nd item.</param>
-            /// <param name="matchPersisted">Match 3rd item.</param>
-            /// <param name="matchRejected">Match 4th item.</param>
+            /// <param name="matchDraft">Match 1st item.</param>
+            /// <param name="matchRevised">Match 2nd item.</param>
+            /// <param name="matchValidated">Match 3rd item.</param>
+            /// <param name="matchApproved">Match 4th item.</param>
+            /// <param name="matchWritten">Match 5th item.</param>
+            /// <param name="matchSuperseded">Match 6th item.</param>
+            /// <param name="matchRolledBack">Match 7th item.</param>
+            /// <param name="matchRejected">Match 8th item.</param>
             /// <param name="defaultMatch">Match any other value.</param>
             /// <returns>An instance of the value returned by the match function.</returns>
             public TResult Match<TResult>(
-                Func<TResult> matchProposed,
+                Func<TResult> matchDraft,
+                Func<TResult> matchRevised,
                 Func<TResult> matchValidated,
-                Func<TResult> matchPersisted,
+                Func<TResult> matchApproved,
+                Func<TResult> matchWritten,
+                Func<TResult> matchSuperseded,
+                Func<TResult> matchRolledBack,
                 Func<TResult> matchRejected,
                 Func<TResult> defaultMatch)
             {
                 if (this.ValueEquals(Constants.Enum1))
                 {
-                    return matchProposed();
+                    return matchDraft();
                 }
 
                 if (this.ValueEquals(Constants.Enum2))
                 {
-                    return matchValidated();
+                    return matchRevised();
                 }
 
                 if (this.ValueEquals(Constants.Enum3))
                 {
-                    return matchPersisted();
+                    return matchValidated();
                 }
 
                 if (this.ValueEquals(Constants.Enum4))
+                {
+                    return matchApproved();
+                }
+
+                if (this.ValueEquals(Constants.Enum5))
+                {
+                    return matchWritten();
+                }
+
+                if (this.ValueEquals(Constants.Enum6))
+                {
+                    return matchSuperseded();
+                }
+
+                if (this.ValueEquals(Constants.Enum7))
+                {
+                    return matchRolledBack();
+                }
+
+                if (this.ValueEquals(Constants.Enum8))
                 {
                     return matchRejected();
                 }

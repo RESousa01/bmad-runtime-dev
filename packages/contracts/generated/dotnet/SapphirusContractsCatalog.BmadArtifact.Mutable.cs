@@ -188,6 +188,22 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Gets the (optional) <c>completionHooks</c> property.
+            /// </summary>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Mutable CompletionHooks
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.CompletionHooksUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
             /// Gets the <c>contentHash</c> property.
             /// </summary>
             /// <remarks>
@@ -251,6 +267,27 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Gets the <c>lineage</c> property.
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+            /// </para>
+            /// </remarks>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Mutable Lineage
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.LineageUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
             /// Gets the (optional) <c>mediaType</c> property.
             /// </summary>
             public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Mutable MediaType
@@ -267,6 +304,22 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Gets the (optional) <c>rawOutputHash</c> property.
+            /// </summary>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Mutable RawOutputHash
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.RawOutputHashUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
             /// Gets the (optional) <c>relativePath</c> property.
             /// </summary>
             public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Mutable RelativePath
@@ -274,6 +327,27 @@ public readonly partial struct SapphirusContractsCatalog
                 get
                 {
                     if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.RelativePathUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
+            /// Gets the <c>revision</c> property.
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+            /// </para>
+            /// </remarks>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Mutable Revision
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.RevisionUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Mutable value))
                     {
                         return value;
                     }
@@ -346,6 +420,43 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Gets the (optional) <c>supersedesArtifactId</c> property.
+            /// </summary>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Mutable SupersedesArtifactId
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.SupersedesArtifactIdUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
+            /// Gets the <c>validation</c> property.
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// If the instance is valid, this property will not be <see cref="JsonValueKind.Undefined"/>.
+            /// </para>
+            /// </remarks>
+            public Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Mutable Validation
+            {
+                get
+                {
+                    if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ValidationUtf8, out Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Mutable value))
+                    {
+                        return value;
+                    }
+
+                    return default;
+                }
+            }
+
+            /// <summary>
             /// Gets the number of properties in the object.
             /// </summary>
             /// <exception cref="InvalidOperationException">The value is not an object.</exception>
@@ -403,6 +514,87 @@ public readonly partial struct SapphirusContractsCatalog
                 }
 
                 _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>completionHooks</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetCompletionHooks(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.CompletionHooksUtf8);
+                    _documentVersion = _parent.Version;
+                    return;
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.CompletionHooksUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.CompletionHooks, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>completionHooks</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetCompletionHooks<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source<TContext> value)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.CompletionHooksUtf8);
+                    _documentVersion = _parent.Version;
+                    return;
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.CompletionHooksUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.CompletionHooks, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Remove the <c>completionHooks</c> property, if present.
+            /// </summary>
+            /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+            public bool RemoveCompletionHooks()
+            {
+                CheckValidInstance();
+                bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.CompletionHooksUtf8);
+                _documentVersion = _parent.Version;
+                return result;
             }
 
             /// <summary>
@@ -499,6 +691,71 @@ public readonly partial struct SapphirusContractsCatalog
             }
 
             /// <summary>
+            /// Set the <c>lineage</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetLineage(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("lineage");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.LineageUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Lineage, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>lineage</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetLineage<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source<TContext> value)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("lineage");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.LineageUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Lineage, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
             /// Set the <c>mediaType</c> property.
             /// </summary>
             /// <param name="value">The value of the property to add.</param>
@@ -539,6 +796,51 @@ public readonly partial struct SapphirusContractsCatalog
             {
                 CheckValidInstance();
                 bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.MediaTypeUtf8);
+                _documentVersion = _parent.Version;
+                return result;
+            }
+
+            /// <summary>
+            /// Set the <c>rawOutputHash</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetRawOutputHash(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.RawOutputHashUtf8);
+                    _documentVersion = _parent.Version;
+                    return;
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.RawOutputHashUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.RawOutputHash, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Remove the <c>rawOutputHash</c> property, if present.
+            /// </summary>
+            /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+            public bool RemoveRawOutputHash()
+            {
+                CheckValidInstance();
+                bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.RawOutputHashUtf8);
                 _documentVersion = _parent.Version;
                 return result;
             }
@@ -586,6 +888,37 @@ public readonly partial struct SapphirusContractsCatalog
                 bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.RelativePathUtf8);
                 _documentVersion = _parent.Version;
                 return result;
+            }
+
+            /// <summary>
+            /// Set the <c>revision</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetRevision(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("revision");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.RevisionUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Revision, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
             }
 
             /// <summary>
@@ -674,6 +1007,116 @@ public readonly partial struct SapphirusContractsCatalog
                 {
                     // We are going to insert the new value
                     value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.State, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>supersedesArtifactId</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetSupersedesArtifactId(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.SupersedesArtifactIdUtf8);
+                    _documentVersion = _parent.Version;
+                    return;
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.SupersedesArtifactIdUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.SupersedesArtifactId, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Remove the <c>supersedesArtifactId</c> property, if present.
+            /// </summary>
+            /// <returns><see langword="true"/> if the property was found and removed; otherwise, <see langword="false"/>.</returns>
+            public bool RemoveSupersedesArtifactId()
+            {
+                CheckValidInstance();
+                bool result = JsonElementHelpers.RemovePropertyUnsafe(_parent, _idx, JsonPropertyNames.SupersedesArtifactIdUtf8);
+                _documentVersion = _parent.Version;
+                return result;
+            }
+
+            /// <summary>
+            /// Set the <c>validation</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetValidation(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source value)
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("validation");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ValidationUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Validation, ref cvb);
+                    int endIndex = _idx + _parent.GetDbSize(_idx, false);
+                    _parent.InsertAndDispose(_idx, endIndex, ref cvb);
+                }
+
+                _documentVersion = _parent.Version;
+            }
+
+            /// <summary>
+            /// Set the <c>validation</c> property.
+            /// </summary>
+            /// <param name="value">The value of the property to add.</param>
+            public void SetValidation<TContext>(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source<TContext> value)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                CheckValidInstance();
+
+                if (value.IsUndefined)
+                {
+                    CodeGenThrowHelper.ThrowInvalidOperationException_SetRequiredPropertyToUndefined("validation");
+                }
+
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(_parent, 2);
+                if (_parent.TryGetNamedPropertyValue(_idx, JsonPropertyNames.ValidationUtf8, out IJsonDocument? elementParent, out int elementIdx))
+                {
+                    // We are going to replace just the value
+                    value.AddAsItem(ref cvb);
+                    _parent.OverwriteAndDispose(_idx, elementIdx, elementIdx + elementParent.GetDbSize(elementIdx, true), 1, ref cvb);
+                }
+                else
+                {
+                    // We are going to insert the new value
+                    value.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Validation, ref cvb);
                     int endIndex = _idx + _parent.GetDbSize(_idx, false);
                     _parent.InsertAndDispose(_idx, endIndex, ref cvb);
                 }
@@ -839,10 +1282,16 @@ public readonly partial struct SapphirusContractsCatalog
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg2;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg3;
             private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source _createArg4;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg5;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source _createArg6;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source _createArg7;
-            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg14;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -857,7 +1306,7 @@ public readonly partial struct SapphirusContractsCatalog
 
             internal Source(Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Builder.Build value) {_objectBuilder = value; _kind = Kind.Builder; }
 
-            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source arg8)
+            internal Source(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg14)
             {
                 _createArg1 = arg1;
                 _createArg2 = arg2;
@@ -867,6 +1316,12 @@ public readonly partial struct SapphirusContractsCatalog
                 _createArg6 = arg6;
                 _createArg7 = arg7;
                 _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
                 _kind = Kind.Create;
             }
 
@@ -887,7 +1342,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -912,7 +1367,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -937,7 +1392,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -962,7 +1417,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
                             valueBuilder.EndProperty(handle);
                             break;
                         }
@@ -987,7 +1442,7 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Create:
                         {
                             ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
-                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, ref valueBuilder);
+                            Builder.BuildCreateValue(_createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
                             valueBuilder.EndItem(handle);
                             break;
                         }
@@ -1008,12 +1463,27 @@ public readonly partial struct SapphirusContractsCatalog
                 Unknown,
                 Source,
                 Builder,
+                Create,
             }
 
             private readonly Kind _kind;
             TContext _context;
             Source _source;
             private readonly Builder.Build<TContext>? _objectBuilder;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg1;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg2;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg3;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source _createArg4;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source<TContext> _createArg5;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source _createArg6;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg7;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source _createArg8;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source<TContext> _createArg9;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source<TContext> _createArg10;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source _createArg11;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source _createArg12;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source _createArg13;
+            private readonly Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source _createArg14;
 
             /// <summary>
             /// Gets a value indicating whether this Source is undefined (uninitialized).
@@ -1025,6 +1495,26 @@ public readonly partial struct SapphirusContractsCatalog
             public static implicit operator Source<TContext>(Source source) => new (source);
 
             internal Source(scoped in TContext context, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.Builder.Build<TContext> value) {_context = context; _objectBuilder = value; _kind = Kind.Builder; }
+
+            internal Source(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source<TContext> arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source<TContext> arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source<TContext> arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg14)
+            {
+                _context = context;
+                _createArg1 = arg1;
+                _createArg2 = arg2;
+                _createArg3 = arg3;
+                _createArg4 = arg4;
+                _createArg5 = arg5;
+                _createArg6 = arg6;
+                _createArg7 = arg7;
+                _createArg8 = arg8;
+                _createArg9 = arg9;
+                _createArg10 = arg10;
+                _createArg11 = arg11;
+                _createArg12 = arg12;
+                _createArg13 = arg13;
+                _createArg14 = arg14;
+                _kind = Kind.Create;
+            }
 
             internal void AddAsProperty(ReadOnlySpan<byte> utf8Name, ref ComplexValueBuilder valueBuilder, bool escapeName = true, bool nameRequiresUnescaping = false)
             {
@@ -1038,6 +1528,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(utf8Name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o), escapeName, nameRequiresUnescaping);
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(utf8Name, escapeName, nameRequiresUnescaping);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1056,6 +1553,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddPrebakedProperty(prebakedPropertyName, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartPrebakedProperty(prebakedPropertyName);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1074,6 +1578,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1092,6 +1603,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddProperty(name, BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartProperty(name);
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
+                            valueBuilder.EndProperty(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1110,6 +1628,13 @@ public readonly partial struct SapphirusContractsCatalog
                     case Kind.Builder:
                         valueBuilder.AddItem(BuildWithContext.Create(_context, _objectBuilder!), static (in b, ref o) => Builder.BuildValue(b.Context, b.Build, ref o));
                         break;
+                    case Kind.Create:
+                        {
+                            ComplexValueBuilder.ComplexValueHandle handle = valueBuilder.StartItem();
+                            Builder.BuildCreateValue(_context, _createArg1, _createArg2, _createArg3, _createArg4, _createArg5, _createArg6, _createArg7, _createArg8, _createArg9, _createArg10, _createArg11, _createArg12, _createArg13, _createArg14, ref valueBuilder);
+                            valueBuilder.EndItem(handle);
+                            break;
+                        }
                     default:
                         Debug.Fail("Unexpected Kind");
                         break;
@@ -1144,20 +1669,32 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source lineage,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source validation,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source completionHooks = default,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default,
-                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default)
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default)
             {
                 artifactId.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ArtifactId, ref builder);
                 contentHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ContentHash, ref builder);
                 evidenceHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.EvidenceHash, ref builder);
                 kind.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Kind, ref builder);
+                lineage.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Lineage, ref builder);
+                revision.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Revision, ref builder);
                 builder.AddPrebakedProperty(JsonPropertyNamesPrebaked.SchemaVersion, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.SchemaVersionEntity.ConstInstance);
                 sessionId.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.SessionId, ref builder);
                 state.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.State, ref builder);
+                validation.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Validation, ref builder);
+                completionHooks.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.CompletionHooks, ref builder);
                 mediaType.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MediaType, ref builder);
+                rawOutputHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.RawOutputHash, ref builder);
                 relativePath.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.RelativePath, ref builder);
+                supersedesArtifactId.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.SupersedesArtifactId, ref builder);
             }
 
             /// <summary>
@@ -1168,12 +1705,85 @@ public readonly partial struct SapphirusContractsCatalog
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source lineage,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source validation,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source completionHooks = default,
                 in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default,
-                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default)
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default)
             {
-                Create(ref _builder, artifactId, contentHash, evidenceHash, kind, sessionId, state, mediaType, relativePath);
+                Create(ref _builder, artifactId, contentHash, evidenceHash, kind, lineage, revision, sessionId, state, validation, completionHooks, mediaType, rawOutputHash, relativePath, supersedesArtifactId);
+            }
+
+            /// <summary>
+            /// Creates an instance of a <see cref="BmadArtifact"/>.
+            /// </summary>
+            internal static void Create<TContext>(
+                in TContext context,
+                ref ComplexValueBuilder builder,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source<TContext> lineage,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source<TContext> validation,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source<TContext> completionHooks = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+            {
+                artifactId.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ArtifactId, ref builder);
+                contentHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.ContentHash, ref builder);
+                evidenceHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.EvidenceHash, ref builder);
+                kind.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Kind, ref builder);
+                lineage.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Lineage, ref builder);
+                revision.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Revision, ref builder);
+                builder.AddPrebakedProperty(JsonPropertyNamesPrebaked.SchemaVersion, Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.SchemaVersionEntity.ConstInstance);
+                sessionId.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.SessionId, ref builder);
+                state.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.State, ref builder);
+                validation.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.Validation, ref builder);
+                completionHooks.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.CompletionHooks, ref builder);
+                mediaType.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.MediaType, ref builder);
+                rawOutputHash.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.RawOutputHash, ref builder);
+                relativePath.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.RelativePath, ref builder);
+                supersedesArtifactId.AddAsPrebakedProperty(JsonPropertyNamesPrebaked.SupersedesArtifactId, ref builder);
+            }
+
+            /// <summary>
+            /// Creates an instance of a <see cref="BmadArtifact"/>.
+            /// </summary>
+            public void Create<TContext>(
+                in TContext context,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source<TContext> lineage,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source<TContext> validation,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source<TContext> completionHooks = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default,
+                in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+            {
+                Create(context, ref _builder, artifactId, contentHash, evidenceHash, kind, lineage, revision, sessionId, state, validation, completionHooks, mediaType, rawOutputHash, relativePath, supersedesArtifactId);
             }
 
             internal static void BuildValue(Build value, ref ComplexValueBuilder o)
@@ -1210,11 +1820,47 @@ public readonly partial struct SapphirusContractsCatalog
             /// <param name="arg6">The value of the property.</param>
             /// <param name="arg7">The value of the property.</param>
             /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
             /// <param name="o">The complex value builder into which to write the object.</param>
-            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source arg8, ref ComplexValueBuilder o)
+            internal static void BuildCreateValue(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg14, ref ComplexValueBuilder o)
             {
                 o.StartObject();
-                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+                Create(ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
+                o.EndObject();
+            }
+
+            /// <summary>
+            /// Builds the object value directly from its captured property values into the given complex value builder.
+            /// </summary>
+            /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+            /// <param name="context">The context to pass to the builder.</param>
+            /// <param name="arg1">The value of the property.</param>
+            /// <param name="arg2">The value of the property.</param>
+            /// <param name="arg3">The value of the property.</param>
+            /// <param name="arg4">The value of the property.</param>
+            /// <param name="arg5">The value of the property.</param>
+            /// <param name="arg6">The value of the property.</param>
+            /// <param name="arg7">The value of the property.</param>
+            /// <param name="arg8">The value of the property.</param>
+            /// <param name="arg9">The value of the property.</param>
+            /// <param name="arg10">The value of the property.</param>
+            /// <param name="arg11">The value of the property.</param>
+            /// <param name="arg12">The value of the property.</param>
+            /// <param name="arg13">The value of the property.</param>
+            /// <param name="arg14">The value of the property.</param>
+            /// <param name="o">The complex value builder into which to write the object.</param>
+            internal static void BuildCreateValue<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg1, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg2, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg3, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source arg4, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source<TContext> arg5, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source arg6, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg7, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source arg8, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source<TContext> arg9, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source<TContext> arg10, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source arg11, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source arg12, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source arg13, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source arg14, ref ComplexValueBuilder o)
+#if NET9_0_OR_GREATER
+                where TContext : allows ref struct
+#endif
+            {
+                o.StartObject();
+                Create(context, ref o, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
                 o.EndObject();
             }
         }
@@ -1255,14 +1901,48 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="contentHash">The value of the <c>"contentHash"</c> property.</param>
         /// <param name="evidenceHash">The value of the <c>"evidenceHash"</c> property.</param>
         /// <param name="kind">The value of the <c>"kind"</c> property.</param>
+        /// <param name="lineage">The value of the <c>"lineage"</c> property.</param>
+        /// <param name="revision">The value of the <c>"revision"</c> property.</param>
         /// <param name="sessionId">The value of the <c>"sessionId"</c> property.</param>
         /// <param name="state">The value of the <c>"state"</c> property.</param>
+        /// <param name="validation">The value of the <c>"validation"</c> property.</param>
+        /// <param name="completionHooks">The value of the <c>"completionHooks"</c> property.</param>
         /// <param name="mediaType">The value of the <c>"mediaType"</c> property.</param>
+        /// <param name="rawOutputHash">The value of the <c>"rawOutputHash"</c> property.</param>
         /// <param name="relativePath">The value of the <c>"relativePath"</c> property.</param>
+        /// <param name="supersedesArtifactId">The value of the <c>"supersedesArtifactId"</c> property.</param>
         /// <returns>The source from which to build the value.</returns>
-        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default)
+        public static Source Build(scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source lineage, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source validation, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source completionHooks = default, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default)
         {
-            return new Source(artifactId, contentHash, evidenceHash, kind, sessionId, state, mediaType, relativePath);
+            return new Source(artifactId, contentHash, evidenceHash, kind, lineage, revision, sessionId, state, validation, completionHooks, mediaType, rawOutputHash, relativePath, supersedesArtifactId);
+        }
+
+        /// <summary>
+        /// Build an instance of the value directly from its property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The context to pass to the builder.</param>
+        /// <param name="artifactId">The value of the <c>"artifactId"</c> property.</param>
+        /// <param name="contentHash">The value of the <c>"contentHash"</c> property.</param>
+        /// <param name="evidenceHash">The value of the <c>"evidenceHash"</c> property.</param>
+        /// <param name="kind">The value of the <c>"kind"</c> property.</param>
+        /// <param name="lineage">The value of the <c>"lineage"</c> property.</param>
+        /// <param name="revision">The value of the <c>"revision"</c> property.</param>
+        /// <param name="sessionId">The value of the <c>"sessionId"</c> property.</param>
+        /// <param name="state">The value of the <c>"state"</c> property.</param>
+        /// <param name="validation">The value of the <c>"validation"</c> property.</param>
+        /// <param name="completionHooks">The value of the <c>"completionHooks"</c> property.</param>
+        /// <param name="mediaType">The value of the <c>"mediaType"</c> property.</param>
+        /// <param name="rawOutputHash">The value of the <c>"rawOutputHash"</c> property.</param>
+        /// <param name="relativePath">The value of the <c>"relativePath"</c> property.</param>
+        /// <param name="supersedesArtifactId">The value of the <c>"supersedesArtifactId"</c> property.</param>
+        /// <returns>The source from which to build the value.</returns>
+        public static Source<TContext> Build<TContext>(scoped in TContext context, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source<TContext> lineage, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source<TContext> validation, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source<TContext> completionHooks = default, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default, scoped in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            return new Source<TContext>(context, artifactId, contentHash, evidenceHash, kind, lineage, revision, sessionId, state, validation, completionHooks, mediaType, rawOutputHash, relativePath, supersedesArtifactId);
         }
 
         /// <summary>
@@ -1339,19 +2019,63 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="contentHash">The value of the property.</param>
         /// <param name="evidenceHash">The value of the property.</param>
         /// <param name="kind">The value of the property.</param>
+        /// <param name="lineage">The value of the property.</param>
+        /// <param name="revision">The value of the property.</param>
         /// <param name="sessionId">The value of the property.</param>
         /// <param name="state">The value of the property.</param>
+        /// <param name="validation">The value of the property.</param>
+        /// <param name="completionHooks">The value of the property.</param>
         /// <param name="mediaType">The value of the property.</param>
+        /// <param name="rawOutputHash">The value of the property.</param>
         /// <param name="relativePath">The value of the property.</param>
+        /// <param name="supersedesArtifactId">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>An instance of a mutable document initialized with the given property values.</returns>
-        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default, int initialCapacity = 30)
+        public static JsonDocumentBuilder<Mutable> CreateBuilder(JsonWorkspace workspace, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source lineage, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source validation, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source completionHooks = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default, int initialCapacity = 30)
         {
             JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
             ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
             cvb.StartObject();
             Builder ovb = new(cvb);
-            ovb.Create(artifactId, contentHash, evidenceHash, kind, sessionId, state, mediaType, relativePath);
+            ovb.Create(artifactId, contentHash, evidenceHash, kind, lineage, revision, sessionId, state, validation, completionHooks, mediaType, rawOutputHash, relativePath, supersedesArtifactId);
+            cvb = ovb._builder;
+            cvb.EndObject();
+            ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+            return documentBuilder;
+        }
+
+        /// <summary>
+        /// Creates and initializes a mutable document from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="workspace">The JSON workspace.</param>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="artifactId">The value of the property.</param>
+        /// <param name="contentHash">The value of the property.</param>
+        /// <param name="evidenceHash">The value of the property.</param>
+        /// <param name="kind">The value of the property.</param>
+        /// <param name="lineage">The value of the property.</param>
+        /// <param name="revision">The value of the property.</param>
+        /// <param name="sessionId">The value of the property.</param>
+        /// <param name="state">The value of the property.</param>
+        /// <param name="validation">The value of the property.</param>
+        /// <param name="completionHooks">The value of the property.</param>
+        /// <param name="mediaType">The value of the property.</param>
+        /// <param name="rawOutputHash">The value of the property.</param>
+        /// <param name="relativePath">The value of the property.</param>
+        /// <param name="supersedesArtifactId">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>An instance of a mutable document initialized with the given property values.</returns>
+        public static JsonDocumentBuilder<Mutable> CreateBuilder<TContext>(JsonWorkspace workspace, in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source<TContext> lineage, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source<TContext> validation, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source<TContext> completionHooks = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            JsonDocumentBuilder<Mutable> documentBuilder = workspace.CreateBuilder<Mutable>(-1);
+            ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+            cvb.StartObject();
+            Builder ovb = new(cvb);
+            ovb.Create(context, artifactId, contentHash, evidenceHash, kind, lineage, revision, sessionId, state, validation, completionHooks, mediaType, rawOutputHash, relativePath, supersedesArtifactId);
             cvb = ovb._builder;
             cvb.EndObject();
             ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
@@ -1456,13 +2180,19 @@ public readonly partial struct SapphirusContractsCatalog
         /// <param name="contentHash">The value of the property.</param>
         /// <param name="evidenceHash">The value of the property.</param>
         /// <param name="kind">The value of the property.</param>
+        /// <param name="lineage">The value of the property.</param>
+        /// <param name="revision">The value of the property.</param>
         /// <param name="sessionId">The value of the property.</param>
         /// <param name="state">The value of the property.</param>
+        /// <param name="validation">The value of the property.</param>
+        /// <param name="completionHooks">The value of the property.</param>
         /// <param name="mediaType">The value of the property.</param>
+        /// <param name="rawOutputHash">The value of the property.</param>
         /// <param name="relativePath">The value of the property.</param>
+        /// <param name="supersedesArtifactId">The value of the property.</param>
         /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
         /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
-        public static ParsedJsonDocument<BmadArtifact> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default, int initialCapacity = 30)
+        public static ParsedJsonDocument<BmadArtifact> Create(in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source lineage, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source validation, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source completionHooks = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default, int initialCapacity = 30)
         {
             ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
             try
@@ -1470,7 +2200,51 @@ public readonly partial struct SapphirusContractsCatalog
                 ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
                 cvb.StartObject();
                 Builder ovb = new(cvb);
-                ovb.Create(artifactId, contentHash, evidenceHash, kind, sessionId, state, mediaType, relativePath);
+                ovb.Create(artifactId, contentHash, evidenceHash, kind, lineage, revision, sessionId, state, validation, completionHooks, mediaType, rawOutputHash, relativePath, supersedesArtifactId);
+                cvb = ovb._builder;
+                cvb.EndObject();
+                ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);
+                return documentBuilder.ToParsedJsonDocument<BmadArtifact>();
+            }
+            finally
+            {
+                documentBuilder.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ParsedJsonDocument{T}"/> from the given property values.
+        /// </summary>
+        /// <typeparam name="TContext">The type of the context to pass to the builder.</typeparam>
+        /// <param name="context">The value of the property.</param>
+        /// <param name="artifactId">The value of the property.</param>
+        /// <param name="contentHash">The value of the property.</param>
+        /// <param name="evidenceHash">The value of the property.</param>
+        /// <param name="kind">The value of the property.</param>
+        /// <param name="lineage">The value of the property.</param>
+        /// <param name="revision">The value of the property.</param>
+        /// <param name="sessionId">The value of the property.</param>
+        /// <param name="state">The value of the property.</param>
+        /// <param name="validation">The value of the property.</param>
+        /// <param name="completionHooks">The value of the property.</param>
+        /// <param name="mediaType">The value of the property.</param>
+        /// <param name="rawOutputHash">The value of the property.</param>
+        /// <param name="relativePath">The value of the property.</param>
+        /// <param name="supersedesArtifactId">The value of the property.</param>
+        /// <param name="initialCapacity">The (optional) estimate of the capacity to reserve for the document.</param>
+        /// <returns>A <see cref="ParsedJsonDocument{T}"/> containing the given property values. The caller must dispose it.</returns>
+        public static ParsedJsonDocument<BmadArtifact> Create<TContext>(in TContext context, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source artifactId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source contentHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source evidenceHash, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.KindEntity.Source kind, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactLineage.Source<TContext> lineage, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RevisionEntity.Source revision, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source sessionId, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.StateEntity.Source state, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifactValidation.Source<TContext> validation, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.CompletionHooksArray.Source<TContext> completionHooks = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.MediaTypeEntity.Source mediaType = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonSha256.Source rawOutputHash = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.BmadArtifact.RelativePathEntity.Source relativePath = default, in Sapphirus.Contracts.Generated.SapphirusContractsCatalog.CommonContractId.Source supersedesArtifactId = default, int initialCapacity = 30)
+            #if NET9_0_OR_GREATER
+            where TContext : allows ref struct
+            #endif
+        {
+            ParsedJsonDocumentBuilder documentBuilder = ParsedJsonDocumentBuilder.Rent();
+            try
+            {
+                ComplexValueBuilder cvb = ComplexValueBuilder.Create(documentBuilder, initialCapacity);
+                cvb.StartObject();
+                Builder ovb = new(cvb);
+                ovb.Create(context, artifactId, contentHash, evidenceHash, kind, lineage, revision, sessionId, state, validation, completionHooks, mediaType, rawOutputHash, relativePath, supersedesArtifactId);
                 cvb = ovb._builder;
                 cvb.EndObject();
                 ((IMutableJsonDocument)documentBuilder).SetAndDispose(ref cvb);

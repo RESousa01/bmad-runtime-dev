@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "sapphirus.bmad-cross-language-rejection.v1",
+  "id": "bmad-invocation-unknown-property",
+  "schemaId": "https://schemas.sapphirus.dev/v1/bmad-invocation.schema.json",
+  "reason": "unknown_property",
+  "document": {
+    "schemaVersion": "sapphirus.bmad-invocation.v1",
+    "invocationId": "invocation_01J00000000000000000000000",
+    "capabilityId": "capability_01J00000000000000000000000",
+    "sessionId": "session_01J00000000000000000000000",
+    "mode": "headless",
+    "declaredAction": {
+      "name": "produce-brief",
+      "declaredInputs": [
+        {
+          "name": "output_consumer",
+          "valueKind": "string",
+          "required": true,
+          "prompt": "Name the output consumer."
+        },
+        {
+          "name": "depth",
+          "valueKind": "enum",
+          "required": false,
+          "allowedValues": [
+            "brief",
+            "full"
+          ]
+        }
+      ]
+    },
+    "resolvedInputs": [
+      {
+        "name": "depth",
+        "valueHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "origin": "declared_default"
+      }
+    ],
+    "missingInputs": [
+      {
+        "name": "output_consumer",
+        "valueKind": "string",
+        "code": "input_required",
+        "prompt": "Name the output consumer."
+      }
+    ],
+    "budget": {
+      "maxModelCalls": 8,
+      "maxRetries": 2,
+      "maxPromptedInputs": 0
+    },
+    "resolvedInputsHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "ready": false,
+    "futureAuthority": true
+  }
+}
