@@ -439,10 +439,10 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "planning_artifacts"
     ],
-    "supportState": "exact",
-    "uiState": "planned",
+    "supportState": "adapted",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {
@@ -1033,7 +1033,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "planning_artifacts"
     ],
     "supportState": "unavailable",
     "uiState": "planned",

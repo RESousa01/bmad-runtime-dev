@@ -19,8 +19,8 @@ use desktop_egress::{
 };
 use desktop_ipc::{BmadProjectionError, BmadRuntimeMenuCapabilityBinding};
 use desktop_runtime::{
-    canonical_hash, deserialize_strict_json, sha256_bytes, BmadAgentRoster, BmadBuilderDraftFile,
-    BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
+    canonical_hash, deserialize_strict_json, sha256_bytes, BmadAgentRoster, BmadArchitectureSkill,
+    BmadBuilderDraftFile, BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
     BmadCheckImplementationReadinessSkill, BmadClosureCapabilityId, BmadDocumentArtifact,
     BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft, BmadMethodSkill,
     BmadPrdSkill, BmadSkillExecutionError, ContractId, RelativeWorkspacePath, Sha256Digest,
@@ -421,6 +421,7 @@ fn generated_catalog_shape_is_current() -> bool {
 }
 
 static BMAD_PRD_SKILL: BmadPrdSkill = BmadPrdSkill;
+static BMAD_ARCHITECTURE_SKILL: BmadArchitectureSkill = BmadArchitectureSkill;
 static BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL: BmadCheckImplementationReadinessSkill =
     BmadCheckImplementationReadinessSkill;
 
@@ -431,6 +432,7 @@ fn canonical_method_skill(
         capability_binding(capability_id).ok_or(BmadSkillExecutionError::ContractUnavailable)?;
     match binding.id {
         "bmm:bmad-prd" => Ok(&BMAD_PRD_SKILL),
+        "bmm:bmad-architecture" => Ok(&BMAD_ARCHITECTURE_SKILL),
         "bmm:bmad-check-implementation-readiness" => Ok(&BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL),
         _ => Err(BmadSkillExecutionError::ContractUnavailable),
     }
@@ -499,7 +501,7 @@ pub(crate) fn runtime_capability_enabled(
 ) -> Result<bool, BmadProjectionError> {
     if matches!(
         binding.id,
-        "bmm:bmad-prd" | "bmm:bmad-check-implementation-readiness"
+        "bmm:bmad-prd" | "bmm:bmad-architecture" | "bmm:bmad-check-implementation-readiness"
     ) && (!UI_ADVERTISED_CAPABILITIES
         .iter()
         .any(|row| row.canonical_id == binding.id)
@@ -1531,6 +1533,16 @@ mod tests {
             canonical_method_skill("bmm:not-reviewed"),
             Err(BmadSkillExecutionError::ContractUnavailable)
         ));
+    }
+
+    // Break caught: catalog and menu availability can advertise Architecture
+    // while canonical desktop dispatch still rejects its executable adapter.
+    #[test]
+    fn canonical_architecture_dispatch_resolves_the_explicit_generic_runtime_adapter() {
+        let skill = canonical_method_skill("bmm:bmad-architecture")
+            .expect("reviewed Architecture capability resolves to its runtime adapter");
+        assert_eq!(skill.descriptor().canonical_id(), "bmm:bmad-architecture");
+        assert!(skill.execution_contract().is_ok());
     }
 
     #[test]

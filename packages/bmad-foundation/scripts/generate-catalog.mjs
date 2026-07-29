@@ -21,6 +21,14 @@ const paths = {
   typescript: resolve(repositoryRoot, "apps/desktop-ui/src/generated/bmadCapabilities.ts"),
 };
 
+const sourceTopologyByCanonicalId = new Map([
+  ["bmm:bmad-architecture", {
+    predecessorIds: [],
+    followerIds: ["bmm:bmad-spec"],
+    outputLocations: ["planning_artifacts"],
+  }],
+]);
+
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -78,7 +86,8 @@ function methodRow(member, aliasesByTarget, ledgerByRowId) {
       "post_validation",
       "durable_evidence",
     ],
-    outputs: ["governed_artifact"],
+    outputs: sourceTopologyByCanonicalId.get(member.target_capability)?.outputLocations
+      ?? ["governed_artifact"],
     supportState: ledgerRow.supportState,
     uiState: member.ui_state,
     visibility: "public",
@@ -226,13 +235,15 @@ function buildHelpCapabilityGraph(catalog, aliasCatalog, catalogText, aliasCatal
   const nodes = [...rowsByCanonicalId.entries()]
     .map(([id, rows]) => {
       const canonical = canonicalRuntimeRow(id, rows);
+      const sourceTopology = sourceTopologyByCanonicalId.get(id);
       const body = {
         id,
         sourceId: oneDerivedValue(rows.map((row) => row.source.id), `${id}.sourceId`),
         phase: phaseForRow(canonical),
-        predecessorIds: [],
-        followerIds: [],
-        outputLocations: [...new Set(rows.flatMap((row) => row.outputs))].sort(),
+        predecessorIds: sourceTopology?.predecessorIds ?? [],
+        followerIds: sourceTopology?.followerIds ?? [],
+        outputLocations: sourceTopology?.outputLocations
+          ?? [...new Set(rows.flatMap((row) => row.outputs))].sort(),
         supportState: canonical.supportState,
         uiState: canonical.uiState,
         rowIds: rows.map((row) => row.rowId).sort(),

@@ -35,6 +35,14 @@ const QUALIFIED_METHOD_ROWS = new Map([
     },
   ],
   [
+    "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+    {
+      supportState: "adapted",
+      uiState: "runtime_available",
+      releaseState: "qualified",
+    },
+  ],
+  [
     "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
     {
       supportState: "exact",

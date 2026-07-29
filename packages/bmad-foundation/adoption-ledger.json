@@ -3365,23 +3365,20 @@
       },
       "state": "sealed_read_only",
       "actions": [],
-      "action": "create",
+      "action": null,
       "authority": "none",
       "distributionProfile": "sapphirus_package",
       "installProfile": "SapphirusManagedV1",
-      "entrypointKind": "step_jit",
+      "entrypointKind": "direct",
       "validationProfile": "MethodOfficialSkillV6",
       "sourceMemberIds": [
-        "method-018",
-        "method-019",
         "method-022",
         "method-023",
         "method-024",
         "method-025",
         "method-026",
-        "method-027",
-        "method-028",
-        "method-029"
+        "method-029",
+        "method-137"
       ]
     },
     {

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "sapphirus.bmad100.task-receipt.v1",
+  "taskId": "MTH-12",
+  "status": "complete",
+  "canonicalId": "bmm:bmad-architecture",
+  "treeBinding": {
+    "kind": "git_write_tree",
+    "evidenceTreeHash": "d143f71b9df6adbda5fe9018c273b21c0b3aed2b",
+    "scope": "Complete staged implementation and evidence tree excluding this self-referential task receipt."
+  },
+  "source": {
+    "package": "method@6.10.0",
+    "entrypoint": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+    "sha256": "89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf"
+  },
+  "acceptance": [
+    {
+      "criterion": "every source file has a disposition",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-architecture/source-closure.json"
+    },
+    {
+      "criterion": "declared actions args modes resources topology artifacts and hooks are executable",
+      "status": "pass",
+      "evidence": "crates/desktop-runtime/tests/bmad_bmad_architecture.rs"
+    },
+    {
+      "criterion": "interactive and headless modes preserve semantic parity",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-architecture/golden/source-derived-cases.json"
+    },
+    {
+      "criterion": "cancel fail retry repair restart resume and upgrade are durable and deterministic",
+      "status": "pass",
+      "evidence": "crates/desktop-runtime/tests/bmad_bmad_architecture.rs"
+    },
+    {
+      "criterion": "source prose grants no runtime authority",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-architecture/authority.json"
+    },
+    {
+      "criterion": "Help Skills UI runtime closure and ledger project one state",
+      "status": "pass",
+      "evidence": "packages/bmad-foundation/tests/help-catalog.test.mjs"
+    },
+    {
+      "criterion": "no unavailable pending blocked partial or analogous target state remains",
+      "status": "pass",
+      "evidence": "packages/bmad-foundation/source-accounting.json"
+    }
+  ],
+  "gates": [
+    {
+      "command": "node packages/bmad-foundation/scripts/resource-closure.mjs --source method@6.10.0 --skill bmad-architecture --check",
+      "status": "pass"
+    },
+    {
+      "command": "node packages/bmad-foundation/scripts/conformance.mjs --skill bmad-architecture --all-modes --strict",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p desktop-runtime --test bmad_bmad_architecture --locked",
+      "status": "pass",
+      "tests": 6
+    },
+    {
+      "command": "pnpm --filter @sapphirus/bmad-foundation test -- --runInBand bmad-architecture",
+      "status": "pass",
+      "tests": 203
+    },
+    {
+      "command": "pnpm verify:bmad:authority -- --skill bmad-architecture",
+      "status": "pass"
+    }
+  ]
+}

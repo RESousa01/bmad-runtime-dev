@@ -1,8 +1,8 @@
 {
   "schemaVersion": "sapphirus.bmad-help-capability-graph.v1",
   "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
-  "sourceCatalogSha256": "93ed7312aefb638ee7a0b7b48310a04374aeb4dcdbd30da661e5eff1bfba3466",
-  "sourceAliasCatalogSha256": "bd8f4a8da3303f25c64e384b410b0cd709ae3ee151ffed5d61e5a3a86b539b71",
+  "sourceCatalogSha256": "d6a3198652479968f7b7f6e2eacb16af2611143631200c2a5dfc3f492400de00",
+  "sourceAliasCatalogSha256": "7391886dbaefc778f5ad014ac7dcd7bfd5bce72063b72a8aa8a4e4844d024448",
   "nodeCount": 45,
   "nodes": [
     {
@@ -106,17 +106,19 @@
       "sourceId": "method",
       "phase": "solutioning",
       "predecessorIds": [],
-      "followerIds": [],
-      "outputLocations": [
-        "governed_artifact"
+      "followerIds": [
+        "bmm:bmad-spec"
       ],
-      "supportState": "exact",
-      "uiState": "planned",
+      "outputLocations": [
+        "planning_artifacts"
+      ],
+      "supportState": "adapted",
+      "uiState": "runtime_available",
       "rowIds": [
         "method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-create-architecture/SKILL.md"
       ],
-      "nodeHash": "sha256:f12c5067decfb3f49c320405d96121cff832ed76d381bf9cd2527bb5fecbe74c"
+      "nodeHash": "sha256:b20e86d1ad81eda568465565b3bafa48299e37a28522df2afd8b100c0d172c81"
     },
     {
       "id": "bmm:bmad-check-implementation-readiness",
@@ -831,5 +833,5 @@
       "deprecated": true
     }
   ],
-  "graphHash": "sha256:ee754088695f5a58787e5e7e234df447249daa7dbefd5b60a6279e07f8b46404"
+  "graphHash": "sha256:eb87b05f8f1ca8faea7051fad826cc5d0968996ec97c0d28194abcc935b2c287"
 }

@@ -192,13 +192,13 @@ pub use skills::{
     BmadCustomizeSkill, BmadDeepReconSkill, BmadDispatchedSkillExecution, BmadDocumentProjectSkill,
     BmadForgeIdeaSkill, BmadGenerateProjectContextSkill, BmadHelpSkill, BmadMethodSkill,
     BmadPartyModeSkill, BmadPrdSkill, BmadPreparedSkillExecution, BmadPrfaqSkill,
-    BmadProductBriefSkill, BmadReviewSkill, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillDispatchError, BmadSkillExecutionCompiler, BmadSkillExecutionContract,
-    BmadSkillExecutionContractInput, BmadSkillExecutionError, BmadSkillExecutionPreparedPlan,
-    BmadSkillExecutionRequest, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
-    BmadSkillHarnessError, BmadSkillHostBindingInput, BmadSkillRecoverySemantics,
-    BmadSkillSupportState, BmadSkillToolIntent, BmadSpecSkill, BmadUxSkill,
-    BMAD_SKILL_HARNESS_SCHEMA,
+    BmadProductBriefSkill, BmadReviewSkill, BmadSkillAuthorityRoute, BmadSkillDescriptor,
+    BmadSkillDescriptorInput, BmadSkillDispatchError, BmadSkillExecutionCompiler,
+    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
+    BmadSkillExecutionPreparedPlan, BmadSkillExecutionRequest, BmadSkillExecutionStep,
+    BmadSkillExecutionWorkflow, BmadSkillHarnessError, BmadSkillHostBindingInput,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, BmadSpecSkill,
+    BmadUxSkill, BMAD_SKILL_HARNESS_SCHEMA,
 };
 pub use source::{BmadSourcePackage, BmadSourceService};
 pub use state_machine::{
@@ -308,8 +308,9 @@ impl BmadRuntimePort for BmadDomainRuntime {
 }
 
 impl BmadDomainRuntime {
-    /// Prepares an opted-in skill and durably creates/binds its session through
-    /// the established Method service in one production dispatch path.
+    /// Prepares an opted-in skill, durably creates/binds its session, and
+    /// requires a fresh context review through the established Method service
+    /// in one production dispatch path.
     ///
     /// # Errors
     ///
@@ -340,6 +341,9 @@ impl BmadDomainRuntime {
                 prepared.step_table().clone(),
             )
             .map_err(BmadSkillDispatchError::Lifecycle)?;
-        Ok(BmadDispatchedSkillExecution::new(prepared, bound))
+        let review_required = service
+            .request_context_review(&bound.scope(), &bound.session_id(), bound.version())
+            .map_err(BmadSkillDispatchError::Lifecycle)?;
+        Ok(BmadDispatchedSkillExecution::new(prepared, review_required))
     }
 }

@@ -19,6 +19,13 @@ async function readJson(path) {
 }
 
 const HASH_PATTERN = /^sha256:[0-9a-f]{64}$/;
+const sourceTopologyByCanonicalId = new Map([
+  ["bmm:bmad-architecture", {
+    predecessorIds: [],
+    followerIds: ["bmm:bmad-spec"],
+    outputLocations: ["planning_artifacts"],
+  }],
+]);
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
@@ -58,13 +65,15 @@ test("BMAD Help capability graph is an exact generated catalog-and-alias project
             : canonical.source.path.includes("/3-solutioning/")
               ? "solutioning"
               : "implementation";
+      const sourceTopology = sourceTopologyByCanonicalId.get(id);
       const body = {
         id,
         sourceId: sourceIds[0],
         phase,
-        predecessorIds: [],
-        followerIds: [],
-        outputLocations: [...new Set(rows.flatMap((row) => row.outputs))].sort(),
+        predecessorIds: sourceTopology?.predecessorIds ?? [],
+        followerIds: sourceTopology?.followerIds ?? [],
+        outputLocations: sourceTopology?.outputLocations
+          ?? [...new Set(rows.flatMap((row) => row.outputs))].sort(),
         supportState: canonical.supportState,
         uiState: canonical.uiState,
         rowIds: rows.map((row) => row.rowId).sort(),
@@ -139,6 +148,29 @@ test("BMAD Help exposes canonical PRD exact runtime availability without promoti
       ["bmm:bmad-edit-prd", true],
       ["bmm:bmad-validate-prd", true],
     ],
+  );
+});
+
+// Break caught: Help can lag the compatibility/catalog source of truth and
+// continue describing Architecture as planned after desktop dispatch exists.
+test("BMAD Help exposes adapted runtime-available Architecture and keeps its shim separate", async () => {
+  const graph = await readJson("normalized/bmad-help-capability-graph.json");
+  const architecture = graph.nodes.find((node) => node.id === "bmm:bmad-architecture");
+
+  assert.equal(architecture?.supportState, "adapted");
+  assert.equal(architecture?.uiState, "runtime_available");
+  assert.deepEqual(architecture?.predecessorIds, []);
+  assert.deepEqual(architecture?.followerIds, ["bmm:bmad-spec"]);
+  assert.deepEqual(architecture?.outputLocations, ["planning_artifacts"]);
+  assert.deepEqual(architecture?.rowIds, [
+    "method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+    "method:src/bmm-skills/v6-shims/bmad-create-architecture/SKILL.md",
+  ]);
+  assert.deepEqual(
+    graph.aliasEdges
+      .filter((edge) => edge.canonicalId === "bmm:bmad-architecture")
+      .map((edge) => [edge.aliasId, edge.deprecated]),
+    [["bmm:bmad-create-architecture", true]],
   );
 });
 

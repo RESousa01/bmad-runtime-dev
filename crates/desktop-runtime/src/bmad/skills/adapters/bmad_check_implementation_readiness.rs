@@ -109,7 +109,7 @@ impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
                 "sha256:8335100a0c468f03cf6187a0dc58dcc0435328727c1740f7c70b947122a58cca",
             )?,
             capability_catalog_hash: digest(
-                "sha256:4aa54a86e1bd868cb84cfcdb4d790a088dd0d2f370ac230c1082092acb5be60f",
+                "sha256:d6a3198652479968f7b7f6e2eacb16af2611143631200c2a5dfc3f492400de00",
             )?,
             distribution_profile: "sapphirus_package".to_owned(),
             install_profile: "SapphirusManagedV1".to_owned(),

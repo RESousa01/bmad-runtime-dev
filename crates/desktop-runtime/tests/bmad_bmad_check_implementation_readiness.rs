@@ -307,7 +307,10 @@ fn readiness_dispatch_prepares_and_persists_both_modes_through_method_service() 
                 creation(mode),
             )
             .expect("generic compiler and Method service dispatch");
-        assert_eq!(dispatched.session().state(), MethodState::CapabilityBound);
+        assert_eq!(
+            dispatched.session().state(),
+            MethodState::ContextReviewRequired
+        );
         assert_eq!(dispatched.prepared().mode(), mode);
         assert_eq!(
             dispatched.prepared().required_plan_kinds(),

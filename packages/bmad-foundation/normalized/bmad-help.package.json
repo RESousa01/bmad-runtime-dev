@@ -58,20 +58,10 @@
       "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
       "sourceEntrypoint": {
         "path": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
-        "contentHash": "sha256:a56c7a0abc45e1dba719ae5e66b7169a1098b403e7fd69b30c19f16c12cddc6a",
+        "contentHash": "sha256:89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf",
         "treatment": "adapt"
       },
       "sourceResources": [
-        {
-          "path": "src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md",
-          "contentHash": "sha256:82bbf22ff3a4571741c9339ae6b7c35676a6e26a3237ceca487abe85369e91a0",
-          "treatment": "adapt"
-        },
-        {
-          "path": "src/bmm-skills/3-solutioning/bmad-agent-architect/customize.toml",
-          "contentHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
-          "treatment": "adapt"
-        },
         {
           "path": "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
           "contentHash": "sha256:ef4ff795624eb5439fae54a06edb389feb5a0cf79cb01ae007af51109335d198",
@@ -79,13 +69,13 @@
         },
         {
           "path": "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
-          "contentHash": "sha256:137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+          "contentHash": "sha256:a6bb60a3adf976031f2870203285b1fc7a56e71e21232cd23bba544b178b5f15",
           "treatment": "adapt"
         },
         {
           "path": "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
           "contentHash": "sha256:4db2708f335c94cb024b5eba022b1e3d88b1ec61c94c4716626d9b89684f5833",
-          "treatment": "defer"
+          "treatment": "adapt"
         },
         {
           "path": "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
@@ -95,16 +85,11 @@
         {
           "path": "src/bmm-skills/3-solutioning/bmad-architecture/scripts/lint_spine.py",
           "contentHash": "sha256:040e0f1c13d31e6a21c518df943d1d7de7b75d8d98a07603b0983f3f3fb500db",
-          "treatment": "reject"
-        },
-        {
-          "path": "src/bmm-skills/3-solutioning/bmad-create-architecture/SKILL.md",
-          "contentHash": "sha256:4b1673582dc8e0957b559cece14f048c0c995874b79ad255f033b36b2b789eb0",
           "treatment": "adapt"
         },
         {
-          "path": "src/bmm-skills/3-solutioning/bmad-create-architecture/customize.toml",
-          "contentHash": "sha256:618be49b0286f18dfb4b6bac3d96bf1cf062994fa5278cd327be9898e651b43c",
+          "path": "src/bmm-skills/3-solutioning/bmad-architecture/scripts/tests/test_lint_spine.py",
+          "contentHash": "sha256:e86bb9a62c5cca74ddc89c843386f2b992610fcc1792d40e03bc9cd445b77681",
           "treatment": "adapt"
         }
       ],
@@ -154,7 +139,7 @@
           "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
         }
       ],
-      "projectionHash": "sha256:7cdaba6413c4d7d469c8c20eba41b2b97114481c2c7a1381ebfe2c384c098a63"
+      "projectionHash": "sha256:1e3e26529a841f94e97df6392380f62dccf824b850c0c313e79d8f0a8b34a197"
     },
     {
       "projectionId": "projection_6D3512C6F9014A2344418CE0B53B1C9ED8521E6BF8B337F2A802ADE6307146E4",
@@ -1723,8 +1708,8 @@
       "path": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
       "locationKind": "source_tree",
       "contentRole": "entrypoint",
-      "contentHash": "sha256:a56c7a0abc45e1dba719ae5e66b7169a1098b403e7fd69b30c19f16c12cddc6a",
-      "byteLength": 13888,
+      "contentHash": "sha256:89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf",
+      "byteLength": 14037,
       "treatment": "adapt",
       "runtimeUse": "descriptive_evidence"
     },
@@ -1741,8 +1726,8 @@
       "path": "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
       "locationKind": "source_tree",
       "contentRole": "config",
-      "contentHash": "sha256:137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
-      "byteLength": 6093,
+      "contentHash": "sha256:a6bb60a3adf976031f2870203285b1fc7a56e71e21232cd23bba544b178b5f15",
+      "byteLength": 6275,
       "treatment": "adapt",
       "runtimeUse": "descriptive_evidence"
     },
@@ -1752,8 +1737,8 @@
       "contentRole": "reference",
       "contentHash": "sha256:4db2708f335c94cb024b5eba022b1e3d88b1ec61c94c4716626d9b89684f5833",
       "byteLength": 2660,
-      "treatment": "defer",
-      "runtimeUse": "unavailable_reference"
+      "treatment": "adapt",
+      "runtimeUse": "descriptive_evidence"
     },
     {
       "path": "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
@@ -1770,8 +1755,17 @@
       "contentRole": "script",
       "contentHash": "sha256:040e0f1c13d31e6a21c518df943d1d7de7b75d8d98a07603b0983f3f3fb500db",
       "byteLength": 10472,
-      "treatment": "reject",
-      "runtimeUse": "blocked_executable"
+      "treatment": "adapt",
+      "runtimeUse": "descriptive_evidence"
+    },
+    {
+      "path": "src/bmm-skills/3-solutioning/bmad-architecture/scripts/tests/test_lint_spine.py",
+      "locationKind": "source_tree",
+      "contentRole": "script",
+      "contentHash": "sha256:e86bb9a62c5cca74ddc89c843386f2b992610fcc1792d40e03bc9cd445b77681",
+      "byteLength": 9932,
+      "treatment": "adapt",
+      "runtimeUse": "descriptive_evidence"
     },
     {
       "path": "src/bmm-skills/3-solutioning/bmad-create-architecture/SKILL.md",
@@ -1863,7 +1857,7 @@
       "description": "Create the architecture spine that keeps independently built units consistent.",
       "metadataOrigin": "source",
       "sourceEntrypointPath": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
-      "sourceEntrypointHash": "sha256:a56c7a0abc45e1dba719ae5e66b7169a1098b403e7fd69b30c19f16c12cddc6a",
+      "sourceEntrypointHash": "sha256:89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf",
       "resourceSetHash": "sha256:435679bb352803acade0e293fb8a6cd9a0be04c81faeb67c3793c103b7826941",
       "instructionProjectionHash": "sha256:c4a15122cc3dfc34e30a55f3762cb434275013bd27d88267f6f7f0d8eab1ce3a",
       "distributionProfile": "sapphirus_package",
@@ -2041,5 +2035,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:655a9e17813f44261d7b027c8306a43ee6181949e3aa75634c7ef48df6dc5d13"
+  "descriptorHash": "sha256:dabf9d6c341fa90f471a98d498a509aae930406131ae2e22821a76a99e1622d3"
 }

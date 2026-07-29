@@ -39,7 +39,23 @@ pub enum BmadSkillToolIntent {
     ExternalHandoff,
 }
 
+/// Host authority lane an inert source intent must enter. This preserves
+/// distinctions that the coarser action-plan kind cannot safely express:
+/// workspace reads, network reads, browser automation, and external handoffs
+/// are never interchangeable merely because none is a direct file mutation.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum BmadSkillAuthorityRoute {
+    WorkspaceRead,
+    WorkspaceWrite,
+    Process,
+    Network,
+    Subagent,
+    Browser,
+    ExternalHandoff,
+}
+
 impl BmadSkillToolIntent {
+    #[must_use]
     pub const fn source_name(self) -> &'static str {
         match self {
             Self::FileRead => "file_read",
@@ -62,6 +78,20 @@ impl BmadSkillToolIntent {
             Self::Process => BmadActionPlanKind::CommandProposal,
             Self::Subagent => BmadActionPlanKind::ModelCall,
             Self::ExternalHandoff => BmadActionPlanKind::ArtifactPlan,
+        }
+    }
+
+    /// Returns the distinct host authority route for this source intent.
+    #[must_use]
+    pub const fn authority_route(self) -> BmadSkillAuthorityRoute {
+        match self {
+            Self::FileRead => BmadSkillAuthorityRoute::WorkspaceRead,
+            Self::FileWrite => BmadSkillAuthorityRoute::WorkspaceWrite,
+            Self::Process => BmadSkillAuthorityRoute::Process,
+            Self::Web => BmadSkillAuthorityRoute::Network,
+            Self::Subagent => BmadSkillAuthorityRoute::Subagent,
+            Self::Browser => BmadSkillAuthorityRoute::Browser,
+            Self::ExternalHandoff => BmadSkillAuthorityRoute::ExternalHandoff,
         }
     }
 }

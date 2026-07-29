@@ -182,3 +182,39 @@ test("readiness source-derived goldens prove parity and durable lifecycle branch
     "upgrade",
   ]);
 });
+
+// Break caught: the runtime adapter can be executable while the generated
+// UI projection still leaves Architecture in the planned-only state.
+test("generated UI projections advertise only canonical qualified Architecture", async () => {
+  const catalog = await readJson("capability-catalog.json");
+  const [rust, typescript] = await Promise.all([
+    readFile(new URL("../../crates/desktop-app/src/generated/bmad_capabilities.rs", root), "utf8"),
+    readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
+  ]);
+  const rows = catalog.capabilities.filter(
+    (row) => row.canonicalId === "bmm:bmad-architecture",
+  );
+  assert.deepEqual(
+    rows
+      .filter(
+        (row) =>
+          row.visibility === "public"
+          && row.uiState === "runtime_available"
+          && row.supportState !== "unavailable",
+      )
+      .map((row) => row.rowId),
+    ["method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md"],
+  );
+  assert.match(
+    rust,
+    /pub const UI_ADVERTISED_CAPABILITIES[\s\S]*row_id: "method:src\/bmm-skills\/3-solutioning\/bmad-architecture\/SKILL\.md"/,
+  );
+  assert.doesNotMatch(
+    rust.split("pub const UI_ADVERTISED_CAPABILITIES", 2)[1],
+    /v6-shims\/bmad-create-architecture/,
+  );
+  assert.match(
+    typescript,
+    /canonicalId": "bmm:bmad-architecture"[\s\S]*uiState": "runtime_available"/,
+  );
+});

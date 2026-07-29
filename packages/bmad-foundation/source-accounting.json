@@ -33,16 +33,17 @@
     "builder_public_actions": 9,
     "builder_internal_actions": 1,
     "runtime_support": {
+      "adapted": 1,
       "exact": 2,
-      "implementation_pending": 51
+      "implementation_pending": 50
     },
     "ui_support": {
-      "planned": 51,
-      "runtime_available": 2
+      "planned": 50,
+      "runtime_available": 3
     },
     "release_state": {
-      "blocked_pending_conformance": 51,
-      "qualified": 2
+      "blocked_pending_conformance": 50,
+      "qualified": 3
     }
   },
   "builder_actions": [
@@ -10045,9 +10046,9 @@
         "authority_negative",
         "output_conformance"
       ],
-      "support_state": "implementation_pending",
-      "ui_state": "planned",
-      "release_state": "blocked_pending_conformance"
+      "support_state": "adapted",
+      "ui_state": "runtime_available",
+      "release_state": "qualified"
     },
     {
       "member_key": "method:src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/customize.toml",

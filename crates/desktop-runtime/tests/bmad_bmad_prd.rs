@@ -134,7 +134,7 @@ fn prd_request(mode: BmadInvocationMode) -> BmadSkillExecutionRequest {
             "sha256:020773a36111d798aaadbed06a1aaa40ae4c830140ebcd2b4f035245beb29d17",
         ),
         capability_catalog_hash: digest(
-            "sha256:56e4a4583b6e35790afbe8f968b2cc5f78d6d8baee54ec5167a8bf4db03b1875",
+            "sha256:d6a3198652479968f7b7f6e2eacb16af2611143631200c2a5dfc3f492400de00",
         ),
         agent_roster_hash: None,
         agent_binding_hash: None,

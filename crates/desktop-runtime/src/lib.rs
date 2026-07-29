@@ -92,7 +92,7 @@ pub use bmad::{
     BmadReviewFindingInput, BmadReviewRequest, BmadReviewSkill, BmadReviewedPromptReference,
     BmadRuntimePort, BmadSealedHelpInvocation, BmadSessionCommand, BmadSessionCommandError,
     BmadSessionEvent, BmadSessionIntent, BmadSessionProjection, BmadSessionTransitionError,
-    BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillDispatchError,
+    BmadSkillAuthorityRoute, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillDispatchError,
     BmadSkillExecutionCompiler, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
     BmadSkillExecutionError, BmadSkillExecutionPreparedPlan, BmadSkillExecutionRequest,
     BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillHarnessError,
