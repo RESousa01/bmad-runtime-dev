@@ -21,7 +21,14 @@
 // `process.exitCode = 1`. A successful run prints one JSON summary to
 // stdout.
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -97,7 +104,7 @@ function usage() {
 }
 
 function parseArgs(argv) {
-  const flags = { skill: null, all: false };
+  const flags = { skill: null, all: false, json: null };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === "--skill") {
@@ -106,6 +113,10 @@ function parseArgs(argv) {
       if (!flags.skill) usage();
     } else if (token === "--all") {
       flags.all = true;
+    } else if (token === "--json") {
+      index += 1;
+      flags.json = argv[index];
+      if (!flags.json) usage();
     } else {
       usage();
     }
@@ -118,6 +129,21 @@ function methodRows(catalog) {
   return catalog.capabilities.filter(
     (capability) => capability.source.class === "primary_method_skill",
   );
+}
+
+function resolveSkillSelector(selector, catalog) {
+  const rows = methodRows(catalog);
+  const exact = rows.find((row) => row.rowId === selector);
+  if (exact) return exact.rowId;
+  const matches = rows.filter(
+    (row) =>
+      row.source.path === selector
+      || row.source.path.endsWith(`/${selector}/SKILL.md`),
+  );
+  if (matches.length !== 1) {
+    fail(`skill selector ${selector} did not resolve exactly once`);
+  }
+  return matches[0].rowId;
 }
 
 function listFiles(root) {
@@ -196,10 +222,15 @@ function checkSkill(rowId, catalog) {
 }
 
 export function run(argv = process.argv.slice(2)) {
+  let receiptPath = null;
   try {
     const flags = parseArgs(argv);
+    receiptPath = flags.json;
+    if (receiptPath) rmSync(receiptPath, { force: true });
     const catalog = readJson(catalogPath);
-    const targets = flags.all ? methodRows(catalog).map((row) => row.rowId) : [flags.skill];
+    const targets = flags.all
+      ? methodRows(catalog).map((row) => row.rowId)
+      : [resolveSkillSelector(flags.skill, catalog)];
 
     const failures = targets.flatMap((rowId) => checkSkill(rowId, catalog));
     if (failures.length > 0) fail(failures[0]);
@@ -210,9 +241,16 @@ export function run(argv = process.argv.slice(2)) {
       skillsChecked: targets.length,
       skills: targets,
     };
-    process.stdout.write(`${JSON.stringify(summary)}\n`);
+    const serialized = `${JSON.stringify(summary)}\n`;
+    if (receiptPath) writeFileSync(receiptPath, serialized, "utf8");
+    process.stdout.write(serialized);
     return 0;
   } catch (error) {
+    if (!receiptPath) {
+      const index = argv.indexOf("--json");
+      receiptPath = index >= 0 ? argv[index + 1] : null;
+    }
+    if (receiptPath) rmSync(receiptPath, { force: true });
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     return 1;
   }

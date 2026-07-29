@@ -20,10 +20,11 @@ use desktop_egress::{
 use desktop_ipc::{BmadProjectionError, BmadRuntimeMenuCapabilityBinding};
 use desktop_runtime::{
     canonical_hash, deserialize_strict_json, sha256_bytes, BmadAgentRoster, BmadBuilderDraftFile,
-    BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput, BmadClosureCapabilityId,
-    BmadDocumentArtifact, BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft,
-    BmadMethodSkill, BmadPrdSkill, BmadSkillExecutionError, ContractId, RelativeWorkspacePath,
-    Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
+    BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
+    BmadCheckImplementationReadinessSkill, BmadClosureCapabilityId, BmadDocumentArtifact,
+    BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft, BmadMethodSkill,
+    BmadPrdSkill, BmadSkillExecutionError, ContractId, RelativeWorkspacePath, Sha256Digest,
+    UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
     BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 use serde::Serialize;
@@ -420,6 +421,8 @@ fn generated_catalog_shape_is_current() -> bool {
 }
 
 static BMAD_PRD_SKILL: BmadPrdSkill = BmadPrdSkill;
+static BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL: BmadCheckImplementationReadinessSkill =
+    BmadCheckImplementationReadinessSkill;
 
 fn canonical_method_skill(
     capability_id: &str,
@@ -428,6 +431,7 @@ fn canonical_method_skill(
         capability_binding(capability_id).ok_or(BmadSkillExecutionError::ContractUnavailable)?;
     match binding.id {
         "bmm:bmad-prd" => Ok(&BMAD_PRD_SKILL),
+        "bmm:bmad-check-implementation-readiness" => Ok(&BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL),
         _ => Err(BmadSkillExecutionError::ContractUnavailable),
     }
 }
@@ -493,13 +497,15 @@ pub(crate) fn runtime_capability_enabled(
     roster: &BmadAgentRoster,
     binding: &CapabilityBinding,
 ) -> Result<bool, BmadProjectionError> {
-    if binding.id == "bmm:bmad-prd"
-        && (!UI_ADVERTISED_CAPABILITIES
-            .iter()
-            .any(|row| row.canonical_id == binding.id)
-            || canonical_method_skill(binding.id)
-                .and_then(|skill| skill.execution_contract())
-                .is_err())
+    if matches!(
+        binding.id,
+        "bmm:bmad-prd" | "bmm:bmad-check-implementation-readiness"
+    ) && (!UI_ADVERTISED_CAPABILITIES
+        .iter()
+        .any(|row| row.canonical_id == binding.id)
+        || canonical_method_skill(binding.id)
+            .and_then(|skill| skill.execution_contract())
+            .is_err())
     {
         return Err(BmadProjectionError::Unavailable);
     }
@@ -1508,9 +1514,9 @@ mod tests {
         }
     }
 
-    // Break caught: keeping PRD in the reviewed menu/catalog tables while the
-    // app host has no canonical route to the opted-in runtime adapter makes
-    // the capability visible but still unreachable.
+    // Break caught: keeping a runtime-available Method row in generated
+    // catalog/Help projections while the app host has no canonical route to
+    // its opted-in adapter makes the capability visible but unreachable.
     #[test]
     fn canonical_prd_dispatch_resolves_the_explicit_generic_runtime_adapter() {
         let skill = canonical_method_skill("bmm:bmad-prd")
@@ -1525,6 +1531,17 @@ mod tests {
             canonical_method_skill("bmm:not-reviewed"),
             Err(BmadSkillExecutionError::ContractUnavailable)
         ));
+    }
+
+    #[test]
+    fn canonical_readiness_dispatch_resolves_the_explicit_generic_runtime_adapter() {
+        let skill = canonical_method_skill("bmm:bmad-check-implementation-readiness")
+            .expect("reviewed readiness capability resolves to its runtime adapter");
+        assert_eq!(
+            skill.descriptor().canonical_id(),
+            "bmm:bmad-check-implementation-readiness"
+        );
+        assert!(skill.execution_contract().is_ok());
     }
 
     #[test]

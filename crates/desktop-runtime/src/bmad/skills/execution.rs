@@ -10,12 +10,14 @@ use std::collections::BTreeSet;
 use thiserror::Error;
 
 use crate::generated_contracts::{BmadActionPlanKind, BmadArtifactKind, BmadInvocationMode};
-use crate::{canonical_hash, ContractId, Sha256Digest};
+use crate::{
+    canonical_hash, BmadCapabilityKey, ContractId, MethodServiceError, MethodSession, Sha256Digest,
+};
 
 use super::harness::{BmadMethodSkill, BmadSkillDescriptor, BmadSkillSupportState};
 use crate::bmad::{
     BmadResource, BmadResourceSet, MethodArtifactExpectation, MethodExactBinding,
-    MethodExecutionProfile, MethodStepTable,
+    MethodExecutionProfile, MethodModelBinding, MethodStepTable,
 };
 
 const MAX_WORKFLOW_STEPS: usize = 64;
@@ -38,7 +40,7 @@ pub enum BmadSkillToolIntent {
 }
 
 impl BmadSkillToolIntent {
-    const fn source_name(self) -> &'static str {
+    pub const fn source_name(self) -> &'static str {
         match self {
             Self::FileRead => "file_read",
             Self::FileWrite => "file_write",
@@ -142,6 +144,50 @@ pub struct BmadSkillExecutionContract {
     recovery: BmadSkillRecoverySemantics,
 }
 
+/// Host-owned dynamic identities required to bind a sealed skill contract to
+/// one exact, still-inert Method request.
+#[derive(Clone, Debug)]
+pub struct BmadSkillHostBindingInput {
+    pub mode: BmadInvocationMode,
+    pub action: Option<String>,
+    pub resolved_config_graph_hash: Sha256Digest,
+    pub resolved_config_hash: Sha256Digest,
+    pub resolved_customization_hash: Sha256Digest,
+    pub model_binding: MethodModelBinding,
+    pub egress_profile_hash: Sha256Digest,
+}
+
+/// One source-validated preparation bound into the established durable Method
+/// session service.
+#[derive(Clone, Debug)]
+pub struct BmadDispatchedSkillExecution {
+    prepared: BmadPreparedSkillExecution,
+    session: MethodSession,
+}
+
+impl BmadDispatchedSkillExecution {
+    #[must_use]
+    pub const fn prepared(&self) -> &BmadPreparedSkillExecution {
+        &self.prepared
+    }
+
+    #[must_use]
+    pub const fn session(&self) -> &MethodSession {
+        &self.session
+    }
+
+    pub(crate) const fn new(prepared: BmadPreparedSkillExecution, session: MethodSession) -> Self {
+        Self { prepared, session }
+    }
+}
+
+/// Fail-closed preparation or established-service persistence failure.
+#[derive(Debug)]
+pub enum BmadSkillDispatchError<E> {
+    Preparation(BmadSkillExecutionError),
+    Lifecycle(MethodServiceError<E>),
+}
+
 impl BmadSkillExecutionContract {
     /// Validates an explicit, source-bound execution declaration.
     ///
@@ -216,6 +262,65 @@ impl BmadSkillExecutionContract {
     #[must_use]
     pub fn package_version(&self) -> &str {
         &self.package_version
+    }
+
+    /// Binds trusted host identities without duplicating sealed package
+    /// constants in desktop dispatch code.
+    ///
+    /// # Errors
+    ///
+    /// Returns a closed binding error if the dynamic identities disagree with
+    /// this contract.
+    pub fn bind_host_request(
+        &self,
+        input: BmadSkillHostBindingInput,
+    ) -> Result<BmadSkillExecutionRequest, BmadSkillExecutionError> {
+        let (module_code, skill_name) = canonical_skill_identity(&self.descriptor)?;
+        let resources = BmadResourceSet::new(self.descriptor.declared_resources().to_vec())
+            .map_err(|_| BmadSkillExecutionError::ResourceMismatch)?;
+        let exact_binding = MethodExactBinding {
+            capability_key: BmadCapabilityKey {
+                package_version_id: self.package_version_id.clone(),
+                module_code: module_code.to_owned(),
+                skill_name: skill_name.to_owned(),
+                normalized_action: input.action.clone(),
+            },
+            package_descriptor_hash: self.package_descriptor_hash,
+            package_source_hash: self.package_source_hash,
+            instruction_projection_hash: self.instruction_projection_hash,
+            capability_catalog_hash: self.capability_catalog_hash,
+            agent_roster_hash: None,
+            agent_binding_hash: None,
+            agent_binding: None,
+            distribution_profile: self.distribution_profile.clone(),
+            install_profile: self.install_profile.clone(),
+            entrypoint_kind: self.execution_profile.data.entrypoint_kind.clone(),
+            execution_profile_hash: self.execution_profile.profile_hash,
+            execution_profile: self.execution_profile.clone(),
+            validation_profile: self.execution_profile.data.validation_profile.clone(),
+            validation_profile_hash: self.validation_profile_hash,
+            config_graph_hash: input.resolved_config_graph_hash,
+            config_resolution_hash: input.resolved_config_hash,
+            customization_hash: input.resolved_customization_hash,
+            resource_set_hash: self.resource_set_hash,
+            model_binding_hash: input.model_binding.binding_hash,
+            model_binding: input.model_binding,
+            method_schema_hash: self.method_schema_hash,
+            egress_profile_hash: input.egress_profile_hash,
+            artifact_expectations: self.artifact_expectations.clone(),
+        };
+        let request = BmadSkillExecutionRequest {
+            mode: input.mode,
+            action: input.action,
+            exact_binding,
+            resources,
+            resolved_config_graph_hash: input.resolved_config_graph_hash,
+            resolved_config_hash: input.resolved_config_hash,
+            resolved_customization_hash: input.resolved_customization_hash,
+        };
+        validate_invocation(&self.descriptor, &self.execution_profile, &request)?;
+        validate_binding(self, &request)?;
+        Ok(request)
     }
 
     /// Computes the sealed resource-set digest used in an exact Method binding.

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "sapphirus.bmad100.method-golden.v1",
+  "taskId": "MTH-13",
+  "canonicalId": "bmm:bmad-check-implementation-readiness",
+  "sourceEntrypoint": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+  "sourceSha256": "a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
+  "declaredModes": [
+    "interactive",
+    "headless"
+  ],
+  "requiredOutputs": {
+    "interactive": {
+      "artifactKind": "document",
+      "mediaType": "text/markdown",
+      "sourceOutputHint": "{planning_artifacts}/implementation-readiness-report-{{date}}.md",
+      "completionHook": "persist_artifacts",
+      "follower": "bmm:bmad-help"
+    },
+    "headless": {
+      "artifactKind": "document",
+      "mediaType": "text/markdown",
+      "sourceOutputHint": "{planning_artifacts}/implementation-readiness-report-{{date}}.md",
+      "completionHook": "persist_artifacts",
+      "follower": "bmm:bmad-help"
+    }
+  },
+  "workflow": {
+    "initialStep": "document_discovery",
+    "steps": [
+      "document_discovery",
+      "prd_analysis",
+      "epic_coverage_validation",
+      "ux_alignment",
+      "epic_quality_review",
+      "final_assessment"
+    ]
+  },
+  "lifecycleCases": [
+    "cancel",
+    "fail",
+    "retry",
+    "repair",
+    "restart",
+    "resume",
+    "upgrade"
+  ],
+  "authority": {
+    "sourceIntents": [
+      "file_read",
+      "file_write",
+      "process",
+      "external_handoff"
+    ],
+    "runtimeAuthority": "host_governed_only"
+  }
+}
