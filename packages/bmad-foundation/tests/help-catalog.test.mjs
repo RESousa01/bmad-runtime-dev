@@ -62,8 +62,8 @@ test("BMAD Help capability graph is an exact generated catalog-and-alias project
         id,
         sourceId: sourceIds[0],
         phase,
-        predecessorIds: [],
-        followerIds: [],
+        predecessorIds: [...new Set(rows.flatMap((row) => row.predecessorIds ?? []))].sort(),
+        followerIds: [...new Set(rows.flatMap((row) => row.followerIds ?? []))].sort(),
         outputLocations: [...new Set(rows.flatMap((row) => row.outputs))].sort(),
         supportState: canonical.supportState,
         uiState: canonical.uiState,
@@ -140,6 +140,33 @@ test("BMAD Help exposes canonical PRD exact runtime availability without promoti
       ["bmm:bmad-validate-prd", true],
     ],
   );
+});
+
+test("BMAD Help and UI retain the source-derived UX actions followers and outputs", async () => {
+  const [catalog, graph, typescript] = await Promise.all([
+    readJson("capability-catalog.json"),
+    readJson("normalized/bmad-help-capability-graph.json"),
+    readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
+  ]);
+  const row = catalog.capabilities.find(
+    (candidate) =>
+      candidate.rowId ===
+      "method:src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+  );
+  const node = graph.nodes.find((candidate) => candidate.id === "bmm:bmad-ux");
+
+  assert.deepEqual(row?.declaredActions, ["create", "update", "validate"]);
+  assert.deepEqual(node?.followerIds, [
+    "bmm:bmad-architecture",
+    "bmm:bmad-create-epics-and-stories",
+    "bmm:bmad-dev-story",
+  ]);
+  assert.deepEqual(node?.outputLocations, [
+    "planning_artifacts/DESIGN.md",
+    "planning_artifacts/EXPERIENCE.md",
+    "planning_artifacts/validation-report.{md,html}",
+  ]);
+  assert.match(typescript, /"declaredActions": \[\s*"create",\s*"update",\s*"validate"/);
 });
 
 test("BMAD Help action graph nodes are unique and canonically ordered", async () => {

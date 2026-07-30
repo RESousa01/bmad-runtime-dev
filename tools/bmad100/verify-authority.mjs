@@ -32,8 +32,6 @@ import {
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { fixtureDirName } from "../../packages/bmad-foundation/scripts/conformance.mjs";
-
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const foundationRoot = resolve(repositoryRoot, "packages/bmad-foundation");
 const catalogPath = resolve(foundationRoot, "capability-catalog.json");
@@ -209,7 +207,8 @@ function checkSkill(rowId, catalog) {
     );
   }
 
-  const adapterPath = resolve(adapterDir, `${fixtureDirName(rowId)}.rs`);
+  const adapterName = catalogRow.source.path.split("/").at(-2).replaceAll("-", "_");
+  const adapterPath = resolve(adapterDir, `${adapterName}.rs`);
   if (existsSync(adapterPath)) {
     const text = readFileSync(adapterPath, "utf8");
     for (const violation of violatingLines(adapterPath, text)) {

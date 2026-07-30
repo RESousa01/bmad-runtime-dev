@@ -47,6 +47,29 @@ function methodAliasFor(member) {
   return `${namespace}:${skillNameFromPath(member.path)}`;
 }
 
+// Source-derived execution and navigation details that are richer than the
+// one-row discovery identity. The generator owns these so Help, TypeScript UI,
+// and the catalog cannot drift into parallel handwritten interpretations.
+const METHOD_RUNTIME_PROJECTIONS = new Map([
+  [
+    "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+    {
+      declaredActions: ["create", "update", "validate"],
+      predecessorIds: [],
+      followerIds: [
+        "bmm:bmad-architecture",
+        "bmm:bmad-create-epics-and-stories",
+        "bmm:bmad-dev-story",
+      ],
+      outputs: [
+        "planning_artifacts/DESIGN.md",
+        "planning_artifacts/EXPERIENCE.md",
+        "planning_artifacts/validation-report.{md,html}",
+      ],
+    },
+  ],
+]);
+
 function methodRow(member, aliasesByTarget, ledgerByRowId) {
   const rowId = `method:${member.path}`;
   const ledgerRow = ledgerByRowId.get(rowId);
@@ -58,6 +81,12 @@ function methodRow(member, aliasesByTarget, ledgerByRowId) {
   ) {
     throw new Error(`Compatibility-ledger identity drift for ${rowId}`);
   }
+  const runtimeProjection = METHOD_RUNTIME_PROJECTIONS.get(member.path) ?? {
+    declaredActions: [],
+    predecessorIds: [],
+    followerIds: [],
+    outputs: ["governed_artifact"],
+  };
   return {
     rowId,
     source: {
@@ -70,6 +99,7 @@ function methodRow(member, aliasesByTarget, ledgerByRowId) {
     canonicalId: member.target_capability,
     aliases: aliasesByTarget.get(member.target_capability) ?? [],
     action: null,
+    declaredActions: runtimeProjection.declaredActions,
     args: [],
     modes: ["interactive", "headless"],
     requirements: [
@@ -78,7 +108,9 @@ function methodRow(member, aliasesByTarget, ledgerByRowId) {
       "post_validation",
       "durable_evidence",
     ],
-    outputs: ["governed_artifact"],
+    outputs: runtimeProjection.outputs,
+    predecessorIds: runtimeProjection.predecessorIds,
+    followerIds: runtimeProjection.followerIds,
     supportState: ledgerRow.supportState,
     uiState: member.ui_state,
     visibility: "public",
@@ -105,6 +137,7 @@ function builderRow(action, skillMember, aliasesByTarget) {
     canonicalId: action.id,
     aliases: aliasesByTarget.get(action.id) ?? [],
     action: action.action,
+    declaredActions: [action.action],
     args: [],
     modes: ["interactive", "headless"],
     requirements: [
@@ -115,6 +148,8 @@ function builderRow(action, skillMember, aliasesByTarget) {
       ...action.implementation_tasks.map((taskId) => `task:${taskId}`),
     ],
     outputs: ["inactive_builder_draft"],
+    predecessorIds: [],
+    followerIds: [],
     supportState: action.support_state,
     uiState: action.ui_state,
     visibility: action.visibility,
@@ -230,8 +265,8 @@ function buildHelpCapabilityGraph(catalog, aliasCatalog, catalogText, aliasCatal
         id,
         sourceId: oneDerivedValue(rows.map((row) => row.source.id), `${id}.sourceId`),
         phase: phaseForRow(canonical),
-        predecessorIds: [],
-        followerIds: [],
+        predecessorIds: [...new Set(rows.flatMap((row) => row.predecessorIds ?? []))].sort(),
+        followerIds: [...new Set(rows.flatMap((row) => row.followerIds ?? []))].sort(),
         outputLocations: [...new Set(rows.flatMap((row) => row.outputs))].sort(),
         supportState: canonical.supportState,
         uiState: canonical.uiState,

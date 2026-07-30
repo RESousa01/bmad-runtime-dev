@@ -129,6 +129,14 @@ impl BmadTrustedHelpModelProfile {
     pub const fn request_schema_hash(&self) -> Sha256Digest {
         self.binding.data.request_schema_hash
     }
+
+    /// Returns the validated host model binding for an exact Method-skill
+    /// dispatch. This grants no model authority; the binding is immutable
+    /// identity data consumed by the existing Method session service.
+    #[must_use]
+    pub fn method_model_binding(&self) -> MethodModelBinding {
+        self.binding.clone()
+    }
 }
 
 /// Exact, sealed Help composition. It remains intentionally non-runnable.

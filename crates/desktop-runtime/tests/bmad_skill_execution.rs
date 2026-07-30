@@ -185,6 +185,11 @@ fn contract_for_descriptor(
                 source_resource_hash: descriptor.source_sha256(),
             }],
         },
+        action_branches: vec![desktop_runtime::BmadSkillExecutionActionBranch {
+            action: "create".to_owned(),
+            initial_step_key: "draft".to_owned(),
+            artifact_expectation_ids: vec![artifact_expectation().expectation_id],
+        }],
         tool_intents: vec![
             BmadSkillToolIntent::FileRead,
             BmadSkillToolIntent::ExternalHandoff,

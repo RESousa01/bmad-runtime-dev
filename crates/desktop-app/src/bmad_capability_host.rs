@@ -23,8 +23,8 @@ use desktop_runtime::{
     BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput,
     BmadCheckImplementationReadinessSkill, BmadClosureCapabilityId, BmadDocumentArtifact,
     BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft, BmadMethodSkill,
-    BmadPrdSkill, BmadSkillExecutionError, ContractId, RelativeWorkspacePath, Sha256Digest,
-    UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
+    BmadPrdSkill, BmadSkillExecutionError, BmadUxSkill, ContractId, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
     BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 use serde::Serialize;
@@ -423,17 +423,27 @@ fn generated_catalog_shape_is_current() -> bool {
 static BMAD_PRD_SKILL: BmadPrdSkill = BmadPrdSkill;
 static BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL: BmadCheckImplementationReadinessSkill =
     BmadCheckImplementationReadinessSkill;
+static BMAD_UX_SKILL: BmadUxSkill = BmadUxSkill;
 
-fn canonical_method_skill(
+pub(crate) fn canonical_method_skill(
     capability_id: &str,
 ) -> Result<&'static dyn BmadMethodSkill, BmadSkillExecutionError> {
     let binding =
         capability_binding(capability_id).ok_or(BmadSkillExecutionError::ContractUnavailable)?;
     match binding.id {
         "bmm:bmad-prd" => Ok(&BMAD_PRD_SKILL),
+        "bmm:bmad-ux" => Ok(&BMAD_UX_SKILL),
         "bmm:bmad-check-implementation-readiness" => Ok(&BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL),
         _ => Err(BmadSkillExecutionError::ContractUnavailable),
     }
+}
+
+/// The source-declared action selected by the existing one-click capability
+/// surface. UX creation is the only actionful canonical row currently exposed
+/// by that surface; Update and Validate remain available through the same
+/// descriptor-bound dispatch contract for action-aware callers.
+pub(crate) fn canonical_method_default_action(capability_id: &str) -> Option<&'static str> {
+    (capability_id == "bmm:bmad-ux").then_some("create")
 }
 
 fn catalog_target(capability_id: &str) -> Option<&'static str> {
@@ -499,7 +509,7 @@ pub(crate) fn runtime_capability_enabled(
 ) -> Result<bool, BmadProjectionError> {
     if matches!(
         binding.id,
-        "bmm:bmad-prd" | "bmm:bmad-check-implementation-readiness"
+        "bmm:bmad-prd" | "bmm:bmad-ux" | "bmm:bmad-check-implementation-readiness"
     ) && (!UI_ADVERTISED_CAPABILITIES
         .iter()
         .any(|row| row.canonical_id == binding.id)
@@ -1541,6 +1551,14 @@ mod tests {
             skill.descriptor().canonical_id(),
             "bmm:bmad-check-implementation-readiness"
         );
+        assert!(skill.execution_contract().is_ok());
+    }
+
+    #[test]
+    fn canonical_ux_dispatch_resolves_the_explicit_generic_runtime_adapter() {
+        let skill = canonical_method_skill("bmm:bmad-ux")
+            .expect("reviewed UX capability resolves to its runtime adapter");
+        assert_eq!(skill.descriptor().canonical_id(), "bmm:bmad-ux");
         assert!(skill.execution_contract().is_ok());
     }
 

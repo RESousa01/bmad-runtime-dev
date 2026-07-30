@@ -182,3 +182,114 @@ test("readiness source-derived goldens prove parity and durable lifecycle branch
     "upgrade",
   ]);
 });
+
+const uxRowId = "method:src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md";
+const uxCanonicalId = "bmm:bmad-ux";
+const uxResources = [
+  "src/bmm-skills/2-plan-workflows/bmad-ux/customize.toml",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/color-themes.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-directions.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-editorial.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-mobile.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-shadcn.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/excalidraw-wireframe.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-mobile.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-shadcn.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/headless-schemas.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/key-screens.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/assets/validation-report-template.html",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/references/creative-tools.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/references/headless.md",
+  "src/bmm-skills/2-plan-workflows/bmad-ux/references/validate.md",
+];
+
+test("UX normalized envelope adapts the exact pinned micro-file package", async () => {
+  const envelope = await readJson("normalized/bmad-ux.package.json");
+  assert.equal(envelope.capability.skillName, "bmad-ux");
+  assert.equal(envelope.instructionProjection.sourceEntrypoint.treatment, "adapt");
+  assert.deepEqual(
+    envelope.instructionProjection.sourceResources.map(({ path }) => path),
+    uxResources,
+  );
+  for (const resource of envelope.instructionProjection.sourceResources) {
+    const bytes = await readFile(new URL(`source/method/6.10.0/${resource.path}`, root));
+    const hash = createHash("sha256").update(bytes).digest("hex");
+    assert.equal(resource.contentHash, `sha256:${hash}`);
+    assert.equal(resource.treatment, "adapt");
+  }
+});
+
+test("UX catalog Help UI Rust ledger and runtime manifest derive one state", async () => {
+  const [catalog, ledger, accounting, help, manifest, typescript, rust, normalizedBytes] =
+    await Promise.all([
+      readJson("capability-catalog.json"),
+      readJson("compatibility-ledger.json"),
+      readJson("source-accounting.json"),
+      readJson("normalized/bmad-help-capability-graph.json"),
+      readJson("runtime-manifest.json"),
+      readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
+      readFile(
+        new URL("../../crates/desktop-app/src/generated/bmad_capabilities.rs", root),
+        "utf8",
+      ),
+      readFile(new URL("normalized/bmad-ux.package.json", root)),
+    ]);
+  const catalogRow = catalog.capabilities.find((row) => row.rowId === uxRowId);
+  const ledgerRow = ledger.rows.find((row) => row.rowId === uxRowId);
+  const accountingRow = accounting.members.find(
+    (member) => member.member_key === uxRowId,
+  );
+  const helpNode = help.nodes.find((node) => node.id === uxCanonicalId);
+  const manifestResource = manifest.resources.find(
+    (resource) => resource.path === "normalized/bmad-ux.package.json",
+  );
+  const normalizedHash = createHash("sha256").update(normalizedBytes).digest("hex");
+
+  // The compatibility decision adopts this pinned capability identity. Its
+  // execution treatment is separately and explicitly adapted into native,
+  // typed Method authority; the two scopes must not be conflated.
+  assert.equal(ledgerRow.decision, "adopt");
+  assert.equal(accountingRow.treatment, "adapt");
+  assert.equal(ledgerRow.supportState, "exact");
+  assert.equal(catalogRow.supportState, "exact");
+  assert.equal(catalogRow.uiState, "runtime_available");
+  assert.deepEqual(catalogRow.declaredActions, ["create", "update", "validate"]);
+  assert.deepEqual(helpNode.followerIds, [
+    "bmm:bmad-architecture",
+    "bmm:bmad-create-epics-and-stories",
+    "bmm:bmad-dev-story",
+  ]);
+  assert.deepEqual(helpNode.outputLocations, [
+    "planning_artifacts/DESIGN.md",
+    "planning_artifacts/EXPERIENCE.md",
+    "planning_artifacts/validation-report.{md,html}",
+  ]);
+  assert.match(typescript, /bmm:bmad-ux/);
+  assert.match(rust, /bmm:bmad-ux/);
+  assert.equal(manifestResource.contentHash, `sha256:${normalizedHash}`);
+});
+
+test("UX source-derived goldens prove action parity and complete durable recovery", async () => {
+  const golden = await readJson(
+    "../../artifacts/bmad100/method/bmad-ux/golden/source-derived-cases.json",
+  );
+  assert.deepEqual(golden.declaredModes, ["interactive", "headless"]);
+  assert.equal(golden.modeParity.interactiveAndHeadlessUseIdenticalActionBranches, true);
+  assert.deepEqual(Object.keys(golden.declaredActions), ["create", "update", "validate"]);
+  assert.deepEqual(golden.lifecycleCases, [
+    "cancel",
+    "fail",
+    "retry",
+    "repair",
+    "restart",
+    "resume",
+    "upgrade",
+    "stale_upgrade",
+  ]);
+  assert.deepEqual(golden.authority.distinctHostReplacements, {
+    web: "network_unavailable_fact",
+    browser: "browser_unavailable_fact",
+    external_handoff: "external_handoff_unavailable_fact",
+  });
+});

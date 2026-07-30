@@ -193,12 +193,12 @@ pub use skills::{
     BmadForgeIdeaSkill, BmadGenerateProjectContextSkill, BmadHelpSkill, BmadMethodSkill,
     BmadPartyModeSkill, BmadPrdSkill, BmadPreparedSkillExecution, BmadPrfaqSkill,
     BmadProductBriefSkill, BmadReviewSkill, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillDispatchError, BmadSkillExecutionCompiler, BmadSkillExecutionContract,
-    BmadSkillExecutionContractInput, BmadSkillExecutionError, BmadSkillExecutionPreparedPlan,
-    BmadSkillExecutionRequest, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
-    BmadSkillHarnessError, BmadSkillHostBindingInput, BmadSkillRecoverySemantics,
-    BmadSkillSupportState, BmadSkillToolIntent, BmadSpecSkill, BmadUxSkill,
-    BMAD_SKILL_HARNESS_SCHEMA,
+    BmadSkillDispatchError, BmadSkillExecutionActionBranch, BmadSkillExecutionCompiler,
+    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
+    BmadSkillExecutionPreparedPlan, BmadSkillExecutionRequest, BmadSkillExecutionStep,
+    BmadSkillExecutionWorkflow, BmadSkillHarnessError, BmadSkillHostBindingInput,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, BmadSpecSkill,
+    BmadUxSkill, BMAD_SKILL_HARNESS_SCHEMA,
 };
 pub use source::{BmadSourcePackage, BmadSourceService};
 pub use state_machine::{

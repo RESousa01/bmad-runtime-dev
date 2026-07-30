@@ -172,7 +172,7 @@ impl BmadMethodSkill for BmadPrdSkill {
                 "sha256:020773a36111d798aaadbed06a1aaa40ae4c830140ebcd2b4f035245beb29d17",
             )?,
             capability_catalog_hash: digest(
-                "sha256:56e4a4583b6e35790afbe8f968b2cc5f78d6d8baee54ec5167a8bf4db03b1875",
+                "sha256:141c49232e202e4981244e13d336f840998c065503d418e218516da7e6b16515",
             )?,
             distribution_profile: "sapphirus_package".to_owned(),
             install_profile: "SapphirusManagedV1".to_owned(),
@@ -193,6 +193,7 @@ impl BmadMethodSkill for BmadPrdSkill {
                     source_resource_hash: source_hash,
                 }],
             },
+            action_branches: Vec::new(),
             tool_intents: vec![
                 BmadSkillToolIntent::FileRead,
                 BmadSkillToolIntent::FileWrite,

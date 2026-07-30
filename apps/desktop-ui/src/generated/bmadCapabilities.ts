@@ -14,6 +14,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-agent-analyst",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -28,6 +29,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -51,6 +54,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-agent-tech-writer",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -65,6 +69,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -88,6 +94,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-document-project",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -102,6 +109,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -125,6 +134,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-prfaq",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -139,6 +149,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -162,6 +174,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-product-brief",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -176,6 +189,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -199,6 +214,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-agent-pm",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -213,6 +229,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -236,6 +254,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-agent-ux-designer",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -250,6 +269,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -277,6 +298,7 @@ export const bmadCapabilities = [
       "bmm:bmad-validate-prd"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -291,6 +313,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "runtime_available",
     "visibility": "public",
@@ -314,6 +338,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-spec",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -328,6 +353,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -351,6 +378,11 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-ux",
     "aliases": [],
     "action": null,
+    "declaredActions": [
+      "create",
+      "update",
+      "validate"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -363,10 +395,18 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "planning_artifacts/DESIGN.md",
+      "planning_artifacts/EXPERIENCE.md",
+      "planning_artifacts/validation-report.{md,html}"
+    ],
+    "predecessorIds": [],
+    "followerIds": [
+      "bmm:bmad-architecture",
+      "bmm:bmad-create-epics-and-stories",
+      "bmm:bmad-dev-story"
     ],
     "supportState": "exact",
-    "uiState": "planned",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {
@@ -388,6 +428,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-agent-architect",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -402,6 +443,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -427,6 +470,7 @@ export const bmadCapabilities = [
       "bmm:bmad-create-architecture"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -441,6 +485,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -464,6 +510,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-check-implementation-readiness",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -478,6 +525,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "runtime_available",
     "visibility": "public",
@@ -501,6 +550,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-create-epics-and-stories",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -515,6 +565,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -538,6 +590,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-generate-project-context",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -552,6 +605,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -575,6 +630,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-agent-dev",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -589,6 +645,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -612,6 +670,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-checkpoint-preview",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -626,6 +685,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -649,6 +710,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-code-review",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -663,6 +725,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -686,6 +750,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-correct-course",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -700,6 +765,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -723,6 +790,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-create-story",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -737,6 +805,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -760,6 +830,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-dev-auto",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -774,6 +845,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -797,6 +870,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-dev-story",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -811,6 +885,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -834,6 +910,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-qa-generate-e2e-tests",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -848,6 +925,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -871,6 +950,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-quick-dev",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -885,6 +965,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -908,6 +990,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-retrospective",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -922,6 +1005,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -945,6 +1030,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-sprint-planning",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -959,6 +1045,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -982,6 +1070,7 @@ export const bmadCapabilities = [
     "canonicalId": "bmm:bmad-sprint-status",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -996,6 +1085,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1021,6 +1112,7 @@ export const bmadCapabilities = [
       "bmm:bmad-create-architecture"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1035,6 +1127,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1062,6 +1156,7 @@ export const bmadCapabilities = [
       "bmm:bmad-validate-prd"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1076,6 +1171,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1103,6 +1200,7 @@ export const bmadCapabilities = [
       "bmm:bmad-technical-research"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1117,6 +1215,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1144,6 +1244,7 @@ export const bmadCapabilities = [
       "bmm:bmad-validate-prd"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1158,6 +1259,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1185,6 +1288,7 @@ export const bmadCapabilities = [
       "bmm:bmad-technical-research"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1199,6 +1303,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1226,6 +1332,7 @@ export const bmadCapabilities = [
       "bmm:bmad-technical-research"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1240,6 +1347,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1267,6 +1376,7 @@ export const bmadCapabilities = [
       "bmm:bmad-validate-prd"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1281,6 +1391,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1304,6 +1416,7 @@ export const bmadCapabilities = [
     "canonicalId": "core:bmad-advanced-elicitation",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1318,6 +1431,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -1341,6 +1456,7 @@ export const bmadCapabilities = [
     "canonicalId": "core:bmad-brainstorming",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1355,6 +1471,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -1378,6 +1496,7 @@ export const bmadCapabilities = [
     "canonicalId": "core:bmad-customize",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1392,6 +1511,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -1419,6 +1540,7 @@ export const bmadCapabilities = [
       "bmm:bmad-technical-research"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1433,6 +1555,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -1456,6 +1580,7 @@ export const bmadCapabilities = [
     "canonicalId": "core:bmad-forge-idea",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1470,6 +1595,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -1493,6 +1620,7 @@ export const bmadCapabilities = [
     "canonicalId": "core:bmad-help",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1507,6 +1635,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "adapted",
     "uiState": "planned",
     "visibility": "public",
@@ -1530,6 +1660,7 @@ export const bmadCapabilities = [
     "canonicalId": "core:bmad-party-mode",
     "aliases": [],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1544,6 +1675,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -1574,6 +1707,7 @@ export const bmadCapabilities = [
       "core:bmad-review-verification-gap"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1588,6 +1722,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "exact",
     "uiState": "planned",
     "visibility": "public",
@@ -1618,6 +1754,7 @@ export const bmadCapabilities = [
       "core:bmad-review-verification-gap"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1632,6 +1769,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1662,6 +1801,7 @@ export const bmadCapabilities = [
       "core:bmad-review-verification-gap"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1676,6 +1816,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1706,6 +1848,7 @@ export const bmadCapabilities = [
       "core:bmad-review-verification-gap"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1720,6 +1863,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1750,6 +1895,7 @@ export const bmadCapabilities = [
       "core:bmad-review-verification-gap"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1764,6 +1910,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1794,6 +1942,7 @@ export const bmadCapabilities = [
       "core:bmad-review-verification-gap"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1808,6 +1957,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1838,6 +1989,7 @@ export const bmadCapabilities = [
       "core:bmad-review-verification-gap"
     ],
     "action": null,
+    "declaredActions": [],
     "args": [],
     "modes": [
       "interactive",
@@ -1852,6 +2004,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "unavailable",
     "uiState": "planned",
     "visibility": "public",
@@ -1875,6 +2029,9 @@ export const bmadCapabilities = [
     "canonicalId": "builder:bmad-bmb-setup:configure",
     "aliases": [],
     "action": "configure",
+    "declaredActions": [
+      "configure"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -1891,6 +2048,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "planned",
     "visibility": "public",
@@ -1917,6 +2076,9 @@ export const bmadCapabilities = [
       "builder:agent.edit"
     ],
     "action": "build-process",
+    "declaredActions": [
+      "build-process"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -1936,6 +2098,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "planned",
     "visibility": "public",
@@ -1961,6 +2125,9 @@ export const bmadCapabilities = [
       "builder:agent.analyze"
     ],
     "action": "quality-analysis",
+    "declaredActions": [
+      "quality-analysis"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -1978,6 +2145,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "planned",
     "visibility": "public",
@@ -2003,6 +2172,9 @@ export const bmadCapabilities = [
       "builder:workflow.build_edit"
     ],
     "action": "build-process",
+    "declaredActions": [
+      "build-process"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -2021,6 +2193,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "planned",
     "visibility": "public",
@@ -2046,6 +2220,9 @@ export const bmadCapabilities = [
       "builder:workflow.analyze"
     ],
     "action": "quality-analysis",
+    "declaredActions": [
+      "quality-analysis"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -2062,6 +2239,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "planned",
     "visibility": "public",
@@ -2085,6 +2264,9 @@ export const bmadCapabilities = [
     "canonicalId": "builder:bmad-workflow-builder:convert-process",
     "aliases": [],
     "action": "convert-process",
+    "declaredActions": [
+      "convert-process"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -2100,6 +2282,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "planned",
     "visibility": "public",
@@ -2123,6 +2307,9 @@ export const bmadCapabilities = [
     "canonicalId": "builder:bmad-module-builder:ideate-module",
     "aliases": [],
     "action": "ideate-module",
+    "declaredActions": [
+      "ideate-module"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -2138,6 +2325,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "planned",
     "visibility": "public",
@@ -2161,6 +2350,9 @@ export const bmadCapabilities = [
     "canonicalId": "builder:bmad-module-builder:create-module",
     "aliases": [],
     "action": "create-module",
+    "declaredActions": [
+      "create-module"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -2178,6 +2370,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "planned",
     "visibility": "public",
@@ -2201,6 +2395,9 @@ export const bmadCapabilities = [
     "canonicalId": "builder:bmad-module-builder:validate-module",
     "aliases": [],
     "action": "validate-module",
+    "declaredActions": [
+      "validate-module"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -2216,6 +2413,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "planned",
     "visibility": "public",
@@ -2239,6 +2438,9 @@ export const bmadCapabilities = [
     "canonicalId": "builder:bmad-eval-runner:run-evals",
     "aliases": [],
     "action": "run-evals",
+    "declaredActions": [
+      "run-evals"
+    ],
     "args": [],
     "modes": [
       "interactive",
@@ -2260,6 +2462,8 @@ export const bmadCapabilities = [
     "outputs": [
       "inactive_builder_draft"
     ],
+    "predecessorIds": [],
+    "followerIds": [],
     "supportState": "implementation_pending",
     "uiState": "internal",
     "visibility": "internal",

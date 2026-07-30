@@ -14,9 +14,11 @@ use desktop_ipc::{
     ModelAuthStatusKindProjection, ValidatedCommandEnvelope,
 };
 use desktop_runtime::{
-    canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
-    CreateInertBmadHelpSession, InertBmadHelpSessionCoordinator, LocalCommand, LocalError,
-    LocalErrorCode, ProjectionEventKind, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    canonical_hash, generated_contracts::BmadInvocationMode, BmadDomainRuntime, BmadHelpIntent,
+    BmadLibraryProjectionScope, BmadSkillHostBindingInput, CommandReceipt, ContractId,
+    CreateInertBmadHelpSession, CreateMethodSession, InertBmadHelpSessionCoordinator, LocalCommand,
+    LocalError, LocalErrorCode, MethodSessionService, ProjectionEventKind, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis,
 };
 use desktop_store::{
     BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
@@ -2354,11 +2356,25 @@ fn prepare_bmad_capability_run(
         },
     )
     .map_err(map_capability_error)?;
+    let method_run_id = prepare_input.run_id.clone();
     let review = state
         .bmad_capabilities
         .lock()
         .prepare(prepare_input)
         .map_err(map_capability_error)?;
+    if let Err(error) = dispatch_ux_method_session(
+        state,
+        foundation,
+        authority.authority(),
+        binding,
+        &configuration,
+        &project_id,
+        &method_run_id,
+        created_at,
+    ) {
+        state.bmad_capabilities.lock().invalidate();
+        return Err(error);
+    }
     drop(authority);
     Ok(HostCommandData::CapabilityReview(
         crate::wire::CapabilityReviewWire::new(
@@ -2366,6 +2382,84 @@ fn prepare_bmad_capability_run(
             architecture_step.map(crate::bmad_architecture::selected_step_progress),
         ),
     ))
+}
+
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the production Method dispatch binds each already-validated host identity explicitly"
+)]
+fn dispatch_ux_method_session(
+    state: &HostState,
+    foundation: &BmadLoadedFoundation,
+    authority: &ReadyAuthorityGuard<'_>,
+    binding: &'static crate::bmad_capability_host::CapabilityBinding,
+    configuration: &crate::bmad_model::config::HelpModelConfiguration,
+    project_id: &ContractId,
+    run_id: &ContractId,
+    created_at: UnixMillis,
+) -> Result<(), LocalError> {
+    if binding.id != "bmm:bmad-ux" {
+        return Ok(());
+    }
+    let skill = crate::bmad_capability_host::canonical_method_skill(binding.id)
+        .map_err(|_| method_dispatch_error())?;
+    let action = crate::bmad_capability_host::canonical_method_default_action(binding.id);
+    let contract = skill
+        .execution_contract()
+        .map_err(|_| method_dispatch_error())?;
+    let request = contract
+        .bind_host_request(BmadSkillHostBindingInput {
+            mode: BmadInvocationMode::Interactive,
+            action: action.map(str::to_owned),
+            resolved_config_graph_hash: foundation.manifest_hash(),
+            resolved_config_hash: foundation.semantic_ledger_hash(),
+            resolved_customization_hash: canonical_hash(
+                "bmad-canonical-method-customization",
+                1,
+                &(binding.id, binding.projection_path),
+            )
+            .map_err(|_| method_dispatch_error())?,
+            model_binding: configuration.trusted_profile.method_model_binding(),
+            egress_profile_hash: configuration.trusted_profile.egress_profile_hash(),
+        })
+        .map_err(|_| method_dispatch_error())?;
+    let local_identity = state
+        .local_identity(authority)
+        .map_err(|_| method_dispatch_error())?;
+    let session_digest = canonical_hash(
+        "bmad-canonical-method-session-id",
+        1,
+        &(binding.id, run_id.as_str(), action),
+    )
+    .map_err(|_| method_dispatch_error())?;
+    let session_id = crate::bmad_model::context::derived_contract_id("method", session_digest)
+        .map_err(|_| method_dispatch_error())?;
+    let creation = CreateMethodSession {
+        session_id,
+        owner_scope_ref: local_identity.owner_scope_ref().clone(),
+        project_id: project_id.clone(),
+        run_id: run_id.clone(),
+        authority_ref: local_identity
+            .authority_ref()
+            .map_err(|_| method_dispatch_error())?,
+        created_at,
+    };
+    let store = state
+        .method_store(authority)
+        .map_err(|_| method_dispatch_error())?;
+    let service = MethodSessionService::new(store);
+    BmadDomainRuntime
+        .dispatch_skill_execution(&service, skill, request, creation)
+        .map_err(|_| method_dispatch_error())?;
+    Ok(())
+}
+
+fn method_dispatch_error() -> LocalError {
+    LocalError::new(
+        LocalErrorCode::IntegrityFailure,
+        "The canonical Method capability could not enter its durable authority session.",
+        false,
+    )
 }
 
 fn approve_bmad_capability_run(
@@ -4458,6 +4552,73 @@ planning_artifacts = \"{project-root}/docs/plan\"
         assert!(!serde_json::to_string(&review)
             .expect("review serializes")
             .contains("architecture"));
+    }
+
+    // Break caught: advertising UX and compiling its descriptor without the
+    // real capability command durably entering Method would leave the UI
+    // review lane and authority state split.
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn ux_prepare_command_persists_the_exact_capability_bound_method_session(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{MethodSessionRepository, MethodSessionScope, MethodState};
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let workspace_id = id(&workspace_id);
+        let HostCommandData::CapabilityReview(review) = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            workspace_id.clone(),
+            1,
+            "bmm:bmad-ux",
+            Vec::new(),
+            UnixMillis(10_000),
+        )
+        .expect("UX command prepares") else {
+            return Err("expected a capability review projection".into());
+        };
+
+        let workspace = state
+            .workspace
+            .authorize_scope(workspace_id.as_str(), 1)
+            .expect("workspace authority")
+            .projection();
+        let project_id = ContractId::new(workspace.project_id)?;
+        let ready = state.ready_authority()?;
+        let identity = state.local_identity(&ready)?;
+        let scope = MethodSessionScope {
+            owner_scope_ref: identity.owner_scope_ref().clone(),
+            project_id,
+            run_id: review.run_id.clone(),
+            authority_ref: identity.authority_ref()?,
+        };
+        let session_digest = canonical_hash(
+            "bmad-canonical-method-session-id",
+            1,
+            &("bmm:bmad-ux", review.run_id.as_str(), Some("create")),
+        )?;
+        let session_id = crate::bmad_model::context::derived_contract_id("method", session_digest)?;
+        let session = state
+            .method_store(&ready)?
+            .load_method_session(&scope, &session_id)?
+            .expect("persisted UX Method session");
+        assert_eq!(session.state(), MethodState::CapabilityBound);
+        assert_eq!(
+            session
+                .current_binding()
+                .expect("exact binding")
+                .capability_key
+                .normalized_action
+                .as_deref(),
+            Some("create")
+        );
+        Ok(())
     }
 
     #[cfg(feature = "deterministic-help")]

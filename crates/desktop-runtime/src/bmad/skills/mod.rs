@@ -19,10 +19,10 @@ pub use adapters::{
 };
 pub use execution::{
     BmadDispatchedSkillExecution, BmadPreparedSkillExecution, BmadSkillDispatchError,
-    BmadSkillExecutionCompiler, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
-    BmadSkillExecutionError, BmadSkillExecutionPreparedPlan, BmadSkillExecutionRequest,
-    BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillHostBindingInput,
-    BmadSkillRecoverySemantics, BmadSkillToolIntent,
+    BmadSkillExecutionActionBranch, BmadSkillExecutionCompiler, BmadSkillExecutionContract,
+    BmadSkillExecutionContractInput, BmadSkillExecutionError, BmadSkillExecutionPreparedPlan,
+    BmadSkillExecutionRequest, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillHostBindingInput, BmadSkillRecoverySemantics, BmadSkillToolIntent,
 };
 pub use harness::{
     BmadMethodSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillHarnessError,

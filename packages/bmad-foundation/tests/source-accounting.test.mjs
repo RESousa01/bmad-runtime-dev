@@ -43,6 +43,9 @@ test("qualified Method source rows are runtime-available while other rows stay p
       member.path
       === "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
   );
+  const ux = accounting.members.find(
+    (member) => member.path === "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+  );
 
   assert.equal(prd?.support_state, "exact");
   assert.equal(prd?.ui_state, "runtime_available");
@@ -50,17 +53,20 @@ test("qualified Method source rows are runtime-available while other rows stay p
   assert.equal(readiness?.support_state, "exact");
   assert.equal(readiness?.ui_state, "runtime_available");
   assert.equal(readiness?.release_state, "qualified");
+  assert.equal(ux?.support_state, "exact");
+  assert.equal(ux?.ui_state, "runtime_available");
+  assert.equal(ux?.release_state, "qualified");
   assert.deepEqual(accounting.totals.runtime_support, {
-    exact: 2,
-    implementation_pending: 51,
+    exact: 3,
+    implementation_pending: 50,
   });
   assert.deepEqual(accounting.totals.ui_support, {
-    planned: 51,
-    runtime_available: 2,
+    planned: 50,
+    runtime_available: 3,
   });
   assert.deepEqual(accounting.totals.release_state, {
-    blocked_pending_conformance: 51,
-    qualified: 2,
+    blocked_pending_conformance: 50,
+    qualified: 3,
   });
 });
 

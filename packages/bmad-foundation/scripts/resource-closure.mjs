@@ -72,9 +72,13 @@ const sealedEdgeDispositions = [
     member_sha256:
       "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
     literal: "https://github.com/google-labs-code/design.md",
-    disposition: "external_authority_rejected",
+    disposition: "external_authority_rejected_pinned_projection",
     authority_identity: "github:google-labs-code/design.md",
     governance_owner: "MTH-10",
+    projection_member_path:
+      "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
+    projection_member_sha256:
+      "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
   },
   {
     ...methodPackage,
@@ -82,9 +86,13 @@ const sealedEdgeDispositions = [
     member_sha256:
       "250d2794f2b8e316bb1ba4666f0728970afd8a5d2707ac1cceac6c21e63730b6",
     literal: "https://github.com/google-labs-code/design.md",
-    disposition: "external_authority_rejected",
+    disposition: "external_authority_rejected_pinned_projection",
     authority_identity: "github:google-labs-code/design.md",
     governance_owner: "MTH-10",
+    projection_member_path:
+      "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
+    projection_member_sha256:
+      "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
   },
 ];
 
@@ -94,37 +102,30 @@ function fail(message) {
 
 function parseArgs(argv) {
   if (argv.length === 1 && argv[0] === "--self-test") {
-    return { selfTest: true, check: false, source: null, skill: null, json: null };
+    return { mode: "--self-test", source: null, skill: null, json: null };
   }
-  const flags = {
-    selfTest: false,
-    check: false,
-    source: null,
-    skill: null,
-    json: null,
-  };
+  const flags = { mode: null, source: null, skill: null, json: null };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === "--check") {
-      flags.check = true;
+      flags.mode = "--check";
     } else if (token === "--source") {
-      flags.source = argv[index + 1];
-      index += 1;
-      if (!flags.source) fail("missing value for --source");
+      flags.source = argv[++index];
     } else if (token === "--skill") {
-      flags.skill = argv[index + 1];
-      index += 1;
-      if (!flags.skill) fail("missing value for --skill");
+      flags.skill = argv[++index];
     } else if (token === "--json") {
-      flags.json = argv[index + 1];
-      index += 1;
+      flags.json = argv[++index];
       if (!flags.json) fail("missing value for --json");
     } else {
-      fail("usage: node packages/bmad-foundation/scripts/resource-closure.mjs [--source <id@version>] [--skill <name>] --check|--self-test");
+      fail("usage: node packages/bmad-foundation/scripts/resource-closure.mjs [--source <id@version> --skill <name>] --check|--self-test");
     }
   }
-  if (!flags.check) {
-    fail("usage: node packages/bmad-foundation/scripts/resource-closure.mjs [--source <id@version>] [--skill <name>] --check|--self-test");
+  if (
+    flags.mode !== "--check" ||
+    (flags.source === null) !== (flags.skill === null) ||
+    (flags.source !== null && (!flags.source || !flags.skill))
+  ) {
+    fail("usage: node packages/bmad-foundation/scripts/resource-closure.mjs [--source <id@version> --skill <name>] --check|--self-test");
   }
   return flags;
 }
@@ -390,6 +391,26 @@ function validatedDispositionIndex(source, memberRecords, dispositions) {
         );
       }
     } else if (
+      disposition.disposition ===
+      "external_authority_rejected_pinned_projection"
+    ) {
+      const projection = membersByPath.get(
+        disposition.projection_member_path,
+      );
+      if (
+        !/^https?:/iu.test(disposition.literal) ||
+        !disposition.authority_identity ||
+        !disposition.governance_owner ||
+        target ||
+        !projection ||
+        !disposition.projection_member_sha256 ||
+        projection.contentHash !== disposition.projection_member_sha256
+      ) {
+        fail(
+          `${source.id} invalid pinned-projection disposition for ${disposition.member_path}: ${disposition.literal}`,
+        );
+      }
+    } else if (
       disposition.disposition !== "package_resource_mandatory" &&
       disposition.disposition !== "package_resource_optional"
     ) {
@@ -513,6 +534,12 @@ export function evaluateResourceReferences({
           ? {
               authority_identity: sealed.authority_identity,
               governance_owner: sealed.governance_owner,
+            }
+          : {}),
+        ...(sealed?.projection_member_path
+          ? {
+              projection_member_path: sealed.projection_member_path,
+              projection_member_sha256: sealed.projection_member_sha256,
             }
           : {}),
       };
@@ -702,7 +729,7 @@ function runSelfTest() {
   process.stdout.write("resource-closure self-test passed\n");
 }
 
-function verifiedInventory(source, manifest, sourceRoot) {
+function verifiedInventory(source, manifest, sourceRoot, memberPrefix = null) {
   assertContained(resolve(packageRoot, "source", source.id), sourceRoot, source.id);
   const manifestSource = manifest.sources.find((entry) => entry.id === source.id);
   if (!manifestSource || manifestSource.version !== source.version || manifestSource.archive_sha256 !== source.archive_sha256) {
@@ -712,10 +739,19 @@ function verifiedInventory(source, manifest, sourceRoot) {
   if (manifestMembers.length !== source.regular_file_count) {
     fail(`${source.id} manifest count differs from the pinned archive count`);
   }
-  const archivedFiles = manifestMembers.filter((entry) => entry.entry_type === "file");
+  const archivedFiles = manifestMembers.filter(
+    (entry) =>
+      entry.entry_type === "file" &&
+      (memberPrefix === null || entry.path.startsWith(memberPrefix)),
+  );
   const sidecars = source.id === "builder" ? builderGovernanceSidecars : [];
-  const expectedDiskPaths = new Set([...archivedFiles.map((entry) => entry.path), ...sidecars]);
-  const actualDiskPaths = listRegularFiles(sourceRoot);
+  const expectedDiskPaths = new Set([
+    ...archivedFiles.map((entry) => entry.path),
+    ...(memberPrefix === null ? sidecars : []),
+  ]);
+  const actualDiskPaths = listRegularFiles(sourceRoot).filter(
+    (path) => memberPrefix === null || path.startsWith(memberPrefix),
+  );
   const actualSet = new Set(actualDiskPaths);
   const unexpected = actualDiskPaths.find((path) => !expectedDiskPaths.has(path));
   const omitted = [...expectedDiskPaths].find((path) => !actualSet.has(path));
@@ -730,8 +766,29 @@ function verifiedInventory(source, manifest, sourceRoot) {
   return { members: actualDiskPaths, sidecars, manifestMembers };
 }
 
-function buildPackageClosure(source, manifest, sourceRoot) {
-  const inventory = verifiedInventory(source, manifest, sourceRoot);
+function buildPackageClosure(source, manifest, sourceRoot, skill = null) {
+  const manifestRoot =
+    skill === null
+      ? null
+      : manifest.members.find(
+          (entry) =>
+            entry.source_id === source.id &&
+            entry.entry_type === "file" &&
+            entry.path.endsWith(`/${skill}/SKILL.md`),
+        )?.path;
+  if (skill !== null && !manifestRoot) {
+    fail(`${source.id} has no pinned primary skill ${skill}`);
+  }
+  const memberPrefix =
+    manifestRoot === null
+      ? null
+      : manifestRoot.slice(0, -"SKILL.md".length);
+  const inventory = verifiedInventory(
+    source,
+    manifest,
+    sourceRoot,
+    memberPrefix,
+  );
   const members = inventory.members;
   const caseFolded = new Set();
   const identityByPath = new Map();
@@ -765,7 +822,12 @@ function buildPackageClosure(source, manifest, sourceRoot) {
     source,
     members: memberRecords,
     referencePaths,
-    dispositions: sealedEdgeDispositions,
+    dispositions:
+      memberPrefix === null
+        ? sealedEdgeDispositions
+        : sealedEdgeDispositions.filter((entry) =>
+            entry.member_path.startsWith(memberPrefix),
+          ),
   });
   directedEdges.push(...classified.directedEdges);
   const missing = classified.missing;
@@ -813,42 +875,34 @@ export function run(argv = process.argv.slice(2)) {
     const flags = parseArgs(argv);
     receiptPath = flags.json;
     if (receiptPath) rmSync(receiptPath, { force: true });
-    if (flags.selfTest) {
+    if (flags.mode === "--self-test") {
       runSelfTest();
       return 0;
     }
     const lock = readJson(sourceLockPath);
     const manifest = readJson(sourceManifestPath);
     if (!Array.isArray(lock.sources) || lock.sources.length === 0) fail("pinned source lock is empty");
-    const packages = lock.sources.map((source) => {
+    const selectedSources =
+      flags.source === null
+        ? lock.sources
+        : lock.sources.filter(
+            (source) => `${source.id}@${source.version}` === flags.source,
+          );
+    if (selectedSources.length !== (flags.source === null ? lock.sources.length : 1)) {
+      fail(`unknown pinned source ${flags.source}`);
+    }
+    const packages = selectedSources.map((source) => {
       if (!source.id || !source.version || !source.package_name || !source.archive_sha256) {
         fail("pinned source lock has an incomplete source identity");
       }
-      return buildPackageClosure(source, manifest, resolve(packageRoot, "source", source.id, source.version));
+      return buildPackageClosure(
+        source,
+        manifest,
+        resolve(packageRoot, "source", source.id, source.version),
+        flags.skill,
+      );
     });
-    const selectedPackages = packages
-      .filter((closure) => {
-        if (!flags.source) return true;
-        return (
-          `${closure.source.id}@${closure.source.version}` === flags.source
-          || closure.source.package_identity === flags.source
-        );
-      })
-      .map((closure) => ({
-        ...closure,
-        skills: flags.skill
-          ? closure.skills.filter(
-              (skill) =>
-                skill.root === flags.skill
-                || skill.root.endsWith(`/${flags.skill}/SKILL.md`),
-            )
-          : closure.skills,
-      }));
-    if (selectedPackages.length === 0) fail(`unknown source ${flags.source}`);
-    if (flags.skill && selectedPackages.reduce((count, closure) => count + closure.skills.length, 0) !== 1) {
-      fail(`skill selector ${flags.skill} did not resolve exactly once`);
-    }
-    const failures = selectedPackages.flatMap((closure) => [
+    const failures = packages.flatMap((closure) => [
       ...closure.missing.map((entry) => `${closure.source.id}: missing ${entry.literal} from ${entry.from}`),
       ...closure.invalid.map((entry) => `${closure.source.id}: unsafe ${entry.literal} from ${entry.from}`),
       ...closure.cycles.map((cycle) => `${closure.source.id}: cycle ${cycle}`),
@@ -860,7 +914,7 @@ export function run(argv = process.argv.slice(2)) {
     const summary = {
       schema_version: "sapphirus.bmad.resource-closure/v1",
       generated_by: "packages/bmad-foundation/scripts/resource-closure.mjs",
-      packages: selectedPackages.map((closure) => ({
+      packages: packages.map((closure) => ({
         source: closure.source,
         members: closure.members.length,
         cache_entries: closure.content_hash_cache.length,
@@ -881,6 +935,12 @@ export function run(argv = process.argv.slice(2)) {
             ? {
                 authority_identity: edge.authority_identity,
                 governance_owner: edge.governance_owner,
+              }
+            : {}),
+          ...(edge.projection_member_path
+            ? {
+                projection_member_path: edge.projection_member_path,
+                projection_member_sha256: edge.projection_member_sha256,
               }
             : {}),
         })),

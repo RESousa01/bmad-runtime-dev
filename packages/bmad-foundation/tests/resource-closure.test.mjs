@@ -172,6 +172,89 @@ test("rejected external authority is evidenced as an activation blocker, not loc
   assert.equal(result.activationBlockers[0].to, null);
 });
 
+test("rejected external authority may use an exact pinned local projection without granting remote authority", () => {
+  const skill = member(
+    "skills/ux/SKILL.md",
+    "[authority](https://example.invalid/design.md)\n",
+  );
+  const projection = member(
+    "skills/ux/references/design-md-spec.md",
+    "# Pinned local design summary\n",
+  );
+  const result = evaluateResourceReferences({
+    source,
+    members: [skill, projection],
+    referencePaths: [skill.path, projection.path],
+    dispositions: [
+      {
+        ...seal(
+          skill,
+          "https://example.invalid/design.md",
+          "external_authority_rejected_pinned_projection",
+        ),
+        authority_identity: "example:design.md",
+        governance_owner: "MTH-10",
+        projection_member_path: projection.path,
+        projection_member_sha256: projection.contentHash,
+      },
+    ],
+  });
+
+  assert.deepEqual(result.missing, []);
+  assert.deepEqual(result.invalid, []);
+  assert.deepEqual(result.activationBlockers, []);
+  assert.equal(
+    result.directedEdges[0].disposition,
+    "external_authority_rejected_pinned_projection",
+  );
+  assert.equal(
+    result.directedEdges[0].projection_member_path,
+    projection.path,
+  );
+  assert.equal(
+    result.directedEdges[0].projection_member_sha256,
+    projection.contentHash,
+  );
+});
+
+test("pinned local projection rejects missing or hash-drifted projection evidence", () => {
+  const skill = member(
+    "skills/ux/SKILL.md",
+    "[authority](https://example.invalid/design.md)\n",
+  );
+  const projection = member(
+    "skills/ux/references/design-md-spec.md",
+    "# Pinned local design summary\n",
+  );
+
+  for (const projection_member_sha256 of ["0".repeat(64), undefined]) {
+    assert.throws(
+      () =>
+        evaluateResourceReferences({
+          source,
+          members: [skill, projection],
+          referencePaths: [skill.path, projection.path],
+          dispositions: [
+            {
+              ...seal(
+                skill,
+                "https://example.invalid/design.md",
+                "external_authority_rejected_pinned_projection",
+              ),
+              authority_identity: "example:design.md",
+              governance_owner: "MTH-10",
+              projection_member_path: projection.path,
+              ...(projection_member_sha256
+                ? { projection_member_sha256 }
+                : {}),
+            },
+          ],
+        }),
+      /invalid pinned-projection disposition/u,
+    );
+  }
+});
+
 test("mandatory denominator includes local package edges but excludes generated outputs and rejected authorities", () => {
   const skill = member(
     "skills/mixed/SKILL.md",
@@ -308,12 +391,23 @@ test("an exact seal cannot bypass the same literal from a different member", () 
   );
 });
 
-test("package-wide check reports blockers separately and never marks bmad-ux invokable", () => {
-  const result = spawnSync(process.execPath, [scriptPath, "--check"], {
+test("focused check activates bmad-ux only through its hash-bound pinned projection", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      scriptPath,
+      "--source",
+      "method@6.10.0",
+      "--skill",
+      "bmad-ux",
+      "--check",
+    ],
+    {
     cwd: packageRoot,
     encoding: "utf8",
     env: { ...process.env, NO_COLOR: "1" },
-  });
+    },
+  );
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
   const summary = JSON.parse(result.stdout);
@@ -326,19 +420,22 @@ test("package-wide check reports blockers separately and never marks bmad-ux inv
       "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
   );
   assert.equal(ux.closure_percent, 100);
-  assert.equal(ux.activation_allowed, false);
-  assert.ok(
-    ux.activation_blockers.every(
-      (blocker) =>
-        blocker.disposition === "external_authority_rejected" &&
-        blocker.governance_owner === "MTH-10",
-    ),
+  assert.equal(ux.activation_allowed, true);
+  assert.deepEqual(ux.activation_blockers, []);
+  const uxProjectionEdges = method.edge_dispositions.filter(
+    (edge) =>
+      edge.disposition ===
+      "external_authority_rejected_pinned_projection",
   );
+  assert.equal(uxProjectionEdges.length, 2);
   assert.ok(
-    method.edge_dispositions.some(
-      (edge) =>
-        edge.disposition === "generated_output" &&
-        edge.output_identity === "bmad-document-project:project-overview.md",
+    uxProjectionEdges.every(
+      (blocker) =>
+        blocker.governance_owner === "MTH-10" &&
+        blocker.projection_member_path ===
+          "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md" &&
+        blocker.projection_member_sha256 ===
+          "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
     ),
   );
 });

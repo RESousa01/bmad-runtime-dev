@@ -1,8 +1,8 @@
 {
   "schemaVersion": "sapphirus.bmad-help-capability-graph.v1",
   "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
-  "sourceCatalogSha256": "93ed7312aefb638ee7a0b7b48310a04374aeb4dcdbd30da661e5eff1bfba3466",
-  "sourceAliasCatalogSha256": "bd8f4a8da3303f25c64e384b410b0cd709ae3ee151ffed5d61e5a3a86b539b71",
+  "sourceCatalogSha256": "141c49232e202e4981244e13d336f840998c065503d418e218516da7e6b16515",
+  "sourceAliasCatalogSha256": "018266638ae6b2d4ce22cd898976e8f9c9b247bfc2e9d763b59c545e07550e30",
   "nodeCount": 45,
   "nodes": [
     {
@@ -430,16 +430,22 @@
       "sourceId": "method",
       "phase": "planning",
       "predecessorIds": [],
-      "followerIds": [],
+      "followerIds": [
+        "bmm:bmad-architecture",
+        "bmm:bmad-create-epics-and-stories",
+        "bmm:bmad-dev-story"
+      ],
       "outputLocations": [
-        "governed_artifact"
+        "planning_artifacts/DESIGN.md",
+        "planning_artifacts/EXPERIENCE.md",
+        "planning_artifacts/validation-report.{md,html}"
       ],
       "supportState": "exact",
-      "uiState": "planned",
+      "uiState": "runtime_available",
       "rowIds": [
         "method:src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md"
       ],
-      "nodeHash": "sha256:1448129e9ebf52419fd85d89f89c8c7aaba74595780d6b202f4bd431266eb66d"
+      "nodeHash": "sha256:60973b18ef2921ea706ff645c24e2aaad3224908a3eacc96be831899900a63aa"
     },
     {
       "id": "builder:bmad-agent-builder:build-process",
@@ -831,5 +837,5 @@
       "deprecated": true
     }
   ],
-  "graphHash": "sha256:ee754088695f5a58787e5e7e234df447249daa7dbefd5b60a6279e07f8b46404"
+  "graphHash": "sha256:ea5f3b3228b58c08f011b82f76567d394406958e81c9c7287a7d9942d5681ca8"
 }

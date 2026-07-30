@@ -109,7 +109,7 @@ impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
                 "sha256:8335100a0c468f03cf6187a0dc58dcc0435328727c1740f7c70b947122a58cca",
             )?,
             capability_catalog_hash: digest(
-                "sha256:4aa54a86e1bd868cb84cfcdb4d790a088dd0d2f370ac230c1082092acb5be60f",
+                "sha256:141c49232e202e4981244e13d336f840998c065503d418e218516da7e6b16515",
             )?,
             distribution_profile: "sapphirus_package".to_owned(),
             install_profile: "SapphirusManagedV1".to_owned(),
@@ -121,6 +121,7 @@ impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
                 "sha256:dda02f453dcf4edbb3fc66e0ad3a7c59d7087f5b44b526e40c435456c8c248c2",
             )?,
             workflow: workflow()?,
+            action_branches: Vec::new(),
             tool_intents: vec![
                 BmadSkillToolIntent::FileRead,
                 BmadSkillToolIntent::FileWrite,

@@ -5,7 +5,7 @@
 //! declarations and returns data for the host's existing persistence, Airlock,
 //! model, and artifact ports; it neither owns a session nor performs an effect.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use thiserror::Error;
 
@@ -91,6 +91,18 @@ pub struct BmadSkillExecutionWorkflow {
     pub steps: Vec<BmadSkillExecutionStep>,
 }
 
+/// One source-declared action branch within a canonical skill workflow.
+///
+/// Branches select a source-bound entry step and the artifacts required for
+/// that action. They do not create another executor: the resulting
+/// [`MethodStepTable`] is still consumed by the existing Method session.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BmadSkillExecutionActionBranch {
+    pub action: String,
+    pub initial_step_key: String,
+    pub artifact_expectation_ids: Vec<ContractId>,
+}
+
 /// Trusted, explicit opt-in data for one executable Method skill.
 ///
 /// Constructing this contract checks the source descriptor, resource closure,
@@ -112,6 +124,7 @@ pub struct BmadSkillExecutionContractInput {
     pub validation_profile_hash: Sha256Digest,
     pub method_schema_hash: Sha256Digest,
     pub workflow: BmadSkillExecutionWorkflow,
+    pub action_branches: Vec<BmadSkillExecutionActionBranch>,
     pub tool_intents: Vec<BmadSkillToolIntent>,
     pub artifact_expectations: Vec<MethodArtifactExpectation>,
     pub recovery: BmadSkillRecoverySemantics,
@@ -139,6 +152,7 @@ pub struct BmadSkillExecutionContract {
     method_schema_hash: Sha256Digest,
     resource_set_hash: Sha256Digest,
     workflow: BmadSkillExecutionWorkflow,
+    action_branches: BTreeMap<String, BmadSkillExecutionActionBranch>,
     tool_intents: Vec<BmadSkillToolIntent>,
     artifact_expectations: Vec<MethodArtifactExpectation>,
     recovery: BmadSkillRecoverySemantics,
@@ -228,6 +242,12 @@ impl BmadSkillExecutionContract {
             &input.artifact_expectations,
         )?;
         validate_workflow(&input.workflow, &descriptor_resources)?;
+        let action_branches = validate_action_branches(
+            &input.descriptor,
+            &input.workflow,
+            &input.artifact_expectations,
+            input.action_branches,
+        )?;
 
         let descriptor_hash = descriptor_hash(&input.descriptor)?;
         let resource_set_hash = Self::resource_set_hash(&descriptor_resources)?;
@@ -248,6 +268,7 @@ impl BmadSkillExecutionContract {
             method_schema_hash: input.method_schema_hash,
             resource_set_hash,
             workflow: input.workflow,
+            action_branches,
             tool_intents: input.tool_intents,
             artifact_expectations: input.artifact_expectations,
             recovery: input.recovery,
@@ -276,8 +297,17 @@ impl BmadSkillExecutionContract {
         input: BmadSkillHostBindingInput,
     ) -> Result<BmadSkillExecutionRequest, BmadSkillExecutionError> {
         let (module_code, skill_name) = canonical_skill_identity(&self.descriptor)?;
+        if input
+            .action
+            .as_deref()
+            .is_some_and(|name| !self.action_branches.contains_key(name))
+            || (input.action.is_none() != self.action_branches.is_empty())
+        {
+            return Err(BmadSkillExecutionError::UnsupportedInvocation);
+        }
         let resources = BmadResourceSet::new(self.descriptor.declared_resources().to_vec())
             .map_err(|_| BmadSkillExecutionError::ResourceMismatch)?;
+        let artifact_expectations = self.artifact_expectations_for(input.action.as_deref());
         let exact_binding = MethodExactBinding {
             capability_key: BmadCapabilityKey {
                 package_version_id: self.package_version_id.clone(),
@@ -307,7 +337,7 @@ impl BmadSkillExecutionContract {
             model_binding: input.model_binding,
             method_schema_hash: self.method_schema_hash,
             egress_profile_hash: input.egress_profile_hash,
-            artifact_expectations: self.artifact_expectations.clone(),
+            artifact_expectations,
         };
         let request = BmadSkillExecutionRequest {
             mode: input.mode,
@@ -353,12 +383,20 @@ impl BmadSkillExecutionContract {
         validate_invocation(&descriptor, &self.execution_profile, &request)?;
         validate_resources(&descriptor, request.resources(), self.resource_set_hash)?;
         validate_binding(self, &request)?;
-        let step_table = build_step_table(&self.workflow)?;
+        let branch = request
+            .action
+            .as_deref()
+            .and_then(|action| self.action_branches.get(action));
+        let initial_step_key = branch.map_or(self.workflow.initial_step_key.as_str(), |value| {
+            value.initial_step_key.as_str()
+        });
+        let step_table = build_step_table(&self.workflow, initial_step_key)?;
         let required_plan_kinds = self
             .tool_intents
             .iter()
             .map(|intent| intent.required_plan_kind())
             .collect();
+        let artifact_expectations = self.artifact_expectations_for(request.action.as_deref());
         Ok(BmadPreparedSkillExecution {
             descriptor,
             mode: request.mode,
@@ -368,9 +406,24 @@ impl BmadSkillExecutionContract {
             step_table,
             tool_intents: self.tool_intents.clone(),
             required_plan_kinds,
-            artifact_expectations: self.artifact_expectations.clone(),
+            artifact_expectations,
             recovery: self.recovery,
         })
+    }
+
+    fn artifact_expectations_for(&self, action: Option<&str>) -> Vec<MethodArtifactExpectation> {
+        let Some(branch) = action.and_then(|value| self.action_branches.get(value)) else {
+            return self.artifact_expectations.clone();
+        };
+        self.artifact_expectations
+            .iter()
+            .filter(|expectation| {
+                branch
+                    .artifact_expectation_ids
+                    .contains(&expectation.expectation_id)
+            })
+            .cloned()
+            .collect()
     }
 }
 
@@ -646,20 +699,107 @@ fn validate_workflow(
             return Err(BmadSkillExecutionError::WorkflowInvalid);
         }
     }
-    build_step_table(workflow).map(|_| ())
+    Ok(())
 }
 
 fn build_step_table(
     workflow: &BmadSkillExecutionWorkflow,
+    initial_step_key: &str,
 ) -> Result<MethodStepTable, BmadSkillExecutionError> {
+    let branch_steps = reachable_workflow_steps(workflow, initial_step_key)?;
     MethodStepTable::new(
-        &workflow.initial_step_key,
-        workflow
-            .steps
+        initial_step_key,
+        branch_steps
             .iter()
             .map(|step| (step.step_key.as_str(), step.next_step_key.as_deref())),
     )
     .map_err(|_| BmadSkillExecutionError::WorkflowInvalid)
+}
+
+fn reachable_workflow_steps<'a>(
+    workflow: &'a BmadSkillExecutionWorkflow,
+    initial_step_key: &str,
+) -> Result<Vec<&'a BmadSkillExecutionStep>, BmadSkillExecutionError> {
+    let steps = workflow
+        .steps
+        .iter()
+        .map(|step| (step.step_key.as_str(), step))
+        .collect::<BTreeMap<_, _>>();
+    if steps.len() != workflow.steps.len() {
+        return Err(BmadSkillExecutionError::WorkflowInvalid);
+    }
+    let mut reachable = Vec::new();
+    let mut seen = BTreeSet::new();
+    let mut current = Some(initial_step_key);
+    while let Some(step_key) = current {
+        if !seen.insert(step_key) {
+            return Err(BmadSkillExecutionError::WorkflowInvalid);
+        }
+        let step = steps
+            .get(step_key)
+            .ok_or(BmadSkillExecutionError::WorkflowInvalid)?;
+        reachable.push(*step);
+        current = step.next_step_key.as_deref();
+    }
+    Ok(reachable)
+}
+
+fn validate_action_branches(
+    descriptor: &BmadSkillDescriptor,
+    workflow: &BmadSkillExecutionWorkflow,
+    expectations: &[MethodArtifactExpectation],
+    branches: Vec<BmadSkillExecutionActionBranch>,
+) -> Result<BTreeMap<String, BmadSkillExecutionActionBranch>, BmadSkillExecutionError> {
+    let declared = descriptor
+        .declared_actions()
+        .iter()
+        .map(|action| action.name.to_string())
+        .collect::<BTreeSet<_>>();
+    let step_keys = workflow
+        .steps
+        .iter()
+        .map(|step| step.step_key.as_str())
+        .collect::<BTreeSet<_>>();
+    let expectation_ids = expectations
+        .iter()
+        .map(|expectation| expectation.expectation_id.as_str())
+        .collect::<BTreeSet<_>>();
+    let mut mapped = BTreeMap::new();
+    for branch in branches {
+        if !declared.contains(&branch.action)
+            || !step_keys.contains(branch.initial_step_key.as_str())
+            || branch.artifact_expectation_ids.is_empty()
+            || branch
+                .artifact_expectation_ids
+                .iter()
+                .any(|id| !expectation_ids.contains(id.as_str()))
+            || mapped.insert(branch.action.clone(), branch).is_some()
+        {
+            return Err(BmadSkillExecutionError::ContractInvalid);
+        }
+    }
+    if mapped.keys().cloned().collect::<BTreeSet<_>>() != declared {
+        return Err(BmadSkillExecutionError::ContractInvalid);
+    }
+
+    let mut covered_steps = BTreeSet::new();
+    if mapped.is_empty() {
+        for step in reachable_workflow_steps(workflow, &workflow.initial_step_key)? {
+            covered_steps.insert(step.step_key.as_str());
+        }
+        build_step_table(workflow, &workflow.initial_step_key)?;
+    } else {
+        for branch in mapped.values() {
+            for step in reachable_workflow_steps(workflow, &branch.initial_step_key)? {
+                covered_steps.insert(step.step_key.as_str());
+            }
+            build_step_table(workflow, &branch.initial_step_key)?;
+        }
+    }
+    if covered_steps != step_keys {
+        return Err(BmadSkillExecutionError::WorkflowInvalid);
+    }
+    Ok(mapped)
 }
 
 fn validate_invocation(
@@ -710,6 +850,7 @@ fn validate_binding(
         .map_err(|_| BmadSkillExecutionError::BindingMismatch)?;
     let (module, skill) = canonical_skill_identity(&contract.descriptor)?;
     let binding = &request.exact_binding;
+    let expected_artifacts = contract.artifact_expectations_for(request.action.as_deref());
     if binding.capability_key.package_version_id != contract.package_version_id
         || binding.capability_key.module_code != module
         || binding.capability_key.skill_name != skill
@@ -727,7 +868,7 @@ fn validate_binding(
         || binding.config_graph_hash != request.resolved_config_graph_hash
         || binding.config_resolution_hash != request.resolved_config_hash
         || binding.customization_hash != request.resolved_customization_hash
-        || binding.artifact_expectations != contract.artifact_expectations
+        || binding.artifact_expectations != expected_artifacts
     {
         return Err(BmadSkillExecutionError::BindingMismatch);
     }

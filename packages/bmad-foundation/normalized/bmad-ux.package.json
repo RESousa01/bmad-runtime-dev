@@ -1,6 +1,6 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
-  "packageVersionId": "pkgver_6A22F2E7368893E7A089CCDF8EFF4C7C30840741377AB48756651A56D0C88CD5",
+  "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
   "lifecycleState": "sealed_read_only",
   "capability": {
     "moduleCode": "bmm",
@@ -9,7 +9,7 @@
   },
   "instructionProjection": {
     "projectionId": "projection_9C53ED25C264B70B8A656EF7328762DB85DC88E75241BC2BBEB3EEDCF96F5F24",
-    "sourceIdentityHash": "sha256:6a22f2e7368893e7a089ccdf8eff4c7c30840741377ab48756651a56d0c88cd5",
+    "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
     "sourceEntrypoint": {
       "path": "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
       "contentHash": "sha256:250d2794f2b8e316bb1ba4666f0728970afd8a5d2707ac1cceac6c21e63730b6",
@@ -18,13 +18,83 @@
     "sourceResources": [
       {
         "path": "src/bmm-skills/2-plan-workflows/bmad-ux/customize.toml",
-        "contentHash": "sha256:c6f94676004a24eed7ff1d546d5b7e7b3889b84d9bab6bbb56bc297d6eabaeb8",
+        "contentHash": "sha256:61f8bfbb020beb159b8da570ed416b02ec4a9ba3709aa0d08b417648d85328d8",
         "treatment": "adapt"
       },
       {
-        "path": "src/bmm-skills/module.yaml",
-        "contentHash": "sha256:5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
-        "treatment": "adopt"
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/color-themes.md",
+        "contentHash": "sha256:48fac7943e8584ccf7dd1bcdfdfd4513366a086a3a84965b6b302ccf6607c171",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-directions.md",
+        "contentHash": "sha256:eab73b948da76a27abc908e1e7d6b124e8ff0362e6dd1990f7e60b9541cbcb98",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-editorial.md",
+        "contentHash": "sha256:a659166845b1a4ed3f9aef942c5935537a97382b10303684fbb78ed86265870e",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-mobile.md",
+        "contentHash": "sha256:a93fb9f114f2e83af0c961c0d7909b3859fc80bcd713715517cd639a53a0372a",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/design-example-shadcn.md",
+        "contentHash": "sha256:25e0dfb2bb21483973a8f0a6ed650288b3dc2ae5ed02aa0f091bb9b6b0b39fc0",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/excalidraw-wireframe.md",
+        "contentHash": "sha256:660bbcdebff50cd044a3752eda43f3cb303aca4b0f521b55a270da93b89ddb18",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-mobile.md",
+        "contentHash": "sha256:f8cd54c92193cd8c34a472df9c212ac7330976f6a115b729721dcb60034dc4f0",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/experience-example-shadcn.md",
+        "contentHash": "sha256:d6ca16e87b768e8b41f352c02ee08af21d7cdac04ca21e6ae1556864b4d27590",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/headless-schemas.md",
+        "contentHash": "sha256:e3a773dde85286f1a6f6dd8b26fc17e09ccea96f6257dfe7fb436353cd79242d",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/key-screens.md",
+        "contentHash": "sha256:ff1c5060673dd595edd61e76806bae876264ec6895c2eaadf8a6190785bf5f7b",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/assets/validation-report-template.html",
+        "contentHash": "sha256:8656945636fabe96624f8ef8fce931b073b5aecbe42d490584c1d5c7f31e1353",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/references/creative-tools.md",
+        "contentHash": "sha256:349b6b5e8353c2fa1efe7caa49cca50577900f55f32005ccd6f7b43e4daec558",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
+        "contentHash": "sha256:d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/references/headless.md",
+        "contentHash": "sha256:8da7e23d269b1644f45b5104a243a6a27fd8d075aebb95d9b7752f0d143f0f5d",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-ux/references/validate.md",
+        "contentHash": "sha256:336d5be5ca860dc6948606b68b5a14fed593d41508ad83e123879bd466c984db",
+        "treatment": "adapt"
       }
     ],
     "sourceSections": [],
@@ -34,16 +104,52 @@
       "format": "SapphirusManagedV1"
     },
     "blockedToolIntents": [
-      "file_read"
+      "browser",
+      "external_handoff",
+      "file_read",
+      "file_write",
+      "process",
+      "subagent",
+      "web"
     ],
     "hostInputReplacements": [
       {
         "toolIntent": "file_read",
-        "inputKind": "resolved_config",
-        "inputSchemaHash": "sha256:81f1248db253048a85e618cba4a17edd24625f61f91fe2d2d7eb5aab81e5e916"
+        "inputKind": "bounded_resource_set",
+        "inputSchemaHash": "sha256:877f8d441a8a7309ac142dec2e6b7a0686fbef21d66683d64a9f2e9db1af7ec9"
+      },
+      {
+        "toolIntent": "file_write",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "process",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "subagent",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "web",
+        "inputKind": "network_unavailable_fact",
+        "inputSchemaHash": "sha256:beb61fa7cd5f2a2b7b683572757e9265926caf22937bbc75ae4e352deffefeb8"
+      },
+      {
+        "toolIntent": "browser",
+        "inputKind": "browser_unavailable_fact",
+        "inputSchemaHash": "sha256:806dbbca5ea86a0d3312c79332794883c8c8b05c48e2f9a8362ca290194828be"
+      },
+      {
+        "toolIntent": "external_handoff",
+        "inputKind": "external_handoff_unavailable_fact",
+        "inputSchemaHash": "sha256:d44f88ca3b7e7d9bd02582fb02645eac38dd9ef1e76c5ef97ce2e1f8e345b53d"
       }
     ],
-    "projectionHash": "sha256:35c6ce7a7e12f67ca8ffe5f2c3128a2b5c332b1a0d469152470ec41e85a6671c"
+    "projectionHash": "sha256:4b3740d899149d3d622e1c948e187edc80bb60eddaa94c6f81cc84bdbdbcb3a1"
   },
-  "projectionEnvelopeHash": "sha256:1852c4e561d9c69f26e85f470d21e7fe547b414b4770f1d134d01994eeba8edf"
+  "projectionEnvelopeHash": "sha256:11de78a7306e80753517c6cb8574bbef17f003c1615da895bcb462808fb340a1"
 }
