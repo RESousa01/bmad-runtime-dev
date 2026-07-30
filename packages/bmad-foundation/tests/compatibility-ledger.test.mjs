@@ -108,3 +108,28 @@ test("catalog support state is projected from each exact compatibility-ledger ro
     assert.equal(catalogByRowId.get(row.rowId)?.supportState, "unavailable", row.rowId);
   }
 });
+
+// Break caught: Architecture can retain an old blanket `adopt/exact` row even
+// though Forge replaces source-directed scripts, subagents, web access, and
+// direct writes with typed plans. An adaptation without its semantic contract
+// is equally incomplete.
+test("canonical Architecture has a complete explicit adaptation contract", () => {
+  const row = ledger.rows.find(
+    (candidate) =>
+      candidate.rowId ===
+      "method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+  );
+  const catalogRow = catalogMethodRows().find(
+    (candidate) => candidate.rowId === row?.rowId,
+  );
+
+  assert.equal(row?.decision, "adapt");
+  assert.equal(row?.supportState, "adapted");
+  assert.equal(row?.owner, "Forge BMAD Runtime");
+  assert.equal(row?.semanticDiffRef, "docs/bmad/skills/bmad-architecture.md#semantic-diff");
+  assert.deepEqual(row?.supportedVersions, ["0.1.x"]);
+  assert.equal(row?.migrationPolicy, "re-evaluate_against_each_pinned_method_upgrade");
+  assert.match(row?.rationale ?? "", /typed plans/u);
+  assert.equal(catalogRow?.supportState, "adapted");
+  assert.equal(catalogRow?.uiState, "runtime_available");
+});

@@ -50,5 +50,22 @@ ordering.
 
 ## Compatibility decision
 
-**adopt / exact.** No semantic divergence was found between the pinned
-source and the harness descriptor.
+**adapt / adapted.** Owner: Forge BMAD Runtime. Supported Forge versions:
+`0.1.x`. The adaptation is re-evaluated against every pinned Method upgrade.
+
+## Semantic diff
+
+| Pinned 6.10.0 behavior | Forge execution | Semantic effect |
+| --- | --- | --- |
+| Detect `create`, `update`, or `validate` from the supplied intent and artifacts. | The sealed source entrypoint remains the workflow authority; the generic runtime binds the selected intent to one exact Method session and rejects undeclared fixed actions. Golden cases exercise all three source intents. | Preserved, with conversational intent kept distinct from a catalog action. |
+| Interactive Coaching/Fast activation and non-interactive headless execution. | Both invocation modes enter the same source-bound execution contract, resource set, artifact expectation, and durable Method checkpoint lifecycle. | Preserved; required output identity is equivalent across modes. |
+| Read and append `.memlog.md`, then distill or inspect `ARCHITECTURE-SPINE.md`. | Reads and writes become typed `Read` and `WriteProposal` plans; artifacts remain app-local and require authoritative evidence before completion. | Authority adapted; output semantics preserved. |
+| Invoke `memlog.py`, `lint_spine.py`, and customization/config scripts. | Process requests become `CommandProposal` plans. The pinned Python and its tests remain hash-bound resources, never ambient executable authority. | Authority adapted; deterministic validation remains required. |
+| Verify current technology on the web. | Browser/network lookup is represented as a distinct `Read` plan and remains unavailable until the host grants the relevant network/browser authority. It is never conflated with model access. | Fail-closed authority adaptation. |
+| Dispatch reviewer subagents and model work. | Source subagent requests become typed `ModelCall` plans; reviewer output must return through the same evidence and validation boundary. | Authority adapted; reviewer gate preserved. |
+| Run external handoffs at Finalize. | Handoffs become typed `ArtifactPlan` requests and stay unavailable when the destination connector is absent. | Fail-closed authority adaptation. |
+| Resume from the append-only memlog after interruption. | `MethodCheckpoint` persists stage, exact binding, context decision, model lineage, artifact references, failure/cancellation state, and restart recovery. Source/resource/config drift requires an explicit rebind and fresh review. | Durable lifecycle strengthened without changing source-visible results. |
+
+The adapter contains no filesystem, process, network, scheduler, model, or
+artifact port. Pinned prose can request those effects only by causing the host
+to construct the typed plan above; it cannot grant authority itself.

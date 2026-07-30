@@ -165,13 +165,15 @@
       "canonicalId": "bmm:bmad-architecture",
       "sourcePath": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
       "sourceSha256": "sha256:89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf",
-      "decision": "adopt",
-      "supportState": "exact",
-      "owner": null,
-      "rationale": null,
-      "semanticDiffRef": null,
-      "supportedVersions": [],
-      "migrationPolicy": null,
+      "decision": "adapt",
+      "supportState": "adapted",
+      "owner": "Forge BMAD Runtime",
+      "rationale": "Preserve create, update, validate, interactive, headless, artifact, reviewer, and recovery semantics while replacing source-directed scripts, subagents, web lookups, external handoffs, and direct file effects with typed plans and governed host ports.",
+      "semanticDiffRef": "docs/bmad/skills/bmad-architecture.md#semantic-diff",
+      "supportedVersions": [
+        "0.1.x"
+      ],
+      "migrationPolicy": "re-evaluate_against_each_pinned_method_upgrade",
       "deprecationPolicy": null
     },
     {

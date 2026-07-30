@@ -473,16 +473,13 @@ const expectedProjectionSourceMemberIds = Object.freeze({
     "method-021",
   ],
   "runtime/method/6.10.0/architecture-create.instructions.md": [
-    "method-018",
-    "method-019",
     "method-022",
     "method-023",
     "method-024",
     "method-025",
     "method-026",
-    "method-027",
-    "method-028",
     "method-029",
+    "method-137",
   ],
   "runtime/builder/2.1.0/agent-create-rebuild.instructions.md": [
     "builder-003",
@@ -611,6 +608,37 @@ async function readJson(relativePath) {
   const bytes = await readFile(path.join(packageRoot, relativePath));
   return JSON.parse(bytes.toString("utf8"));
 }
+
+// Break caught: the architecture envelope previously kept an old SKILL hash,
+// omitted the linter tests, pulled unrelated agent/shim files into the package,
+// and labeled headless/script resources deferred or rejected.
+test("normalized Architecture envelope seals exactly the recursive pinned skill closure", async () => {
+  const envelope = await readJson("normalized/bmad-architecture.package.json");
+  const projection = envelope.instructionProjection;
+  const declared = [projection.sourceEntrypoint, ...projection.sourceResources];
+  const expected = [
+    "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+    "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
+    "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
+    "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
+    "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
+    "src/bmm-skills/3-solutioning/bmad-architecture/scripts/lint_spine.py",
+    "src/bmm-skills/3-solutioning/bmad-architecture/scripts/tests/test_lint_spine.py",
+  ];
+
+  assert.equal(envelope.capability.normalizedAction, null);
+  assert.deepEqual(
+    declared.map((resource) => resource.path).sort(),
+    expected,
+  );
+  assert.ok(declared.every((resource) => resource.treatment === "adapt"));
+  for (const resource of declared) {
+    const bytes = await readFile(
+      path.join(packageRoot, "source/method/6.10.0", resource.path),
+    );
+    assert.equal(resource.contentHash, `sha256:${createHash("sha256").update(bytes).digest("hex")}`);
+  }
+});
 
 async function assertRegularFile(relativePath) {
   const absolutePath = path.join(packageRoot, relativePath);
