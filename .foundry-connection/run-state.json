@@ -1,6 +1,6 @@
 {
   "schemaVersion": "forge.foundry-run-state.v1",
-  "planHash": "sha256:07ef06a719a5ecd9a4b044b00bd58d7ace43ea9d7407973c88456461391e5348",
+  "planHash": "sha256:9ef8f3fe8fbba048c104c1661876220f36da5af7f58151c46e2be7e875a0e498",
   "repositoryCommit": "839f898da23b17a6cb247812efac4bb7e52bfb2a",
   "currentTask": "FND-010",
   "taskStates": {
@@ -369,6 +369,64 @@
         ]
       },
       "nextAction": "FND-011 is active."
+    },
+    "FND-011": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/tasks/FND-011.json"] },
+    "FND-012": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/tasks/FND-012.json"] },
+    "FND-013": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/tasks/FND-013.json"] },
+    "FND-020": { "state": "complete", "attemptCount": 2, "evidencePaths": ["artifacts/foundry/api/authentication-tests.json"] },
+    "FND-021": { "state": "complete", "attemptCount": 2, "evidencePaths": ["artifacts/foundry/api/authentication-tests.json"] },
+    "FND-022": { "state": "complete", "attemptCount": 2, "evidencePaths": ["artifacts/foundry/api/deployment-discovery.json"] },
+    "FND-023": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/api/catalog-cache.json"] },
+    "FND-024": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/api/FND-024-027.json"] },
+    "FND-025": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/api/FND-024-027.json"] },
+    "FND-026": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/api/FND-024-027.json"] },
+    "FND-027": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/api/FND-024-027.json"] },
+    "FND-028": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/api/FND-028-031.json"] },
+    "FND-029": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/api/FND-028-031.json"] },
+    "FND-030": { "state": "complete", "attemptCount": 2, "evidencePaths": ["artifacts/foundry/api/FND-028-031.json", "artifacts/foundry/api/FND-030-gaps.json"] },
+    "FND-031": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/api/FND-028-031.json"] },
+    "FND-040": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/rust/model-catalog.json"] },
+    "FND-041": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/rust/model-catalog.json"] },
+    "FND-042": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/rust/model-catalog.json"] },
+    "FND-043": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/rust/model-catalog.json"] },
+    "FND-044": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/rust/ipc.json"] },
+    "FND-045": { "state": "complete", "attemptCount": 1 },
+    "FND-046": { "state": "complete", "attemptCount": 1 },
+    "FND-050": { "state": "complete", "attemptCount": 1 },
+    "FND-051": { "state": "complete", "attemptCount": 1 },
+    "FND-052": { "state": "complete", "attemptCount": 1 },
+    "FND-053": { "state": "complete", "attemptCount": 1 },
+    "FND-060": {
+      "state": "blocked",
+      "attemptCount": 2,
+      "localImplementationComplete": true,
+      "nextAction": "Run authenticated Bicep what-if and deploy an inactive revision with the secret reference."
+    },
+    "FND-061": { "state": "complete", "attemptCount": 1, "evidencePaths": ["artifacts/foundry/infra/profile-dry-run.json"] },
+    "FND-062": {
+      "state": "blocked",
+      "attemptCount": 1,
+      "localImplementationComplete": true,
+      "nextAction": "Run DNS, TLS, inventory, and Responses smoke from the deployed Container App revision."
+    },
+    "FND-063": {
+      "state": "blocked",
+      "attemptCount": 2,
+      "localImplementationComplete": true,
+      "evidencePaths": ["artifacts/foundry/qualification/local-matrix.json"],
+      "nextAction": "Restore the generated native contract root and rerun Rust gates in a Windows environment that permits the build helper to launch."
+    },
+    "FND-064": {
+      "state": "blocked",
+      "attemptCount": 0,
+      "nextAction": "Supply the real endpoint, API key, profiles, staging revision, model budget, and authenticated Azure deployment context."
+    },
+    "FND-065": {
+      "state": "blocked",
+      "attemptCount": 1,
+      "localImplementationComplete": false,
+      "evidencePaths": ["artifacts/foundry/final-scorecard.json"],
+      "nextAction": "Complete FND-002, FND-060, FND-062, FND-063, and FND-064, then run the strict final verifier."
     }
   },
   "blockers": [
@@ -381,26 +439,28 @@
         "FND-064",
         "FND-065"
       ],
-      "summary": "No Foundry project endpoint, model-broker managed-identity client ID, Container App resource ID, Foundry role scope, intended deployment list, or authenticated Azure CLI session is available.",
+      "summary": "No complete Foundry project endpoint, backend API key, real signed model-profile document, callable route, staging revision, or authenticated Azure deployment context is available.",
       "operatorReportedState": {
         "reportedAt": "2026-07-28T19:05:00Z",
         "hasAccountHost": true,
         "hasCompleteProjectEndpoint": false,
         "hasContainerApp": false,
-        "detail": "The operator has an account host ending in .services.ai.azure.com but not the /api/projects/<project> suffix, and no Container App resource exists yet.",
-        "consequence": "The support plane that would carry the model-broker identity has not been deployed, so the identity-attachment and role-assignment prerequisites cannot be satisfied by supplying values. They require FND-060's template to be deployed first."
+        "hasApiKeyInCurrentProcess": false,
+        "hasRealProfileDocument": false,
+        "detail": "The current process has neither the complete /api/projects/<project> endpoint nor FOUNDRY_API_KEY, and infra/desktop-support/model-profiles.json is absent.",
+        "consequence": "The no-Entra prerequisite report correctly remains ready=false and no deployed task may treat fake-server evidence as qualification."
       },
       "tieredUnblockPath": [
         {
           "tier": 1,
-          "requires": ["complete project endpoint", "authenticated Azure CLI session"],
-          "doesNotRequire": ["Container App", "managed identity", "role assignment"],
-          "unblocks": "The real deployment inventory. This removes the guessed-deployment-name risk from FND-024, FND-025, and FND-061, and gives FND-022 and FND-023 real response shapes to normalize. The prerequisite report still says ready=false for identity and role, which is correct and expected."
+          "requires": ["complete project endpoint", "backend API key", "real signed model-profile document", "explicit inventory mode", "probe budget"],
+          "doesNotRequire": ["managed identity", "Foundry role assignment", "Entra token"],
+          "unblocks": "A fresh v2 prerequisite report proving one callable profile route and exactly one inventory mode."
         },
         {
           "tier": 2,
-          "requires": ["FND-060 template deployed", "model-broker user-assigned identity attached", "Foundry data-plane role assigned at the project scope"],
-          "unblocks": "A full ready=true prerequisite report, which clears FND-002 and the FND-002-dependent gates."
+          "requires": ["FND-060 inactive revision deployed", "Container Apps secret reference configured", "DNS and TLS reachability"],
+          "unblocks": "FND-062 network qualification and the staging portion of FND-064."
         },
         {
           "tier": 3,
@@ -408,14 +468,14 @@
           "unblocks": "FND-064 deployed smoke and therefore FND-065 final certification."
         }
       ],
-      "sequencingNote": "Tier 2 is created by this plan rather than supplied to it. FND-060 provisions the Container App, the dedicated model-broker identity, and the role assignment, so the correct order is: land and review the template, deploy it, then rerun the prerequisite checker.",
-      "nextAction": "Authenticate Azure CLI and supply FOUNDRY_PROJECT_ENDPOINT, FOUNDRY_MODEL_IDENTITY_CLIENT_ID, FOUNDRY_CONTAINER_APP_RESOURCE_ID, FOUNDRY_PROJECT_RESOURCE_ID, and FOUNDRY_PROFILE_DEPLOYMENTS, then rerun the checker.",
+      "sequencingNote": "Foundry application runtime authentication is API-key-only. Azure control-plane authorization is needed only to deploy and inspect the Container App revision.",
+      "nextAction": "Supply FOUNDRY_PROJECT_ENDPOINT, FOUNDRY_API_KEY, FOUNDRY_API_KEY_VERSION, the real model-profile document, and the selected inventory mode; rerun the v2 checker, then deploy the inactive revision.",
       "evidencePath": "artifacts/foundry/prerequisites.json",
       "policyApplied": {
         "policy": "04-one-shot-execution-runbook.md external blocker policy",
         "decidedAt": "2026-07-28T18:05:00Z",
-        "decision": "Tasks FND-010 through FND-063 proceed as local implementation verified against the deterministic fake server. They may reach state 'complete' only for their local gates; none of them may claim that the real project endpoint, deployment inventory, identity, or role was proved.",
-        "consequence": "FND-002 stays blocked, FND-064 and FND-065 stay blocked, and no scorecard may emit complete=true until a fresh prerequisite report says ready=true and the deployed smoke runs.",
+        "decision": "Independent local implementation proceeds against deterministic fixtures, while all real endpoint, key, deployment, rotation, privacy, and rollback acceptance remains blocked.",
+        "consequence": "FND-002, FND-060, FND-062, FND-063, FND-064, and FND-065 stay blocked, and no scorecard may emit complete=true until all fresh local and deployed gates pass.",
         "prohibited": "Substituting fake-server evidence for real deployment proof, or seeding a guessed deployment name into any profile, fixture, or configuration default."
       }
     },
@@ -739,7 +799,8 @@
         "artifacts/foundry/contracts/**"
       ],
       "acquiredAt": "2026-07-28T18:20:00Z",
-      "state": "active",
+      "state": "released",
+      "releasedAt": "2026-07-30T14:40:00Z",
       "note": "Phase 1 is the serialized single-writer lane. Shared schemas, generators, and wire types stay under one writer per runbook rule 4."
     },
     {
@@ -756,7 +817,8 @@
         "tools/foundry-smoke/network-smoke.Tests.ps1"
       ],
       "acquiredAt": "2026-07-28T18:12:00Z",
-      "state": "active"
+      "state": "released",
+      "releasedAt": "2026-07-30T14:40:00Z"
     },
     {
       "owner": "claude-agent-dotnet",
@@ -772,7 +834,8 @@
         "docs/operations/foundry-configuration.md"
       ],
       "acquiredAt": "2026-07-28T18:22:00Z",
-      "state": "active",
+      "state": "released",
+      "releasedAt": "2026-07-30T14:40:00Z",
       "note": "Explicitly forbidden from removing Azure.AI.OpenAI or the Chat Completions executor; that removal belongs to FND-028 and FND-065 and would break the build if done early."
     },
     {
@@ -785,8 +848,9 @@
         "artifacts/foundry/infra/profile-dry-run.json"
       ],
       "acquiredAt": "2026-07-28T18:22:00Z",
-      "state": "active"
+      "state": "released",
+      "releasedAt": "2026-07-30T14:40:00Z"
     }
   ],
-  "lastUpdatedAt": "2026-07-28T18:05:00Z"
+  "lastUpdatedAt": "2026-07-30T14:40:00Z"
 }

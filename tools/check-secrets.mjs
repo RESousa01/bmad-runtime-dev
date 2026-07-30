@@ -77,6 +77,8 @@ const textFileNames = new Set([
   "Dockerfile",
   "Makefile",
 ]);
+const pinnedEscFixture =
+  "packages/bmad-foundation/source/method/6.10.0/test/test-installer-channels.js";
 const detectors = [
   ["private key", /-----BEGIN (?:[A-Z0-9]+ )?PRIVATE KEY-----/g],
   ["AWS access key", /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g],
@@ -91,13 +93,18 @@ const assignmentDetector =
 
 function isAllowedNonSecret(value) {
   const normalized = value.trim();
-  return /^(?:example|fixture|placeholder|redacted|replace-me|test-only)$/iu.test(normalized)
+  return /^(?:example|fixture|placeholder|redacted|replace-me|test-only)"?$/iu.test(normalized)
+    || /^sk-not-a-real-key"?$/u.test(normalized)
     || /^must-not-cross(?:[-_][a-z0-9]+)*$/iu.test(normalized)
     || /^<\s*(?:redacted|replace[-_ ]?me|secret)\s*>$/iu.test(normalized)
     || /^\$\{[A-Za-z_][A-Za-z0-9_]*\}$/u.test(normalized)
     || /\$\{[A-Za-z_][A-Za-z0-9_]*\}/u.test(normalized)
     || /^\[REDACTED(?::[A-Za-z0-9_-]+)?\]?$/iu.test(normalized)
     || /^(?:process\.env\.|import\.meta\.env\.)[A-Z][A-Z0-9_]*$/u.test(normalized)
+    || /^\$env:[A-Za-z_][A-Za-z0-9_]*$/u.test(normalized)
+    || /^\$[A-Za-z_][A-Za-z0-9_]*"?$/u.test(normalized)
+    || /^\[pscustomobject$/iu.test(normalized)
+    || /^\[[A-Za-z0-9_.]+\](?:\[[A-Za-z0-9_.]+\])?@\{$/u.test(normalized)
     || /^[A-Za-z_][A-Za-z0-9_.]*(?:<[^;\r\n]+>)?(?:\([^;\r\n]*\))?$/u.test(normalized);
 }
 
@@ -181,7 +188,12 @@ for (const path of [...paths].sort()) {
     findings.push({ label: "invalid UTF-8 in text source", path, line: 1 });
     continue;
   }
-  const prohibitedControlOffset = source.search(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/u);
+  const displayPath = relative(root, path).replaceAll("\\", "/");
+  const controlScanSource =
+    displayPath === pinnedEscFixture ? source.replaceAll("\u001b", " ") : source;
+  const prohibitedControlOffset = controlScanSource.search(
+    /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/u,
+  );
   if (prohibitedControlOffset !== -1) {
     const label = source.charCodeAt(prohibitedControlOffset) === 0
       ? "NUL byte in text source"

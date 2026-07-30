@@ -19,10 +19,15 @@ param releaseChannel = 'beta'
 // no Foundry deployment name.
 param foundryProjectEndpoint = 'https://replace-with-account.services.ai.azure.com/api/projects/replace-with-project'
 param foundryProjectResourceId = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/replace-with-foundry-resource-group/providers/Microsoft.CognitiveServices/accounts/replace-with-account/projects/replace-with-project'
+// Backend-only Foundry API key. NEVER commit a real key: leave this
+// placeholder for local `what-if` shape checks and supply the real value only
+// through the deployment pipeline's own secret injection.
+param foundryApiKey = 'replace-with-deployment-pipeline-secret-injection'
+param foundryInventoryMode = 'ConfiguredAndProbed'
+param foundryPrerequisiteEvidenceHash = 'sha256:0000000000000000000000000000000000000000000000000000000000000'
 param modelProfileConfigurationPrefix = 'desktop-support:model-profile:'
 param foundryDeploymentRefreshSeconds = 300
 param foundryCatalogMaximumStaleSeconds = 1800
-param allowSharedPilotIdentity = false
 // Pilot posture: public egress. For private egress, inspect the EXISTING
 // Foundry private endpoint and DNS zone and paste their facts here; this stack
 // never creates or duplicates them. See README.md.

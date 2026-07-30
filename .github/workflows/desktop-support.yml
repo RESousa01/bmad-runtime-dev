@@ -140,11 +140,12 @@ jobs:
             --env Sapphirus__ModelProfileHash=sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
             --env Sapphirus__ModelCapabilityHash=sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc \
             --env Sapphirus__FoundryProjectEndpoint=https://forge-contract.services.ai.azure.com/api/projects/forge-contract-project \
-            --env Sapphirus__FoundryModelIdentityClientId=55555555-5555-5555-5555-555555555555 \
+            --env Sapphirus__FoundryApiKey=synthetic-ci-placeholder-key-not-a-real-secret \
+            --env Sapphirus__FoundryInventoryMode=ConfiguredAndProbed \
+            --env Sapphirus__FoundryPrerequisiteEvidenceHash=sha256:0000000000000000000000000000000000000000000000000000000000000000 \
             --env Sapphirus__FoundryDeploymentRefreshSeconds=300 \
             --env Sapphirus__FoundryCatalogMaximumStaleSeconds=1800 \
             --env Sapphirus__ModelProfileConfigurationPrefix=desktop-support:model-profile: \
-            --env Sapphirus__AllowSharedPilotIdentity=false \
             desktop-support-api:ci migrate-sql
           production_identity_exit=$?
           set -e

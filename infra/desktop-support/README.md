@@ -8,10 +8,11 @@ authentication and public network access disabled.
 
 The model plane is **not** created here. It is an external, pre-existing Microsoft Foundry
 project reached at `https://<account>.services.ai.azure.com/api/projects/<project>`. This
-stack references that project, grants a dedicated identity access to it, and injects the
-complete project endpoint into the API. It never creates a Foundry account, a Foundry
-project, or a model deployment, and it never names a deployment: the model broker reads the
-project's own deployment catalog at runtime.
+stack references that project and authenticates to it with a **backend-only API key**, never
+a managed identity: it injects the complete project endpoint, the selected inventory mode, the
+prerequisite-evidence hash, and the key (through a Container Apps secret) into the API. It
+never creates a Foundry account, a Foundry project, or a model deployment, and it never names
+a deployment: the model broker reads the project's own deployment catalog at runtime.
 
 This is an internal, single-tenant deployment. The API itself has public TLS ingress so managed
 employee devices can reach it, but tokens are accepted only for the configured organization tenant
@@ -32,13 +33,13 @@ users for the emitted `apiManagedIdentityObjectId` (runtime DML only) and
 ARM deployment script.
 
 Identity split: image pull uses its own identity (`imagePullIdentityObjectId`), the SQL
-migration identity is never attached to the API, Foundry model access uses a dedicated
-model-broker identity (`foundryModelIdentityObjectId`), and data/config and signing share the
-runtime identity attached to one process. The module seams (`modules/`) are preserved so
-signing can be moved to an independently deployed workload if the threat review requires hard
-isolation. `allowSharedPilotIdentity=true` collapses the model-broker identity back onto the
-runtime identity; it exists only for a reviewed pilot where a second identity cannot be
-created, and it widens the runtime identity's blast radius to include the model plane.
+migration identity is never attached to the API, and data/config and signing share the runtime
+identity attached to one process. The module seams (`modules/`) are preserved so signing can be
+moved to an independently deployed workload if the threat review requires hard isolation.
+Foundry model access is **not** a managed identity and holds **no role assignment**: it
+authenticates with a backend-only API key carried through a Container Apps secret
+(`foundry-api-key`) and injected as `Sapphirus__FoundryApiKey` via `secretRef`. There is no
+Foundry model-broker identity anywhere in this stack.
 
 ## Foundry project (external dependency)
 
@@ -56,36 +57,38 @@ named assertions in `main.bicep` that run during `validate` / `what-if` / `creat
 which apply the identical rule. `_project` is accepted as the documented default-project
 alias and must then be paired with an account-level `foundryProjectResourceId`.
 
-`foundryProjectResourceId` is the role-assignment scope: either
-`.../providers/Microsoft.CognitiveServices/accounts/<account>` or the narrower
-`.../accounts/<account>/projects/<project>`. Its account must match the account label in the
-endpoint; the template asserts that.
+`foundryProjectResourceId` is kept only as an account-identity check: its account must match
+the account label in `foundryProjectEndpoint`, and the template asserts that. It is no longer a
+role-assignment scope -- authentication is a backend-only API key, so this stack never creates,
+reads, or depends on any Foundry role assignment.
 
-The data-plane role ID lives in the named variable `foundryDataPlaneRoleDefinitionId` and
-carries a deployment-time validation comment, because Foundry role naming is still evolving.
-Confirm it still resolves to the intended role before deploying into a new tenant or region,
-and change it together with the same ID in `tools/foundry-smoke/check-prerequisites.ps1`.
+### Foundry API key: secret, injection, and rotation
 
-A resource-group-scoped template can only carry a role assignment whose scope lives in its own
-resource group. The `foundryRoleAssignmentMode` output reports which path applied:
+`foundryApiKey` is an `@secure()` parameter. **Never** put a real key in a `.bicepparam` file,
+an output, a tag, or a plain (non-`secretRef`) environment variable; the committed
+`*.example` parameter files carry an obvious placeholder string only. Source the real value
+from the deployment pipeline's own secret store (for example a GitHub Actions/Azure DevOps
+protected secret) and pass it at `deploy`/`what-if` time.
 
-- `in-template` — the Foundry resource is in this subscription and resource group, so the
-  grant was created here at the narrowest supplied scope (project child when a project was
-  supplied, otherwise the account).
-- `operator-managed` — the Foundry resource is elsewhere. The grant is then an explicit
-  operator step, like the SQL contained-user grants, and is deliberately not hidden in an ARM
-  deployment script:
+The template writes the key into a Container Apps secret named `foundry-api-key` and injects it
+into the container only as `Sapphirus__FoundryApiKey` via `secretRef` -- it is never a literal
+`value` on the container env, never logged, and never emitted as a template output.
 
-  ```powershell
-  az role assignment create `
-    --assignee-object-id <foundryModelIdentityObjectId> `
-    --assignee-principal-type ServicePrincipal `
-    --role <foundryRoleDefinitionId> `
-    --scope <foundryRoleAssignmentScope>
-  ```
+Two other, non-secret settings travel with it:
 
-Either way, `tools/foundry-smoke/check-prerequisites.ps1` is what proves the grant exists; the
-template's output is not evidence.
+- `Sapphirus__FoundryInventoryMode` (`ConfiguredAndProbed` | `OpenAiModels` |
+  `ProjectDeploymentsApiKey`) -- the one explicit, live-qualified inventory mode the broker is
+  allowed to use. There is no automatic fallback between modes.
+- `Sapphirus__FoundryPrerequisiteEvidenceHash` (`sha256:<hex>`) -- the canonical hash of the
+  qualification evidence for the selected mode, produced by
+  `tools/foundry-smoke/network-smoke.ps1` / FND-002.
+
+**Rotation is a staged revision change, never a hot-swap.** Update the `foundry-api-key`
+secret value, deploy a new (inactive) Container App revision so the old revision keeps running
+on the old key, run `tools/foundry-smoke/network-smoke.ps1` against the new revision, shift
+traffic, then revoke the old key at the Foundry account. If the new key fails validation, the
+old revision is still serving traffic on the still-valid old key, so rollback is simply
+declining to shift traffic (see Rollback below).
 
 ## Network posture: pilot public egress vs production private egress
 
@@ -96,8 +99,9 @@ name or subresource (`groupId`) is guessed anywhere in this repository.
 
 **Pilot: public egress (default).** `foundryPrivateDnsZoneName` and
 `foundryPrivateEndpointGroupId` are empty, `foundryEgressPosture` reports `public-egress`, and
-the Container App reaches the project over public TLS. Authentication is still managed
-identity only. This is acceptable only while the pilot is explicitly accepted as such.
+the Container App reaches the project over public TLS. Authentication is the backend-only
+`Sapphirus__FoundryApiKey` secret described above; there is no identity in this path at all.
+This is acceptable only while the pilot is explicitly accepted as such.
 
 **Production: private egress (operator-managed).** Inspect the existing Foundry account and
 reference what is actually there:
@@ -117,13 +121,18 @@ resource-group-scoped template cannot reach.
 Verify the result rather than assuming it:
 
 ```powershell
-pwsh -File tools/foundry-smoke/network-smoke.ps1 -ProjectEndpoint "$env:FOUNDRY_PROJECT_ENDPOINT"
+pwsh -File tools/foundry-smoke/network-smoke.ps1 `
+  -ProjectEndpoint "$env:FOUNDRY_PROJECT_ENDPOINT" `
+  -ApiKey "$env:Sapphirus__FoundryApiKey"
 ```
 
 It writes `artifacts/foundry/infra/network-smoke.json` and exits nonzero unless every stage
 passed. `egress.posture` is `private-address-egress` only when every resolved address is
-private, which is the observable proof that private egress is actually in effect. The report
-carries counts, status classes, and hashes only: never a token, a response body, a deployment
+private, which is the observable proof that private egress is actually in effect. The script
+proves **API-key reachability**, not identity/role-assignment reachability: it sends the key
+only as an `api-key` header to the project's own deployment route from inside the running
+revision, reading the key from the container's secret-backed environment variable. The report
+carries counts, status classes, and hashes only: never the key, a response body, a deployment
 name, or a resolved address.
 
 ## Operations and deployment gates
@@ -148,9 +157,11 @@ az deployment group validate --resource-group <resource-group> --parameters infr
 ```
 
 Never commit filled parameter files, tenant identifiers, image registry credentials, signing
-material, model credentials, or SQL credentials. Managed identity is the only runtime credential.
-The Foundry project endpoint and its ARM resource ID are operator inputs for the same reason:
-the `*.example` files carry placeholder shapes only.
+material, the Foundry API key, or SQL credentials. Managed identity remains the runtime
+credential for App Configuration, Key Vault, and SQL; Foundry model access uses only the
+backend-only `Sapphirus__FoundryApiKey` secret. The Foundry project endpoint and its ARM
+resource ID are operator inputs for the same reason: the `*.example` files carry placeholder
+shapes only, and `foundryApiKey`'s placeholder is obviously not a usable key.
 
 ## Rollback
 
@@ -160,10 +171,11 @@ the `*.example` files carry placeholder shapes only.
    image still reads `Sapphirus__ModelEndpoint` / `Sapphirus__ModelDeployment`. The legacy
    account is never deleted by a deployment of this template, so this is a redeploy, not a
    restore.
-2. **Identity.** Leave the model-broker identity and its role assignment in place during
-   rollback. They grant nothing to the legacy path, and removing them costs a second
-   role-assignment convergence when you roll forward again. Remove them only when the
-   migration is abandoned: delete the role assignment first, the identity second.
+2. **API key rotation.** Foundry key rotation is a staged revision change (see above): if a
+   rotated key fails validation, decline to shift traffic -- the previous revision keeps running
+   against the still-valid old key. Only revoke the old key at the Foundry account after the new
+   revision is confirmed healthy and traffic has shifted; revoking early breaks the still-serving
+   old revision.
 3. **Network posture.** To fall back from private to public egress, clear
    `foundryPrivateDnsZoneName` and `foundryPrivateEndpointGroupId` and redeploy; then ask the
    network owner to unlink the private DNS zone from this VNet. Unlink after the redeploy, not

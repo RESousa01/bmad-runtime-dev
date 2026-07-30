@@ -115,28 +115,109 @@ public sealed class FoundryTransportCompositionTests
         }
 
         using ServiceProvider provider = services.BuildServiceProvider();
-        TokenCredential foundryCredential = provider
-            .GetRequiredService<ProductionAzureCredentials>()
-            .FoundryModel;
+        IFoundryRequestAuthenticator foundryAuthenticator = provider
+            .GetRequiredService<IFoundryRequestAuthenticator>();
 
-        Assert.IsType<Azure.Identity.ManagedIdentityCredential>(foundryCredential);
+        Assert.IsType<FoundryApiKeyAuthenticator>(foundryAuthenticator);
+        Assert.Equal(
+            FoundryCredentialMechanisms.ApiKey,
+            foundryAuthenticator.CredentialMechanismId);
         Assert.DoesNotContain(
             "eyJ",
-            foundryCredential.ToString() ?? "",
+            foundryAuthenticator.ToString() ?? "",
             StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Deployment_discovery_credential_is_a_separate_instance_from_every_azure_client()
+    public void Foundry_credential_is_not_one_of_the_azure_managed_identity_credentials()
     {
         ProductionOptions options = CreateValidatedOptions();
 
         ProductionAzureCredentials credentials =
             AzureClientRegistration.CreateManagedIdentityCredentials(options);
 
-        Assert.NotSame(credentials.FoundryModel, credentials.AppConfiguration);
-        Assert.NotSame(credentials.FoundryModel, credentials.KeyVault);
-        Assert.NotSame(credentials.FoundryModel, credentials.Model);
+        Assert.All(
+            new object[] { credentials.AppConfiguration, credentials.KeyVault, credentials.Model },
+            credential => Assert.IsType<Azure.Identity.ManagedIdentityCredential>(credential));
+    }
+
+    [Fact]
+    public void Validated_options_expose_the_configured_credential_version_and_revision()
+    {
+        ProductionOptions options = CreateValidatedOptions();
+
+        Assert.Equal("v1", options.FoundryCredentialVersion);
+        Assert.False(string.IsNullOrWhiteSpace(options.ApplicationRevision));
+        Assert.Matches("^sha256:[0-9a-f]{64}$", options.FoundryProjectEndpointHash);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("has a space")]
+    public void Validate_rejects_an_unusable_credential_version_label(string versionLabel)
+    {
+        ProductionOptions options =
+            CopyOptionsWithOverride(credentialVersion: versionLabel);
+
+        Assert.Throws<InvalidOperationException>(() => options.Validate(ValidSupportPlaneOptions()));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("has a space")]
+    public void Validate_rejects_an_unusable_application_revision(string revision)
+    {
+        ProductionOptions options =
+            CopyOptionsWithOverride(applicationRevision: revision);
+
+        Assert.Throws<InvalidOperationException>(() => options.Validate(ValidSupportPlaneOptions()));
+    }
+
+    private static SupportPlaneOptions ValidSupportPlaneOptions() => new()
+    {
+        Authority =
+            "https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0",
+        Audience = "api://22222222-2222-2222-2222-222222222222",
+        ApprovedDesktopClientId = "33333333-3333-3333-3333-333333333333",
+        Region = "westeurope",
+    };
+
+    /// <summary>
+    /// Rebuilds an otherwise-valid options object with one field deliberately
+    /// broken. <see cref="ProductionOptions"/> is not a record, so this
+    /// copies every field <see cref="ProductionCompositionTests.CreateProductionOptions"/>
+    /// sets rather than using a <c>with</c> expression.
+    /// </summary>
+    private static ProductionOptions CopyOptionsWithOverride(
+        string? credentialVersion = null,
+        string? applicationRevision = null)
+    {
+        ProductionOptions baseline = ProductionCompositionTests.CreateProductionOptions();
+        return new ProductionOptions
+        {
+            ManagedIdentityClientId = baseline.ManagedIdentityClientId,
+            SqlMigrationIdentityClientId = baseline.SqlMigrationIdentityClientId,
+            AppConfigurationEndpoint = baseline.AppConfigurationEndpoint,
+            KeyVaultUri = baseline.KeyVaultUri,
+            ReceiptSigningKeyName = baseline.ReceiptSigningKeyName,
+            SqlServer = baseline.SqlServer,
+            SqlDatabase = baseline.SqlDatabase,
+            ModelEndpoint = baseline.ModelEndpoint,
+            ModelDeployment = baseline.ModelDeployment,
+            ProviderProfileHash = baseline.ProviderProfileHash,
+            ModelProfileHash = baseline.ModelProfileHash,
+            ModelCapabilityHash = baseline.ModelCapabilityHash,
+            DeploymentHash = baseline.DeploymentHash,
+            FoundryProjectEndpoint = baseline.FoundryProjectEndpoint,
+            FoundryApiKey = baseline.FoundryApiKey,
+            FoundryCredentialVersion = credentialVersion ?? baseline.FoundryCredentialVersion,
+            ApplicationRevision = applicationRevision ?? baseline.ApplicationRevision,
+            FoundryInventoryMode = baseline.FoundryInventoryMode,
+            FoundryPrerequisiteEvidenceHash = baseline.FoundryPrerequisiteEvidenceHash,
+            FoundryDeploymentRefreshSeconds = baseline.FoundryDeploymentRefreshSeconds,
+            FoundryCatalogMaximumStaleSeconds = baseline.FoundryCatalogMaximumStaleSeconds,
+            ModelProfileConfigurationPrefix = baseline.ModelProfileConfigurationPrefix,
+        };
     }
 
     [Fact]

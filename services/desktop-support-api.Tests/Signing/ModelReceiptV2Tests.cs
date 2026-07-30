@@ -27,11 +27,17 @@ public sealed class ModelReceiptV2Tests
         string managedIdentity = ModelReceiptBinding.ComputeCredentialBindingHash(
             route,
             FoundryCredentialMechanisms.ManagedIdentity,
-            "subject-a");
+            "subject-a",
+            FoundryResponsesTestFixtures.CredentialVersionId,
+            FoundryResponsesTestFixtures.ProjectEndpointHash,
+            FoundryResponsesTestFixtures.ApplicationRevision);
         string developmentKey = ModelReceiptBinding.ComputeCredentialBindingHash(
             route,
             FoundryCredentialMechanisms.DevelopmentApiKey,
-            "subject-a");
+            "subject-a",
+            FoundryResponsesTestFixtures.CredentialVersionId,
+            FoundryResponsesTestFixtures.ProjectEndpointHash,
+            FoundryResponsesTestFixtures.ApplicationRevision);
 
         // Every other input is byte-identical: same route, same subject, same
         // price profile. Only the mechanism differs, and that is enough.
@@ -63,7 +69,10 @@ public sealed class ModelReceiptV2Tests
             route,
             FoundryResponsesTestFixtures.OtherHash,
             FoundryCredentialMechanisms.ManagedIdentity,
-            "subject-a");
+            "subject-a",
+            FoundryResponsesTestFixtures.CredentialVersionId,
+            FoundryResponsesTestFixtures.ProjectEndpointHash,
+            FoundryResponsesTestFixtures.ApplicationRevision);
 
         Assert.Equal(route.ProfileBindingHash, binding.ModelProfileHash);
         Assert.Equal(route.ProfileBindingHash, binding.ResolvedProfileHash);
@@ -293,7 +302,10 @@ public sealed class ModelReceiptV2Tests
             FoundryResponsesTestFixtures.Route(),
             FoundryResponsesTestFixtures.OtherHash,
             FoundryCredentialMechanisms.ManagedIdentity,
-            "subject-a");
+            "subject-a",
+            FoundryResponsesTestFixtures.CredentialVersionId,
+            FoundryResponsesTestFixtures.ProjectEndpointHash,
+            FoundryResponsesTestFixtures.ApplicationRevision);
         UnsignedModelAccessResultV2 unsigned = new(
             "run_01J00000000000000000000000",
             new StreamingChatLane(4, 4),

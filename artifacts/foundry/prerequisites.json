@@ -1,43 +1,43 @@
 {
-  "schemaVersion": "forge.foundry-prerequisites.v1",
-  "generatedAt": "2026-07-28T17:08:32.2974539+00:00",
+  "schemaVersion": "forge.foundry-prerequisites.v2",
+  "generatedAt": "2026-07-30T14:58:16.8813166+00:00",
   "ready": false,
-  "projectEndpoint": null,
-  "intendedDeploymentNames": [],
-  "selectedDeploymentNames": [],
-  "checks": {
-    "endpointValidated": false,
-    "entraTokenAcquired": false,
-    "deploymentInventoryCaptured": false,
-    "managedIdentityAttached": false,
-    "foundryRoleAssigned": false
+  "projectEndpointHash": "sha256:a52ba368e17f23ce3f053bb7fc39e95edbdef985bc861e0e0ca519b84d6b2084",
+  "credential": {
+    "mechanism": "api_key",
+    "environmentVariableHash": "sha256:ead06d2a94a96bf5d822f76142893c9c3ade64535456f00555b312fb98ffc73b",
+    "versionHash": "sha256:0ef772479caeae5c6dfd4f5cd8c1f06a277720c40ea8458226c6ccb6b4cf56e8",
+    "rawKeyPersisted": false
   },
-  "azureContext": {
-    "subscriptionIdHash": null,
-    "tenantIdHash": null
-  },
-  "managedIdentity": {
-    "attached": false,
-    "clientIdHash": null,
-    "resourceIdHash": null,
-    "principalIdHash": null
-  },
-  "authorization": {
-    "assigned": false,
-    "roleDefinitionId": "53ca6127-db72-4b80-b1b0-d745d6d5456d",
-    "scopeHash": null
+  "selectedInventoryMode": "configured_and_probed",
+  "routeEvidenceHash": "sha256:039f6ed5f53eabfe5d82e5b7e26751514042cebc953c5ec7007256a8858d4623",
+  "routeEvidence": {
+    "inventoryMode": "configured_and_probed",
+    "routeCount": 0,
+    "routeHashes": []
   },
   "deploymentInventory": {
-    "pageCount": 0,
-    "inventoryHash": null,
+    "pageCount": null,
+    "inventoryHash": "sha256:039f6ed5f53eabfe5d82e5b7e26751514042cebc953c5ec7007256a8858d4623",
     "deployments": []
   },
+  "observations": {
+    "modelsStatus": null,
+    "deploymentStatus": null,
+    "routeProbeCount": 0,
+    "responsesCanaryCount": 0,
+    "providerRequestIdHashes": []
+  },
+  "checks": {
+    "endpointValidated": true,
+    "apiKeyPresent": true,
+    "profilesValidated": false,
+    "responsesCompatibleRouteProved": false,
+    "exactlyOneInventoryModeSelected": true,
+    "foundryEntraTokenAcquired": false
+  },
   "blockers": [
-    "azure_cli_authentication_missing",
-    "container_app_resource_id_missing",
-    "foundry_role_scope_missing",
-    "intended_deployments_missing",
-    "managed_identity_client_id_missing",
-    "project_endpoint_missing"
+    "callable_profile_route_missing",
+    "profiles_missing"
   ]
 }

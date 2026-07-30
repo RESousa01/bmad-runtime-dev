@@ -19,11 +19,16 @@ public sealed record ProductionAzureClients(
     KeyClient KeyVault,
     AzureOpenAIClient? Model);
 
+/// <summary>
+/// Foundry no longer appears here: it authenticates with the backend-only
+/// <see cref="FoundryApiKeyAuthenticator"/>, not a Microsoft Entra token
+/// credential. The remaining three still use managed identity and are
+/// untouched by the no-Entra Foundry migration.
+/// </summary>
 internal sealed record ProductionAzureCredentials(
     TokenCredential AppConfiguration,
     TokenCredential KeyVault,
-    TokenCredential Model,
-    TokenCredential FoundryModel);
+    TokenCredential Model);
 
 public static class AzureClientRegistration
 {
@@ -51,9 +56,11 @@ public static class AzureClientRegistration
     internal static readonly TimeSpan DiscoveryHeaderTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// Every dependency gets its own credential instance, and Foundry gets a
-    /// separate user-assigned identity entirely. Nothing here ever falls back
-    /// to an ambient or chained credential.
+    /// Every dependency gets its own credential instance. Nothing here ever
+    /// falls back to an ambient or chained credential. Foundry is deliberately
+    /// absent: it is authenticated by <see cref="FoundryApiKeyAuthenticator"/>
+    /// with the backend-only <see cref="ProductionOptions.FoundryApiKey"/>,
+    /// not by any credential built here.
     /// </summary>
     internal static ProductionAzureCredentials CreateManagedIdentityCredentials(
         ProductionOptions options)
@@ -61,13 +68,10 @@ public static class AzureClientRegistration
         ArgumentNullException.ThrowIfNull(options);
         ManagedIdentityId runtimeIdentity = ManagedIdentityId.FromUserAssignedClientId(
             options.ManagedIdentityClientId.ToString("D"));
-        ManagedIdentityId foundryIdentity = ManagedIdentityId.FromUserAssignedClientId(
-            options.FoundryModelIdentityClientId.ToString("D"));
         return new ProductionAzureCredentials(
             new ManagedIdentityCredential(runtimeIdentity),
             new ManagedIdentityCredential(runtimeIdentity),
-            new ManagedIdentityCredential(runtimeIdentity),
-            new ManagedIdentityCredential(foundryIdentity));
+            new ManagedIdentityCredential(runtimeIdentity));
     }
 
     public static IServiceCollection AddProductionAzureClients(
@@ -103,10 +107,17 @@ public static class AzureClientRegistration
     /// the existing Azure OpenAI client stays exactly where it is and this seam
     /// is added beside it.
     ///
-    /// The credential mechanism registered here is always managed identity. The
-    /// development API-key mechanism is registered only by
-    /// <see cref="DevelopmentFoundryComposition"/>, and its constructor refuses
-    /// to build outside Development or Test.
+    /// The credential mechanism registered here is always the backend-only
+    /// Foundry API key (<see cref="FoundryApiKeyAuthenticator"/>), never an
+    /// Entra token. It is constructed directly from
+    /// <see cref="ProductionOptions.FoundryApiKey"/>, which
+    /// <see cref="ProductionOptions.Validate"/> has already shape-validated,
+    /// so a malformed key fails at composition rather than at the first
+    /// provider call. The development API-key mechanism is a distinct type
+    /// registered only by <see cref="DevelopmentFoundryComposition"/>, and its
+    /// constructor refuses to build outside Development or Test;
+    /// <see cref="ProductionComposition.AssertNoDevelopmentFoundryCredential"/>
+    /// is the structural check that a production graph never carries it.
     /// </summary>
     public static IServiceCollection AddFoundryDiscoveryTransport(
         this IServiceCollection services,
@@ -115,9 +126,10 @@ public static class AzureClientRegistration
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
         services.AddFoundryDiscoveryHttpClient(options.ValidatedFoundryProjectEndpoint);
-        services.TryAddSingleton<IFoundryRequestAuthenticator>(provider =>
-            new ManagedIdentityFoundryAuthenticator(
-                provider.GetRequiredService<ProductionAzureCredentials>().FoundryModel));
+        services.TryAddSingleton<IFoundryRequestAuthenticator>(
+            _ => new FoundryApiKeyAuthenticator(
+                options.FoundryApiKey,
+                options.FoundryCredentialVersion));
         services.TryAddSingleton(provider => new FoundryDeploymentDiscoveryClient(
             provider.GetRequiredService<IHttpClientFactory>()
                 .CreateClient(FoundryDiscoveryHttpClientName),

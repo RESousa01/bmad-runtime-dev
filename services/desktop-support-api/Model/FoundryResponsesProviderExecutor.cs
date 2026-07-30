@@ -109,6 +109,13 @@ public sealed class FoundryResponsesProviderExecutor
     /// </summary>
     public string CredentialMechanismId => _authenticator.CredentialMechanismId;
 
+    /// <summary>
+    /// The non-secret credential version label the current authenticator
+    /// carries. Folded into the receipt's credential-binding hash alongside
+    /// <see cref="CredentialMechanismId"/>; never the credential itself.
+    /// </summary>
+    public string CredentialVersionId => _authenticator.CredentialVersionId;
+
     /// <summary>Executes one structured, non-streaming Responses call.</summary>
     public async Task<ModelProviderResponse> ExecuteAsync(
         ModelProviderRequest request,

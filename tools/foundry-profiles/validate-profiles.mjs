@@ -143,7 +143,7 @@ function repositoryRelative(filePath) {
 /**
  * Reads either shape of deployment inventory this repository produces.
  *
- * `forge.foundry-prerequisites.v1` is the report written by
+ * `forge.foundry-prerequisites.v1` and `.v2` are reports written by
  * tools/foundry-smoke/check-prerequisites.ps1. It carries a readiness verdict
  * and a redacted projection in which capabilities are reduced to sorted key
  * names, so capability narrowing cannot be checked from it.
@@ -164,7 +164,10 @@ export function readDeploymentInventory(document) {
   }
 
   const schemaVersion = document.schemaVersion;
-  if (schemaVersion === "forge.foundry-prerequisites.v1") {
+  if (
+    schemaVersion === "forge.foundry-prerequisites.v1" ||
+    schemaVersion === "forge.foundry-prerequisites.v2"
+  ) {
     const inventory = isPlainObject(document.deploymentInventory)
       ? document.deploymentInventory
       : null;
@@ -178,7 +181,7 @@ export function readDeploymentInventory(document) {
       blockers,
       capabilitiesKnown: false,
       deployments: indexDeployments(records),
-      source: "forge.foundry-prerequisites.v1",
+      source: schemaVersion,
     };
   }
 
@@ -654,7 +657,7 @@ export function validate({ profileDocument, deploymentDocument, currentDocument,
       code: "deployment_inventory_shape_unrecognized",
       path: "$",
       message:
-        "The deployments file is neither forge.foundry-prerequisites.v1 nor sapphirus.foundry-deployment.v1.",
+        "The deployments file is neither forge.foundry-prerequisites.v1/v2 nor sapphirus.foundry-deployment.v1.",
     });
   } else if (!inventory.ready) {
     violations.push({

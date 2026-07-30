@@ -254,7 +254,10 @@ public sealed class DevelopmentModelReceiptSignerV2Tests
             route,
             FoundryResponsesTestFixtures.OtherHash,
             credentialMechanismId,
-            "subject-a");
+            "subject-a",
+            FoundryResponsesTestFixtures.CredentialVersionId,
+            FoundryResponsesTestFixtures.ProjectEndpointHash,
+            FoundryResponsesTestFixtures.ApplicationRevision);
         return new UnsignedModelAccessResultV2(
             "run_01J00000000000000000000000",
             new StreamingChatLane(4, 4),

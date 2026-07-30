@@ -209,7 +209,6 @@ public sealed class FoundryReadinessTests
         {
             ManagedIdentityClientId = Guid.Parse("44444444-4444-4444-4444-444444444444"),
             SqlMigrationIdentityClientId = Guid.Parse("55555555-5555-5555-5555-555555555555"),
-            FoundryModelIdentityClientId = Guid.Parse("66666666-6666-6666-6666-666666666666"),
             AppConfigurationEndpoint = "https://configuration.azconfig.io/",
             KeyVaultUri = "https://signing.vault.azure.net/",
             ReceiptSigningKeyName = "model-receipt-signing",
@@ -217,6 +216,8 @@ public sealed class FoundryReadinessTests
             SqlDatabase = "desktop-authority",
             FoundryProjectEndpoint =
                 "https://account-example.services.ai.azure.com/api/projects/_project/",
+            FoundryApiKey = "test-foundry-project-key-0001",
+            FoundryPrerequisiteEvidenceHash = FoundryResponsesTestFixtures.Hash,
             ProviderProfileHash = FoundryResponsesTestFixtures.Hash,
             ModelProfileHash = FoundryResponsesTestFixtures.Hash,
             ModelCapabilityHash = FoundryResponsesTestFixtures.Hash,

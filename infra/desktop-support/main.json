@@ -10,7 +10,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.45.15.27210",
-      "templateHash": "8093603725345332832"
+      "templateHash": "2905778513499228391"
     }
   },
   "parameters": {
@@ -105,13 +105,30 @@
         "description": "ARM resource ID used as the Foundry role-assignment scope. Either\n/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<account>\nor the narrower\n.../accounts/<account>/projects/<project>. It must name the same account as\nfoundryProjectEndpoint."
       }
     },
-    "modelBrokerIdentityName": {
-      "type": "string",
-      "defaultValue": "[format('{0}-foundry-id', parameters('namePrefix'))]",
-      "minLength": 3,
-      "maxLength": 60,
+    "foundryApiKey": {
+      "type": "securestring",
+      "defaultValue": "",
       "metadata": {
-        "description": "Name of the dedicated user-assigned identity used only for Foundry model access."
+        "description": "Backend-only Microsoft Foundry API key. Never stored in source control, outputs, or plain environment variables: it is written to a Container Apps secret and injected only through secretRef."
+      }
+    },
+    "foundryInventoryMode": {
+      "type": "string",
+      "defaultValue": "ConfiguredAndProbed",
+      "allowedValues": [
+        "ConfiguredAndProbed",
+        "OpenAiModels",
+        "ProjectDeploymentsApiKey"
+      ],
+      "metadata": {
+        "description": "Selected Foundry route inventory mode. configured_and_probed is the default: candidate IDs come from signed profiles and are probed, never auto-discovered."
+      }
+    },
+    "foundryPrerequisiteEvidenceHash": {
+      "type": "string",
+      "defaultValue": "sha256:0000000000000000000000000000000000000000000000000000000000000",
+      "metadata": {
+        "description": "Canonical prerequisite-evidence hash (sha256:<hex>) proving the selected inventory mode was qualified against the live project before rollout."
       }
     },
     "modelProfileConfigurationPrefix": {
@@ -139,13 +156,6 @@
       "maxValue": 86400,
       "metadata": {
         "description": "Maximum age of a cached Foundry deployment catalog before the broker must fail closed. Must be at least the refresh interval."
-      }
-    },
-    "allowSharedPilotIdentity": {
-      "type": "bool",
-      "defaultValue": false,
-      "metadata": {
-        "description": "Pilot-only escape hatch: reuse the shared runtime identity for Foundry model access instead of creating a dedicated model-broker identity. Leave false outside a reviewed pilot."
       }
     },
     "retireLegacyOpenAiAccount": {
@@ -243,8 +253,6 @@
     "foundryHostSuffix": ".services.ai.azure.com",
     "foundryScopeSegments": "[split(parameters('foundryProjectResourceId'), '/')]",
     "foundryScopePaddedSegments": "[concat(variables('foundryScopeSegments'), createArray('', '', '', '', '', '', '', '', '', '', ''))]",
-    "foundryScopeSubscriptionId": "[variables('foundryScopePaddedSegments')[2]]",
-    "foundryScopeResourceGroupName": "[variables('foundryScopePaddedSegments')[4]]",
     "foundryScopeAccountName": "[variables('foundryScopePaddedSegments')[8]]",
     "foundryScopeProjectName": "[variables('foundryScopePaddedSegments')[10]]",
     "suffix": "[uniqueString(subscription().id, resourceGroup().id, parameters('namePrefix'))]",
@@ -271,13 +279,7 @@
       "cognitiveServicesOpenAiUser": "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd",
       "keyVaultCryptoUser": "12338af0-0e69-4776-bea7-57ae8d297424"
     },
-    "foundryDataPlaneRoleDefinitionId": "53ca6127-db72-4b80-b1b0-d745d6d5456d",
-    "foundryScopeIsInThisResourceGroup": "[and(equals(toLower(variables('foundryScopeSubscriptionId')), toLower(subscription().subscriptionId)), equals(toLower(variables('foundryScopeResourceGroupName')), toLower(resourceGroup().name)))]",
-    "foundryScopeIsProject": "[not(empty(variables('foundryScopeProjectName')))]",
-    "assignFoundryRoleHere": "[variables('foundryScopeIsInThisResourceGroup')]",
     "foundryEgressPosture": "[if(empty(parameters('foundryPrivateDnsZoneName')), 'public-egress', 'operator-managed-private-egress')]",
-    "foundryIdentityResourceId": "[if(parameters('allowSharedPilotIdentity'), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('modelBrokerIdentityName')))]",
-    "foundryIdentityName": "[if(parameters('allowSharedPilotIdentity'), variables('identityName'), parameters('modelBrokerIdentityName'))]",
     "ownedPrivateLinkTargets": [
       {
         "name": "registry",
@@ -381,14 +383,6 @@
       "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
       "apiVersion": "2023-01-31",
       "name": "[variables('identityName')]",
-      "location": "[parameters('location')]",
-      "tags": "[parameters('tags')]"
-    },
-    "modelBrokerIdentity": {
-      "condition": "[not(parameters('allowSharedPilotIdentity'))]",
-      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-      "apiVersion": "2023-01-31",
-      "name": "[parameters('modelBrokerIdentityName')]",
       "location": "[parameters('location')]",
       "tags": "[parameters('tags')]"
     },
@@ -617,7 +611,10 @@
       "tags": "[parameters('tags')]",
       "identity": {
         "type": "UserAssigned",
-        "userAssignedIdentities": "[union(createObject(format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))), createObject(), format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-pull-id', parameters('namePrefix')))), createObject()), if(parameters('allowSharedPilotIdentity'), createObject(), createObject(format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('modelBrokerIdentityName'))), createObject())))]"
+        "userAssignedIdentities": {
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')))]": {},
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-pull-id', parameters('namePrefix'))))]": {}
+        }
       },
       "properties": {
         "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
@@ -633,6 +630,12 @@
             {
               "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-pull-id', parameters('namePrefix')))]",
               "server": "[reference('registry').loginServer]"
+            }
+          ],
+          "secrets": [
+            {
+              "name": "foundry-api-key",
+              "value": "[parameters('foundryApiKey')]"
             }
           ]
         },
@@ -711,12 +714,16 @@
                   "value": "[parameters('foundryProjectEndpoint')]"
                 },
                 {
-                  "name": "Sapphirus__FoundryModelIdentityClientId",
-                  "value": "[if(parameters('allowSharedPilotIdentity'), reference('identity').clientId, reference('modelBrokerIdentity').clientId)]"
+                  "name": "Sapphirus__FoundryApiKey",
+                  "secretRef": "foundry-api-key"
                 },
                 {
-                  "name": "Sapphirus__AllowSharedPilotIdentity",
-                  "value": "[string(parameters('allowSharedPilotIdentity'))]"
+                  "name": "Sapphirus__FoundryInventoryMode",
+                  "value": "[parameters('foundryInventoryMode')]"
+                },
+                {
+                  "name": "Sapphirus__FoundryPrerequisiteEvidenceHash",
+                  "value": "[parameters('foundryPrerequisiteEvidenceHash')]"
                 },
                 {
                   "name": "Sapphirus__FoundryDeploymentRefreshSeconds",
@@ -793,11 +800,8 @@
         "applicationInsights",
         "configuration",
         "environment",
-        "foundryAccountModelUser",
-        "foundryProjectModelUser",
         "identity",
         "imagePullIdentity",
-        "modelBrokerIdentity",
         "modelUser",
         "privateDnsZoneGroups",
         "registry",
@@ -867,50 +871,6 @@
       "dependsOn": [
         "identity",
         "openAi"
-      ]
-    },
-    "foundryAccount": {
-      "existing": true,
-      "type": "Microsoft.CognitiveServices/accounts",
-      "apiVersion": "2025-12-01",
-      "name": "[variables('foundryScopeAccountName')]"
-    },
-    "foundryProject": {
-      "existing": true,
-      "type": "Microsoft.CognitiveServices/accounts/projects",
-      "apiVersion": "2025-12-01",
-      "name": "[format('{0}/{1}', variables('foundryScopeAccountName'), if(variables('foundryScopeIsProject'), variables('foundryScopeProjectName'), 'unbound'))]"
-    },
-    "foundryProjectModelUser": {
-      "condition": "[and(variables('assignFoundryRoleHere'), variables('foundryScopeIsProject'))]",
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2022-04-01",
-      "scope": "[resourceId('Microsoft.CognitiveServices/accounts/projects', variables('foundryScopeAccountName'), if(variables('foundryScopeIsProject'), variables('foundryScopeProjectName'), 'unbound'))]",
-      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts/projects', variables('foundryScopeAccountName'), if(variables('foundryScopeIsProject'), variables('foundryScopeProjectName'), 'unbound')), variables('foundryIdentityResourceId'), variables('foundryDataPlaneRoleDefinitionId'))]",
-      "properties": {
-        "principalId": "[if(parameters('allowSharedPilotIdentity'), reference('identity').principalId, reference('modelBrokerIdentity').principalId)]",
-        "principalType": "ServicePrincipal",
-        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('foundryDataPlaneRoleDefinitionId'))]"
-      },
-      "dependsOn": [
-        "identity",
-        "modelBrokerIdentity"
-      ]
-    },
-    "foundryAccountModelUser": {
-      "condition": "[and(variables('assignFoundryRoleHere'), not(variables('foundryScopeIsProject')))]",
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2022-04-01",
-      "scope": "[resourceId('Microsoft.CognitiveServices/accounts', variables('foundryScopeAccountName'))]",
-      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', variables('foundryScopeAccountName')), variables('foundryIdentityResourceId'), variables('foundryDataPlaneRoleDefinitionId'))]",
-      "properties": {
-        "principalId": "[if(parameters('allowSharedPilotIdentity'), reference('identity').principalId, reference('modelBrokerIdentity').principalId)]",
-        "principalType": "ServicePrincipal",
-        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('foundryDataPlaneRoleDefinitionId'))]"
-      },
-      "dependsOn": [
-        "identity",
-        "modelBrokerIdentity"
       ]
     },
     "privateDnsZones": {
@@ -1405,37 +1365,13 @@
       "type": "string",
       "value": "[parameters('foundryProjectEndpoint')]"
     },
-    "foundryModelIdentityName": {
+    "foundryInventoryMode": {
       "type": "string",
-      "value": "[variables('foundryIdentityName')]"
+      "value": "[parameters('foundryInventoryMode')]"
     },
-    "foundryModelIdentityClientId": {
+    "foundryPrerequisiteEvidenceHash": {
       "type": "string",
-      "value": "[if(parameters('allowSharedPilotIdentity'), reference('identity').clientId, reference('modelBrokerIdentity').clientId)]"
-    },
-    "foundryModelIdentityObjectId": {
-      "type": "string",
-      "value": "[if(parameters('allowSharedPilotIdentity'), reference('identity').principalId, reference('modelBrokerIdentity').principalId)]"
-    },
-    "foundryModelIdentityResourceId": {
-      "type": "string",
-      "value": "[variables('foundryIdentityResourceId')]"
-    },
-    "foundryModelIdentityIsDedicated": {
-      "type": "bool",
-      "value": "[not(parameters('allowSharedPilotIdentity'))]"
-    },
-    "foundryRoleDefinitionId": {
-      "type": "string",
-      "value": "[variables('foundryDataPlaneRoleDefinitionId')]"
-    },
-    "foundryRoleAssignmentScope": {
-      "type": "string",
-      "value": "[parameters('foundryProjectResourceId')]"
-    },
-    "foundryRoleAssignmentMode": {
-      "type": "string",
-      "value": "[if(variables('assignFoundryRoleHere'), 'in-template', 'operator-managed')]"
+      "value": "[parameters('foundryPrerequisiteEvidenceHash')]"
     },
     "foundryModelProfileConfigurationPrefix": {
       "type": "string",
@@ -1460,6 +1396,7 @@
   },
   "asserts": {
     "immutableApiImage": "[or(not(parameters('deployApi')), and(contains(parameters('containerImage'), '@sha256:'), greaterOrEquals(length(parameters('containerImage')), 80)))]",
+    "foundryApiKeyRequiredWhenDeployed": "[or(not(parameters('deployApi')), not(empty(parameters('foundryApiKey'))))]",
     "foundryEndpointUsesHttps": "[startsWith(parameters('foundryProjectEndpoint'), 'https://')]",
     "foundryEndpointHasNoUserInfoOrPort": "[and(not(contains(variables('foundryEndpointAuthority'), '@')), not(contains(variables('foundryEndpointAuthority'), ':')))]",
     "foundryEndpointHasNoQueryOrFragment": "[and(not(contains(parameters('foundryProjectEndpoint'), '?')), not(contains(parameters('foundryProjectEndpoint'), '#')))]",
@@ -1472,7 +1409,6 @@
     "foundryScopeMatchesEndpointProject": "[if(equals(variables('foundryEndpointProjectName'), '_project'), empty(variables('foundryScopeProjectName')), or(empty(variables('foundryScopeProjectName')), equals(variables('foundryScopeProjectName'), variables('foundryEndpointProjectName'))))]",
     "foundryCatalogStalenessCoversRefresh": "[greaterOrEquals(parameters('foundryCatalogMaximumStaleSeconds'), parameters('foundryDeploymentRefreshSeconds'))]",
     "modelProfilePrefixIsBounded": "[and(and(and(endsWith(parameters('modelProfileConfigurationPrefix'), ':'), not(contains(parameters('modelProfileConfigurationPrefix'), '*'))), not(contains(parameters('modelProfileConfigurationPrefix'), ' '))), equals(parameters('modelProfileConfigurationPrefix'), toLower(parameters('modelProfileConfigurationPrefix'))))]",
-    "sharedPilotIdentityIsPilotOnly": "[or(not(parameters('allowSharedPilotIdentity')), equals(parameters('releaseChannel'), 'beta'))]",
     "foundryPrivateEgressIsCompleteOrAbsent": "[equals(empty(parameters('foundryPrivateDnsZoneName')), empty(parameters('foundryPrivateEndpointGroupId')))]",
     "foundryPrivateDnsZoneIsPrivateLinkZone": "[or(empty(parameters('foundryPrivateDnsZoneName')), startsWith(parameters('foundryPrivateDnsZoneName'), 'privatelink.'))]",
     "legacyModelPinPresentWhenRetained": "[or(parameters('retireLegacyOpenAiAccount'), and(not(empty(parameters('modelName'))), not(empty(parameters('modelVersion')))))]"

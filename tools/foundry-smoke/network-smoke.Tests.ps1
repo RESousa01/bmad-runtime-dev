@@ -475,15 +475,35 @@ Assert-ThrowsCode -Name 'the real TLS probe fails closed on a reserved name' `
             -TimeoutSeconds 5
     }
 
+Invoke-TestCase -Name 'the API key shape check accepts and rejects correctly' -Action {
+    Assert-True -Name 'a plausible key is accepted' `
+        -Condition (
+            Test-FoundryNetworkApiKeyShape -Value 'a-plausible-synthetic-key-1234567890'
+        )
+    Assert-True -Name 'an empty key is rejected' `
+        -Condition (-not (Test-FoundryNetworkApiKeyShape -Value ''))
+    Assert-True -Name 'a whitespace-only key is rejected' `
+        -Condition (-not (Test-FoundryNetworkApiKeyShape -Value '   '))
+    Assert-True -Name 'a too-short key is rejected' `
+        -Condition (-not (Test-FoundryNetworkApiKeyShape -Value 'short'))
+    Assert-True -Name 'a key with leading/trailing whitespace is rejected' `
+        -Condition (
+            -not (
+                Test-FoundryNetworkApiKeyShape `
+                    -Value '  a-plausible-synthetic-key-1234567890  '
+            )
+        )
+}
+
 Invoke-TestCase -Name 'an invalid endpoint reaches no network boundary' -Action {
     $reportPath = Join-Path `
         ([System.IO.Path]::GetTempPath()) `
         "forge-foundry-network-shape-$([guid]::NewGuid().ToString('N')).json"
-    $calls = [pscustomobject]@{ dns = 0; tls = 0; token = 0; route = 0 }
+    $calls = [pscustomobject]@{ dns = 0; tls = 0; route = 0 }
     try {
         $exitCode = Invoke-FoundryNetworkSmoke `
             -ProjectEndpointValue 'https://forge-east.services.ai.azure.com.evil.example/api/projects/forge-prod' `
-            -ManagedIdentityClientIdValue '' `
+            -ApiKeyValue 'a-plausible-synthetic-key-1234567890' `
             -ReportPath $reportPath `
             -DnsResolver {
                 param([string] $HostName)
@@ -495,13 +515,8 @@ Invoke-TestCase -Name 'an invalid endpoint reaches no network boundary' -Action 
                 $calls.tls += 1
                 throw 'the TLS probe must not run before the shape is proved'
             }.GetNewClosure() `
-            -TokenProvider {
-                param([string] $Scope, [string] $ClientId)
-                $calls.token += 1
-                throw 'the token provider must not run before the shape is proved'
-            }.GetNewClosure() `
             -DeploymentProbe {
-                param([uri] $Uri, [string] $AccessToken)
+                param([uri] $Uri, [string] $ApiKey)
                 $calls.route += 1
                 throw 'the route probe must not run before the shape is proved'
             }.GetNewClosure()
@@ -509,8 +524,8 @@ Invoke-TestCase -Name 'an invalid endpoint reaches no network boundary' -Action 
             -Actual $exitCode `
             -Expected 2
         Assert-Equal -Name 'no network boundary was touched' `
-            -Actual "$($calls.dns),$($calls.tls),$($calls.token),$($calls.route)" `
-            -Expected '0,0,0,0'
+            -Actual "$($calls.dns),$($calls.tls),$($calls.route)" `
+            -Expected '0,0,0'
         $report = Get-Content -Raw -LiteralPath $reportPath |
             ConvertFrom-Json -Depth 32
         Assert-True -Name 'a lookalike host is a stable blocker' `
@@ -531,15 +546,15 @@ Invoke-TestCase -Name 'an invalid endpoint reaches no network boundary' -Action 
     }
 }
 
-Invoke-TestCase -Name 'an unresolvable host stops before TLS and token' -Action {
+Invoke-TestCase -Name 'an unresolvable host stops before TLS and the route probe' -Action {
     $reportPath = Join-Path `
         ([System.IO.Path]::GetTempPath()) `
         "forge-foundry-network-dns-$([guid]::NewGuid().ToString('N')).json"
-    $calls = [pscustomobject]@{ tls = 0; token = 0 }
+    $calls = [pscustomobject]@{ tls = 0; route = 0 }
     try {
         $exitCode = Invoke-FoundryNetworkSmoke `
             -ProjectEndpointValue $namedEndpointValue `
-            -ManagedIdentityClientIdValue '' `
+            -ApiKeyValue 'a-plausible-synthetic-key-1234567890' `
             -ReportPath $reportPath `
             -DnsResolver {
                 param([string] $HostName)
@@ -550,20 +565,16 @@ Invoke-TestCase -Name 'an unresolvable host stops before TLS and token' -Action 
                 $calls.tls += 1
                 throw 'TLS must not be attempted without a resolved name'
             }.GetNewClosure() `
-            -TokenProvider {
-                param([string] $Scope, [string] $ClientId)
-                $calls.token += 1
-                throw 'no token may be requested for an unreachable host'
-            }.GetNewClosure() `
             -DeploymentProbe {
-                param([uri] $Uri, [string] $AccessToken)
+                param([uri] $Uri, [string] $ApiKey)
+                $calls.route += 1
                 throw 'no route may be probed for an unreachable host'
-            }
+            }.GetNewClosure()
         Assert-Equal -Name 'an unresolvable host is not ready' `
             -Actual $exitCode `
             -Expected 2
-        Assert-Equal -Name 'TLS and token were not attempted' `
-            -Actual "$($calls.tls),$($calls.token)" `
+        Assert-Equal -Name 'TLS and route were not attempted' `
+            -Actual "$($calls.tls),$($calls.route)" `
             -Expected '0,0'
         $report = Get-Content -Raw -LiteralPath $reportPath |
             ConvertFrom-Json -Depth 32
@@ -579,14 +590,14 @@ Invoke-TestCase -Name 'an unresolvable host stops before TLS and token' -Action 
     }
 }
 
-Invoke-TestCase -Name 'a malformed identity client ID fails closed' -Action {
+Invoke-TestCase -Name 'a missing API key fails closed and is never echoed' -Action {
     $reportPath = Join-Path `
         ([System.IO.Path]::GetTempPath()) `
-        "forge-foundry-network-identity-$([guid]::NewGuid().ToString('N')).json"
+        "forge-foundry-network-key-$([guid]::NewGuid().ToString('N')).json"
     try {
         $exitCode = Invoke-FoundryNetworkSmoke `
             -ProjectEndpointValue $namedEndpointValue `
-            -ManagedIdentityClientIdValue 'not-a-guid' `
+            -ApiKeyValue '' `
             -ReportPath $reportPath `
             -DnsResolver {
                 param([string] $HostName)
@@ -596,28 +607,62 @@ Invoke-TestCase -Name 'a malformed identity client ID fails closed' -Action {
                 param([string] $HostName, [int] $Port)
                 throw 'unreachable'
             } `
-            -TokenProvider {
-                param([string] $Scope, [string] $ClientId)
-                throw 'unreachable'
-            } `
             -DeploymentProbe {
-                param([uri] $Uri, [string] $AccessToken)
+                param([uri] $Uri, [string] $ApiKey)
                 throw 'unreachable'
             }
-        Assert-Equal -Name 'a malformed client ID is not ready' `
+        Assert-Equal -Name 'a missing key is not ready' `
             -Actual $exitCode `
             -Expected 2
         $report = Get-Content -Raw -LiteralPath $reportPath |
             ConvertFrom-Json -Depth 32
-        Assert-True -Name 'a malformed client ID is a stable blocker' `
+        Assert-True -Name 'a missing key is a stable blocker' `
             -Condition (
-                @($report.blockers).Contains(
-                    'managed_identity_client_id_invalid'
-                )
+                @($report.blockers).Contains('api_key_missing_or_invalid')
+            )
+        Assert-True -Name 'the key shape check reports false' `
+            -Condition (-not $report.apiKey.shapeValid)
+    }
+    finally {
+        if (Test-Path -LiteralPath $reportPath -PathType Leaf) {
+            Remove-Item -LiteralPath $reportPath -Force
+        }
+    }
+}
+
+Invoke-TestCase -Name 'an implausibly short API key fails closed' -Action {
+    $reportPath = Join-Path `
+        ([System.IO.Path]::GetTempPath()) `
+        "forge-foundry-network-shortkey-$([guid]::NewGuid().ToString('N')).json"
+    try {
+        $exitCode = Invoke-FoundryNetworkSmoke `
+            -ProjectEndpointValue $namedEndpointValue `
+            -ApiKeyValue 'short' `
+            -ReportPath $reportPath `
+            -DnsResolver {
+                param([string] $HostName)
+                Throw-FoundryNetworkFailure -Code 'dns_unresolved'
+            } `
+            -TlsProbe {
+                param([string] $HostName, [int] $Port)
+                throw 'unreachable'
+            } `
+            -DeploymentProbe {
+                param([uri] $Uri, [string] $ApiKey)
+                throw 'unreachable'
+            }
+        Assert-Equal -Name 'a short key is not ready' `
+            -Actual $exitCode `
+            -Expected 2
+        $report = Get-Content -Raw -LiteralPath $reportPath |
+            ConvertFrom-Json -Depth 32
+        Assert-True -Name 'a short key is a stable blocker' `
+            -Condition (
+                @($report.blockers).Contains('api_key_missing_or_invalid')
             )
         $reportJson = $report | ConvertTo-Json -Depth 32 -Compress
-        Assert-True -Name 'a rejected client ID is never echoed' `
-            -Condition (-not $reportJson.Contains('not-a-guid'))
+        Assert-True -Name 'a rejected key is never echoed' `
+            -Condition (-not $reportJson.Contains('short'))
     }
     finally {
         if (Test-Path -LiteralPath $reportPath -PathType Leaf) {
@@ -633,7 +678,7 @@ Invoke-TestCase -Name 'missing inputs produce a durable blocked report' -Action 
     try {
         $output = & pwsh -NoProfile -File "$PSScriptRoot/network-smoke.ps1" `
             -ProjectEndpoint '' `
-            -ManagedIdentityClientId '' `
+            -ApiKey '' `
             -OutputPath $reportPath 2>&1
         $exitCode = $LASTEXITCODE
         Assert-Equal -Name 'blocked network smoke exit code' `
@@ -648,7 +693,7 @@ Invoke-TestCase -Name 'missing inputs produce a durable blocked report' -Action 
         $requiredBlockers = @(
             'deployment_route_unavailable',
             'dns_unresolved',
-            'managed_identity_token_unavailable',
+            'api_key_missing_or_invalid',
             'project_endpoint_missing',
             'tls_unreachable'
         )
@@ -664,6 +709,7 @@ Invoke-TestCase -Name 'missing inputs produce a durable blocked report' -Action 
             -Condition (
                 -not $reportJson.Contains('accessToken') -and
                 -not $reportJson.Contains('access_token') -and
+                -not $reportJson.Contains('api-key') -and
                 -not $reportJson.Contains('Authorization') -and
                 -not $reportJson.Contains('Bearer')
             )
@@ -683,12 +729,12 @@ Invoke-TestCase -Name 'a complete network path becomes ready without Azure' -Act
     $reportPath = Join-Path `
         ([System.IO.Path]::GetTempPath()) `
         "forge-foundry-network-ready-$([guid]::NewGuid().ToString('N')).json"
-    $identityClientId = '11111111-2222-3333-4444-555555555555'
-    $observed = [pscustomobject]@{ scope = ''; clientId = ''; routeUri = '' }
+    $syntheticApiKey = 'a-plausible-synthetic-key-1234567890'
+    $observed = [pscustomobject]@{ apiKey = ''; routeUri = '' }
     try {
         $exitCode = Invoke-FoundryNetworkSmoke `
             -ProjectEndpointValue $namedEndpointValue `
-            -ManagedIdentityClientIdValue $identityClientId `
+            -ApiKeyValue $syntheticApiKey `
             -ReportPath $reportPath `
             -DnsResolver {
                 param([string] $HostName)
@@ -712,20 +758,12 @@ Invoke-TestCase -Name 'a complete network path becomes ready without Azure' -Act
                     certificateNotAfter = '2099-01-01T00:00:00.0000000+00:00'
                 }
             } `
-            -TokenProvider {
-                param([string] $Scope, [string] $ClientId)
-                $observed.scope = $Scope
-                $observed.clientId = $ClientId
-                return [pscustomobject]@{
-                    source = 'synthetic'
-                    accessToken = 'must-not-cross-into-a-report'
-                }
-            }.GetNewClosure() `
             -DeploymentProbe {
-                param([uri] $Uri, [string] $AccessToken)
+                param([uri] $Uri, [string] $ApiKey)
+                $observed.apiKey = $ApiKey
                 $observed.routeUri = $Uri.AbsoluteUri
-                if ($AccessToken -cne 'must-not-cross-into-a-report') {
-                    throw 'the token was not kept at the HTTP boundary'
+                if ($ApiKey -cne $syntheticApiKey) {
+                    throw 'the key was not kept at the HTTP boundary'
                 }
                 return [pscustomobject]@{
                     statusCode = 200
@@ -756,15 +794,9 @@ Invoke-TestCase -Name 'a complete network path becomes ready without Azure' -Act
                 $report.checks.endpointValidated -and
                 $report.checks.dnsResolved -and
                 $report.checks.tlsReachable -and
-                $report.checks.managedIdentityTokenAcquired -and
+                $report.checks.apiKeyShapeValid -and
                 $report.checks.deploymentRouteReachable
             )
-        Assert-Equal -Name 'the documented token scope is requested' `
-            -Actual $observed.scope `
-            -Expected 'https://ai.azure.com/.default'
-        Assert-Equal -Name 'the supplied identity is requested' `
-            -Actual $observed.clientId `
-            -Expected $identityClientId
         Assert-Equal -Name 'the documented deployment route is requested' `
             -Actual $observed.routeUri `
             -Expected (
@@ -779,12 +811,11 @@ Invoke-TestCase -Name 'a complete network path becomes ready without Azure' -Act
             -Actual $report.deploymentRoute.deploymentCount `
             -Expected 1
         $reportJson = $report | ConvertTo-Json -Depth 32 -Compress
-        Assert-True -Name 'ready report redacts token, names, and addresses' `
+        Assert-True -Name 'ready report redacts key, names, and addresses' `
             -Condition (
-                -not $reportJson.Contains('must-not-cross-into-a-report') -and
+                -not $reportJson.Contains($syntheticApiKey) -and
                 -not $reportJson.Contains('must-not-leak-deployment') -and
                 -not $reportJson.Contains('10.42.2.7') -and
-                -not $reportJson.Contains($identityClientId) -and
                 -not $reportJson.Contains('CN=')
             )
     }
@@ -802,7 +833,7 @@ Invoke-TestCase -Name 'an unauthorized route keeps the smoke blocked' -Action {
     try {
         $exitCode = Invoke-FoundryNetworkSmoke `
             -ProjectEndpointValue $namedEndpointValue `
-            -ManagedIdentityClientIdValue '' `
+            -ApiKeyValue 'a-plausible-synthetic-key-1234567890' `
             -ReportPath $reportPath `
             -DnsResolver {
                 param([string] $HostName)
@@ -817,15 +848,8 @@ Invoke-TestCase -Name 'an unauthorized route keeps the smoke blocked' -Action {
                     certificateNotAfter = '2099-01-01T00:00:00.0000000+00:00'
                 }
             } `
-            -TokenProvider {
-                param([string] $Scope, [string] $ClientId)
-                return [pscustomobject]@{
-                    source = 'synthetic'
-                    accessToken = 'must-not-cross-into-a-report'
-                }
-            } `
             -DeploymentProbe {
-                param([uri] $Uri, [string] $AccessToken)
+                param([uri] $Uri, [string] $ApiKey)
                 return [pscustomobject]@{
                     statusCode = 403
                     body = '{"error":{"message":"must-not-leak"}}'
@@ -847,6 +871,52 @@ Invoke-TestCase -Name 'an unauthorized route keeps the smoke blocked' -Action {
         Assert-True -Name 'a denied response body never reaches the report' `
             -Condition (
                 -not $reportJson.Contains('must-not-leak')
+            )
+    }
+    finally {
+        if (Test-Path -LiteralPath $reportPath -PathType Leaf) {
+            Remove-Item -LiteralPath $reportPath -Force
+        }
+    }
+}
+
+Invoke-TestCase -Name 'a revoked key (401) keeps the smoke blocked' -Action {
+    $reportPath = Join-Path `
+        ([System.IO.Path]::GetTempPath()) `
+        "forge-foundry-network-revoked-$([guid]::NewGuid().ToString('N')).json"
+    try {
+        $exitCode = Invoke-FoundryNetworkSmoke `
+            -ProjectEndpointValue $namedEndpointValue `
+            -ApiKeyValue 'a-plausible-synthetic-key-1234567890' `
+            -ReportPath $reportPath `
+            -DnsResolver {
+                param([string] $HostName)
+                return @('20.50.1.1')
+            } `
+            -TlsProbe {
+                param([string] $HostName, [int] $Port)
+                return [pscustomobject]@{
+                    negotiatedProtocol = 'Tls13'
+                    certificateSubject = 'CN=forge-east.services.ai.azure.com'
+                    certificateIssuer = 'CN=synthetic issuing CA'
+                    certificateNotAfter = '2099-01-01T00:00:00.0000000+00:00'
+                }
+            } `
+            -DeploymentProbe {
+                param([uri] $Uri, [string] $ApiKey)
+                return [pscustomobject]@{
+                    statusCode = 401
+                    body = '{"error":{"message":"must-not-leak"}}'
+                }
+            }
+        Assert-Equal -Name 'a revoked key is not ready' `
+            -Actual $exitCode `
+            -Expected 2
+        $report = Get-Content -Raw -LiteralPath $reportPath |
+            ConvertFrom-Json -Depth 32
+        Assert-True -Name 'a revoked key is an explicit blocker' `
+            -Condition (
+                @($report.blockers).Contains('deployment_route_unauthorized')
             )
     }
     finally {

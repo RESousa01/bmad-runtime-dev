@@ -21,8 +21,37 @@ namespace Sapphirus.DesktopSupportApi.Foundry;
 /// <see cref="IFoundryRequestAuthenticator"/>'s job, and the credential is
 /// acquired once per discovery operation rather than once per page.
 /// </summary>
-public sealed class FoundryDeploymentDiscoveryClient
+public sealed class FoundryDeploymentDiscoveryClient : IFoundryRouteInventorySource
 {
+    /// <summary>
+    /// The <c>ProjectDeploymentsApiKey</c> face of this client.
+    ///
+    /// It is a façade rather than a rewrite, per the migration delta: existing
+    /// callers and tests keep using <see cref="DiscoverAsync"/> and its
+    /// evidence-carrying result, while a mode-selected inventory source sees
+    /// only a snapshot. A failed discovery raises rather than returning an
+    /// empty snapshot, because a mode that cannot produce an inventory must
+    /// fail closed and must never be mistaken for a project that has no routes.
+    /// </summary>
+    /// <exception cref="FoundryInventoryUnavailableException">
+    /// The discovery attempt did not produce a snapshot. The outcome is carried
+    /// through so the caller can distinguish an authorization failure, which
+    /// must not extend stale cache life, from a transient one, which may.
+    /// </exception>
+    async Task<FoundryDeploymentSnapshot> IFoundryRouteInventorySource.GetSnapshotAsync(
+        CancellationToken cancellationToken)
+    {
+        FoundryDiscoveryResult result = await DiscoverAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (!result.IsSuccess || result.Snapshot is null)
+        {
+            throw new FoundryInventoryUnavailableException(
+                result.Outcome,
+                result.ErrorCode);
+        }
+        return result.Snapshot;
+    }
+
     /// <summary>
     /// The Entra scope the managed-identity mechanism requests. It stays here
     /// as the documented discovery scope; the single definition lives on the
@@ -59,17 +88,46 @@ public sealed class FoundryDeploymentDiscoveryClient
     private readonly IFoundryRequestAuthenticator _authenticator;
     private readonly Uri _projectEndpoint;
     private readonly TimeProvider _timeProvider;
+    private readonly FoundryInventoryMode _inventoryMode;
+    private readonly string _prerequisiteEvidenceHash;
 
     public FoundryDeploymentDiscoveryClient(
         HttpClient httpClient,
         IFoundryRequestAuthenticator authenticator,
         Uri projectEndpoint,
         TimeProvider timeProvider)
+        : this(
+            httpClient,
+            authenticator,
+            projectEndpoint,
+            timeProvider,
+            FoundryInventoryMode.ProjectDeploymentsApiKey,
+            prerequisiteEvidenceHash: "")
+    {
+    }
+
+    /// <summary>
+    /// The full constructor. <paramref name="inventoryMode"/> and
+    /// <paramref name="prerequisiteEvidenceHash"/> are folded into the
+    /// canonical snapshot hash (delta compatibility decision 1): this client
+    /// always speaks the <see cref="FoundryInventoryMode.ProjectDeploymentsApiKey"/>
+    /// wire shape, so callers using other modes construct
+    /// <see cref="IFoundryRouteInventorySource"/> implementations directly
+    /// instead of this type.
+    /// </summary>
+    public FoundryDeploymentDiscoveryClient(
+        HttpClient httpClient,
+        IFoundryRequestAuthenticator authenticator,
+        Uri projectEndpoint,
+        TimeProvider timeProvider,
+        FoundryInventoryMode inventoryMode,
+        string prerequisiteEvidenceHash)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
         ArgumentNullException.ThrowIfNull(authenticator);
         ArgumentNullException.ThrowIfNull(projectEndpoint);
         ArgumentNullException.ThrowIfNull(timeProvider);
+        ArgumentNullException.ThrowIfNull(prerequisiteEvidenceHash);
         if (!IsProjectEndpointShape(projectEndpoint))
         {
             throw new ArgumentException(
@@ -80,11 +138,13 @@ public sealed class FoundryDeploymentDiscoveryClient
         _authenticator = authenticator;
         _projectEndpoint = projectEndpoint;
         _timeProvider = timeProvider;
+        _inventoryMode = inventoryMode;
+        _prerequisiteEvidenceHash = prerequisiteEvidenceHash;
     }
 
     /// <summary>
-    /// Convenience overload for the managed-identity mechanism, which is the
-    /// only production one. It composes
+    /// Convenience overload for the managed-identity mechanism, retained only
+    /// so historical callers and V1-era tests still compile.
     /// <see cref="ManagedIdentityFoundryAuthenticator"/> and is otherwise
     /// identical to the seam-taking constructor.
     /// </summary>
@@ -311,7 +371,11 @@ public sealed class FoundryDeploymentDiscoveryClient
         }
 
         FoundryNormalizationResult normalized =
-            FoundryDeploymentNormalizer.Normalize(collected, retrievedAt);
+            FoundryDeploymentNormalizer.Normalize(
+                collected,
+                retrievedAt,
+                _inventoryMode,
+                _prerequisiteEvidenceHash);
         FoundryDiscoveryEvidence evidence = Evidence(
             retrievedAt,
             pageCount,

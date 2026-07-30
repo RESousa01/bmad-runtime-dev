@@ -66,7 +66,10 @@ public sealed class ModelStreamingCoordinator(
     TimeProvider timeProvider,
     ModelStreamLimits limits,
     string credentialMechanismId,
-    SupportPlaneTelemetry? telemetry = null)
+    SupportPlaneTelemetry? telemetry = null,
+    string credentialVersionId = "v1",
+    string projectEndpointHash = "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    string applicationRevision = "unset")
 {
     /// <summary>
     /// How this coordinator's provider calls are authenticated. It is folded
@@ -74,6 +77,24 @@ public sealed class ModelStreamingCoordinator(
     /// credential itself.
     /// </summary>
     public string CredentialMechanismId { get; } = credentialMechanismId;
+
+    /// <summary>
+    /// Non-secret credential version label folded into the receipt's
+    /// credential-binding hash alongside <see cref="CredentialMechanismId"/>.
+    /// </summary>
+    public string CredentialVersionId { get; } = credentialVersionId;
+
+    /// <summary>
+    /// Non-secret hash of the Foundry project endpoint folded into the
+    /// receipt's credential-binding hash.
+    /// </summary>
+    public string ProjectEndpointHash { get; } = projectEndpointHash;
+
+    /// <summary>
+    /// Non-secret application revision folded into the receipt's
+    /// credential-binding hash.
+    /// </summary>
+    public string ApplicationRevision { get; } = applicationRevision;
 
     /// <summary>Reviewed prose. Never copied from a provider response.</summary>
     internal const string TranscriptRejectedDetail =
@@ -289,7 +310,10 @@ public sealed class ModelStreamingCoordinator(
             call.Route,
             call.DeploymentInventoryHash,
             call.CredentialMechanismId,
-            call.Subject);
+            call.Subject,
+            CredentialVersionId,
+            ProjectEndpointHash,
+            ApplicationRevision);
 
         // The lane is minted before the terminal event, so its final sequence
         // is the sequence that terminal event will carry.

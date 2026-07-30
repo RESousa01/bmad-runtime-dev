@@ -31,6 +31,16 @@ internal static class FoundryResponsesTestFixtures
     internal const string OtherHash =
         "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
+    /// <summary>Non-secret credential version label used across binding-hash tests.</summary>
+    internal const string CredentialVersionId = "v-test-1";
+
+    /// <summary>Non-secret project endpoint hash used across binding-hash tests.</summary>
+    internal const string ProjectEndpointHash =
+        "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
+
+    /// <summary>Non-secret application revision used across binding-hash tests.</summary>
+    internal const string ApplicationRevision = "revision-test-1";
+
     /// <summary>
     /// Synthetic values that must never appear in a log, a trace, a problem
     /// document, a receipt, or an exception. They use the allowlisted canary
@@ -238,6 +248,8 @@ internal static class FoundryResponsesTestFixtures
 
         public string CredentialMechanismId => mechanismId;
 
+        public string CredentialVersionId => FoundryResponsesTestFixtures.CredentialVersionId;
+
         public ValueTask ApplyAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
@@ -262,6 +274,8 @@ internal static class FoundryResponsesTestFixtures
     internal sealed class FailingFoundryAuthenticator : IFoundryRequestAuthenticator
     {
         public string CredentialMechanismId => FoundryCredentialMechanisms.ManagedIdentity;
+
+        public string CredentialVersionId => FoundryResponsesTestFixtures.CredentialVersionId;
 
         public ValueTask ApplyAsync(
             HttpRequestMessage request,

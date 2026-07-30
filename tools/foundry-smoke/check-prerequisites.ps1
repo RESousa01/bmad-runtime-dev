@@ -1,6 +1,31 @@
 [CmdletBinding()]
 param(
     [string] $ProjectEndpoint = $env:FOUNDRY_PROJECT_ENDPOINT,
+    [string] $ApiKeyEnvironmentVariable = 'FOUNDRY_API_KEY',
+    [string] $Profiles = 'infra/desktop-support/model-profiles.json',
+    [ValidateRange(0, 1000000000)]
+    [long] $BudgetMicrounits = 5000,
+    [ValidateSet(
+        'configured_and_probed',
+        'openai_models',
+        'project_deployments_api_key'
+    )]
+    [string] $InventoryMode = $(
+        if ([string]::IsNullOrWhiteSpace($env:FOUNDRY_INVENTORY_MODE)) {
+            'configured_and_probed'
+        }
+        else {
+            $env:FOUNDRY_INVENTORY_MODE
+        }
+    ),
+    [string] $CredentialVersion = $(
+        if ([string]::IsNullOrWhiteSpace($env:FOUNDRY_API_KEY_VERSION)) {
+            'unversioned'
+        }
+        else {
+            $env:FOUNDRY_API_KEY_VERSION
+        }
+    ),
     [string] $ManagedIdentityClientId = $env:FOUNDRY_MODEL_IDENTITY_CLIENT_ID,
     [string] $ContainerAppResourceId = $env:FOUNDRY_CONTAINER_APP_RESOURCE_ID,
     [string] $FoundryRoleScope = $env:FOUNDRY_PROJECT_RESOURCE_ID,
@@ -22,6 +47,8 @@ function Throw-FoundryPrerequisite {
     param([Parameter(Mandatory)][string] $Code)
     throw "foundry_prerequisite:$Code"
 }
+
+. "$PSScriptRoot/check-api-key-prerequisites.ps1"
 
 function Get-FoundrySha256Label {
     param([Parameter(Mandatory)][string] $Value)
@@ -1380,12 +1407,13 @@ function Invoke-FoundryPrerequisiteCheck {
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
-    $exitCode = Invoke-FoundryPrerequisiteCheck `
+    $exitCode = Invoke-FoundryApiKeyPrerequisiteCheck `
         -ProjectEndpointValue $ProjectEndpoint `
-        -ManagedIdentityClientIdValue $ManagedIdentityClientId `
-        -ContainerAppResourceIdValue $ContainerAppResourceId `
-        -FoundryRoleScopeValue $FoundryRoleScope `
-        -IntendedDeploymentNames $IntendedDeploymentName `
+        -ApiKeyEnvironmentVariable $ApiKeyEnvironmentVariable `
+        -ProfilesPath $Profiles `
+        -InventoryMode $InventoryMode `
+        -BudgetMicrounits $BudgetMicrounits `
+        -CredentialVersion $CredentialVersion `
         -ReportPath $OutputPath
     exit $exitCode
 }

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string] $ProjectEndpoint = $env:FOUNDRY_PROJECT_ENDPOINT,
-    [string] $ManagedIdentityClientId = $env:FOUNDRY_MODEL_IDENTITY_CLIENT_ID,
+    [string] $ApiKey = $env:Sapphirus__FoundryApiKey,
     [string] $OutputPath = (
         Join-Path `
             $PSScriptRoot `
@@ -13,17 +13,22 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 # Network reachability smoke for the EXTERNAL Microsoft Foundry project.
-# It proves the network path only: name resolution, TLS/SNI, a managed-identity
-# token, and that the project's own deployment route answers. It never selects,
-# names, or assumes a deployment; tools/foundry-smoke/check-prerequisites.ps1
-# remains the authority on deployment selection and authorization.
+# It proves the network path only: name resolution, TLS/SNI, and that the
+# project's own deployment route answers a redacted API-key-authenticated
+# request. It never selects, names, or assumes a deployment;
+# tools/foundry-smoke/check-prerequisites.ps1 remains the authority on
+# deployment selection and authorization.
+#
+# Authentication is the backend-only Foundry API key, never a managed
+# identity: the key is read from the container's secret-backed environment
+# variable (Sapphirus__FoundryApiKey), sent only as a single `api-key` header,
+# and is never echoed to the report, the console, a log, or an exception
+# message.
 #
 # Redaction discipline matches check-prerequisites.ps1: the report and the
 # printed summary carry counts, status classes, booleans, and sha256 labels
-# only. No token, no response body, no deployment name, and no raw address ever
+# only. No key, no response body, no deployment name, and no raw address ever
 # reaches disk or the console.
-
-$script:FoundryTokenScope = 'https://ai.azure.com/.default'
 
 function Throw-FoundryNetworkFailure {
     param([Parameter(Mandatory)][string] $Code)
@@ -548,107 +553,36 @@ function Test-FoundryNetworkTls {
     }
 }
 
-function Get-FoundryNetworkManagedIdentityToken {
-    param(
-        [Parameter(Mandatory)][string] $Scope,
-        [AllowEmptyString()][string] $ClientId
-    )
+function Test-FoundryNetworkApiKeyShape {
+    param([AllowEmptyString()][string] $Value)
 
-    # The IMDS and Container Apps identity protocols both take a resource URI
-    # rather than an OAuth scope, so the documented `/.default` scope is
-    # reduced to its resource here and reported unchanged.
-    $suffix = '/.default'
-    $resource = if (
-        $Scope.EndsWith($suffix, [System.StringComparison]::Ordinal)
-    ) {
-        $Scope.Substring(0, $Scope.Length - $suffix.Length)
+    # A whitespace-only or implausibly short value is never a real key. This is
+    # a shape check only: it never proves the key is valid against the
+    # project, only that it is worth sending at all.
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $false
     }
-    else {
-        $Scope
+    $trimmed = $Value.Trim()
+    if ($trimmed -cne $Value) {
+        return $false
     }
-
-    $identityEndpoint = $env:IDENTITY_ENDPOINT
-    $identityHeader = $env:IDENTITY_HEADER
-    $useContainerAppsIdentity = (
-        -not [string]::IsNullOrWhiteSpace($identityEndpoint) -and
-        -not [string]::IsNullOrWhiteSpace($identityHeader)
-    )
-    if ($useContainerAppsIdentity) {
-        $source = 'container-apps-identity-endpoint'
-        $builder = [System.UriBuilder]::new($identityEndpoint)
-        $query = "api-version=2019-08-01&resource=$([uri]::EscapeDataString($resource))"
-        if (-not [string]::IsNullOrWhiteSpace($ClientId)) {
-            $query += "&client_id=$([uri]::EscapeDataString($ClientId))"
-        }
-        $builder.Query = $query
-        $uri = $builder.Uri
-        $headers = @{ 'X-IDENTITY-HEADER' = $identityHeader }
+    if ($trimmed.Length -lt 20) {
+        return $false
     }
-    else {
-        $source = 'instance-metadata-service'
-        $query = 'api-version=2018-02-01&resource=' +
-            [uri]::EscapeDataString($resource)
-        if (-not [string]::IsNullOrWhiteSpace($ClientId)) {
-            $query += "&client_id=$([uri]::EscapeDataString($ClientId))"
-        }
-        $uri = [uri] (
-            'http://169.254.169.254/metadata/identity/oauth2/token?' + $query
-        )
-        $headers = @{ 'Metadata' = 'true' }
-    }
-
-    # Any transport failure here means the same thing to the operator: no
-    # managed-identity token is available on this host. The underlying code is
-    # not surfaced, so an identity-endpoint URL never reaches the report.
-    try {
-        $response = Invoke-FoundryNetworkHttpGet `
-            -Uri $uri `
-            -Headers $headers `
-            -MaximumBytes 65536 `
-            -TimeoutSeconds 10
-    }
-    catch {
-        Throw-FoundryNetworkFailure -Code 'managed_identity_token_unavailable'
-    }
-    if ($response.statusCode -ne 200) {
-        Throw-FoundryNetworkFailure -Code 'managed_identity_token_unavailable'
-    }
-    try {
-        $payload = $response.body | ConvertFrom-Json -Depth 8 -NoEnumerate
-    }
-    catch {
-        Throw-FoundryNetworkFailure -Code 'managed_identity_token_unavailable'
-    }
-    $tokenProperty = if ($null -ne $payload) {
-        $payload.PSObject.Properties['access_token']
-    }
-    else {
-        $null
-    }
-    $token = if ($null -ne $tokenProperty) {
-        [string] $tokenProperty.Value
-    }
-    else {
-        ''
-    }
-    if ([string]::IsNullOrWhiteSpace($token) -or $token.Length -lt 20) {
-        Throw-FoundryNetworkFailure -Code 'managed_identity_token_unavailable'
-    }
-    return [pscustomobject][ordered]@{
-        source = $source
-        accessToken = $token
-    }
+    return $true
 }
 
 function Invoke-FoundryDeploymentRouteProbe {
     param(
         [Parameter(Mandatory)][uri] $Uri,
-        [Parameter(Mandatory)][string] $AccessToken
+        [Parameter(Mandatory)][string] $ApiKey
     )
 
+    # Exactly one `api-key` header, matching the production adapter. The key
+    # never appears in the URI, a query string, or any other header.
     return Invoke-FoundryNetworkHttpGet `
         -Uri $Uri `
-        -Headers @{ 'Authorization' = "Bearer $AccessToken" }
+        -Headers @{ 'api-key' = $ApiKey }
 }
 
 function Write-FoundryNetworkReport {
@@ -680,7 +614,7 @@ function Invoke-FoundryNetworkSmoke {
         [string] $ProjectEndpointValue,
 
         [AllowEmptyString()]
-        [string] $ManagedIdentityClientIdValue,
+        [string] $ApiKeyValue,
 
         [Parameter(Mandatory)]
         [string] $ReportPath,
@@ -688,8 +622,6 @@ function Invoke-FoundryNetworkSmoke {
         [scriptblock] $DnsResolver,
 
         [scriptblock] $TlsProbe,
-
-        [scriptblock] $TokenProvider,
 
         [scriptblock] $DeploymentProbe
     )
@@ -734,19 +666,11 @@ function Invoke-FoundryNetworkSmoke {
         }
     }
 
-    $managedIdentityGuid = [guid]::Empty
-    $hasManagedIdentityClientId = -not [string]::IsNullOrWhiteSpace(
-        $ManagedIdentityClientIdValue
-    )
-    if (
-        $hasManagedIdentityClientId -and
-        -not [guid]::TryParse(
-            $ManagedIdentityClientIdValue,
-            [ref] $managedIdentityGuid
-        )
-    ) {
-        & $addBlocker 'managed_identity_client_id_invalid'
-        $hasManagedIdentityClientId = $false
+    # The key shape is checked here, before any network call, but the key
+    # itself is never logged, hashed-and-logged, or echoed even on failure.
+    $apiKeyShapeValid = Test-FoundryNetworkApiKeyShape -Value $ApiKeyValue
+    if (-not $apiKeyShapeValid) {
+        & $addBlocker 'api_key_missing_or_invalid'
     }
 
     $dnsResult = [pscustomobject][ordered]@{
@@ -775,9 +699,6 @@ function Invoke-FoundryNetworkSmoke {
         inventoryHash = $null
         additionalPagesAvailable = $false
     }
-    $tokenAcquired = $false
-    $tokenSource = $null
-
     if ($null -eq $DnsResolver) {
         $DnsResolver = {
             param([string] $HostName)
@@ -790,20 +711,12 @@ function Invoke-FoundryNetworkSmoke {
             Test-FoundryNetworkTls -HostName $HostName -Port $Port
         }
     }
-    if ($null -eq $TokenProvider) {
-        $TokenProvider = {
-            param([string] $Scope, [string] $ClientId)
-            Get-FoundryNetworkManagedIdentityToken `
-                -Scope $Scope `
-                -ClientId $ClientId
-        }
-    }
     if ($null -eq $DeploymentProbe) {
         $DeploymentProbe = {
-            param([uri] $Uri, [string] $AccessToken)
+            param([uri] $Uri, [string] $ApiKey)
             Invoke-FoundryDeploymentRouteProbe `
                 -Uri $Uri `
-                -AccessToken $AccessToken
+                -ApiKey $ApiKey
         }
     }
 
@@ -844,81 +757,38 @@ function Invoke-FoundryNetworkSmoke {
             }
         }
 
-        # Stage 4: managed-identity token, then the project's own deployment
-        # route. The token is held in one local and dropped immediately.
-        if ($tlsResult.reachable) {
-            $accessToken = $null
+        # Stage 4: the project's own deployment route, authenticated with the
+        # backend-only API key. The key is held in one local and dropped
+        # immediately after the request completes.
+        if ($tlsResult.reachable -and $apiKeyShapeValid) {
             try {
-                $tokenResult = & $TokenProvider `
-                    -Scope $script:FoundryTokenScope `
-                    -ClientId (
-                        $hasManagedIdentityClientId ?
-                            $managedIdentityGuid.ToString() :
+                $routeUri = [uri] (
+                    "$($validatedEndpoint.AbsoluteUri)/deployments" +
+                    '?api-version=v1&deploymentType=ModelDeployment'
+                )
+                $probe = & $DeploymentProbe `
+                    -Uri $routeUri `
+                    -ApiKey $ApiKeyValue
+                $statusProperty = $probe.PSObject.Properties['statusCode']
+                $bodyProperty = $probe.PSObject.Properties['body']
+                if ($null -eq $statusProperty) {
+                    Throw-FoundryNetworkFailure `
+                        -Code 'deployment_route_shape_invalid'
+                }
+                $routeResult = ConvertTo-RedactedFoundryDeploymentRoute `
+                    -StatusCode ([int] $statusProperty.Value) `
+                    -Body (
+                        $null -ne $bodyProperty ?
+                            [string] $bodyProperty.Value :
                             ''
                     )
-                $sourceProperty = $tokenResult.PSObject.Properties['source']
-                $tokenProperty =
-                    $tokenResult.PSObject.Properties['accessToken']
-                if (
-                    $null -eq $tokenProperty -or
-                    [string]::IsNullOrWhiteSpace(
-                        [string] $tokenProperty.Value
-                    )
-                ) {
-                    Throw-FoundryNetworkFailure `
-                        -Code 'managed_identity_token_unavailable'
-                }
-                $accessToken = [string] $tokenProperty.Value
-                $tokenSource = if ($null -ne $sourceProperty) {
-                    [string] $sourceProperty.Value
-                }
-                else {
-                    'injected'
-                }
-                $tokenAcquired = $true
             }
             catch {
                 & $addBlocker (
                     & $readFailureCode `
                         $_.Exception `
-                        'managed_identity_token_unavailable'
+                        'deployment_route_unavailable'
                 )
-            }
-
-            if ($tokenAcquired) {
-                try {
-                    $routeUri = [uri] (
-                        "$($validatedEndpoint.AbsoluteUri)/deployments" +
-                        '?api-version=v1&deploymentType=ModelDeployment'
-                    )
-                    $probe = & $DeploymentProbe `
-                        -Uri $routeUri `
-                        -AccessToken $accessToken
-                    $statusProperty = $probe.PSObject.Properties['statusCode']
-                    $bodyProperty = $probe.PSObject.Properties['body']
-                    if ($null -eq $statusProperty) {
-                        Throw-FoundryNetworkFailure `
-                            -Code 'deployment_route_shape_invalid'
-                    }
-                    $routeResult = ConvertTo-RedactedFoundryDeploymentRoute `
-                        -StatusCode ([int] $statusProperty.Value) `
-                        -Body (
-                            $null -ne $bodyProperty ?
-                                [string] $bodyProperty.Value :
-                                ''
-                        )
-                }
-                catch {
-                    & $addBlocker (
-                        & $readFailureCode `
-                            $_.Exception `
-                            'deployment_route_unavailable'
-                    )
-                }
-                finally {
-                    $accessToken = $null
-                    Remove-Variable accessToken -ErrorAction SilentlyContinue
-                }
             }
         }
     }
@@ -928,9 +798,6 @@ function Invoke-FoundryNetworkSmoke {
     }
     if (-not $tlsResult.reachable) {
         & $addBlocker 'tls_unreachable'
-    }
-    if (-not $tokenAcquired) {
-        & $addBlocker 'managed_identity_token_unavailable'
     }
     if (-not $routeResult.requested) {
         & $addBlocker 'deployment_route_unavailable'
@@ -961,23 +828,14 @@ function Invoke-FoundryNetworkSmoke {
             endpointValidated = $null -ne $validatedEndpoint
             dnsResolved = $dnsResult.resolved
             tlsReachable = $tlsResult.reachable
-            managedIdentityTokenAcquired = $tokenAcquired
+            apiKeyShapeValid = $apiKeyShapeValid
             deploymentRouteReachable = $routeResult.requested
         }
         dns = $dnsResult
         tls = $tlsResult
-        managedIdentity = [pscustomobject][ordered]@{
-            tokenAcquired = $tokenAcquired
-            tokenScope = $script:FoundryTokenScope
-            tokenSource = $tokenSource
-            clientIdSupplied = $hasManagedIdentityClientId
-            clientIdHash = if ($hasManagedIdentityClientId) {
-                Get-FoundryNetworkSha256Label `
-                    -Value $managedIdentityGuid.ToString()
-            }
-            else {
-                $null
-            }
+        apiKey = [pscustomobject][ordered]@{
+            supplied = -not [string]::IsNullOrWhiteSpace($ApiKeyValue)
+            shapeValid = $apiKeyShapeValid
         }
         deploymentRoute = $routeResult
         egress = [pscustomobject][ordered]@{
@@ -988,12 +846,12 @@ function Invoke-FoundryNetworkSmoke {
     Write-FoundryNetworkReport -Report $report -Path $ReportPath
 
     # The printed summary is counts and classes only, by the same rule as the
-    # report: no endpoint host, no token, no deployment name. Write-Host keeps
+    # report: no endpoint host, no key, no deployment name. Write-Host keeps
     # it off the pipeline so the caller receives only the exit code.
     Write-Host (
         "foundry network smoke: ready=$($report.ready) " +
         "dns=$($dnsResult.resolved) tls=$($tlsResult.reachable) " +
-        "token=$tokenAcquired route=$($routeResult.statusClass ?? 'none') " +
+        "apiKey=$apiKeyShapeValid route=$($routeResult.statusClass ?? 'none') " +
         "deployments=$($routeResult.deploymentCount) " +
         "egress=$egressPosture " +
         "blockers=$(@($report.blockers).Count)"
@@ -1007,7 +865,7 @@ function Invoke-FoundryNetworkSmoke {
 if ($MyInvocation.InvocationName -ne '.') {
     $exitCode = Invoke-FoundryNetworkSmoke `
         -ProjectEndpointValue $ProjectEndpoint `
-        -ManagedIdentityClientIdValue $ManagedIdentityClientId `
+        -ApiKeyValue $ApiKey `
         -ReportPath $OutputPath
     exit $exitCode
 }
