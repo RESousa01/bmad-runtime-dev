@@ -1584,10 +1584,10 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "exact",
-    "uiState": "planned",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {
@@ -1628,7 +1628,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1672,7 +1672,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1716,7 +1716,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1760,7 +1760,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1804,7 +1804,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1848,7 +1848,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",

@@ -30,7 +30,26 @@ skill now serves, including `core:bmad-editorial-review` and
   written on completion when `{workflow.report_path}` is set --
   `PersistArtifacts` completion hook.
 
+## Runtime status
+
+**Exact and runtime available.** The pinned eleven-member source closure is
+sealed by `normalized/bmad-review.package.json` and adapted by the managed
+`review.instructions.md` projection. Both invocation modes compile through the
+shared generic skill execution contract.
+
+Desktop dispatch resolves the six legacy Core aliases to this canonical row
+before binding. It then prepares the shared Method execution, creates and binds
+the durable Method session, and requires context review before the existing
+capability consent/model lane may run. The aliases do not own executors,
+registries, state machines, or authority.
+
+Filesystem reads and writes, processes, network access, browser use,
+subagents, and external handoffs remain distinct typed intents. The source
+instruction and its Python helper are retained as data and cannot invoke those
+ports directly.
+
 ## Compatibility decision
 
-**adopt / exact.** No semantic divergence was found between the pinned
-source and the harness descriptor.
+**adopt / exact.** The canonical source row is qualified. The six legacy shim
+rows remain governed compatibility aliases and resolve-before-dispatch to this
+implementation.
