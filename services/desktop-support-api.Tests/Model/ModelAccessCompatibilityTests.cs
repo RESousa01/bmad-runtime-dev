@@ -158,6 +158,30 @@ public sealed class ModelAccessCompatibilityTests
         Assert.True(signer.Verify(digestOnReplay, signature));
     }
 
+    /// <summary>
+    /// No-Entra migration delta item 6: the credential-binding hash recipe
+    /// gained three new non-secret inputs (credential version, project
+    /// endpoint hash, application revision), but that recipe is only ever
+    /// used to mint a *new* receipt's <c>credentialBindingHash</c> field. A
+    /// historical version one receipt already carries a fixed, on-disk
+    /// <c>credentialBindingHash</c> value, and the version one digest
+    /// (<see cref="AzureModelReceiptSigner.ComputeReceiptDigest"/>) folds that
+    /// stored value in verbatim rather than recomputing it. So the recipe
+    /// change cannot move the historical digest, and this is the direct
+    /// proof: the digest recomputed today still matches the pinned historical
+    /// digest above.
+    /// </summary>
+    [Fact]
+    public void The_binding_recipe_change_does_not_move_the_historical_receipt_digest()
+    {
+        ModelAccessReceipt historical = LoadHistoricalReceipt();
+
+        byte[] digest = AzureModelReceiptSigner.ComputeReceiptDigest(historical);
+
+        Assert.Equal(HistoricalReceiptDigest, CanonicalProof.Render(digest));
+        Assert.False(string.IsNullOrWhiteSpace(historical.CredentialBindingHash));
+    }
+
     [Fact]
     public void Every_refusal_reason_has_a_stable_wire_spelling()
     {

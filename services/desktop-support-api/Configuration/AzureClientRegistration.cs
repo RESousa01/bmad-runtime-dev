@@ -127,7 +127,9 @@ public static class AzureClientRegistration
         ArgumentNullException.ThrowIfNull(options);
         services.AddFoundryDiscoveryHttpClient(options.ValidatedFoundryProjectEndpoint);
         services.TryAddSingleton<IFoundryRequestAuthenticator>(
-            _ => new FoundryApiKeyAuthenticator(options.FoundryApiKey));
+            _ => new FoundryApiKeyAuthenticator(
+                options.FoundryApiKey,
+                options.FoundryCredentialVersion));
         services.TryAddSingleton(provider => new FoundryDeploymentDiscoveryClient(
             provider.GetRequiredService<IHttpClientFactory>()
                 .CreateClient(FoundryDiscoveryHttpClientName),

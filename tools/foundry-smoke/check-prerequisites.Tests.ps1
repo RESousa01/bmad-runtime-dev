@@ -638,10 +638,8 @@ Invoke-TestCase -Name 'missing inputs produce a durable blocked report' -Action 
     try {
         & pwsh -NoProfile -File "$PSScriptRoot/check-prerequisites.ps1" `
             -ProjectEndpoint '' `
-            -ManagedIdentityClientId '' `
-            -ContainerAppResourceId '' `
-            -FoundryRoleScope '' `
-            -IntendedDeploymentName '' `
+            -ApiKeyEnvironmentVariable 'FOUNDRY_API_KEY' `
+            -Profiles 'missing-model-profiles.json' `
             -OutputPath $reportPath
         $exitCode = $LASTEXITCODE
         Assert-Equal -Name 'blocked prerequisite command exit code' `
@@ -654,10 +652,9 @@ Invoke-TestCase -Name 'missing inputs produce a durable blocked report' -Action 
         Assert-True -Name 'missing-input report is not ready' `
             -Condition (-not $report.ready)
         $requiredInputBlockers = @(
-            'container_app_resource_id_missing',
-            'foundry_role_scope_missing',
-            'intended_deployments_missing',
-            'managed_identity_client_id_missing',
+            'api_key_missing',
+            'callable_profile_route_missing',
+            'profiles_missing',
             'project_endpoint_missing'
         )
         Assert-True -Name 'missing-input blockers are all explicit' `
@@ -885,6 +882,207 @@ Invoke-TestCase -Name 'complete prerequisite proof becomes ready' -Action {
     finally {
         if (Test-Path -LiteralPath $reportPath -PathType Leaf) {
             Remove-Item -LiteralPath $reportPath -Force
+        }
+    }
+}
+
+Invoke-TestCase -Name 'API-key prerequisite shapes fail closed' -Action {
+    Assert-True -Name 'printable API key is accepted' `
+        -Condition (Test-FoundryApiKeyShape -Value 'fixture-api-key-value-123456')
+    Assert-True -Name 'short API key is rejected' `
+        -Condition (-not (Test-FoundryApiKeyShape -Value 'short'))
+    Assert-True -Name 'whitespace API key is rejected' `
+        -Condition (-not (Test-FoundryApiKeyShape -Value ('x' * 16 + "`n")))
+    Assert-ThrowsCode -Name 'unsafe environment variable name is rejected' `
+        -Code 'api_key_environment_variable_invalid' `
+        -Action {
+            Get-FoundryApiKeyFromEnvironment -VariableName 'FOUNDRY_API_KEY;whoami'
+        }
+    Assert-ThrowsCode -Name 'unsafe credential version is rejected' `
+        -Code 'credential_version_invalid' `
+        -Action {
+            Get-FoundryCredentialVersionHash `
+                -ApiKeyEnvironmentVariable 'FOUNDRY_API_KEY' `
+                -CredentialVersion "v1`nforged"
+        }
+}
+
+Invoke-TestCase -Name 'configured profile probes prove the no-Entra path' -Action {
+    $reportPath = Join-Path `
+        ([System.IO.Path]::GetTempPath()) `
+        "forge-foundry-api-key-$([guid]::NewGuid().ToString('N')).json"
+    $profilesPath = Join-Path `
+        ([System.IO.Path]::GetTempPath()) `
+        "forge-foundry-api-key-profiles-$([guid]::NewGuid().ToString('N')).json"
+    $variableName = 'FOUNDRY_API_KEY_TEST_ONLY'
+    $credentialValue = 'fixture-api-key-value-123456'
+    try {
+        [Environment]::SetEnvironmentVariable(
+            $variableName,
+            $credentialValue,
+            [EnvironmentVariableTarget]::Process
+        )
+        [ordered]@{
+            schemaVersion = 'forge.model-profile-document.v1'
+            registryVersion = 1
+            profiles = @(
+                [ordered]@{
+                    enabled = $true
+                    deploymentName = 'qualified-route'
+                }
+            )
+        } | ConvertTo-Json -Depth 8 |
+            Set-Content -LiteralPath $profilesPath -Encoding utf8
+
+        $exitCode = Invoke-FoundryApiKeyPrerequisiteCheck `
+            -ProjectEndpointValue (
+                'https://forge-east.services.ai.azure.com/api/projects/forge-prod'
+            ) `
+            -ApiKeyEnvironmentVariable $variableName `
+            -ProfilesPath $profilesPath `
+            -InventoryMode 'configured_and_probed' `
+            -BudgetMicrounits 5000 `
+            -CredentialVersion 'v7' `
+            -ReportPath $reportPath `
+            -RequestSender {
+                param(
+                    [string] $Method,
+                    [uri] $Uri,
+                    [string] $ApiKeyValue,
+                    [AllowNull()][string] $Body,
+                    [int] $MaximumBytes
+                )
+                if ($ApiKeyValue -ne 'fixture-api-key-value-123456') {
+                    throw 'API key did not remain at the HTTP boundary'
+                }
+                if ($Uri.AbsolutePath.EndsWith('/openai/v1/models')) {
+                    return [pscustomobject]@{
+                        statusCode = 200
+                        body = '{"data":[{"id":"qualified-route"}]}'
+                        requestIdHash = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+                    }
+                }
+                if ($Uri.AbsolutePath.EndsWith('/openai/v1/models/qualified-route')) {
+                    return [pscustomobject]@{
+                        statusCode = 200
+                        body = '{"id":"qualified-route"}'
+                        requestIdHash = $null
+                    }
+                }
+                throw "unexpected request: $Method $($Uri.AbsolutePath)"
+            }
+
+        $report = Get-Content -Raw -LiteralPath $reportPath |
+            ConvertFrom-Json -Depth 32
+        Assert-Equal -Name 'API-key prerequisite exits ready' `
+            -Actual $exitCode `
+            -Expected 0
+        Assert-True -Name 'API-key prerequisite report is ready' `
+            -Condition $report.ready
+        Assert-Equal -Name 'portable inventory mode is explicit' `
+            -Actual $report.selectedInventoryMode `
+            -Expected 'configured_and_probed'
+        Assert-Equal -Name 'one route was live-probed' `
+            -Actual $report.observations.routeProbeCount `
+            -Expected 1
+        Assert-True -Name 'no Foundry Entra token was acquired' `
+            -Condition (-not $report.checks.foundryEntraTokenAcquired)
+        $reportJson = $report | ConvertTo-Json -Depth 32 -Compress
+        Assert-True -Name 'API key is absent from prerequisite evidence' `
+            -Condition (-not $reportJson.Contains($credentialValue))
+        Assert-True -Name 'project endpoint is represented only by a hash' `
+            -Condition (
+                -not $reportJson.Contains(
+                    'forge-east.services.ai.azure.com',
+                    [StringComparison]::OrdinalIgnoreCase
+                )
+            )
+    }
+    finally {
+        [Environment]::SetEnvironmentVariable(
+            $variableName,
+            $null,
+            [EnvironmentVariableTarget]::Process
+        )
+        foreach ($path in @($reportPath, $profilesPath)) {
+            if (Test-Path -LiteralPath $path -PathType Leaf) {
+                Remove-Item -LiteralPath $path -Force
+            }
+        }
+    }
+}
+
+Invoke-TestCase -Name 'inventory mode never falls back automatically' -Action {
+    $reportPath = Join-Path `
+        ([System.IO.Path]::GetTempPath()) `
+        "forge-foundry-no-fallback-$([guid]::NewGuid().ToString('N')).json"
+    $profilesPath = Join-Path `
+        ([System.IO.Path]::GetTempPath()) `
+        "forge-foundry-no-fallback-profiles-$([guid]::NewGuid().ToString('N')).json"
+    $variableName = 'FOUNDRY_API_KEY_NO_FALLBACK_TEST'
+    try {
+        [Environment]::SetEnvironmentVariable(
+            $variableName,
+            'fixture-api-key-value-123456',
+            [EnvironmentVariableTarget]::Process
+        )
+        '{"profiles":[{"enabled":true,"deploymentName":"qualified-route"}]}' |
+            Set-Content -LiteralPath $profilesPath -Encoding utf8
+
+        $exitCode = Invoke-FoundryApiKeyPrerequisiteCheck `
+            -ProjectEndpointValue (
+                'https://forge-east.services.ai.azure.com/api/projects/forge-prod'
+            ) `
+            -ApiKeyEnvironmentVariable $variableName `
+            -ProfilesPath $profilesPath `
+            -InventoryMode 'configured_and_probed' `
+            -ReportPath $reportPath `
+            -RequestSender {
+                param(
+                    [string] $Method,
+                    [uri] $Uri,
+                    [string] $ApiKeyValue,
+                    [AllowNull()][string] $Body,
+                    [int] $MaximumBytes
+                )
+                if ($Uri.AbsolutePath.EndsWith('/openai/v1/models')) {
+                    return [pscustomobject]@{
+                        statusCode = 200
+                        body = '{"data":[{"id":"qualified-route"}]}'
+                        requestIdHash = $null
+                    }
+                }
+                return [pscustomobject]@{
+                    statusCode = 500
+                    body = '{"error":"synthetic"}'
+                    requestIdHash = $null
+                }
+            }
+
+        $report = Get-Content -Raw -LiteralPath $reportPath |
+            ConvertFrom-Json -Depth 32
+        Assert-Equal -Name 'failed configured mode remains blocked' `
+            -Actual $exitCode `
+            -Expected 2
+        Assert-True -Name 'models list did not rescue failed configured mode' `
+            -Condition (
+                'profile_route_not_callable' -in $report.blockers -and
+                -not $report.ready
+            )
+        Assert-Equal -Name 'configured mode remains selected after failure' `
+            -Actual $report.selectedInventoryMode `
+            -Expected 'configured_and_probed'
+    }
+    finally {
+        [Environment]::SetEnvironmentVariable(
+            $variableName,
+            $null,
+            [EnvironmentVariableTarget]::Process
+        )
+        foreach ($path in @($reportPath, $profilesPath)) {
+            if (Test-Path -LiteralPath $path -PathType Leaf) {
+                Remove-Item -LiteralPath $path -Force
+            }
         }
     }
 }

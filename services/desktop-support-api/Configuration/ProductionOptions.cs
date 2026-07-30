@@ -48,6 +48,29 @@ public sealed partial class ProductionOptions
     public string FoundryApiKey { get; init; } = "";
 
     /// <summary>
+    /// Non-secret, operator-set label for the current Foundry API key
+    /// version (for example <c>v3</c> or a rotation date). The operator bumps
+    /// it whenever <see cref="FoundryApiKey"/> is rotated. It is folded into
+    /// the receipt credential-binding hash alongside the credential mechanism
+    /// identifier, and it is never the key nor a hash of the key: a version
+    /// label carries no cryptographic relationship to the key, so it cannot
+    /// be used to test candidate keys the way a key digest could.
+    /// Defaults to <c>"v1"</c> so previously deployed configuration that does
+    /// not set this key still binds and validates.
+    /// </summary>
+    public string FoundryCredentialVersion { get; init; } = "v1";
+
+    /// <summary>
+    /// Non-secret, deploy-time application revision label (for example a
+    /// Container Apps revision name), folded into the receipt
+    /// credential-binding hash so a receipt is bound to the revision of the
+    /// application that produced it, not only to the key version. Defaults
+    /// to <c>"unset"</c> so previously deployed configuration that does not
+    /// set this key still binds and validates.
+    /// </summary>
+    public string ApplicationRevision { get; init; } = "unset";
+
+    /// <summary>
     /// The one explicit, operator-selected route-inventory mode. There is no
     /// runtime fallback between modes: a mode that fails, fails closed.
     /// </summary>
@@ -117,6 +140,14 @@ public sealed partial class ProductionOptions
     /// </summary>
     public Uri FoundryResponsesEndpoint { get; private set; } = null!;
 
+    /// <summary>
+    /// Non-secret hash of the validated Foundry project endpoint, folded into
+    /// the receipt credential-binding hash. Computed once at
+    /// <see cref="Validate"/> time from <see cref="ValidatedFoundryProjectEndpoint"/>,
+    /// never from the raw configured string.
+    /// </summary>
+    public string FoundryProjectEndpointHash { get; private set; } = "";
+
     public TimeSpan FoundryDeploymentRefreshInterval =>
         TimeSpan.FromSeconds(FoundryDeploymentRefreshSeconds);
 
@@ -139,6 +170,8 @@ public sealed partial class ProductionOptions
                 FoundryProjectEndpoint,
                 out Uri foundryProjectEndpoint)
             || !DevelopmentFoundryApiKeyAuthenticator.IsWellFormedApiKey(FoundryApiKey)
+            || !FoundryCredentialVersionLabel.IsWellFormed(FoundryCredentialVersion)
+            || !FoundryCredentialVersionLabel.IsWellFormed(ApplicationRevision)
             || !Enum.IsDefined(FoundryInventoryMode)
             || !RequestGuards.IsSha256(FoundryPrerequisiteEvidenceHash)
             || FoundryDeploymentRefreshSeconds
@@ -185,6 +218,22 @@ public sealed partial class ProductionOptions
         FoundryResponsesEndpoint = new Uri(
             foundryProjectEndpoint,
             FoundryResponsesRelativePath);
+        FoundryProjectEndpointHash = ComputeFoundryProjectEndpointHash(foundryProjectEndpoint);
+    }
+
+    /// <summary>
+    /// Hashes a validated Foundry project endpoint for use in the receipt
+    /// credential-binding hash. The endpoint is not secret, but it is not a
+    /// receipt wire field either, so it is folded in as a digest rather than
+    /// carried verbatim.
+    /// </summary>
+    internal static string ComputeFoundryProjectEndpointHash(Uri validatedFoundryProjectEndpoint)
+    {
+        ArgumentNullException.ThrowIfNull(validatedFoundryProjectEndpoint);
+        return "sha256:" + Convert.ToHexStringLower(
+            System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(
+                    validatedFoundryProjectEndpoint.AbsoluteUri)));
     }
 
     internal void ValidateSqlMigrationIdentity()

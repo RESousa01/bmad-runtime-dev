@@ -196,24 +196,44 @@ public static class ModelReceiptBinding
     /// receipt produced under the development API key can never be mistaken
     /// for one produced under managed identity even when the subject, route,
     /// and price profile are byte-identical.
+    ///
+    /// <para>
+    /// Three further non-secret inputs are folded in: the credential version
+    /// label (bumped whenever the operator rotates the backing key), a hash
+    /// of the project endpoint, and the application revision that produced
+    /// the receipt. None of these three is the credential itself, and none is
+    /// a hash of the credential — a digest of a secret is still
+    /// secret-derived, since an attacker holding a candidate key could hash
+    /// it and confirm a match, while a version label carries no such
+    /// property.
+    /// </para>
     /// </summary>
     public static string ComputeCredentialBindingHash(
         ResolvedModelRoute route,
         string credentialMechanismId,
-        string subject)
+        string subject,
+        string credentialVersionId,
+        string projectEndpointHash,
+        string applicationRevision)
     {
         ArgumentNullException.ThrowIfNull(route);
         ArgumentException.ThrowIfNullOrWhiteSpace(credentialMechanismId);
         ArgumentException.ThrowIfNullOrWhiteSpace(subject);
+        ArgumentException.ThrowIfNullOrWhiteSpace(credentialVersionId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(projectEndpointHash);
+        ArgumentException.ThrowIfNullOrWhiteSpace(applicationRevision);
         return ModelProfileValidator.Digest(
             CredentialBindingPurpose,
             new SortedDictionary<string, object?>(StringComparer.Ordinal)
             {
                 ["apiSurface"] = ProviderApiSurface,
+                ["applicationRevision"] = applicationRevision,
                 ["credentialMechanismId"] = credentialMechanismId,
+                ["credentialVersionId"] = credentialVersionId,
                 ["deploymentBindingHash"] = route.ComputeDeploymentBindingHash(),
                 ["priceProfileVersion"] = route.PriceProfile.Version,
                 ["profileId"] = route.ProfileId,
+                ["projectEndpointHash"] = projectEndpointHash,
                 ["region"] = route.Region,
                 ["subject"] = subject,
                 ["variantId"] = route.VariantId,
@@ -249,7 +269,10 @@ public static class ModelReceiptBinding
         ResolvedModelRoute route,
         string deploymentInventoryHash,
         string credentialMechanismId,
-        string subject)
+        string subject,
+        string credentialVersionId,
+        string projectEndpointHash,
+        string applicationRevision)
     {
         ArgumentNullException.ThrowIfNull(route);
         ArgumentException.ThrowIfNullOrWhiteSpace(deploymentInventoryHash);
@@ -268,7 +291,13 @@ public static class ModelReceiptBinding
                 route.ModelPublisher,
                 route.ModelName,
                 route.ModelVersion),
-            ComputeCredentialBindingHash(route, credentialMechanismId, subject),
+            ComputeCredentialBindingHash(
+                route,
+                credentialMechanismId,
+                subject,
+                credentialVersionId,
+                projectEndpointHash,
+                applicationRevision),
             route.Region,
             route.RetentionMode);
     }

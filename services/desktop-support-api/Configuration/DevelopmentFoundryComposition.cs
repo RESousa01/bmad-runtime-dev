@@ -183,7 +183,11 @@ public static class DevelopmentFoundryComposition
             ModelStreamLimits.Default,
             provider.GetRequiredService<FoundryResponsesProviderExecutor>()
                 .CredentialMechanismId,
-            provider.GetRequiredService<Observability.SupportPlaneTelemetry>()));
+            provider.GetRequiredService<Observability.SupportPlaneTelemetry>(),
+            provider.GetRequiredService<FoundryResponsesProviderExecutor>()
+                .CredentialVersionId,
+            ProductionOptions.ComputeFoundryProjectEndpointHash(projectEndpoint),
+            "development"));
         services.AddSingleton<IModelStreamRouteResolver>(provider =>
             new EffectiveCatalogStreamRouteResolver(
                 provider.GetRequiredService<EffectiveModelCatalogService>(),

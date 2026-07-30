@@ -103,6 +103,71 @@ test("scanner rejects a literal secret assignment", async () => {
   }
 });
 
+test("scanner accepts PowerShell secret indirection without accepting a literal", async () => {
+  const root = await createFixtureRoot();
+  try {
+    await writeFile(
+      join(root, "tools", "indirection.ps1"),
+      [
+        `[string] $${["Api", "Key"].join("")} = $env:APPLICATION_API_KEY`,
+        `${["api", "Key"].join("")} = $apiKeyShapeValid`,
+        `${["api", "Key"].join("")} = [pscustomobject][ordered]@{ supplied = $true }`,
+        `"${["api", "Key"].join("")}=$apiKeyShapeValid"`,
+        "",
+      ].join("\n"),
+    );
+    const result = runScanner(root);
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("scanner accepts the explicit non-secret key sentinel", async () => {
+  const root = await createFixtureRoot();
+  try {
+    await writeFile(
+      join(root, "crates", "sentinel.rs"),
+      `let payload = json!({ "${["api", "Key"].join("")}": "sk-not-a-real-key" });\n`,
+    );
+    const result = runScanner(root);
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("scanner permits only the pinned upstream ESC fixture control byte", async () => {
+  const root = await createFixtureRoot();
+  try {
+    const pinned = join(
+      root,
+      "packages",
+      "bmad-foundation",
+      "source",
+      "method",
+      "6.10.0",
+      "test",
+      "test-installer-channels.js",
+    );
+    await mkdir(dirname(pinned), { recursive: true });
+    await writeFile(pinned, Buffer.from("const fixture = 'a\x1bb';\n", "latin1"));
+    const result = runScanner(root);
+    assert.equal(result.status, 0, result.stderr);
+
+    await writeFile(
+      join(root, "packages", "other-control.js"),
+      Buffer.from("const fixture = 'a\x1bb';\n", "latin1"),
+    );
+    const rejected = runScanner(root);
+    assert.equal(rejected.status, 1);
+    assert.match(rejected.stderr, /C0 control byte in text source/);
+    assert.match(rejected.stderr, /other-control\.js:1/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("scanner covers first-party C sharp sources", async () => {
   const root = await createFixtureRoot();
   try {

@@ -119,6 +119,74 @@ public sealed class FoundryAuthenticationTests
     }
 
     [Fact]
+    public void Development_foundry_credential_defaults_its_version_label_when_none_is_supplied()
+    {
+        DevelopmentFoundryApiKeyAuthenticator authenticator = new("Test", FakeApiKey);
+
+        Assert.Equal(
+            DevelopmentFoundryApiKeyAuthenticator.DefaultCredentialVersionId,
+            authenticator.CredentialVersionId);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("has a space")]
+    [InlineData("has\ttab")]
+    [InlineData("injects\r\nX-Forwarded-For: 10.0.0.1")]
+    public void Development_foundry_credential_rejects_an_unusable_version_label(
+        string? versionLabel)
+    {
+        InvalidOperationException error = Assert.Throws<InvalidOperationException>(
+            () => new DevelopmentFoundryApiKeyAuthenticator(
+                "Test",
+                FakeApiKey,
+                versionLabel!));
+
+        Assert.Equal(
+            "development_foundry_credential_version_invalid",
+            error.Message);
+    }
+
+    [Fact]
+    public void Production_foundry_credential_carries_the_configured_version_label()
+    {
+        FoundryApiKeyAuthenticator authenticator = new(FakeApiKey, "v7");
+
+        Assert.Equal("v7", authenticator.CredentialVersionId);
+        Assert.Equal("foundry_api_key", authenticator.CredentialMechanismId);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("has a space")]
+    public void Production_foundry_credential_rejects_an_unusable_version_label(
+        string? versionLabel)
+    {
+        InvalidOperationException error = Assert.Throws<InvalidOperationException>(
+            () => new FoundryApiKeyAuthenticator(FakeApiKey, versionLabel!));
+
+        Assert.Equal("foundry_credential_version_invalid", error.Message);
+    }
+
+    [Fact]
+    public void The_credential_version_label_is_never_the_key_nor_a_hash_of_it()
+    {
+        // A version label is a short operator-chosen string, structurally
+        // incapable of carrying the key or a digest of it: it has none of the
+        // key's entropy and none of a sha256 digest's fixed 64-hex-character
+        // shape. This is the structural guarantee the delta calls for --
+        // "never the key, and never a hash of the key."
+        FoundryApiKeyAuthenticator authenticator = new(FakeApiKey, "v3");
+
+        Assert.DoesNotContain(FakeApiKey, authenticator.CredentialVersionId, StringComparison.Ordinal);
+        Assert.DoesNotMatch(
+            "^[0-9a-f]{64}$",
+            authenticator.CredentialVersionId);
+    }
+
+    [Fact]
     public async Task Development_foundry_credential_sends_an_api_key_header_and_never_a_bearer_token()
     {
         DevelopmentFoundryApiKeyAuthenticator authenticator = new("Test", FakeApiKey);

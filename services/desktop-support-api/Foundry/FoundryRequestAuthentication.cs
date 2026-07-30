@@ -58,6 +58,16 @@ public interface IFoundryRequestAuthenticator
     string CredentialMechanismId { get; }
 
     /// <summary>
+    /// A non-secret, operator-set credential version label (for example
+    /// <c>v3</c> or a rotation date) folded into the receipt's
+    /// credential-binding hash alongside <see cref="CredentialMechanismId"/>.
+    /// It carries no cryptographic relationship to the credential itself — an
+    /// attacker cannot use it to test candidate keys — which is exactly why a
+    /// version label is used here instead of a hash of the key.
+    /// </summary>
+    string CredentialVersionId { get; }
+
+    /// <summary>
     /// Applies the credential to one outbound request. Implementations set a
     /// header and never anything else; a request that could not be
     /// authenticated throws rather than being sent unauthenticated.
@@ -91,6 +101,13 @@ public sealed class ManagedIdentityFoundryAuthenticator : IFoundryRequestAuthent
     /// </summary>
     public const string TokenUnavailableCode = "foundry_managed_identity_token_unavailable";
 
+    /// <summary>
+    /// Fixed placeholder version label. Managed identity has no
+    /// operator-rotated key to version; the constant exists only so this
+    /// deliberately unused seam still satisfies the interface.
+    /// </summary>
+    public const string UnversionedCredentialVersionId = "managed_identity_unversioned";
+
     private readonly TokenCredential _credential;
 
     public ManagedIdentityFoundryAuthenticator(TokenCredential credential)
@@ -100,6 +117,8 @@ public sealed class ManagedIdentityFoundryAuthenticator : IFoundryRequestAuthent
     }
 
     public string CredentialMechanismId => FoundryCredentialMechanisms.ManagedIdentity;
+
+    public string CredentialVersionId => UnversionedCredentialVersionId;
 
     public async ValueTask<IFoundryRequestAuthenticator> BeginOperationAsync(
         CancellationToken cancellationToken)
@@ -135,6 +154,8 @@ public sealed class ManagedIdentityFoundryAuthenticator : IFoundryRequestAuthent
     {
         public string CredentialMechanismId =>
             FoundryCredentialMechanisms.ManagedIdentity;
+
+        public string CredentialVersionId => UnversionedCredentialVersionId;
 
         public ValueTask ApplyAsync(
             HttpRequestMessage request,
@@ -219,9 +240,23 @@ public sealed class DevelopmentFoundryApiKeyAuthenticator : IFoundryRequestAuthe
 
     internal const int MaximumApiKeyLength = 512;
 
+    /// <summary>
+    /// Default, non-secret version label when the caller supplies none. It is
+    /// folded into the receipt's credential-binding hash, never the key
+    /// itself.
+    /// </summary>
+    public const string DefaultCredentialVersionId = "development";
+
+    /// <summary>Raised when the supplied version label is not a safe identifier.</summary>
+    public const string CredentialVersionInvalidCode =
+        "development_foundry_credential_version_invalid";
+
     private readonly string _apiKey;
 
-    public DevelopmentFoundryApiKeyAuthenticator(string? environmentName, string? apiKey)
+    public DevelopmentFoundryApiKeyAuthenticator(
+        string? environmentName,
+        string? apiKey,
+        string credentialVersionId = DefaultCredentialVersionId)
     {
         if (!IsPermittedEnvironment(environmentName))
         {
@@ -232,10 +267,17 @@ public sealed class DevelopmentFoundryApiKeyAuthenticator : IFoundryRequestAuthe
             // The message never quotes the supplied value.
             throw new InvalidOperationException(ApiKeyInvalidCode);
         }
+        if (!FoundryCredentialVersionLabel.IsWellFormed(credentialVersionId))
+        {
+            throw new InvalidOperationException(CredentialVersionInvalidCode);
+        }
         _apiKey = apiKey!;
+        CredentialVersionId = credentialVersionId;
     }
 
     public string CredentialMechanismId => FoundryCredentialMechanisms.DevelopmentApiKey;
+
+    public string CredentialVersionId { get; }
 
     /// <summary>
     /// Development and Test, byte-for-byte, and nothing else. An unset, empty,
@@ -324,19 +366,36 @@ public sealed class FoundryApiKeyAuthenticator : IFoundryRequestAuthenticator
     /// <summary>Raised when the transport refused to carry the header at all.</summary>
     public const string ApiKeyNotAppliedCode = "foundry_api_key_not_applied";
 
+    /// <summary>Raised when the supplied version label is not a safe identifier.</summary>
+    public const string CredentialVersionInvalidCode = "foundry_credential_version_invalid";
+
     private readonly string _apiKey;
 
-    public FoundryApiKeyAuthenticator(string? apiKey)
+    /// <summary>
+    /// <paramref name="credentialVersionId"/> is the non-secret, operator-set
+    /// credential version label, sourced from
+    /// <c>ProductionOptions.FoundryCredentialVersion</c>. The operator bumps
+    /// it when rotating the backing key, so old and new receipts remain
+    /// distinguishable by binding hash alone.
+    /// </summary>
+    public FoundryApiKeyAuthenticator(string? apiKey, string credentialVersionId)
     {
         if (!DevelopmentFoundryApiKeyAuthenticator.IsWellFormedApiKey(apiKey))
         {
             // The message never quotes the supplied value.
             throw new InvalidOperationException(ApiKeyInvalidCode);
         }
+        if (!FoundryCredentialVersionLabel.IsWellFormed(credentialVersionId))
+        {
+            throw new InvalidOperationException(CredentialVersionInvalidCode);
+        }
         _apiKey = apiKey!;
+        CredentialVersionId = credentialVersionId;
     }
 
     public string CredentialMechanismId => FoundryCredentialMechanisms.ApiKey;
+
+    public string CredentialVersionId { get; }
 
     public ValueTask ApplyAsync(
         HttpRequestMessage request,
@@ -365,4 +424,34 @@ public sealed class FoundryApiKeyAuthenticator : IFoundryRequestAuthenticator
 
     /// <summary>The mechanism name, never the key.</summary>
     public override string ToString() => CredentialMechanismId;
+}
+
+/// <summary>
+/// Shape validation shared by every non-secret credential version label.
+/// Deliberately bounded and printable-ASCII-only for the same reason the API
+/// key shape is: a label carrying a control character or line break could
+/// otherwise split a request or a log line. It is intentionally not the same
+/// bound as an API key -- a version label is short ("v3", a rotation date) --
+/// but reuses the same character rule.
+/// </summary>
+public static class FoundryCredentialVersionLabel
+{
+    internal const int MinimumLength = 1;
+    internal const int MaximumLength = 64;
+
+    public static bool IsWellFormed(string? value)
+    {
+        if (value is null || value.Length is < MinimumLength or > MaximumLength)
+        {
+            return false;
+        }
+        foreach (char character in value)
+        {
+            if (character is < '!' or > '~')
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 }

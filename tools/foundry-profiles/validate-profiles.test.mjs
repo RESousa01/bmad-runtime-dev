@@ -203,12 +203,8 @@ test("a not-ready deployment inventory is refused, and says why", () => {
   assert.deepEqual(violationCodes(report), ["deployment_inventory_not_ready"]);
   assert.equal(report.deploymentInventory.ready, false);
   assert.deepEqual(report.violations[0].inventoryBlockers, [
-    "azure_cli_authentication_missing",
-    "container_app_resource_id_missing",
-    "foundry_role_scope_missing",
-    "intended_deployments_missing",
-    "managed_identity_client_id_missing",
-    "project_endpoint_missing",
+    "callable_profile_route_missing",
+    "profiles_missing",
   ]);
 });
 
