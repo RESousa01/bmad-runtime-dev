@@ -35,6 +35,7 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/correct-course.instructions.md",
   "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
   "runtime/method/6.10.0/create-story.instructions.md",
+  "runtime/method/6.10.0/deep-recon.instructions.md",
   "runtime/method/6.10.0/dev-persona.instructions.md",
   "runtime/method/6.10.0/dev-story.instructions.md",
   "runtime/method/6.10.0/document-project.instructions.md",
@@ -69,6 +70,7 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-correct-course.package.json",
   "normalized/bmad-create-epics-and-stories.package.json",
   "normalized/bmad-create-story.package.json",
+  "normalized/bmad-deep-recon.package.json",
   "normalized/bmad-dev-story.package.json",
   "normalized/bmad-dev.package.json",
   "normalized/bmad-document-project.package.json",
@@ -125,6 +127,7 @@ const requiredPackagePaths = Object.freeze([
   "scripts/generate-catalog.mjs",
   "scripts/import-source.mjs",
   "scripts/resource-closure.mjs",
+  "scripts/test.mjs",
   "scripts/verify-source-notes.mjs",
   "scripts/verify-source-identities.mjs",
   "scripts/verify.mjs",
@@ -245,6 +248,7 @@ const expectedTreatmentDecisionSets = Object.freeze({
   "method-065": ["adopt", "adapt"],
   "method-066": ["adopt", "adapt"],
   "method-067": ["adopt", "adapt"],
+  "method-248": ["adapt"],
   "method-064": ["adopt", "adapt"],
   "method-065": ["adopt", "adapt"],
   "method-066": ["adopt", "adapt"],
@@ -299,6 +303,9 @@ const expectedTreatmentDecisionSets = Object.freeze({
 });
 
 const expectedProjectionSourceMemberIds = Object.freeze({
+  "runtime/method/6.10.0/deep-recon.instructions.md": [
+    "method-248",
+  ],
   "runtime/method/6.10.0/document-project.instructions.md": [
     "method-004",
     "method-064",
@@ -714,6 +721,7 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
     "reseal.mjs",
     "resource-closure.mjs",
     "source-accounting.mjs",
+    "test.mjs",
     "verify-dependency-graph.mjs",
     "verify-source-identities.mjs",
     "verify-source-notes.mjs",
@@ -800,7 +808,7 @@ test("the semantic ledger locks source identity, licenses, and managed bytes", a
     ]),
   );
   assert.equal(members.size, ledger.sourceMembers.length, "source member identities must be unique");
-  assert.equal(members.size, 294, "the reviewed source set must be exact and closed");
+  assert.equal(members.size, 295, "the reviewed source set must be exact and closed");
   // ADR-0008 intake may only *append* a treatment (adopt for shipped text,
   // reject for executables). It must never rewrite a previously reviewed
   // decision, so every originally reviewed member's decision set must survive
@@ -1012,7 +1020,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
   }
 
   const method = projections.filter((projection) => projection.classification === "method");
-  assert.equal(method.length, 31);
+  assert.equal(method.length, 32);
   assert.ok(method.every((projection) => projection.state === "sealed_read_only"));
 
   const agentActions = projections

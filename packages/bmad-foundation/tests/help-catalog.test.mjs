@@ -63,7 +63,7 @@ test("BMAD Help capability graph is an exact generated catalog-and-alias project
         sourceId: sourceIds[0],
         phase,
         predecessorIds: [],
-        followerIds: [],
+        followerIds: id === "core:bmad-deep-recon" ? ["core:bmad-help"] : [],
         outputLocations: [...new Set(rows.flatMap((row) => row.outputs))].sort(),
         supportState: canonical.supportState,
         uiState: canonical.uiState,

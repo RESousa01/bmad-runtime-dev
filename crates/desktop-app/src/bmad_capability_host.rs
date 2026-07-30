@@ -21,11 +21,12 @@ use desktop_ipc::{BmadProjectionError, BmadRuntimeMenuCapabilityBinding};
 use desktop_runtime::{
     canonical_hash, canonical_method_skill_adapter, deserialize_strict_json, sha256_bytes,
     BmadAgentRoster, BmadBuilderDraftFile, BmadBuilderDraftKind, BmadCandidateChange,
-    BmadCapabilityOutput, BmadClosureCapabilityId, BmadDocumentArtifact, BmadDocumentSection,
-    BmadDomainRuntime, BmadGovernedChangeSet, BmadInactiveBuilderDraft, BmadMethodSkill,
-    BmadPreparedSkillExecution, BmadRuntimePort, BmadSkillExecutionError,
-    BmadSkillHostBindingInput, ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis,
-    BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
+    BmadCapabilityOutput, BmadClosureCapabilityId, BmadDispatchedSkillExecution,
+    BmadDocumentArtifact, BmadDocumentSection, BmadDomainRuntime, BmadGovernedChangeSet,
+    BmadInactiveBuilderDraft, BmadMethodSkill, BmadRuntimePort, BmadSkillDispatchError,
+    BmadSkillExecutionError, BmadSkillExecutionRequest, BmadSkillHostBindingInput, ContractId,
+    CreateMethodSession, MethodSessionRepository, MethodSessionService, RelativeWorkspacePath,
+    Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
     BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 use serde::Serialize;
@@ -53,9 +54,10 @@ pub(crate) struct CapabilityBinding {
     pub projection_path: &'static str,
 }
 
-/// The 38 reviewed capabilities: 24 unique menu capabilities (ADR-0005),
+/// The 39 reviewed capabilities: 24 unique menu capabilities (ADR-0005),
 /// the five Builder authoring operations (ADR-0006) whose outputs are
-/// inactive drafts, and nine core skills adopted verbatim (ADR-0008).
+/// inactive drafts, nine core skills from ADR-0008, and Deep Recon's
+/// adapted canonical runtime row.
 pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 39] = [
     CapabilityBinding {
         id: "bmm:bmad-brainstorming",
@@ -1244,11 +1246,31 @@ pub(crate) fn assemble_capability_prepare(
 /// Compiles one generated-catalog-resolved capability through the shared
 /// Method execution bridge. Capabilities without an opted-in adapter return
 /// `None`; adapter or binding drift fails closed.
+pub(crate) struct PreparedMethodCapabilityDispatch {
+    skill: &'static dyn BmadMethodSkill,
+    request: BmadSkillExecutionRequest,
+}
+
+impl PreparedMethodCapabilityDispatch {
+    /// Runs the actual shared compiler and persists `Created ->
+    /// CapabilityBound` through the established Method service.
+    pub(crate) fn dispatch<R>(
+        self,
+        service: &MethodSessionService<R>,
+        creation: CreateMethodSession,
+    ) -> Result<BmadDispatchedSkillExecution, BmadSkillDispatchError<R::Error>>
+    where
+        R: MethodSessionRepository,
+    {
+        BmadDomainRuntime.dispatch_skill_execution(service, self.skill, self.request, creation)
+    }
+}
+
 pub(crate) fn prepare_method_capability_execution(
     binding: &CapabilityBinding,
     foundation: &BmadLoadedFoundation,
     configuration: &HelpModelConfiguration,
-) -> Result<Option<BmadPreparedSkillExecution>, BmadSkillExecutionError> {
+) -> Result<Option<PreparedMethodCapabilityDispatch>, BmadSkillExecutionError> {
     let skill = match canonical_method_skill(binding.id) {
         Ok(skill) => skill,
         Err(BmadSkillExecutionError::ContractUnavailable) => return Ok(None),
@@ -1279,9 +1301,7 @@ pub(crate) fn prepare_method_capability_execution(
         egress_profile_hash: model_binding.data.egress_profile_hash,
         model_binding,
     })?;
-    BmadDomainRuntime
-        .prepare_skill_execution(skill, request)
-        .map(Some)
+    Ok(Some(PreparedMethodCapabilityDispatch { skill, request }))
 }
 
 struct SealCapabilityBinding<'a> {

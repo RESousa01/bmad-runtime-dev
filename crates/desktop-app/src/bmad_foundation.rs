@@ -19,7 +19,7 @@ const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
     "sha256:9071ed557ba4bb0d30c3397da2dd247910d96a13992adb14bbed59ba0055dd97";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:e352a79805426c53573133d334ab628b4b0750a9116bb8c6681056526714d515";
+    "sha256:655fe4d7583c182a120be94b1f3e544f62514b7ceb0ba530172ca88f4f45d53e";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";

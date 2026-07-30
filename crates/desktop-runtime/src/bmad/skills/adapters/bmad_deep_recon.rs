@@ -38,7 +38,7 @@ impl BmadMethodSkill for BmadDeepReconSkill {
                 BmadInvocationMode::Headless,
             ],
             predecessor: None,
-            follower: None,
+            follower: Some("core:bmad-help".to_owned()),
             output_locations: vec!["research_output_path".to_owned()],
             artifact_kinds: vec![BmadArtifactKind::Document, BmadArtifactKind::FileSet],
             completion_hooks: vec![BmadArtifactCompletionHookRunHook::PersistArtifacts],
@@ -82,16 +82,16 @@ fn contract(
             "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
         )?,
         package_descriptor_hash: digest(
-            "sha256:b88c7e0368ae6eaf7462d0d5be36cadc69a71852a3242ee5b05d192d8656a3ca",
+            "sha256:23f0e2ced9ce9be4083eb1989404dc57c371e4bbd3df183a18427564bf267de2",
         )?,
         package_source_hash: digest(
             "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
         )?,
         instruction_projection_hash: digest(
-            "sha256:7338d48b6a1f3eb84e1ac3475feccd39fb789693753ac23292474e4191da3448",
+            "sha256:a7c8915c301df1ad97b5bf7900b113aef437a0382a3785c13f49d7982d8517ce",
         )?,
         capability_catalog_hash: digest(
-            "sha256:82b1345885950bdb09fd87103fc5fd9eb35758aa509e135f1cc57da358509d97",
+            "sha256:1504c2276d970a389f7033aa2644d401cdc66bf1297db0ce3652cfa6e992e2c2",
         )?,
         distribution_profile: "sapphirus_package".to_owned(),
         install_profile: "SapphirusManagedV1".to_owned(),

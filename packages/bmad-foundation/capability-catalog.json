@@ -1132,7 +1132,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "research_output_path"
       ],
       "supportState": "unavailable",
       "uiState": "planned",
@@ -1214,7 +1214,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "research_output_path"
       ],
       "supportState": "unavailable",
       "uiState": "planned",
@@ -1255,7 +1255,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "research_output_path"
       ],
       "supportState": "unavailable",
       "uiState": "planned",
@@ -1448,7 +1448,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "research_output_path"
       ],
       "supportState": "exact",
       "uiState": "runtime_available",
@@ -2289,5 +2289,5 @@
       ]
     }
   ],
-  "catalogSha256": "be952fd7eab6bd7c395f06133ceb7b3760f7ef8e0cb315687d4c7c1c085ef32d"
+  "catalogSha256": "1504c2276d970a389f7033aa2644d401cdc66bf1297db0ce3652cfa6e992e2c2"
 }

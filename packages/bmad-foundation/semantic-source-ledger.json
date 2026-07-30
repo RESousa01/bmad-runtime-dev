@@ -3380,6 +3380,18 @@
       ]
     },
     {
+      "id": "method-248",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-deep-recon/SKILL.md",
+      "sha256": "dce5f7db03094a617cc3fcae1711b1dc7ccebe379376e67216544956d375f0d2",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Preserve Deep Recon intent and topology while replacing source-directed files, processes, web, browser, subagents, and handoffs with typed host-governed plans."
+        }
+      ]
+    },
+    {
       "id": "builder-001",
       "sourceId": "builder",
       "member": "skills/module.yaml",
@@ -4176,8 +4188,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 118432,
-      "sha256": "671a01ab243ecf4ec17f0f534da86a4b8460db9d7c33fb305cacab37072cae86"
+      "byteLength": 119443,
+      "sha256": "bb27fc174f8634a6ac3a892b47d9a7fc1f898ef371708bb2c6d9810d26950daf"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",

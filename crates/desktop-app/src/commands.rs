@@ -2377,30 +2377,35 @@ fn prepare_bmad_capability_run(
             .method_store(authority.authority())
             .map_err(|_| recovery_error())?;
         let service = MethodSessionService::new(store);
-        let created = service
-            .create(CreateMethodSession {
-                // The capability run is the durable Method session identity,
-                // so approval/submission/recovery can resolve it without a
-                // second host registry.
-                session_id: review.run_id.clone(),
-                owner_scope_ref: local_identity.owner_scope_ref().clone(),
-                project_id,
-                run_id: review.run_id.clone(),
-                authority_ref,
-                created_at,
-            })
-            .map_err(|_| recovery_error())?;
-        let bound = service
-            .bind_invocation(
-                &created.scope(),
-                created.session_id(),
-                created.version(),
-                method_execution.exact_binding().clone(),
-                method_execution.step_table().clone(),
+        let dispatched = method_execution
+            .dispatch(
+                &service,
+                CreateMethodSession {
+                    // The capability run is the durable Method session identity,
+                    // so approval/submission/recovery can resolve it without a
+                    // second host registry.
+                    session_id: review.run_id.clone(),
+                    owner_scope_ref: local_identity.owner_scope_ref().clone(),
+                    project_id,
+                    run_id: review.run_id.clone(),
+                    authority_ref,
+                    created_at,
+                },
             )
             .map_err(|_| recovery_error())?;
+        let bound = service
+            .resume(
+                &dispatched.session().scope(),
+                &dispatched.session().session_id(),
+            )
+            .map_err(|_| recovery_error())?;
+        if bound != *dispatched.session()
+            || bound.state() != desktop_runtime::MethodState::CapabilityBound
+        {
+            return Err(recovery_error());
+        }
         service
-            .request_context_review(&bound.scope(), bound.session_id(), bound.version())
+            .request_context_review(&bound.scope(), &bound.session_id(), bound.version())
             .map_err(|_| recovery_error())?;
     }
     drop(authority);
@@ -4351,6 +4356,38 @@ mod tests {
         Ok(())
     }
 
+    // Break caught: resolving the Deep Recon adapter without invoking the
+    // production command's generic dispatch path can leave a plausible review
+    // backed by no durable Method CapabilityBound transition. The command now
+    // checks the persisted bound session before requesting context review, so
+    // this succeeds only when the real compiler + service dispatch ran.
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn deep_recon_prepare_runs_the_real_persisted_method_dispatch() {
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+
+        let data = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            id(&workspace_id),
+            1,
+            "core:bmad-deep-recon",
+            Vec::new(),
+            UnixMillis(38_000),
+        )
+        .expect("Deep Recon production dispatch");
+        let HostCommandData::CapabilityReview(review) = data else {
+            panic!("Deep Recon prepare must return a capability review");
+        };
+        assert_eq!(review.capability_id, "core:bmad-deep-recon");
+    }
+
     /// Architecture is the one stepwise capability. Preparing it must open the
     /// The deterministic navigation lane, end to end against a real workspace.
     /// Upstream must ask a model where the user is; this proves Forge computes
@@ -4515,14 +4552,15 @@ planning_artifacts = \"{project-root}/docs/plan\"
         use desktop_runtime::{RelativeWorkspacePath, UnixMillis};
 
         let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
-        // All 38 reviewed capabilities are enabled: 24 menu capabilities, five
-        // Builder operations, and nine ADR-0008 core skills. Architecture
+        // All 39 reviewed capabilities are enabled: 24 menu capabilities, five
+        // Builder operations, nine ADR-0008 core skills, and Deep Recon.
+        // Architecture
         // completes one *step* here; its full progression is proven separately
         // by `the_architecture_progression_runs_ordered_to_a_distilled_spine`.
         let enabled = crate::bmad_capability_host::CAPABILITY_TABLE
             .iter()
             .collect::<Vec<_>>();
-        assert_eq!(enabled.len(), 38);
+        assert_eq!(enabled.len(), 39);
         assert_eq!(
             enabled
                 .iter()

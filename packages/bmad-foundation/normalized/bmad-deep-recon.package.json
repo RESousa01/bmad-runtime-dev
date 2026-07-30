@@ -13,7 +13,7 @@
     "sourceEntrypoint": {
       "path": "src/core-skills/bmad-deep-recon/SKILL.md",
       "contentHash": "sha256:dce5f7db03094a617cc3fcae1711b1dc7ccebe379376e67216544956d375f0d2",
-      "treatment": "adopt"
+      "treatment": "adapt"
     },
     "sourceResources": [
       {
@@ -164,7 +164,7 @@
         "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
       }
     ],
-    "projectionHash": "sha256:7bac0c3d583ce3de3310a1a190e99b834c1568807c5be3676ddff166d7a40308"
+    "projectionHash": "sha256:a7c8915c301df1ad97b5bf7900b113aef437a0382a3785c13f49d7982d8517ce"
   },
-  "projectionEnvelopeHash": "sha256:b88c7e0368ae6eaf7462d0d5be36cadc69a71852a3242ee5b05d192d8656a3ca"
+  "projectionEnvelopeHash": "sha256:23f0e2ced9ce9be4083eb1989404dc57c371e4bbd3df183a18427564bf267de2"
 }

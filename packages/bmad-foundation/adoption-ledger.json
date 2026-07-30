@@ -2639,6 +2639,15 @@
       ]
     },
     {
+      "sourceMemberId": "method-248",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Preserve Deep Recon intent and topology while replacing source-directed files, processes, web, browser, subagents, and handoffs with typed host-governed plans."
+        }
+      ]
+    },
+    {
       "sourceMemberId": "builder-001",
       "treatments": [
         {
@@ -3856,6 +3865,32 @@
         "method-004",
         "method-048",
         "method-049"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/deep-recon.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-deep-recon",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [
+        "draft",
+        "process",
+        "run",
+        "refresh",
+        "deepen"
+      ],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "direct",
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-248"
       ]
     },
     {

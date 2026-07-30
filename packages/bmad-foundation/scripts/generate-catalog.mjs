@@ -78,7 +78,9 @@ function methodRow(member, aliasesByTarget, ledgerByRowId) {
       "post_validation",
       "durable_evidence",
     ],
-    outputs: ["governed_artifact"],
+    outputs: member.target_capability === "core:bmad-deep-recon"
+      ? ["research_output_path"]
+      : ["governed_artifact"],
     supportState: ledgerRow.supportState,
     uiState: member.ui_state,
     visibility: "public",
@@ -231,7 +233,7 @@ function buildHelpCapabilityGraph(catalog, aliasCatalog, catalogText, aliasCatal
         sourceId: oneDerivedValue(rows.map((row) => row.source.id), `${id}.sourceId`),
         phase: phaseForRow(canonical),
         predecessorIds: [],
-        followerIds: [],
+        followerIds: id === "core:bmad-deep-recon" ? ["core:bmad-help"] : [],
         outputLocations: [...new Set(rows.flatMap((row) => row.outputs))].sort(),
         supportState: canonical.supportState,
         uiState: canonical.uiState,

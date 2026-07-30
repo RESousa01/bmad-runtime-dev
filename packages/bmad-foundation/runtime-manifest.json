@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:9071ed557ba4bb0d30c3397da2dd247910d96a13992adb14bbed59ba0055dd97",
+  "semanticLedgerHash": "sha256:3363f80fcd382debfd6edd069f8b517ed90f44385f9b8b5f6762289375c496d3",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -11,8 +11,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "contentHash": "sha256:671a01ab243ecf4ec17f0f534da86a4b8460db9d7c33fb305cacab37072cae86",
-      "byteLength": 118432,
+      "contentHash": "sha256:bb27fc174f8634a6ac3a892b47d9a7fc1f898ef371708bb2c6d9810d26950daf",
+      "byteLength": 119443,
       "contentKind": "provenance_ledger"
     },
     {
@@ -23,13 +23,13 @@
     },
     {
       "path": "capability-catalog.json",
-      "contentHash": "sha256:82b1345885950bdb09fd87103fc5fd9eb35758aa509e135f1cc57da358509d97",
-      "byteLength": 68043,
+      "contentHash": "sha256:8e4b8b3b412212d474cbb1774c9e1f0f30b9991e0a495e57f65f9bc901adc626",
+      "byteLength": 68055,
       "contentKind": "normalized_contract"
     },
     {
       "path": "compatibility-aliases.json",
-      "contentHash": "sha256:32530f009833d143dbe7548d154c80d8343a109b7a468502ce51a8b873bba936",
+      "contentHash": "sha256:97f434603d52324b7416d18feecae227a5631fc454f50d12633929295a870dc2",
       "byteLength": 6715,
       "contentKind": "normalized_contract"
     },
@@ -101,7 +101,7 @@
     },
     {
       "path": "normalized/bmad-deep-recon.package.json",
-      "contentHash": "sha256:d0b7fdd8d8d232839fc92797bc5256e88e880b16b007d9cc98e099020477f605",
+      "contentHash": "sha256:91bc0ce4b5ae5564d3268cd2ab493a8489821650c9e71c283dd4fee1ddeb4966",
       "byteLength": 6948,
       "contentKind": "normalized_contract"
     },
@@ -137,8 +137,8 @@
     },
     {
       "path": "normalized/bmad-help-capability-graph.json",
-      "contentHash": "sha256:27ffcb399b4a5da5ab5fc340745b61aec8fcd28d923e99812244a172aeae2d3d",
-      "byteLength": 25518,
+      "contentHash": "sha256:dea4b2e6c79466501976235ce5820be36abb959c5c625d6f590b1247bb70242f",
+      "byteLength": 25553,
       "contentKind": "normalized_contract"
     },
     {
@@ -503,8 +503,8 @@
     },
     {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:9071ed557ba4bb0d30c3397da2dd247910d96a13992adb14bbed59ba0055dd97",
-      "byteLength": 237196,
+      "contentHash": "sha256:3363f80fcd382debfd6edd069f8b517ed90f44385f9b8b5f6762289375c496d3",
+      "byteLength": 237673,
       "contentKind": "provenance_ledger"
     },
     {
@@ -526,5 +526,5 @@
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:e352a79805426c53573133d334ab628b4b0750a9116bb8c6681056526714d515"
+  "manifestHash": "sha256:89a94bce7842d773a406c32e67bff1c169026e8fbd86c35a21f07bf4a71d9bb8"
 }

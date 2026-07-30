@@ -20,9 +20,10 @@ skill now serves: `bmm:bmad-domain-research`, `bmm:bmad-market-research`,
 
 ## Declared actions and modes
 
-- **Actions**: none declared as a fixed, separately-invocable action.
-  Catalog row records `action: null`. The four intents (Draft / Process /
-  Run / Refresh-Deepen) are detected from the user's ask, not fixed actions.
+- **Actions**: `draft`, `process`, `run`, `refresh`, `deepen`. The catalog
+  retains `action: null` because these are branches of one canonical skill,
+  while the runtime binds the selected action to a distinct source-derived
+  step table.
 - **Modes**: `interactive`, `headless` (per capability-catalog.json and the
   source's own `## Headless Mode` section).
 - **Output location**: `research_output_path`
@@ -31,8 +32,13 @@ skill now serves: `bmm:bmad-domain-research`, `bmm:bmad-market-research`,
   mixes single markdown documents (`brief.md`, `research.md`, `.memlog.md`)
   with directories of multiple files (`imports/`, `digests/`); persistence
   is immediate and per-write -- `PersistArtifacts` completion hook.
+- **Follower**: `core:bmad-help`, matching the source finalize instruction
+  that asks Help to suggest the next step.
 
 ## Compatibility decision
 
-**adopt / exact.** No semantic divergence was found between the pinned
-source and the harness descriptor.
+**adapt / exact.** The pinned research semantics, five services, topology,
+and recovery intent are preserved exactly. Source-directed filesystem,
+process, web, browser, subagent, and external-handoff operations are
+translated into typed host-governed plans; the source text itself grants no
+runtime authority.
