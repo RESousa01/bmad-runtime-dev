@@ -50,6 +50,7 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/qa-tests.instructions.md",
   "runtime/method/6.10.0/quick-dev.instructions.md",
   "runtime/method/6.10.0/retrospective.instructions.md",
+  "runtime/method/6.10.0/spec.instructions.md",
   "runtime/method/6.10.0/sprint-planning.instructions.md",
   "runtime/method/6.10.0/tech-writer-persona.instructions.md",
   "runtime/method/6.10.0/technical-research.instructions.md",
@@ -84,6 +85,7 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-qa-generate-e2e-tests.package.json",
   "normalized/bmad-quick-dev.package.json",
   "normalized/bmad-retrospective.package.json",
+  "normalized/bmad-spec.package.json",
   "normalized/bmad-sprint-planning.package.json",
   "normalized/bmad-tech-writer-explain-concept.package.json",
   "normalized/bmad-tech-writer-mermaid-gen.package.json",
@@ -128,6 +130,7 @@ const requiredPackagePaths = Object.freeze([
   "scripts/verify-source-notes.mjs",
   "scripts/verify-source-identities.mjs",
   "scripts/verify.mjs",
+  "tests/bmad-spec.test.mjs",
   ...normalizedPaths,
   ...managedOutputPaths,
 ].sort());
@@ -368,6 +371,14 @@ const expectedProjectionSourceMemberIds = Object.freeze({
     "method-004",
     "method-044",
     "method-045",
+  ],
+  "runtime/method/6.10.0/spec.instructions.md": [
+    "method-004",
+    "method-238",
+    "method-239",
+    "method-240",
+    "method-241",
+    "method-242",
   ],
   "runtime/method/6.10.0/qa-tests.instructions.md": [
     "method-004",
@@ -721,6 +732,7 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
   ]);
   assert.deepEqual(await readdir(path.join(packageRoot, "tests")), [
     "bmad-capability-catalog.test.mjs",
+    "bmad-spec.test.mjs",
     "builder-catalog.test.mjs",
     "builder-source-closure.test.mjs",
     "compatibility-ledger.test.mjs",
@@ -1012,7 +1024,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
   }
 
   const method = projections.filter((projection) => projection.classification === "method");
-  assert.equal(method.length, 31);
+  assert.equal(method.length, 32);
   assert.ok(method.every((projection) => projection.state === "sealed_read_only"));
 
   const agentActions = projections

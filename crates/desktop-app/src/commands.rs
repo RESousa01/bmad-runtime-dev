@@ -2404,7 +2404,7 @@ fn bind_generated_method_session(
     let contract = dispatch.skill.execution_contract().map_err(|_| {
         LocalError::new(
             LocalErrorCode::IntegrityFailure,
-            "The canonical PRD execution contract is unavailable.",
+            "The canonical Method execution contract is unavailable.",
             false,
         )
     })?;
@@ -2421,16 +2421,16 @@ fn bind_generated_method_session(
         .map_err(|_| {
             LocalError::new(
                 LocalErrorCode::IntegrityFailure,
-                "The canonical PRD exact binding could not be assembled.",
+                "The canonical Method exact binding could not be assembled.",
                 false,
             )
         })?;
     let prepared = BmadDomainRuntime
-        .prepare_skill_execution(dispatch.skill.as_ref(), request)
+        .prepare_skill_execution(dispatch.skill.as_ref(), request.clone())
         .map_err(|_| {
             LocalError::new(
                 LocalErrorCode::IntegrityFailure,
-                "The canonical PRD execution plan did not match its sealed source.",
+                "The canonical Method execution plan did not match its sealed source.",
                 false,
             )
         })?;
@@ -2475,27 +2475,27 @@ fn bind_generated_method_session(
             .map_err(|_| recovery_error())?;
         return Ok(());
     }
-    let created = service
-        .create(CreateMethodSession {
-            session_id: session_id.clone(),
-            owner_scope_ref: location.scope.owner_scope_ref.clone(),
-            project_id: project_id.clone(),
-            run_id: prepare_input.run_id.clone(),
-            authority_ref: location.scope.authority_ref.clone(),
-            created_at,
-        })
-        .map_err(|_| recovery_error())?;
-    let bound = service
-        .bind_invocation(
-            &created.scope(),
-            &session_id,
-            created.version(),
-            prepared.exact_binding().clone(),
-            prepared.step_table().clone(),
+    let dispatched = BmadDomainRuntime
+        .dispatch_skill_execution(
+            &service,
+            dispatch.skill.as_ref(),
+            request,
+            CreateMethodSession {
+                session_id: session_id.clone(),
+                owner_scope_ref: location.scope.owner_scope_ref.clone(),
+                project_id: project_id.clone(),
+                run_id: prepare_input.run_id.clone(),
+                authority_ref: location.scope.authority_ref.clone(),
+                created_at,
+            },
         )
         .map_err(|_| recovery_error())?;
     service
-        .request_context_review(&bound.scope(), &session_id, bound.version())
+        .request_context_review(
+            &dispatched.session().scope(),
+            &session_id,
+            dispatched.session().version(),
+        )
         .map_err(|_| recovery_error())?;
     Ok(())
 }
@@ -5054,6 +5054,101 @@ mod tests {
                 );
                 assert_eq!(completed.current_binding()?.invocation_mode, mode);
             }
+        }
+        Ok(())
+    }
+
+    /// Drives the canonical Spec capability through the actual desktop
+    /// prepare/approve/submit surface.  This catches a descriptor that can
+    /// prepare in isolation but is absent from generated dispatch, or whose
+    /// durable Method session is not bound to the run the host submits.
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn canonical_spec_binds_and_completes_through_the_production_entrypoints(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{BmadInvocationMode, MethodSessionRepository, MethodState};
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        for mode in [
+            BmadInvocationMode::Interactive,
+            BmadInvocationMode::Headless,
+        ] {
+            let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+            state.bind_renderer("main").expect("renderer binding");
+            let renderer = state
+                .renderer_session_authority("main")
+                .expect("renderer authority");
+            let workspace_id = id(&workspace_id);
+            let review = prepare_bmad_capability_run(
+                &state,
+                &foundation,
+                &renderer,
+                workspace_id.clone(),
+                1,
+                "bmm:bmad-spec",
+                None,
+                Some(mode),
+                Vec::new(),
+                UnixMillis(14_000),
+            )
+            .map_err(|error| format!("Spec prepare/{mode:?} failed: {error:?}"))?;
+            let HostCommandData::CapabilityReview(review) = review else {
+                return Err("expected capability review".into());
+            };
+            let workspace = state
+                .workspace
+                .authorize_scope(workspace_id.as_str(), 1)
+                .expect("workspace authority")
+                .projection();
+            let authority = state.ready_authority().expect("ready authority");
+            let store = state.method_store(&authority)?;
+            let project_id = ContractId::new(workspace.project_id)?;
+            let location =
+                super::method_session_location(store, &project_id, &review.run_id, "bmm:bmad-spec")
+                    .map_err(|error| format!("Spec method session location: {error:?}"))?;
+            let prepared = store
+                .load_method_session(&location.scope, &location.session_id)?
+                .ok_or("missing prepared Spec Method session")?;
+            assert_eq!(prepared.state(), MethodState::ContextReviewRequired);
+            assert_eq!(
+                prepared.current_binding()?.capability_key.normalized_action,
+                None
+            );
+            assert_eq!(prepared.current_binding()?.invocation_mode, mode);
+            drop(authority);
+
+            let approved = approve_bmad_capability_run(
+                &state,
+                workspace_id.clone(),
+                1,
+                "bmm:bmad-spec",
+                review.manifest_hash,
+                UnixMillis(15_000),
+            )
+            .map_err(|error| format!("Spec approve/{mode:?} failed: {error:?}"))?;
+            let HostCommandData::CapabilityApproved(approved) = approved else {
+                return Err("expected capability approval".into());
+            };
+            submit_bmad_capability_run(
+                &state,
+                &foundation,
+                workspace_id,
+                1,
+                "bmm:bmad-spec",
+                review.manifest_hash,
+                approved.decision_id,
+                UnixMillis(16_000),
+            )
+            .map_err(|error| format!("Spec submit/{mode:?} failed: {error:?}"))?;
+
+            let authority = state.ready_authority().expect("ready authority");
+            let store = state.method_store(&authority)?;
+            let completed = store
+                .load_method_session(&location.scope, &location.session_id)?
+                .ok_or("missing completed Spec Method session")?;
+            assert_eq!(completed.state(), MethodState::Completed);
+            assert_eq!(completed.checkpoints().len(), 6);
+            assert_eq!(completed.current_binding()?.invocation_mode, mode);
         }
         Ok(())
     }

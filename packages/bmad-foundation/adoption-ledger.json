@@ -3815,6 +3815,31 @@
       ]
     },
     {
+      "path": "runtime/method/6.10.0/spec.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-spec",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-238",
+        "method-239",
+        "method-240",
+        "method-241",
+        "method-242"
+      ]
+    },
+    {
       "path": "runtime/method/6.10.0/correct-course.instructions.md",
       "classification": "method",
       "sourceIdentity": {

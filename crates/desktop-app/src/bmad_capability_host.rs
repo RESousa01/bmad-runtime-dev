@@ -22,9 +22,9 @@ use desktop_runtime::{
     canonical_hash, deserialize_strict_json, sha256_bytes, BmadAgentRoster, BmadBuilderDraftFile,
     BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput, BmadClosureCapabilityId,
     BmadDocumentArtifact, BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft,
-    BmadInvocationMode, BmadMethodSkill, BmadPrdSkill, ContractId, RelativeWorkspacePath,
-    Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA, BMAD_GOVERNED_CHANGE_SET_SCHEMA,
-    BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
+    BmadInvocationMode, BmadMethodSkill, BmadPrdSkill, BmadSpecSkill, ContractId,
+    RelativeWorkspacePath, Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+    BMAD_GOVERNED_CHANGE_SET_SCHEMA, BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -72,16 +72,22 @@ pub(crate) fn generated_method_dispatch(
     else {
         return Ok(None);
     };
-    let (Some(action), Some(mode)) = (action, mode) else {
+    let Some(mode) = mode else {
         return Err(BmadProjectionError::Unavailable);
     };
-    let skill: Box<dyn BmadMethodSkill> = match row.source_path {
-        "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md" => Box::new(BmadPrdSkill),
+    let (skill, action): (Box<dyn BmadMethodSkill>, String) = match row.source_path {
+        "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md" => (
+            Box::new(BmadPrdSkill),
+            action.ok_or(BmadProjectionError::Unavailable)?.to_owned(),
+        ),
+        "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md" if action.is_none() => {
+            (Box::new(BmadSpecSkill), String::new())
+        }
         _ => return Err(BmadProjectionError::Unavailable),
     };
     Ok(Some(GeneratedMethodDispatch {
         skill,
-        action: action.to_owned(),
+        action,
         mode,
     }))
 }
@@ -248,8 +254,8 @@ pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 38] = [
     // descriptor, not in this id.
     CapabilityBinding {
         id: "bmm:bmad-spec",
-        output_schema_id: BMAD_GOVERNED_CHANGE_SET_SCHEMA,
-        projection_path: "source/method/6.10.0/src/core-skills/bmad-spec/SKILL.md",
+        output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        projection_path: "runtime/method/6.10.0/spec.instructions.md",
     },
     CapabilityBinding {
         id: "bmm:bmad-advanced-elicitation",
@@ -531,6 +537,12 @@ pub(crate) fn runtime_capability_enabled(
     }
     if binding.id.starts_with("builder:") && binding.projection_path.starts_with("runtime/builder/")
     {
+        return Ok(true);
+    }
+    // A generated Method capability that the sealed catalog advertises as
+    // runtime-available is dispatched through the canonical Method session
+    // path. It need not also occupy a roster menu slot (for example, Spec).
+    if is_generated_method_capability(binding.id) {
         return Ok(true);
     }
     if is_core_skill_binding(binding) {

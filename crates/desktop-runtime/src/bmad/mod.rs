@@ -273,6 +273,33 @@ pub trait BmadRuntimePort {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct BmadDomainRuntime;
 
+/// One source-validated preparation bound into the established durable Method
+/// session service.
+#[derive(Clone, Debug)]
+pub struct BmadDispatchedSkillExecution {
+    prepared: BmadPreparedSkillExecution,
+    session: MethodSession,
+}
+
+impl BmadDispatchedSkillExecution {
+    #[must_use]
+    pub const fn prepared(&self) -> &BmadPreparedSkillExecution {
+        &self.prepared
+    }
+
+    #[must_use]
+    pub const fn session(&self) -> &MethodSession {
+        &self.session
+    }
+}
+
+/// Fail-closed preparation or established-service persistence failure.
+#[derive(Debug)]
+pub enum BmadSkillDispatchError<E> {
+    Preparation(BmadSkillExecutionError),
+    Lifecycle(MethodServiceError<E>),
+}
+
 impl BmadRuntimePort for BmadDomainRuntime {
     fn apply_session_intent(
         &self,
@@ -304,5 +331,45 @@ impl BmadRuntimePort for BmadDomainRuntime {
         request: BmadSkillExecutionRequest,
     ) -> Result<BmadPreparedSkillExecution, BmadSkillExecutionError> {
         BmadSkillExecutionCompiler::prepare(skill, request)
+    }
+}
+
+impl BmadDomainRuntime {
+    /// Prepares a canonical skill and durably creates and binds its Method
+    /// session in one production dispatch boundary.
+    ///
+    /// # Errors
+    ///
+    /// Returns a closed preparation error before persistence or the established
+    /// Method-service error from creation/binding.
+    pub fn dispatch_skill_execution<R>(
+        &self,
+        service: &MethodSessionService<R>,
+        skill: &dyn BmadMethodSkill,
+        request: BmadSkillExecutionRequest,
+        creation: CreateMethodSession,
+    ) -> Result<BmadDispatchedSkillExecution, BmadSkillDispatchError<R::Error>>
+    where
+        R: MethodSessionRepository,
+    {
+        let prepared = self
+            .prepare_skill_execution(skill, request)
+            .map_err(BmadSkillDispatchError::Preparation)?;
+        let created = service
+            .create(creation)
+            .map_err(BmadSkillDispatchError::Lifecycle)?;
+        let bound = service
+            .bind_invocation(
+                &created.scope(),
+                &created.session_id(),
+                created.version(),
+                prepared.exact_binding().clone(),
+                prepared.step_table().clone(),
+            )
+            .map_err(BmadSkillDispatchError::Lifecycle)?;
+        Ok(BmadDispatchedSkillExecution {
+            prepared,
+            session: bound,
+        })
     }
 }

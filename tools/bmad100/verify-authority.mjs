@@ -106,7 +106,9 @@ function parseArgs(argv) {
   const flags = { skill: null, all: false, json: null };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
-    if (token === "--skill") {
+    if (token === "--") {
+      continue;
+    } else if (token === "--skill") {
       index += 1;
       flags.skill = argv[index];
       if (!flags.skill) usage();

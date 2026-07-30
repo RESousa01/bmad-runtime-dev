@@ -4176,8 +4176,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 118432,
-      "sha256": "671a01ab243ecf4ec17f0f534da86a4b8460db9d7c33fb305cacab37072cae86"
+      "byteLength": 119126,
+      "sha256": "53259a233d5afa072356eb976757614e7d24a2643b2ab78376e77c40c64150be"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",
@@ -4308,6 +4308,11 @@
       "path": "runtime/method/6.10.0/prd.instructions.md",
       "byteLength": 2841,
       "sha256": "85906cc9a544adedca6b00fa383c222d169f7e324e42f3905002a9430bbf30fb"
+    },
+    {
+      "path": "runtime/method/6.10.0/spec.instructions.md",
+      "byteLength": 2574,
+      "sha256": "6d906443b1da33b59fade6608017ce2be88906248ac1dd9f4515adcf25b5fc54"
     },
     {
       "path": "runtime/method/6.10.0/prfaq.instructions.md",
