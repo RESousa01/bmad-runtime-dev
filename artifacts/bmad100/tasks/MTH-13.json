@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "sapphirus.bmad100.task-receipt.v1",
+  "taskId": "MTH-13",
+  "status": "complete",
+  "canonicalId": "bmm:bmad-check-implementation-readiness",
+  "source": {
+    "package": "method@6.10.0",
+    "entrypoint": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+    "sha256": "a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a"
+  },
+  "acceptance": [
+    {
+      "criterion": "every source file has a disposition",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-check-implementation-readiness/source-closure.json"
+    },
+    {
+      "criterion": "declared actions args modes resources topology artifacts and hooks are executable",
+      "status": "pass",
+      "evidence": "crates/desktop-runtime/tests/bmad_bmad_check_implementation_readiness.rs"
+    },
+    {
+      "criterion": "interactive and headless modes preserve semantic parity",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-check-implementation-readiness/golden/source-derived-cases.json"
+    },
+    {
+      "criterion": "cancel fail retry repair restart resume and upgrade are durable and deterministic",
+      "status": "pass",
+      "evidence": "crates/desktop-runtime/tests/bmad_bmad_check_implementation_readiness.rs"
+    },
+    {
+      "criterion": "source prose grants no runtime authority",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-check-implementation-readiness/authority.json"
+    },
+    {
+      "criterion": "Help Skills UI runtime closure and ledger project one state",
+      "status": "pass",
+      "evidence": "packages/bmad-foundation/tests/bmad-capability-catalog.test.mjs"
+    },
+    {
+      "criterion": "no unavailable pending blocked partial or analogous target state remains",
+      "status": "pass",
+      "evidence": "packages/bmad-foundation/source-accounting.json"
+    }
+  ],
+  "gates": [
+    {
+      "command": "node packages/bmad-foundation/scripts/resource-closure.mjs --source method@6.10.0 --skill bmad-check-implementation-readiness --check",
+      "status": "pass"
+    },
+    {
+      "command": "node packages/bmad-foundation/scripts/conformance.mjs --skill bmad-check-implementation-readiness --all-modes --strict",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p desktop-runtime --test bmad_bmad_check_implementation_readiness --locked",
+      "status": "pass",
+      "tests": 5
+    },
+    {
+      "command": "pnpm --filter @sapphirus/bmad-foundation test -- --runInBand bmad-check-implementation-readiness",
+      "status": "pass",
+      "tests": 199
+    },
+    {
+      "command": "pnpm verify:bmad:authority -- --skill bmad-check-implementation-readiness",
+      "status": "pass"
+    }
+  ]
+}

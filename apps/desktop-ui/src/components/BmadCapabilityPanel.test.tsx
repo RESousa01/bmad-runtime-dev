@@ -70,8 +70,36 @@ describe("BmadCapabilityPanel", () => {
     );
     expect(prepare.hasAttribute("disabled")).toBe(false);
     await user.click(prepare);
-    expect(props.onPrepare).toHaveBeenCalledWith(["docs/brief.md", "notes/context.md"]);
+    expect(props.onPrepare).toHaveBeenCalledWith(
+      ["docs/brief.md", "notes/context.md"],
+      null,
+      null,
+    );
     await expectAccessible(container);
+  });
+
+  it("passes the selected canonical PRD action and mode to production prepare", async () => {
+    const props = {
+      ...createProps({ kind: "selecting" }),
+      capabilityId: "bmm:bmad-prd",
+      capabilityLabel: "Create PRD",
+    };
+    const user = userEvent.setup();
+    render(<BmadCapabilityPanel {...props} />);
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "PRD action" }), "validate");
+    await user.selectOptions(screen.getByRole("combobox", { name: "PRD mode" }), "headless");
+    await user.type(
+      screen.getByRole("textbox", { name: "Context file paths" }),
+      "docs/prd.md",
+    );
+    await user.click(screen.getByRole("button", { name: /prepare reviewed context/i }));
+
+    expect(props.onPrepare).toHaveBeenCalledWith(
+      ["docs/prd.md"],
+      "validate",
+      "headless",
+    );
   });
 
   it("shows the exact reviewed context and consent disclosure before approval", async () => {
@@ -216,7 +244,7 @@ describe("BmadCapabilityPanel", () => {
     );
     expect(retry.hasAttribute("disabled")).toBe(false);
     await user.click(retry);
-    expect(props.onPrepare).toHaveBeenCalledWith(["docs/brief.md"]);
+    expect(props.onPrepare).toHaveBeenCalledWith(["docs/brief.md"], null, null);
   });
 
   /// Regression guard: a document result that failed to decode rendered the
@@ -296,7 +324,7 @@ describe("BmadCapabilityPanel", () => {
     );
     expect(screen.getByRole("status").textContent).toBe("100 files selected.");
     await user.click(screen.getByRole("button", { name: /prepare reviewed context/i }));
-    expect(props.onPrepare).toHaveBeenCalledWith(paths.slice(0, 100));
+    expect(props.onPrepare).toHaveBeenCalledWith(paths.slice(0, 100), null, null);
   });
 
   /// Regression guard: the approved phase said the consent "expires shortly"
@@ -325,7 +353,7 @@ describe("BmadCapabilityPanel", () => {
 
     // The lapse is recoverable in place, on the same context.
     await user.click(screen.getByRole("button", { name: "Prepare this context again" }));
-    expect(props.onPrepare).toHaveBeenCalledWith(["docs/brief.md"]);
+    expect(props.onPrepare).toHaveBeenCalledWith(["docs/brief.md"], null, null);
     await expectAccessible(container);
   });
 

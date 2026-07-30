@@ -31,7 +31,7 @@
   "upstreamManifestObservationHashes": [
     "sha256:7b4f67e25fb6ed90136d9e6214e9e67373c109bfa64b341a484ae6cc9dc09d83"
   ],
-  "finalCompositeInventoryHash": "sha256:24df29a5878300d9c50782dcb4cdc175ed9c00606dc7c367683ed3215349f791",
+  "finalCompositeInventoryHash": "sha256:3a8dec4cabdcd700bf9776a3895164f95024456e830dedd79253952a466cd28b",
   "modules": [
     {
       "moduleCode": "bmm",
@@ -1161,6 +1161,78 @@
       "projectionHash": "sha256:a94b0d6deea3751def59e573a012ae778f9b9965b0bdfa1fd83a6aeef447e057"
     },
     {
+      "projectionId": "projection_6D906443B1DA33B59FADE6608017CE2BE88906248AC1DD9F4515ADCF25B5FC54",
+      "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
+      "sourceEntrypoint": {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
+        "contentHash": "sha256:5b5680dbf01dbfc5b4a5485e70f20ea48ac21a1d6137c4ea2ff704262dcc45d2",
+        "treatment": "adapt"
+      },
+      "sourceResources": [
+        {
+          "path": "src/bmm-skills/2-plan-workflows/bmad-spec/customize.toml",
+          "contentHash": "sha256:a89e0f53f9b6386c281dd0158a21801a6b16f122085fd68b0220cd403c18f830",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/2-plan-workflows/bmad-spec/assets/headless-schemas.md",
+          "contentHash": "sha256:83afb3614716db2347d83586a67b9c524492dd50db5282436ccb35c99fb5f08a",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/2-plan-workflows/bmad-spec/assets/spec-template.md",
+          "contentHash": "sha256:4b3a032c045fdd0903933446fc07f93e879997f28a0294ed4344da71192b20ee",
+          "treatment": "adapt"
+        },
+        {
+          "path": "src/bmm-skills/2-plan-workflows/bmad-spec/assets/stories-schema.md",
+          "contentHash": "sha256:4f8137c00e2710288354a4466d1cfb90704f4b2a04bd3b63924218fd589cc6a9",
+          "treatment": "adapt"
+        }
+      ],
+      "sourceSections": [],
+      "managedInstruction": {
+        "path": "runtime/method/6.10.0/spec.instructions.md",
+        "contentHash": "sha256:6d906443b1da33b59fade6608017ce2be88906248ac1dd9f4515adcf25b5fc54",
+        "format": "SapphirusManagedV1"
+      },
+      "blockedToolIntents": [
+        "external_handoff",
+        "file_read",
+        "file_write",
+        "process",
+        "subagent"
+      ],
+      "hostInputReplacements": [
+        {
+          "toolIntent": "external_handoff",
+          "inputKind": "unavailable_fact",
+          "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+        },
+        {
+          "toolIntent": "file_read",
+          "inputKind": "bounded_resource_set",
+          "inputSchemaHash": "sha256:877f8d441a8a7309ac142dec2e6b7a0686fbef21d66683d64a9f2e9db1af7ec9"
+        },
+        {
+          "toolIntent": "file_write",
+          "inputKind": "unavailable_fact",
+          "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+        },
+        {
+          "toolIntent": "process",
+          "inputKind": "unavailable_fact",
+          "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+        },
+        {
+          "toolIntent": "subagent",
+          "inputKind": "unavailable_fact",
+          "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+        }
+      ],
+      "projectionHash": "sha256:884facf72c30139829c9d1ec3cd63bcd651126abfecb7b5db2da4ed21af591a9"
+    },
+    {
       "projectionId": "projection_F793679356A0C05B302DEE6ED46EAC3AEEAFAD78FD36CA8EFFCDB8DCBC63B8D0",
       "sourceIdentityHash": "sha256:5a2ba6e6a18bfde4fb11a9732dc8fee46f19a83d4cc0e9e3465c1210c00374b5",
       "sourceEntrypoint": {
@@ -1527,6 +1599,15 @@
       "contentRole": "managed_instruction",
       "contentHash": "sha256:0c38f80466d60843ece1e39598abe69ba8bf5b02c424f75a5865422889083def",
       "byteLength": 1757,
+      "treatment": "adapt",
+      "runtimeUse": "instruction_data"
+    },
+    {
+      "path": "runtime/method/6.10.0/spec.instructions.md",
+      "locationKind": "managed_projection",
+      "contentRole": "managed_instruction",
+      "contentHash": "sha256:6d906443b1da33b59fade6608017ce2be88906248ac1dd9f4515adcf25b5fc54",
+      "byteLength": 2574,
       "treatment": "adapt",
       "runtimeUse": "instruction_data"
     },
@@ -2041,5 +2122,5 @@
     }
   ],
   "validationReportHashes": [],
-  "descriptorHash": "sha256:655a9e17813f44261d7b027c8306a43ee6181949e3aa75634c7ef48df6dc5d13"
+  "descriptorHash": "sha256:53c3b34e832331e22554a6bb574d38c6c8b7e07c5238c627aaa2f09ba29e46c6"
 }

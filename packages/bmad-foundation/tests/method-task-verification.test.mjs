@@ -53,7 +53,9 @@ test("Method task verification resolves short skill ids and writes bound receipt
     assert.ok(closureReceipt.packages[0].member_accounting.length > 1);
     assert.ok(
       closureReceipt.packages[0].member_accounting.every(
-        (member) => member.path.includes("/bmad-prd/") || member.path.endsWith("/bmad-prd/SKILL.md"),
+        (member) =>
+          member.path.includes("/bmad-prd/") ||
+          member.path.endsWith("/bmad-prd/SKILL.md"),
       ),
     );
 

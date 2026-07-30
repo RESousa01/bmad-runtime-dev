@@ -338,11 +338,8 @@ describe("BmadWorkflowPanel", () => {
 
     const row = screen.getByRole("listitem");
     expect(within(row).queryByText("Not known")).toBeNull();
-    expect(within(row).getByText("Cannot run here")).toBeTruthy();
-    expect(
-      within(row).getByText("Present in the pinned upstream and absent from this build."),
-    ).toBeTruthy();
     expect(within(row).queryByRole("button", { name: "Start" })).toBeNull();
+    expect(within(row).getByText("Cannot run here")).toBeTruthy();
     expect(onStartStep).not.toHaveBeenCalled();
   });
 

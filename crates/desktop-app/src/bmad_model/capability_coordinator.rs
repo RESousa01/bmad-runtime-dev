@@ -377,6 +377,35 @@ pub(crate) struct BmadCapabilityCoordinator {
 }
 
 impl BmadCapabilityCoordinator {
+    /// Returns the exact run identity currently owned by a workspace/capability.
+    ///
+    /// Production Method-session routing uses this read-only projection before
+    /// approve, cancel, and submit mutate the capability coordinator slot.
+    pub(crate) fn active_run_id(
+        &self,
+        workspace_id: &ContractId,
+        capability_id: &str,
+    ) -> Result<ContractId, BmadCapabilityCoordinatorError> {
+        let (active_capability, run_id) = match self.active.get(workspace_id) {
+            Some(ActiveCapabilityRun::ReviewRequired(prepared)) => {
+                (&prepared.capability_id, &prepared.run_id)
+            }
+            Some(ActiveCapabilityRun::Approved(approved)) => {
+                (&approved.prepared.capability_id, &approved.prepared.run_id)
+            }
+            Some(ActiveCapabilityRun::Dispatching(dispatching)) => {
+                (&dispatching.capability_id, &dispatching.run_id)
+            }
+            Some(ActiveCapabilityRun::Terminal(_)) | None => {
+                return Err(BmadCapabilityCoordinatorError::Conflict);
+            }
+        };
+        if active_capability.as_str() != capability_id {
+            return Err(BmadCapabilityCoordinatorError::Unauthorized);
+        }
+        Ok(run_id.clone())
+    }
+
     pub(crate) fn new() -> Self {
         Self {
             ledger: MemoryDecisionLedger::default(),

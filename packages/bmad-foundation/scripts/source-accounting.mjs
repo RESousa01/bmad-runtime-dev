@@ -34,6 +34,30 @@ const QUALIFIED_METHOD_ROWS = new Map([
       releaseState: "qualified",
     },
   ],
+  [
+    "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
+    {
+      supportState: "adapted",
+      uiState: "runtime_available",
+      releaseState: "qualified",
+    },
+  ],
+  [
+    "src/core-skills/bmad-deep-recon/SKILL.md",
+    {
+      supportState: "exact",
+      uiState: "runtime_available",
+      releaseState: "qualified",
+    },
+  ],
+  [
+    "src/core-skills/bmad-help/SKILL.md",
+    {
+      supportState: "adapted",
+      uiState: "runtime_available",
+      releaseState: "qualified",
+    },
+  ],
 ]);
 
 const METHOD_TASK_NAMES = [

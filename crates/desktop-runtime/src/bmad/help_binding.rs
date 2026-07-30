@@ -313,6 +313,7 @@ impl BmadHelpBindingCompiler {
         )?;
         let exact_binding = MethodExactBinding {
             capability_key,
+            invocation_mode: crate::generated_contracts::BmadInvocationMode::Interactive,
             package_descriptor_hash: source.descriptor_hash(),
             package_source_hash: source.source_snapshot_hash(),
             instruction_projection_hash: source.projection_hash(),

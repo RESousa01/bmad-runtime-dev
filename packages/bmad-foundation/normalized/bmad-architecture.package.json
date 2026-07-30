@@ -5,7 +5,7 @@
   "capability": {
     "moduleCode": "bmm",
     "skillName": "bmad-architecture",
-    "normalizedAction": "create"
+    "normalizedAction": null
   },
   "instructionProjection": {
     "projectionId": "projection_57B356FB427008F181C1A6027E8EFBF7D177D4B45DAD4D15612C84213999D6F0",
@@ -95,5 +95,5 @@
     ],
     "projectionHash": "sha256:fc4baf320e3e3e16149680630f7efc28e757b0780d7b56b6ae935f87a43b6b46"
   },
-  "projectionEnvelopeHash": "sha256:e8b5694426b8525aa6cd4fea9b68631c43021501fd5b1ad214510108654bbb37"
+  "projectionEnvelopeHash": "sha256:036d3e0fdef725b894c2a5a95c4560d3250dd54b14640fecb26aa88c459c0c31"
 }

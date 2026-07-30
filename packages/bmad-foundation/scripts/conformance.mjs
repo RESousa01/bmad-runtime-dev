@@ -18,7 +18,6 @@
 
 import {
   existsSync,
-  mkdirSync,
   readFileSync,
   readdirSync,
   rmSync,
@@ -29,7 +28,6 @@ import { fileURLToPath } from "node:url";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const packageRoot = resolve(dirname(scriptPath), "..");
-const repositoryRoot = resolve(packageRoot, "..", "..");
 const catalogPath = resolve(packageRoot, "capability-catalog.json");
 const ledgerPath = resolve(packageRoot, "compatibility-ledger.json");
 const fixturesRoot = resolve(packageRoot, "tests", "fixtures");
@@ -44,7 +42,7 @@ function readJson(path) {
 
 function usage() {
   fail(
-    "usage: node packages/bmad-foundation/scripts/conformance.mjs (--skill <rowId-or-skill-id> | --all) [--all-modes] [--strict] [--json <path>]",
+    "usage: node packages/bmad-foundation/scripts/conformance.mjs (--skill <rowId> | --all) [--all-modes | --mode all] [--strict | --check] [--json <path>]",
   );
 }
 
@@ -66,7 +64,13 @@ function parseArgs(argv) {
       flags.all = true;
     } else if (token === "--all-modes") {
       flags.allModes = true;
+    } else if (token === "--mode") {
+      index += 1;
+      if (argv[index] !== "all") usage();
+      flags.allModes = true;
     } else if (token === "--strict") {
+      flags.strict = true;
+    } else if (token === "--check") {
       flags.strict = true;
     } else if (token === "--json") {
       index += 1;
@@ -98,19 +102,17 @@ function methodRows(catalog) {
   );
 }
 
-function resolveSkillSelector(selector, rows) {
+function resolveSkillSelector(selector, catalog) {
+  const rows = methodRows(catalog);
   const exact = rows.find((row) => row.rowId === selector);
   if (exact) return exact.rowId;
-  const matches = rows.filter((row) => {
-    const components = row.source.path.split("/");
-    return components.at(-2) === selector;
-  });
+  const matches = rows.filter(
+    (row) =>
+      row.source.path === selector
+      || row.source.path.endsWith(`/${selector}/SKILL.md`),
+  );
   if (matches.length !== 1) {
-    fail(
-      matches.length === 0
-        ? `unknown skill ${selector} (not a method capability in the catalog)`
-        : `ambiguous skill ${selector}; use the full rowId`,
-    );
+    fail(`skill selector ${selector} did not resolve exactly once`);
   }
   return matches[0].rowId;
 }
@@ -165,16 +167,16 @@ function checkSkill(rowId, catalog, ledger, { allModes }) {
 }
 
 export function run(argv = process.argv.slice(2)) {
-  let evidencePath = null;
+  let receiptPath = null;
   try {
     const flags = parseArgs(argv);
-    evidencePath = flags.json ? resolve(repositoryRoot, flags.json) : null;
+    receiptPath = flags.json;
+    if (receiptPath) rmSync(receiptPath, { force: true });
     const catalog = readJson(catalogPath);
     const ledger = readJson(ledgerPath);
-    const rows = methodRows(catalog);
     const targets = flags.all
-      ? rows.map((row) => row.rowId)
-      : [resolveSkillSelector(flags.skill, rows)];
+      ? methodRows(catalog).map((row) => row.rowId)
+      : [resolveSkillSelector(flags.skill, catalog)];
 
     const failures = targets.flatMap((rowId) =>
       checkSkill(rowId, catalog, ledger, { allModes: flags.allModes || flags.all }),
@@ -189,16 +191,16 @@ export function run(argv = process.argv.slice(2)) {
       skillsChecked: targets.length,
       skills: targets,
     };
-    if (evidencePath) {
-      mkdirSync(dirname(evidencePath), { recursive: true });
-      writeFileSync(evidencePath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
-    }
-    process.stdout.write(`${JSON.stringify(summary)}\n`);
+    const serialized = `${JSON.stringify(summary)}\n`;
+    if (receiptPath) writeFileSync(receiptPath, serialized, "utf8");
+    process.stdout.write(serialized);
     return 0;
   } catch (error) {
-    if (evidencePath && existsSync(evidencePath)) {
-      rmSync(evidencePath, { force: true });
+    if (!receiptPath) {
+      const index = argv.indexOf("--json");
+      receiptPath = index >= 0 ? argv[index + 1] : null;
     }
+    if (receiptPath) rmSync(receiptPath, { force: true });
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     return 1;
   }

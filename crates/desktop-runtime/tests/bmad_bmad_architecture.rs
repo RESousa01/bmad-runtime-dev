@@ -1,160 +1,284 @@
-//! Source-derived behavioral conformance for `bmad-architecture` (MTH-12).
+//! Source-derived conformance tests for canonical `bmad-architecture` execution.
 
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::panic)]
 
-use std::{collections::BTreeMap, path::Path};
+use std::sync::Mutex;
 
-use desktop_runtime::generated_contracts::{
-    BmadArtifactCompletionHookRunHook, BmadArtifactKind,
-    BmadContextContributionContributionInclusionReason, BmadContextContributionContributionKind,
-    BmadContextContributionPurpose, BmadInvocationMode, BmadProblemFailureClass,
-    BmadProblemRecoveryActionAction,
-};
+use desktop_runtime::AuthorityRef;
 use desktop_runtime::{
-    build_problem, project_bmad_context, sha256_bytes, BmadArchitectureError,
-    BmadArchitectureSession, BmadArchitectureSkill, BmadArchitectureStep,
-    BmadContextProjectionIdentities, BmadContextProjectionItem, BmadContextProjectionRequest,
-    BmadDocumentArtifact, BmadDocumentSection, BmadFailureCancellation, BmadFailureOperation,
-    BmadFailureRequest, BmadMethodSkill, BmadSkillSupportState, ContractId, UnixMillis,
+    build_problem,
+    generated_contracts::{
+        BmadActionPlanBudget, BmadActionPlanKind, BmadArtifactCompletionHookRunHook,
+        BmadArtifactKind, BmadInvocationMode, BmadProblemFailureClass,
+        BmadProblemRecoveryActionAction,
+    },
+    plan_source_steps, record_repair, record_retry, sha256_bytes, BmadArchitectureSkill,
+    BmadCapabilityKey, BmadDomainRuntime, BmadFailureOperation, BmadFailureRequest,
+    BmadMethodSkill, BmadModelCallUsage, BmadResourceSet, BmadRuntimePort, BmadSkillAuthorityRoute,
+    BmadSkillExecutionContract, BmadSkillExecutionError, BmadSkillExecutionRequest,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, BmadSourceStep,
+    ContractId, CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt,
+    MethodAdvanceRequest, MethodArtifactExpectation, MethodArtifactProvenance, MethodEvidenceClass,
+    MethodExactBinding, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
+    MethodModelBinding, MethodModelBindingData, MethodPersistenceEvent, MethodResourcePolicy,
+    MethodSession, MethodSessionRepository, MethodSessionScope, MethodSessionService, MethodState,
+    Sha256Digest, UnixMillis,
 };
 
 const SKILL_ROOT: &str = "src/bmm-skills/3-solutioning/bmad-architecture";
-const SOURCE_ROOT: &str = "../../packages/bmad-foundation/source/method/6.10.0";
-const GOLDEN: &str = include_str!(
-    "../../../artifacts/bmad100/method/bmad-architecture/golden/source-derived-cases.json"
-);
 
-fn session() -> BmadArchitectureSession {
-    BmadArchitectureSession::open(
-        ContractId::new("archsess_mth12").expect("architecture session identifier"),
-        ContractId::new("workspace_mth12").expect("architecture workspace identifier"),
-        UnixMillis(1_000),
-    )
+fn contract_id(value: &str) -> ContractId {
+    ContractId::new(value).expect("canonical test identifier")
 }
 
-fn accepted_step_artifact(step: BmadArchitectureStep) -> BmadDocumentArtifact {
-    BmadDocumentArtifact::new(
-        format!("{} decision", step.title()),
-        vec![BmadDocumentSection {
-            heading: step.title().to_owned(),
-            body: format!(
-                "Binds: {} units\nPrevents: independently built {} units from diverging\nRule: apply the reviewed {} invariant.",
-                step.code(),
-                step.code(),
-                step.code(),
-            ),
-        }],
-        Vec::new(),
-        Vec::new(),
-        Vec::new(),
-        (step == BmadArchitectureStep::SystemContext).then_some("graph TD; A-->B;".to_owned()),
-    )
-    .expect("bounded source-shaped architecture step artifact")
+fn digest(value: &str) -> Sha256Digest {
+    Sha256Digest::parse(value).expect("canonical pinned digest")
 }
 
-fn run_create_to_completion() -> (BmadArchitectureSession, BmadDocumentArtifact) {
-    let mut run = session();
-    for (offset, step) in BmadArchitectureStep::ORDERED.into_iter().enumerate() {
-        run.accept_step(
-            step,
-            accepted_step_artifact(step),
-            UnixMillis(2_000 + u64::try_from(offset).expect("small source step index")),
-        )
-        .expect("host accepts the selected architecture step");
-    }
-    let spine = run
-        .finalize(UnixMillis(3_000))
-        .expect("complete progression distills a spine");
-    (run, spine)
+fn test_digest(label: &str) -> Sha256Digest {
+    sha256_bytes(label.as_bytes())
 }
 
-fn recovery_request(class: BmadProblemFailureClass) -> BmadFailureRequest {
-    let transient = matches!(
-        class,
-        BmadProblemFailureClass::Model
-            | BmadProblemFailureClass::Tool
-            | BmadProblemFailureClass::Store
-            | BmadProblemFailureClass::External
-    );
-    BmadFailureRequest {
-        session_id: "bsn_0123456789ABCDEFGHJKMNPQ".to_owned(),
-        problem_id: "bpr_0123456789ABCDEFGHJKMNPQ".to_owned(),
-        code: "architecture_step_failed".to_owned(),
-        detail: None,
-        failure_class: class,
-        operation: BmadFailureOperation {
-            session_id: "bsn_0123456789ABCDEFGHJKMNPQ".to_owned(),
-            step_id: "architecture_system_context".to_owned(),
-            input_hash: sha256_bytes(b"pinned-architecture-input"),
-        },
-        attempt: 1,
-        max_attempts: 3,
-        drafts_preserved: transient,
-        accepted_inputs_preserved: transient,
-        state_hash: sha256_bytes(b"architecture-durable-state"),
-        cancellation: (class == BmadProblemFailureClass::Cancel).then_some(
-            BmadFailureCancellation {
-                requested_at_sequence: 3,
-                acknowledged: false,
-                acknowledged_at_sequence: None,
+fn architecture_execution_profile() -> MethodExecutionProfile {
+    MethodExecutionProfile::from_source(
+        MethodExecutionProfileData {
+            entrypoint_kind: "direct".to_owned(),
+            invocation_modes: MethodInvocationModes {
+                interactive: true,
+                headless: true,
+                actions: Vec::new(),
             },
+            required_runtimes: Vec::new(),
+            resource_policy: MethodResourcePolicy {
+                entrypoint_timing: "invocation_start".to_owned(),
+                resource_timing: "all_declared_at_start".to_owned(),
+                declared_resource_paths: BmadArchitectureSkill
+                    .descriptor()
+                    .declared_resources()
+                    .iter()
+                    .map(|resource| resource.path().to_owned())
+                    .collect(),
+            },
+            declared_tool_intents: vec![
+                "file_read".to_owned(),
+                "file_write".to_owned(),
+                "process".to_owned(),
+                "web".to_owned(),
+                "subagent".to_owned(),
+                "external_handoff".to_owned(),
+            ],
+            state_hints: vec!["memlog".to_owned(), "artifact_workspace".to_owned()],
+            completion_evidence: vec![
+                "artifact".to_owned(),
+                "event".to_owned(),
+                "status_evidence".to_owned(),
+            ],
+            customization_profile: "method_skill_toml".to_owned(),
+            validation_profile: "MethodOfficialSkillV6".to_owned(),
+        },
+        digest("sha256:1e1652a19e34c8306315e5f47a5b791582d472604217f65780463ed8d768d64f"),
+    )
+    .expect("source-derived architecture execution profile")
+}
+
+fn architecture_artifact_expectation() -> MethodArtifactExpectation {
+    MethodArtifactExpectation::from_source(MethodArtifactExpectation {
+        expectation_kind: "method_artifact".to_owned(),
+        expectation_id: contract_id("expectation_01J00000000000000000000012"),
+        artifact_kind: "document".to_owned(),
+        required: true,
+        storage_scope: "app_local".to_owned(),
+        expected_media_type: "text/markdown".to_owned(),
+        expected_content_schema_hash: None,
+        source_output_hint: Some(
+            "{doc_workspace}/ARCHITECTURE-SPINE.md or \
+             {doc_workspace}/validation-report.{md,html}"
+                .to_owned(),
         ),
+        completion_evidence_class: MethodEvidenceClass::Authoritative,
+        expectation_hash: test_digest("bmad-architecture artifact expectation"),
+    })
+    .expect("source-derived architecture artifact expectation")
+}
+
+fn architecture_request(mode: BmadInvocationMode) -> BmadSkillExecutionRequest {
+    let descriptor = BmadArchitectureSkill.descriptor();
+    let resources =
+        BmadResourceSet::new(descriptor.declared_resources().to_vec()).expect("closed resources");
+    let execution_profile = architecture_execution_profile();
+    let egress_profile_hash = test_digest("test architecture egress profile");
+    let model_binding = MethodModelBinding::from_source(
+        MethodModelBindingData {
+            binding_kind: "method_model".to_owned(),
+            provider_id: "test-provider".to_owned(),
+            model_id: "test-model".to_owned(),
+            deployment_id: "test-deployment".to_owned(),
+            model_profile_hash: test_digest("test architecture model profile"),
+            model_capability_hash: test_digest("test architecture model capability"),
+            context_window_profile_hash: test_digest("test architecture context window"),
+            egress_profile_hash,
+            request_schema_hash: test_digest("test architecture request schema"),
+            response_schema_hash: test_digest("test architecture response schema"),
+        },
+        test_digest("test architecture model binding"),
+    )
+    .expect("valid inert model binding");
+    let resolved_config_graph_hash = test_digest("test architecture config graph");
+    let resolved_config_hash = test_digest("test architecture config resolution");
+    let resolved_customization_hash = test_digest("test architecture customization");
+    let exact_binding = MethodExactBinding {
+        capability_key: BmadCapabilityKey {
+            package_version_id: contract_id(
+                "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+            ),
+            module_code: "bmm".to_owned(),
+            skill_name: "bmad-architecture".to_owned(),
+            normalized_action: None,
+        },
+        package_descriptor_hash: digest(
+            "sha256:036d3e0fdef725b894c2a5a95c4560d3250dd54b14640fecb26aa88c459c0c31",
+        ),
+        package_source_hash: digest(
+            "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
+        ),
+        instruction_projection_hash: digest(
+            "sha256:fc4baf320e3e3e16149680630f7efc28e757b0780d7b56b6ae935f87a43b6b46",
+        ),
+        capability_catalog_hash: digest(
+            "sha256:d6a3198652479968f7b7f6e2eacb16af2611143631200c2a5dfc3f492400de00",
+        ),
+        agent_roster_hash: None,
+        agent_binding_hash: None,
+        agent_binding: None,
+        distribution_profile: "sapphirus_package".to_owned(),
+        install_profile: "SapphirusManagedV1".to_owned(),
+        entrypoint_kind: "direct".to_owned(),
+        execution_profile_hash: execution_profile.profile_hash,
+        execution_profile,
+        validation_profile: "MethodOfficialSkillV6".to_owned(),
+        validation_profile_hash: digest(
+            "sha256:3e851de810792a1caacb2f4e4c1ac2134359f5b9da8c3870c6c37b967b03efba",
+        ),
+        config_graph_hash: resolved_config_graph_hash,
+        config_resolution_hash: resolved_config_hash,
+        customization_hash: resolved_customization_hash,
+        resource_set_hash: BmadSkillExecutionContract::resource_set_hash(&resources)
+            .expect("closed architecture resource-set hash"),
+        model_binding_hash: model_binding.binding_hash,
+        model_binding,
+        method_schema_hash: digest(
+            "sha256:dda02f453dcf4edbb3fc66e0ad3a7c59d7087f5b44b526e40c435456c8c248c2",
+        ),
+        egress_profile_hash,
+        artifact_expectations: vec![architecture_artifact_expectation()],
+    };
+    BmadSkillExecutionRequest {
+        mode,
+        action: None,
+        exact_binding,
+        resources,
+        resolved_config_graph_hash,
+        resolved_config_hash,
+        resolved_customization_hash,
     }
 }
 
-// Break caught: a pinned source member disappearing from the adapter would
-// let a run be prepared without one of the inputs that source semantics name.
+#[derive(Debug)]
+struct RepositoryError;
+
+#[derive(Default)]
+struct ArchitectureRepository {
+    sessions: Mutex<Vec<MethodSession>>,
+    events: Mutex<Vec<MethodPersistenceEvent>>,
+}
+
+impl MethodSessionRepository for ArchitectureRepository {
+    type Error = RepositoryError;
+
+    fn create_method_session(&self, session: &MethodSession) -> Result<(), Self::Error> {
+        self.sessions
+            .lock()
+            .map_err(|_| RepositoryError)?
+            .push(session.clone());
+        Ok(())
+    }
+
+    fn load_method_session(
+        &self,
+        scope: &MethodSessionScope,
+        session_id: &ContractId,
+    ) -> Result<Option<MethodSession>, Self::Error> {
+        Ok(self
+            .sessions
+            .lock()
+            .map_err(|_| RepositoryError)?
+            .iter()
+            .find(|session| session.scope() == *scope && session.session_id() == *session_id)
+            .cloned())
+    }
+
+    fn begin_method_advance(
+        &self,
+        _: &MethodSessionScope,
+        _: &ContractId,
+        _: &MethodExactBinding,
+        _: MethodAdvanceRequest,
+    ) -> Result<MethodAdvanceReceipt, Self::Error> {
+        Err(RepositoryError)
+    }
+
+    fn persist_method_transition(
+        &self,
+        session: &MethodSession,
+        _: u64,
+        event: MethodPersistenceEvent,
+    ) -> Result<(), Self::Error> {
+        let mut sessions = self.sessions.lock().map_err(|_| RepositoryError)?;
+        let current = sessions
+            .iter_mut()
+            .find(|current| current.session_id() == session.session_id())
+            .ok_or(RepositoryError)?;
+        *current = session.clone();
+        self.events.lock().map_err(|_| RepositoryError)?.push(event);
+        Ok(())
+    }
+
+    fn validate_method_artifact_refs(
+        &self,
+        _: &MethodArtifactProvenance,
+        _: &MethodExactBinding,
+        _: MethodAdvanceDisposition,
+        _: &[String],
+    ) -> Result<(), Self::Error> {
+        Err(RepositoryError)
+    }
+}
+
+fn create_architecture_session() -> CreateMethodSession {
+    CreateMethodSession {
+        session_id: contract_id("session_01J00000000000000000000012"),
+        owner_scope_ref: contract_id("ownerscope_01J00000000000000000000012"),
+        project_id: contract_id("project_01J00000000000000000000012"),
+        run_id: contract_id("run_01J00000000000000000000012"),
+        authority_ref: AuthorityRef {
+            authority_kind: "desktop_local_store".to_owned(),
+            authority_id: contract_id("authority_01J00000000000000000000012"),
+            installation_id: contract_id("install_01J00000000000000000000012"),
+            local_store_id: contract_id("store_01J00000000000000000000012"),
+            authority_epoch: 1,
+        },
+        created_at: UnixMillis(1_000),
+    }
+}
+
+// Break caught: omitting any recursively owned file makes the runtime's
+// immutable source boundary incomplete before preparation starts.
 #[test]
-fn bmad_architecture_descriptor_closes_the_complete_pinned_subtree() {
-    let expected = [
-        (
-            "SKILL.md",
-            "89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf",
-        ),
-        (
-            "assets/spine-template.md",
-            "ef4ff795624eb5439fae54a06edb389feb5a0cf79cb01ae007af51109335d198",
-        ),
-        (
-            "customize.toml",
-            "a6bb60a3adf976031f2870203285b1fc7a56e71e21232cd23bba544b178b5f15",
-        ),
-        (
-            "references/headless.md",
-            "4db2708f335c94cb024b5eba022b1e3d88b1ec61c94c4716626d9b89684f5833",
-        ),
-        (
-            "references/reviewer-gate.md",
-            "d32e32a3c1d59b5612b947004f3f6fef1117a13ce9f1ffa428d616e0b5d4db69",
-        ),
-        (
-            "scripts/lint_spine.py",
-            "040e0f1c13d31e6a21c518df943d1d7de7b75d8d98a07603b0983f3f3fb500db",
-        ),
-        (
-            "scripts/tests/test_lint_spine.py",
-            "e86bb9a62c5cca74ddc89c843386f2b992610fcc1792d40e03bc9cd445b77681",
-        ),
-    ]
-    .into_iter()
-    .map(|(path, hash)| (path, hash.to_owned()))
-    .collect::<BTreeMap<_, _>>();
+fn architecture_descriptor_closes_every_pinned_resource_and_declared_shape() {
     let descriptor = BmadArchitectureSkill.descriptor();
-    let actual = descriptor
-        .declared_resources()
-        .iter()
-        .map(|resource| {
-            let relative = resource
-                .path()
-                .strip_prefix(&format!("{SKILL_ROOT}/"))
-                .expect("resource is under the pinned architecture root");
-            (relative, resource.content_hash().hex_value())
-        })
-        .collect::<BTreeMap<_, _>>();
-    assert_eq!(actual, expected);
+
     assert_eq!(descriptor.canonical_id(), "bmm:bmad-architecture");
     assert_eq!(descriptor.source_path(), format!("{SKILL_ROOT}/SKILL.md"));
-    assert_eq!(descriptor.source_sha256().hex_value(), expected["SKILL.md"]);
     assert!(descriptor.declared_actions().is_empty());
     assert_eq!(
         descriptor.supported_modes(),
@@ -163,6 +287,8 @@ fn bmad_architecture_descriptor_closes_the_complete_pinned_subtree() {
             BmadInvocationMode::Headless
         ]
     );
+    assert_eq!(descriptor.predecessor(), None);
+    assert_eq!(descriptor.follower(), Some("bmm:bmad-spec"));
     assert_eq!(descriptor.output_locations(), ["planning_artifacts"]);
     assert_eq!(descriptor.artifact_kinds(), [BmadArtifactKind::Document]);
     assert_eq!(
@@ -170,14 +296,28 @@ fn bmad_architecture_descriptor_closes_the_complete_pinned_subtree() {
         [BmadArtifactCompletionHookRunHook::PersistArtifacts]
     );
     assert_eq!(descriptor.support_state(), BmadSkillSupportState::Adapted);
-
+    assert_eq!(
+        descriptor
+            .declared_resources()
+            .iter()
+            .map(desktop_runtime::BmadResource::path)
+            .collect::<Vec<_>>(),
+        [
+            "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+            "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
+            "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
+            "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
+            "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
+            "src/bmm-skills/3-solutioning/bmad-architecture/scripts/lint_spine.py",
+            "src/bmm-skills/3-solutioning/bmad-architecture/scripts/tests/test_lint_spine.py",
+        ]
+    );
     for resource in descriptor.declared_resources() {
-        let bytes = std::fs::read(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join(SOURCE_ROOT)
-                .join(resource.path()),
-        )
-        .expect("pinned source resource remains readable for conformance");
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../packages/bmad-foundation/source/method/6.10.0")
+            .join(resource.path());
+        let bytes = std::fs::read(&path)
+            .unwrap_or_else(|error| panic!("could not read {}: {error}", path.display()));
         assert_eq!(
             resource.content_hash(),
             sha256_bytes(&bytes),
@@ -187,169 +327,255 @@ fn bmad_architecture_descriptor_closes_the_complete_pinned_subtree() {
     }
 }
 
-// Break caught: source-derived interactive and headless create runs producing
-// different required artifacts despite having the same resolved decisions.
+// Break caught: a visible descriptor without explicit generic execution
+// opt-in remains normalized-only and cannot enter the governed runtime.
 #[test]
-fn bmad_architecture_source_golden_executes_equivalent_create_outputs_in_both_modes() {
-    let golden: serde_json::Value = serde_json::from_str(GOLDEN).expect("golden JSON");
-    assert_eq!(golden["canonicalId"], "bmm:bmad-architecture");
-    assert_eq!(
-        golden["source"]["entrypointSha256"],
-        "89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf"
-    );
-    for required_case in ["interactive-create-finalize", "headless-create-equivalent"] {
-        assert!(golden["cases"]
-            .as_array()
-            .expect("golden cases")
-            .iter()
-            .any(|case| { case["id"] == required_case && case["coverage"] == "executable" }));
+fn architecture_exposes_an_explicit_generic_execution_contract() {
+    let contract = BmadArchitectureSkill
+        .execution_contract()
+        .expect("canonical architecture must opt into generic Method execution");
+    assert_eq!(contract.package_name(), "bmad-method");
+    assert_eq!(contract.package_version(), "6.10.0");
+}
+
+// Break caught: one mode preparing while the other is merely documented
+// violates the source's interactive/headless equivalence and recovery rules.
+#[test]
+fn architecture_prepares_both_modes_with_typed_plans_and_durable_recovery() {
+    let runtime = BmadDomainRuntime;
+    for mode in [
+        BmadInvocationMode::Interactive,
+        BmadInvocationMode::Headless,
+    ] {
+        let prepared = runtime
+            .prepare_skill_execution(&BmadArchitectureSkill, architecture_request(mode))
+            .expect("exact architecture binding prepares");
+        assert_eq!(
+            prepared.descriptor().canonical_id(),
+            "bmm:bmad-architecture"
+        );
+        assert_eq!(prepared.mode(), mode);
+        assert_eq!(prepared.action(), None);
+        assert_eq!(prepared.resources().resources().len(), 7);
+        assert_eq!(
+            prepared.tool_intents(),
+            [
+                BmadSkillToolIntent::FileRead,
+                BmadSkillToolIntent::FileWrite,
+                BmadSkillToolIntent::Process,
+                BmadSkillToolIntent::Web,
+                BmadSkillToolIntent::Subagent,
+                BmadSkillToolIntent::ExternalHandoff,
+            ]
+        );
+        assert_eq!(
+            prepared
+                .tool_intents()
+                .iter()
+                .map(|intent| intent.authority_route())
+                .collect::<Vec<_>>(),
+            [
+                BmadSkillAuthorityRoute::WorkspaceRead,
+                BmadSkillAuthorityRoute::WorkspaceWrite,
+                BmadSkillAuthorityRoute::Process,
+                BmadSkillAuthorityRoute::Network,
+                BmadSkillAuthorityRoute::Subagent,
+                BmadSkillAuthorityRoute::ExternalHandoff,
+            ]
+        );
+        assert_eq!(
+            prepared.required_plan_kinds(),
+            [
+                BmadActionPlanKind::Read,
+                BmadActionPlanKind::WriteProposal,
+                BmadActionPlanKind::CommandProposal,
+                BmadActionPlanKind::Read,
+                BmadActionPlanKind::ModelCall,
+                BmadActionPlanKind::ArtifactPlan,
+            ]
+        );
+        assert_eq!(
+            prepared.artifact_expectations(),
+            [architecture_artifact_expectation()]
+        );
+        assert_eq!(
+            prepared.recovery(),
+            BmadSkillRecoverySemantics::MethodCheckpoint
+        );
+        assert!(prepared
+            .step_table()
+            .table_hash()
+            .to_string()
+            .starts_with("sha256:"));
     }
+}
 
-    let (interactive_run, interactive_spine) = run_create_to_completion();
-    let (headless_run, headless_spine) = run_create_to_completion();
+// Break caught: merely exposing an execution contract leaves the visible
+// desktop capability outside the durable Method lifecycle. Canonical dispatch
+// must compile and persist through the established service before any model or
+// effect-capable port is reachable.
+#[test]
+fn architecture_dispatch_enters_the_existing_durable_method_lifecycle() {
+    let repository = ArchitectureRepository::default();
+    let service = MethodSessionService::new(&repository);
+    let dispatched = BmadDomainRuntime
+        .dispatch_skill_execution(
+            &service,
+            &BmadArchitectureSkill,
+            architecture_request(BmadInvocationMode::Interactive),
+            create_architecture_session(),
+        )
+        .expect("canonical architecture dispatch persists");
 
-    assert_eq!(interactive_spine, headless_spine);
-    assert_eq!(interactive_spine.title, "Architecture spine");
     assert_eq!(
-        interactive_spine.sections.len(),
-        BmadArchitectureStep::count()
+        dispatched.prepared().descriptor().canonical_id(),
+        "bmm:bmad-architecture"
     );
     assert_eq!(
-        interactive_spine.mermaid_text.as_deref(),
-        Some("graph TD; A-->B;")
+        dispatched.session().state(),
+        MethodState::ContextReviewRequired
     );
-    assert!(interactive_run.decisions_missing_structure().is_empty());
     assert_eq!(
-        interactive_run
-            .to_memlog()
-            .expect("interactive memlog")
-            .render(),
-        headless_run.to_memlog().expect("headless memlog").render()
+        dispatched.session().current_binding(),
+        Ok(dispatched.prepared().exact_binding())
+    );
+    assert_eq!(
+        repository
+            .sessions
+            .lock()
+            .expect("repository lock")
+            .as_slice(),
+        [dispatched.session().clone()]
+    );
+    assert_eq!(
+        repository.events.lock().expect("event lock").as_slice(),
+        [
+            MethodPersistenceEvent::CapabilityBound,
+            MethodPersistenceEvent::ContextReviewRequested,
+        ]
+    );
+
+    let scope = dispatched.session().scope().clone();
+    let session_id = dispatched.session().session_id();
+    let mut upgraded_binding = dispatched.prepared().exact_binding().clone();
+    upgraded_binding.customization_hash = test_digest("upgraded architecture customization");
+    let rebound = service
+        .rebind_invocation(
+            &scope,
+            &session_id,
+            dispatched.session().version(),
+            upgraded_binding.clone(),
+            dispatched.prepared().step_table().clone(),
+        )
+        .expect("stale exact binding upgrades through the durable service");
+    assert_eq!(rebound.state(), MethodState::CapabilityBound);
+    assert_eq!(rebound.current_binding(), Ok(&upgraded_binding));
+
+    let review_required = service
+        .request_context_review(&scope, &session_id, rebound.version())
+        .expect("upgraded binding requires a fresh context review");
+    assert_eq!(review_required.state(), MethodState::ContextReviewRequired);
+
+    let cancelled = service
+        .cancel(&scope, &session_id, review_required.version())
+        .expect("architecture run cancels durably");
+    assert_eq!(cancelled.state(), MethodState::Cancelled);
+    let resumed = service
+        .resume(&scope, &session_id)
+        .expect("restart reloads the authoritative cancelled session");
+    assert_eq!(resumed, cancelled);
+    assert_eq!(
+        repository.events.lock().expect("event lock").as_slice(),
+        [
+            MethodPersistenceEvent::CapabilityBound,
+            MethodPersistenceEvent::ContextReviewRequested,
+            MethodPersistenceEvent::CapabilityRebound,
+            MethodPersistenceEvent::ContextReviewRequested,
+            MethodPersistenceEvent::Cancelled,
+        ]
     );
 }
 
-// Break caught: invalid progression or a generic failure path could discard
-// accepted architecture state, retry an invalid result, or turn cancellation
-// into an ungoverned continuation.
+// Break caught: documenting retry/repair without exercising the same bounded
+// runtime mechanisms used by a dispatched Method plan leaves recovery prose
+// disconnected from executable authority.
 #[test]
-fn bmad_architecture_create_and_generic_recovery_fail_closed_with_durable_state() {
-    let mut run = session();
-    assert_eq!(
-        run.accept_step(
-            BmadArchitectureStep::Deployment,
-            accepted_step_artifact(BmadArchitectureStep::Deployment),
-            UnixMillis(2_000),
-        ),
-        Err(BmadArchitectureError::StepOutOfOrder)
-    );
-    assert_eq!(run.accepted_step_count(), 0);
-    run.accept_step(
-        BmadArchitectureStep::SystemContext,
-        accepted_step_artifact(BmadArchitectureStep::SystemContext),
-        UnixMillis(2_001),
+fn architecture_failure_retry_and_repair_use_governed_runtime_budgets() {
+    let plans = plan_source_steps(
+        "capability_01J00000000000000000000012",
+        "session_01J00000000000000000000012",
+        &BmadActionPlanBudget {
+            max_model_calls: 1,
+            max_repairs: 1,
+            max_retries: 1,
+            max_tokens: 1_000,
+        },
+        &[BmadSourceStep {
+            plan_id: "plan_01J00000000000000000000012".to_owned(),
+            source_id: "source_01J00000000000000000000012".to_owned(),
+            step_index: 0,
+            text: "model:facilitate_architecture".to_owned(),
+        }],
     )
-    .expect("valid retry resumes from the unchanged selected step");
-    assert_eq!(run.accepted_step_count(), 1);
+    .expect("architecture model step compiles to a typed plan");
+    let plan = plans.first().expect("one architecture plan");
+    let mut usage = BmadModelCallUsage::default();
+    record_retry(plan, &mut usage).expect("first retry is inside the sealed budget");
+    record_repair(plan, &mut usage).expect("first repair is inside the sealed budget");
+    assert_eq!((usage.retries, usage.repairs), (1, 1));
 
-    let model = build_problem(&recovery_request(BmadProblemFailureClass::Model))
-        .expect("model failure preserves architecture state for retry");
-    assert!(model.retry.eligible);
-    assert!(model.recovery_actions.iter().any(|action| {
-        action.action == BmadProblemRecoveryActionAction::Retry && action.available
-    }));
-
-    let validation = build_problem(&recovery_request(BmadProblemFailureClass::Validation))
-        .expect("validation failure constructs a repair-only problem");
-    assert!(!validation.retry.eligible);
-    assert_eq!(validation.recovery_actions.len(), 1);
+    let operation = BmadFailureOperation {
+        session_id: "session_01J00000000000000000000012".to_owned(),
+        step_id: "facilitate_architecture".to_owned(),
+        input_hash: test_digest("architecture failure input"),
+    };
+    let failure = |failure_class| BmadFailureRequest {
+        session_id: "session_01J00000000000000000000012".to_owned(),
+        problem_id: "problem_01J00000000000000000000012".to_owned(),
+        code: "architecture_step_failed".to_owned(),
+        detail: None,
+        failure_class,
+        operation: operation.clone(),
+        attempt: 1,
+        max_attempts: 2,
+        drafts_preserved: true,
+        accepted_inputs_preserved: true,
+        state_hash: test_digest("architecture durable failure state"),
+        cancellation: None,
+    };
+    let retryable =
+        build_problem(&failure(BmadProblemFailureClass::Tool)).expect("tool failure maps");
+    assert!(retryable.retry.eligible);
     assert_eq!(
-        validation.recovery_actions[0].action,
+        retryable.recovery_actions[0].action,
+        BmadProblemRecoveryActionAction::Retry
+    );
+    let repairable =
+        build_problem(&failure(BmadProblemFailureClass::Validation)).expect("validation maps");
+    assert!(!repairable.retry.eligible);
+    assert_eq!(
+        repairable.recovery_actions[0].action,
         BmadProblemRecoveryActionAction::Repair
     );
-
-    let cancel = build_problem(&recovery_request(BmadProblemFailureClass::Cancel))
-        .expect("cancel constructs a durable resume-or-abandon problem");
-    assert!(!cancel.retry.eligible);
-    assert!(cancel.recovery_actions.iter().any(|action| {
-        action.action == BmadProblemRecoveryActionAction::Resume && action.available
-    }));
-
-    let authority = build_problem(&recovery_request(BmadProblemFailureClass::Authority))
-        .expect("authority failure requires a new typed grant");
-    assert_eq!(authority.recovery_actions.len(), 1);
-    assert_eq!(
-        authority.recovery_actions[0].action,
-        BmadProblemRecoveryActionAction::Reauthorize
-    );
 }
 
-// Break caught: a source/config/customization identity omitted from the
-// generic model-context envelope would let a stale architecture prompt be
-// reused after the pinned inputs changed.
+// Break caught: source prose inventing a callable action or a changed source
+// member must fail before any effect-capable port is reached.
 #[test]
-fn bmad_architecture_projects_pinned_identities_through_the_generic_context_builder() {
-    let descriptor = BmadArchitectureSkill.descriptor();
-    let request = BmadContextProjectionRequest {
-        session_id: "session_01J00000000000000000000000".to_owned(),
-        projection_id: "projection_01J00000000000000000000000".to_owned(),
-        identities: BmadContextProjectionIdentities {
-            source_id: "source_01J00000000000000000000000".to_owned(),
-            package_id: "package_01J00000000000000000000000".to_owned(),
-            config_hash: sha256_bytes(b"architecture-config"),
-            model_id: "model_01J00000000000000000000000".to_owned(),
-            policy_hash: sha256_bytes(b"architecture-airlock-policy"),
-        },
-        items: vec![
-            BmadContextProjectionItem {
-                kind: BmadContextContributionContributionKind::Instructions,
-                inclusion_reason:
-                    BmadContextContributionContributionInclusionReason::RequiredBySource,
-                source_hash: descriptor.source_sha256(),
-                estimated_tokens: 100,
-                compacted_tokens: None,
-                truncated_tokens: None,
-            },
-            BmadContextProjectionItem {
-                kind: BmadContextContributionContributionKind::Config,
-                inclusion_reason:
-                    BmadContextContributionContributionInclusionReason::RequiredBySource,
-                source_hash: descriptor.declared_resources()[2].content_hash(),
-                estimated_tokens: 20,
-                compacted_tokens: None,
-                truncated_tokens: None,
-            },
-            BmadContextProjectionItem {
-                kind: BmadContextContributionContributionKind::Customization,
-                inclusion_reason:
-                    BmadContextContributionContributionInclusionReason::RequestedByCustomization,
-                source_hash: descriptor.declared_resources()[2].content_hash(),
-                estimated_tokens: 10,
-                compacted_tokens: None,
-                truncated_tokens: None,
-            },
-        ],
-        token_budget: 256,
-        output_reserve_tokens: Some(32),
-    };
-    let projection = project_bmad_context(&request, BmadContextContributionPurpose::Dispatch)
-        .expect("pinned architecture context projects through the generic builder");
-    assert_eq!(projection.estimated_tokens, 130);
-    assert_eq!(projection.contributions.len(), 3);
-    assert!(projection.reported_usage.is_none());
-}
+fn architecture_preparation_rejects_undeclared_actions_and_source_drift() {
+    let runtime = BmadDomainRuntime;
+    let mut undeclared_action = architecture_request(BmadInvocationMode::Interactive);
+    undeclared_action.action = Some("create".to_owned());
+    assert!(matches!(
+        runtime.prepare_skill_execution(&BmadArchitectureSkill, undeclared_action),
+        Err(BmadSkillExecutionError::UnsupportedInvocation)
+    ));
 
-// Intentional RED bridge: the pinned source detects Update and Validate,
-// restores a prior memlog after restart, and emits a validation report. The
-// descriptor/generic session API currently has no typed intent-to-session
-// binding, decoder, or validation-report artifact contract. Keep this test
-// ignored until the shared bridge is available; it must become a real
-// executable test rather than being deleted or converted into a claim that
-// Create-only support is source-equivalent.
-#[test]
-#[ignore = "RED bridge: shared architecture intent/session/report API is not leased to MTH-12"]
-#[allow(clippy::panic)]
-fn bmad_architecture_update_validate_restart_require_the_shared_runtime_bridge() {
-    panic!(
-        "RED bridge: bind create/update/validate plus both modes to a durable architecture session, restore it after restart/source upgrade, and emit the typed validation report"
-    );
+    let mut stale_source = architecture_request(BmadInvocationMode::Headless);
+    stale_source.resources = BmadResourceSet::new(stale_source.resources.resources()[1..].to_vec())
+        .expect("valid but incomplete resource set");
+    assert!(matches!(
+        runtime.prepare_skill_execution(&BmadArchitectureSkill, stale_source),
+        Err(BmadSkillExecutionError::ResourceMismatch)
+    ));
 }

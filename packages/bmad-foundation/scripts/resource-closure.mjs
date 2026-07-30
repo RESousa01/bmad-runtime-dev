@@ -2,9 +2,7 @@
 
 import { createHash } from "node:crypto";
 import {
-  existsSync,
   lstatSync,
-  mkdirSync,
   readFileSync,
   realpathSync,
   readdirSync,
@@ -19,7 +17,6 @@ const packageRoot = resolve(dirname(scriptPath), "..");
 const repositoryRoot = resolve(packageRoot, "..", "..");
 const sourceLockPath = resolve(packageRoot, "source-lock.json");
 const sourceManifestPath = resolve(packageRoot, "source-manifest.json");
-const sourceAccountingPath = resolve(packageRoot, "source-accounting.json");
 const builderGovernanceSidecars = ["distribution-decision.json", "source-notes.json"];
 const methodPackage = {
   source_id: "method",
@@ -75,13 +72,9 @@ const sealedEdgeDispositions = [
     member_sha256:
       "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
     literal: "https://github.com/google-labs-code/design.md",
-    disposition: "external_authority_rejected_pinned_projection",
+    disposition: "external_authority_rejected",
     authority_identity: "github:google-labs-code/design.md",
     governance_owner: "MTH-10",
-    projection_member_path:
-      "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
-    projection_member_sha256:
-      "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
   },
   {
     ...methodPackage,
@@ -89,13 +82,9 @@ const sealedEdgeDispositions = [
     member_sha256:
       "250d2794f2b8e316bb1ba4666f0728970afd8a5d2707ac1cceac6c21e63730b6",
     literal: "https://github.com/google-labs-code/design.md",
-    disposition: "external_authority_rejected_pinned_projection",
+    disposition: "external_authority_rejected",
     authority_identity: "github:google-labs-code/design.md",
     governance_owner: "MTH-10",
-    projection_member_path:
-      "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
-    projection_member_sha256:
-      "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
   },
 ];
 
@@ -105,13 +94,7 @@ function fail(message) {
 
 function parseArgs(argv) {
   if (argv.length === 1 && argv[0] === "--self-test") {
-    return {
-      selfTest: true,
-      check: false,
-      source: null,
-      skill: null,
-      json: null,
-    };
+    return { selfTest: true, check: false, source: null, skill: null, json: null };
   }
   const flags = {
     selfTest: false,
@@ -125,27 +108,23 @@ function parseArgs(argv) {
     if (token === "--check") {
       flags.check = true;
     } else if (token === "--source") {
+      flags.source = argv[index + 1];
       index += 1;
-      flags.source = argv[index];
       if (!flags.source) fail("missing value for --source");
     } else if (token === "--skill") {
+      flags.skill = argv[index + 1];
       index += 1;
-      flags.skill = argv[index];
       if (!flags.skill) fail("missing value for --skill");
     } else if (token === "--json") {
+      flags.json = argv[index + 1];
       index += 1;
-      flags.json = argv[index];
       if (!flags.json) fail("missing value for --json");
     } else {
-      fail(
-        "usage: node packages/bmad-foundation/scripts/resource-closure.mjs --check [--source <id@version> --skill <rowId-or-skill-id>] [--json <path>] | --self-test",
-      );
+      fail("usage: node packages/bmad-foundation/scripts/resource-closure.mjs [--source <id@version>] [--skill <name>] --check|--self-test");
     }
   }
-  if (!flags.check || Boolean(flags.source) !== Boolean(flags.skill)) {
-    fail(
-      "usage: node packages/bmad-foundation/scripts/resource-closure.mjs --check [--source <id@version> --skill <rowId-or-skill-id>] [--json <path>] | --self-test",
-    );
+  if (!flags.check) {
+    fail("usage: node packages/bmad-foundation/scripts/resource-closure.mjs [--source <id@version>] [--skill <name>] --check|--self-test");
   }
   return flags;
 }
@@ -411,26 +390,6 @@ function validatedDispositionIndex(source, memberRecords, dispositions) {
         );
       }
     } else if (
-      disposition.disposition ===
-      "external_authority_rejected_pinned_projection"
-    ) {
-      const projection = membersByPath.get(
-        disposition.projection_member_path,
-      );
-      if (
-        !/^https?:/iu.test(disposition.literal) ||
-        !disposition.authority_identity ||
-        !disposition.governance_owner ||
-        target ||
-        !projection ||
-        !disposition.projection_member_sha256 ||
-        projection.contentHash !== disposition.projection_member_sha256
-      ) {
-        fail(
-          `${source.id} invalid pinned-projection disposition for ${disposition.member_path}: ${disposition.literal}`,
-        );
-      }
-    } else if (
       disposition.disposition !== "package_resource_mandatory" &&
       disposition.disposition !== "package_resource_optional"
     ) {
@@ -554,13 +513,6 @@ export function evaluateResourceReferences({
           ? {
               authority_identity: sealed.authority_identity,
               governance_owner: sealed.governance_owner,
-            }
-          : {}),
-        ...(sealed?.projection_member_path
-          ? {
-              projection_member_path: sealed.projection_member_path,
-              projection_member_sha256:
-                sealed.projection_member_sha256,
             }
           : {}),
       };
@@ -750,7 +702,7 @@ function runSelfTest() {
   process.stdout.write("resource-closure self-test passed\n");
 }
 
-function verifiedInventory(source, manifest, sourceRoot) {
+function verifiedInventory(source, manifest, sourceRoot, focusedSkill = null) {
   assertContained(resolve(packageRoot, "source", source.id), sourceRoot, source.id);
   const manifestSource = manifest.sources.find((entry) => entry.id === source.id);
   if (!manifestSource || manifestSource.version !== source.version || manifestSource.archive_sha256 !== source.archive_sha256) {
@@ -760,10 +712,26 @@ function verifiedInventory(source, manifest, sourceRoot) {
   if (manifestMembers.length !== source.regular_file_count) {
     fail(`${source.id} manifest count differs from the pinned archive count`);
   }
-  const archivedFiles = manifestMembers.filter((entry) => entry.entry_type === "file");
-  const sidecars = source.id === "builder" ? builderGovernanceSidecars : [];
+  let archivedFiles = manifestMembers.filter((entry) => entry.entry_type === "file");
+  let focusedPrefix = null;
+  if (focusedSkill !== null) {
+    const roots = archivedFiles.filter(
+      (entry) =>
+        entry.path.endsWith(`/${focusedSkill}/SKILL.md`) ||
+        entry.path === `skills/${focusedSkill}/SKILL.md`,
+    );
+    if (roots.length !== 1) {
+      fail(`unknown or ambiguous skill ${focusedSkill} in ${source.id}@${source.version}`);
+    }
+    focusedPrefix = roots[0].path.slice(0, -"SKILL.md".length);
+    archivedFiles = archivedFiles.filter((entry) => entry.path.startsWith(focusedPrefix));
+  }
+  const sidecars =
+    source.id === "builder" && focusedSkill === null ? builderGovernanceSidecars : [];
   const expectedDiskPaths = new Set([...archivedFiles.map((entry) => entry.path), ...sidecars]);
-  const actualDiskPaths = listRegularFiles(sourceRoot);
+  const actualDiskPaths = listRegularFiles(sourceRoot).filter(
+    (path) => focusedPrefix === null || path.startsWith(focusedPrefix),
+  );
   const actualSet = new Set(actualDiskPaths);
   const unexpected = actualDiskPaths.find((path) => !expectedDiskPaths.has(path));
   const omitted = [...expectedDiskPaths].find((path) => !actualSet.has(path));
@@ -778,8 +746,8 @@ function verifiedInventory(source, manifest, sourceRoot) {
   return { members: actualDiskPaths, sidecars, manifestMembers };
 }
 
-function buildPackageClosure(source, manifest, sourceRoot) {
-  const inventory = verifiedInventory(source, manifest, sourceRoot);
+function buildPackageClosure(source, manifest, sourceRoot, focusedSkill = null) {
+  const inventory = verifiedInventory(source, manifest, sourceRoot, focusedSkill);
   const members = inventory.members;
   const caseFolded = new Set();
   const identityByPath = new Map();
@@ -813,7 +781,9 @@ function buildPackageClosure(source, manifest, sourceRoot) {
     source,
     members: memberRecords,
     referencePaths,
-    dispositions: sealedEdgeDispositions,
+    dispositions: focusedSkill === null
+      ? sealedEdgeDispositions
+      : sealedEdgeDispositions.filter((entry) => members.includes(entry.member_path)),
   });
   directedEdges.push(...classified.directedEdges);
   const missing = classified.missing;
@@ -856,10 +826,11 @@ function buildPackageClosure(source, manifest, sourceRoot) {
 }
 
 export function run(argv = process.argv.slice(2)) {
-  let evidencePath = null;
+  let receiptPath = null;
   try {
     const flags = parseArgs(argv);
-    evidencePath = flags.json ? resolve(repositoryRoot, flags.json) : null;
+    receiptPath = flags.json;
+    if (receiptPath) rmSync(receiptPath, { force: true });
     if (flags.selfTest) {
       runSelfTest();
       return 0;
@@ -867,78 +838,62 @@ export function run(argv = process.argv.slice(2)) {
     const lock = readJson(sourceLockPath);
     const manifest = readJson(sourceManifestPath);
     if (!Array.isArray(lock.sources) || lock.sources.length === 0) fail("pinned source lock is empty");
-    const allPackages = lock.sources.map((source) => {
+    const selectedSources = flags.source
+      ? lock.sources.filter(
+          (source) =>
+            `${source.id}@${source.version}` === flags.source ||
+            `${source.package_name}@${source.version}` === flags.source,
+        )
+      : lock.sources;
+    if (flags.source && selectedSources.length !== 1) {
+      fail(`unknown source ${flags.source}`);
+    }
+    const packages = selectedSources.map((source) => {
       if (!source.id || !source.version || !source.package_name || !source.archive_sha256) {
         fail("pinned source lock has an incomplete source identity");
       }
-      return buildPackageClosure(source, manifest, resolve(packageRoot, "source", source.id, source.version));
+      return buildPackageClosure(
+        source,
+        manifest,
+        resolve(packageRoot, "source", source.id, source.version),
+        flags.skill,
+      );
     });
-    let packages = allPackages;
-    if (flags.source) {
-      packages = allPackages.filter(
-        (closure) => `${closure.source.id}@${closure.source.version}` === flags.source,
-      );
-      if (packages.length !== 1) {
-        fail(`unknown or ambiguous source ${flags.source}`);
-      }
-      const closure = packages[0];
-      const skills = closure.skills.filter((skill) => {
-        const rowId = `${closure.source.id}:${skill.root}`;
+    const selectedPackages = packages
+      .filter((closure) => {
+        if (!flags.source) return true;
         return (
-          rowId === flags.skill
-          || skill.root.split("/").at(-2) === flags.skill
+          `${closure.source.id}@${closure.source.version}` === flags.source
+          || closure.source.package_identity === flags.source
         );
-      });
-      if (skills.length !== 1) {
-        fail(
-          skills.length === 0
-            ? `unknown skill ${flags.skill} for ${flags.source}`
-            : `ambiguous skill ${flags.skill}; use the full rowId`,
-        );
-      }
-      const accounting = readJson(sourceAccountingPath);
-      const prefix = `${dirname(skills[0].root).split(sep).join("/")}/`;
-      const actualMembers = closure.members.filter((entry) => entry.path.startsWith(prefix));
-      const memberAccounting = accounting.members.filter(
-        (entry) =>
-          entry.source_id === closure.source.id
-          && entry.version === closure.source.version
-          && entry.path.startsWith(prefix),
-      );
-      for (const member of actualMembers) {
-        const row = memberAccounting.find((entry) => entry.path === member.path);
-        if (!row || row.sha256 !== member.contentHash) {
-          fail(`${closure.source.id}: missing or stale source-accounting row for ${member.path}`);
-        }
-      }
-      if (memberAccounting.length !== actualMembers.length) {
-        fail(`${closure.source.id}: per-skill source accounting has unexplained rows for ${flags.skill}`);
-      }
-      packages = [{ ...closure, skills, member_accounting: memberAccounting }];
+      })
+      .map((closure) => ({
+        ...closure,
+        skills: flags.skill
+          ? closure.skills.filter(
+              (skill) =>
+                skill.root === flags.skill
+                || skill.root.endsWith(`/${flags.skill}/SKILL.md`),
+            )
+          : closure.skills,
+      }));
+    if (selectedPackages.length === 0) fail(`unknown source ${flags.source}`);
+    if (flags.skill && selectedPackages.reduce((count, closure) => count + closure.skills.length, 0) !== 1) {
+      fail(`skill selector ${flags.skill} did not resolve exactly once`);
     }
-    const failures = flags.skill
-      ? packages.flatMap((closure) =>
-        closure.skills
-          .filter((skill) => skill.closure_percent !== 100 || !skill.activation_allowed)
-          .map((skill) =>
-            `${closure.source.id}: skill ${skill.root} is not activatable `
-            + `(closure ${skill.closure_percent}%, blockers ${skill.activation_blockers.length}, `
-            + `invalid ${skill.invalid_references.length})`,
-          ),
-      )
-      : packages.flatMap((closure) => [
-        ...closure.missing.map((entry) => `${closure.source.id}: missing ${entry.literal} from ${entry.from}`),
-        ...closure.invalid.map((entry) => `${closure.source.id}: unsafe ${entry.literal} from ${entry.from}`),
-        ...closure.cycles.map((cycle) => `${closure.source.id}: cycle ${cycle}`),
-        ...closure.skills
-          .filter((skill) => skill.closure_percent !== 100)
-          .map((skill) => `${closure.source.id}: incomplete skill ${skill.root}`),
-      ]);
+    const failures = selectedPackages.flatMap((closure) => [
+      ...closure.missing.map((entry) => `${closure.source.id}: missing ${entry.literal} from ${entry.from}`),
+      ...closure.invalid.map((entry) => `${closure.source.id}: unsafe ${entry.literal} from ${entry.from}`),
+      ...closure.cycles.map((cycle) => `${closure.source.id}: cycle ${cycle}`),
+      ...closure.skills
+        .filter((skill) => skill.closure_percent !== 100)
+        .map((skill) => `${closure.source.id}: incomplete skill ${skill.root}`),
+    ]);
     if (failures.length > 0) fail(failures[0]);
     const summary = {
       schema_version: "sapphirus.bmad.resource-closure/v1",
       generated_by: "packages/bmad-foundation/scripts/resource-closure.mjs",
-      packages: packages.map((closure) => ({
+      packages: selectedPackages.map((closure) => ({
         source: closure.source,
         members: closure.members.length,
         cache_entries: closure.content_hash_cache.length,
@@ -961,13 +916,6 @@ export function run(argv = process.argv.slice(2)) {
                 governance_owner: edge.governance_owner,
               }
             : {}),
-          ...(edge.projection_member_path
-            ? {
-                projection_member_path: edge.projection_member_path,
-                projection_member_sha256:
-                  edge.projection_member_sha256,
-              }
-            : {}),
         })),
         activation_blockers: closure.activation_blockers.map((blocker) => ({
           member_path: blocker.member_path,
@@ -977,22 +925,40 @@ export function run(argv = process.argv.slice(2)) {
           authority_identity: blocker.authority_identity,
           governance_owner: blocker.governance_owner,
         })),
+        member_accounting: closure.members.filter((member) => {
+          if (!flags.skill) return true;
+          if (flags.skill === "bmad-help") {
+            const descriptor = readJson(
+              resolve(packageRoot, "normalized", "bmad-help.package.json"),
+            );
+            const projection = descriptor.instructionProjections.find(
+              (candidate) =>
+                candidate.sourceEntrypoint?.path ===
+                "src/core-skills/bmad-help/SKILL.md",
+            );
+            const paths = new Set([
+              projection?.sourceEntrypoint?.path,
+              ...(projection?.sourceResources ?? []).map((resource) => resource.path),
+            ]);
+            return paths.has(member.path);
+          }
+          return closure.skills.some((skill) =>
+            member.path.startsWith(skill.root.slice(0, -"SKILL.md".length)),
+          );
+        }),
         production_skills: closure.skills,
-        ...(closure.member_accounting
-          ? { member_accounting: closure.member_accounting }
-          : {}),
       })),
     };
-    if (evidencePath) {
-      mkdirSync(dirname(evidencePath), { recursive: true });
-      writeFileSync(evidencePath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
-    }
-    process.stdout.write(`${JSON.stringify(summary)}\n`);
+    const serialized = `${JSON.stringify(summary)}\n`;
+    if (receiptPath) writeFileSync(receiptPath, serialized, "utf8");
+    process.stdout.write(serialized);
     return 0;
   } catch (error) {
-    if (evidencePath && existsSync(evidencePath)) {
-      rmSync(evidencePath, { force: true });
+    if (!receiptPath) {
+      const index = argv.indexOf("--json");
+      receiptPath = index >= 0 ? argv[index + 1] : null;
     }
+    if (receiptPath) rmSync(receiptPath, { force: true });
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     return 1;
   }

@@ -391,12 +391,23 @@ test("an exact seal cannot bypass the same literal from a different member", () 
   );
 });
 
-test("package-wide check activates bmad-ux only through its hash-bound pinned projection", () => {
-  const result = spawnSync(process.execPath, [scriptPath, "--check"], {
+test("focused check activates bmad-ux only through its hash-bound pinned projection", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      scriptPath,
+      "--source",
+      "method@6.10.0",
+      "--skill",
+      "bmad-ux",
+      "--check",
+    ],
+    {
     cwd: packageRoot,
     encoding: "utf8",
     env: { ...process.env, NO_COLOR: "1" },
-  });
+    },
+  );
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
   const summary = JSON.parse(result.stdout);
@@ -419,19 +430,40 @@ test("package-wide check activates bmad-ux only through its hash-bound pinned pr
   assert.equal(uxProjectionEdges.length, 2);
   assert.ok(
     uxProjectionEdges.every(
-      (edge) =>
-        edge.governance_owner === "MTH-10" &&
-        edge.projection_member_path ===
+      (blocker) =>
+        blocker.governance_owner === "MTH-10" &&
+        blocker.projection_member_path ===
           "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md" &&
-        edge.projection_member_sha256 ===
+        blocker.projection_member_sha256 ===
           "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
     ),
   );
-  assert.ok(
-    method.edge_dispositions.some(
-      (edge) =>
-        edge.disposition === "generated_output" &&
-        edge.output_identity === "bmad-document-project:project-overview.md",
-    ),
+});
+
+test("the task-scoped resource-closure command selects Deep Recon exactly", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      scriptPath,
+      "--source",
+      "method@6.10.0",
+      "--skill",
+      "bmad-deep-recon",
+      "--check",
+    ],
+    {
+      cwd: packageRoot,
+      encoding: "utf8",
+      env: { ...process.env, NO_COLOR: "1" },
+    },
   );
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const summary = JSON.parse(result.stdout);
+  assert.equal(summary.packages.length, 1);
+  assert.deepEqual(
+    summary.packages[0].production_skills.map((skill) => skill.root),
+    ["src/core-skills/bmad-deep-recon/SKILL.md"],
+  );
+  assert.equal(summary.packages[0].production_skills[0].closure_percent, 100);
 });

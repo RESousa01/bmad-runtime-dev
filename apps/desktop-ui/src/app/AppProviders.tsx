@@ -127,7 +127,11 @@ export interface BmadSlice {
   readonly cancelRun: (manifestHash: string, decisionId: string) => void;
   readonly closeRun: () => void;
   readonly openRun: (capabilityId: string, label: string) => void;
-  readonly prepareRun: (contextPaths: readonly string[]) => void;
+  readonly prepareRun: (
+    contextPaths: readonly string[],
+    action: "create" | "update" | "validate" | null,
+    mode: "interactive" | "headless" | null,
+  ) => void;
   readonly proposeChangeSet: (capabilityId: string) => void;
   readonly submitRun: (manifestHash: string, decisionId: string) => void;
   readonly reloadLibrary: () => void;

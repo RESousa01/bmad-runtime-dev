@@ -1,0 +1,1 @@
+{"schemaVersion":"sapphirus.bmad.conformance-report/v1","generatedBy":"packages/bmad-foundation/scripts/conformance.mjs","strict":true,"allModes":true,"skillsChecked":1,"skills":["method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md"]}

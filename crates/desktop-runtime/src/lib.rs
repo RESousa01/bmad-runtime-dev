@@ -34,7 +34,7 @@ pub use bmad::{
     accept_model_response, apply_command as apply_bmad_session_command, artifact_lineage_view,
     attach_reported_usage as attach_bmad_context_reported_usage, authoritative_entries,
     blocks_completion as blocks_bmad_review_completion, build_plan, build_problem, can_activate,
-    compact as compact_bmad_memory, compute_resume_state, entries_for_scope,
+    canonical_method_skill_adapter, compact as compact_bmad_memory, compute_resume_state, entries_for_scope,
     has_passing_catalog_rebuild, insert_entry, is_authoritative_origin,
     is_headless as is_bmad_invocation_headless, is_served_by_catalog,
     is_terminal as is_bmad_session_terminal, labelled_body_part, parse_toml_subset,

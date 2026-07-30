@@ -328,8 +328,8 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
-    "supportState": "exact",
-    "uiState": "planned",
+    "supportState": "adapted",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {
@@ -439,10 +439,10 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "planning_artifacts"
     ],
-    "supportState": "exact",
-    "uiState": "planned",
+    "supportState": "adapted",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {
@@ -479,7 +479,7 @@ export const bmadCapabilities = [
       "governed_artifact"
     ],
     "supportState": "exact",
-    "uiState": "planned",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {
@@ -1033,7 +1033,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "planning_artifacts"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1115,7 +1115,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "research_output_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1197,7 +1197,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "research_output_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1238,7 +1238,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "research_output_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1431,10 +1431,10 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "research_output_path"
     ],
     "supportState": "exact",
-    "uiState": "planned",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {
@@ -1504,11 +1504,9 @@ export const bmadCapabilities = [
       "post_validation",
       "durable_evidence"
     ],
-    "outputs": [
-      "governed_artifact"
-    ],
+    "outputs": [],
     "supportState": "adapted",
-    "uiState": "planned",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {
@@ -1586,10 +1584,10 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "exact",
-    "uiState": "planned",
+    "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [
       {
@@ -1630,7 +1628,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1674,7 +1672,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1718,7 +1716,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1762,7 +1760,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1806,7 +1804,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",
@@ -1850,7 +1848,7 @@ export const bmadCapabilities = [
       "durable_evidence"
     ],
     "outputs": [
-      "governed_artifact"
+      "report_path"
     ],
     "supportState": "unavailable",
     "uiState": "planned",

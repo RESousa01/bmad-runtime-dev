@@ -3,65 +3,50 @@
 - **rowId**: `method:src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md`
 - **canonicalId**: `bmm:bmad-spec`
 - **pinned source**: `packages/bmad-foundation/source/method/6.10.0/src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md`
+- **runtime projection**: `packages/bmad-foundation/runtime/method/6.10.0/spec.instructions.md`
+- **normalized envelope**: `packages/bmad-foundation/normalized/bmad-spec.package.json`
 
 ## What it does
 
-Distills any intent input (idea, brain dump, PRD, GDD, RFC, brief, transcript,
-mixed multi-source) into `SPEC.md` -- the five-field kernel (Why,
-Capabilities, Constraints, Non-goals, Success signal) -- plus optional
-companion files for load-bearing content that would bloat the kernel.
-Create-vs-update is detected by whether a prior `.memlog.md` exists at the
-target spec folder, not by a caller-selected action. `SPEC.md` and every
-spec-authored companion are re-derived from `.memlog.md` on every run. A
-self-validate sweep (coherence, then preservation) runs after every
-create/update. Story Breakdown is an optional, interactive-only extension
-that writes `stories.yaml`.
+Distills reviewed intent into a governed Spec workspace. Every run derives
+`SPEC.md` and `.memlog.md`; optional companion files retain load-bearing detail,
+and an interactive Story Breakdown may add `stories.yaml`. Create, update,
+no-change review, missing-input, and missing-slug behavior comes from the
+pinned source rather than from caller-invented actions.
 
-## Declared actions and modes
+## Runtime contract
 
-- **Actions**: none declared as a fixed, separately-invocable action.
-  Catalog row records `action: null`.
-- **Modes**: `interactive`, `headless` (per capability-catalog.json). The
-  source's own headless detection (activation Step 4) is heuristic --
-  "no TTY, programmatic caller ... or the first message pre-supplies all
-  inputs" -- rather than an explicit flag, but both modes are still named
-  and supported.
-- **Output location**: `output_folder`. Unlike its sibling
-  `2-plan-workflows` skills, activation Step 3 resolves `{output_folder}`
-  (under the merged `core` config), not `{planning_artifacts}`, and the
-  spec folder defaults to `{output_folder}/specs/spec-{slug}/`.
-- **Artifact kind**: `document`. `SPEC.md` is the canonical working
-  artifact, re-derived and persisted on every run -- `PersistArtifacts`
-  completion hook. Companions are optional overflow of the same kind, not a
-  distinct declared kind.
-- **Predecessor/follower**: neither is declared. The source states
-  "Multiple skills may call to update the same spec over time" -- no single
-  fixed upstream or downstream skill is named.
+- **Actions**: none. The canonical catalog keeps `action: null`.
+- **Modes**: interactive and headless share the same required artifact
+  semantics. Headless never performs the interactive-only story breakdown.
+- **Output location**: `output_folder`, defaulting to
+  `{output_folder}/specs/spec-{slug}/`.
+- **Artifact kinds**: document and file set. `SPEC.md` and `.memlog.md` are
+  required; companions and interactive `stories.yaml` are optional.
+- **Lifecycle**: activation, intent resolution, distillation, coherence
+  validation, preservation validation, completion. The generic Method session
+  service owns create, bind, review, advance, complete, cancel, fail, retry,
+  repair, restart, resume, and stale-source rebind.
+- **Authority**: the adapter declares typed file-read, file-write, process,
+  subagent, and external-handoff intents. These declarations grant no effects;
+  the host must prepare and approve them. Network and browser authority remain
+  distinct and are not requested.
 
-## Source closure and governed execution
+## Field-by-field semantic adaptation
 
-The thin runtime adapter declares the complete five-member pinned subtree,
-with each member's SHA-256 identity: `SKILL.md`, `customize.toml`,
-`assets/headless-schemas.md`, `assets/spec-template.md`, and
-`assets/stories-schema.md`. This includes the template edge declared by
-`customize.toml`; the headless response and Story Breakdown schemas remain
-available to the generic runtime as immutable source data even though they
-are selected by workflow semantics rather than a source-path edge.
-
-The adapter only describes this immutable execution shape. The generic BMAD
-runtime owns resolved configuration and customization, canonical model
-context, artifact persistence, action plans and approvals, validation,
-cancellation, failure/retry/repair, restart/resume, and source-upgrade
-checks. Consequently neither source prose nor this adapter can read files,
-run a process, call a model/provider, schedule work, or write an artifact
-outside typed ports and Airlock policy. Both invocation modes bind the same
-`output_folder`, `SPEC.md` document kind, source identities, and persistence
-hook; their source-specific interaction differs only in presentation and the
-headless JSON response.
+| Source field or behavior | Sapphirus projection | Reason |
+| --- | --- | --- |
+| `SKILL.md` activation and operation | Sealed managed instructions plus ordered workflow stages | Source prose becomes inert data consumed by the generic Method runtime. |
+| `customize.toml` | Hash-pinned resource | Customization remains reviewable input and receives no direct authority. |
+| `assets/headless-schemas.md` | Hash-pinned resource and bounded headless response contract | Keeps source parity without treating a schema as executable code. |
+| `assets/spec-template.md` | Hash-pinned resource and required `SPEC.md` expectation | Preserves the five-field Spec kernel. |
+| `assets/stories-schema.md` | Hash-pinned resource and optional interactive artifact | Preserves the interactive-only Story Breakdown boundary. |
+| Direct workspace reads/writes in source prose | Typed effect intents prepared by the host | All effects remain fail-closed behind the authority boundary. |
+| Source process/subagent/handoff language | Separate typed intents with unavailable host replacements until approved | Prevents source content from self-granting process or handoff authority. |
+| Source create/update detection | Durable Method-session context and reviewed memory-log state | Keeps recovery, retry, repair, restart, resume, and rebind deterministic. |
 
 ## Compatibility decision
 
-**adopt / exact.** No semantic divergence was found between the pinned
-source and the harness descriptor. The source account uses `adapt` for the
-native governed projection treatment; that is not a user-visible support
-state and does not alter the ledger's exact/adopt decision.
+**adapted.** The source semantics are preserved, but execution is deliberately
+translated into the shared Sapphirus Method contract and durable session
+lifecycle. No compatibility aliases are introduced for this capability.

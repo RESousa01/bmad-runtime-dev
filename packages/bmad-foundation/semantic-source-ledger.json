@@ -119,7 +119,7 @@
       "id": "method-001",
       "sourceId": "method",
       "member": "src/core-skills/bmad-help/SKILL.md",
-      "sha256": "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
+      "sha256": "970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
       "treatments": [
         {
           "decision": "adopt",
@@ -135,7 +135,7 @@
       "id": "method-002",
       "sourceId": "method",
       "member": "src/core-skills/module.yaml",
-      "sha256": "46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479",
+      "sha256": "75cb5eccdd193b3282a948f57b27273112aabd619eb29fcca442d33003a914fb",
       "treatments": [
         {
           "decision": "adopt",
@@ -151,7 +151,7 @@
       "id": "method-003",
       "sourceId": "method",
       "member": "src/core-skills/module-help.csv",
-      "sha256": "e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
+      "sha256": "95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3",
       "treatments": [
         {
           "decision": "adopt",
@@ -167,7 +167,7 @@
       "id": "method-004",
       "sourceId": "method",
       "member": "src/bmm-skills/module.yaml",
-      "sha256": "5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
+      "sha256": "de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
       "treatments": [
         {
           "decision": "adopt",
@@ -179,7 +179,7 @@
       "id": "method-005",
       "sourceId": "method",
       "member": "src/bmm-skills/module-help.csv",
-      "sha256": "ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
+      "sha256": "77f8c08d6230b291aa056d21a66566932ad374c944289eca6798e1bd5b6fd677",
       "treatments": [
         {
           "decision": "adopt",
@@ -4176,8 +4176,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 118432,
-      "sha256": "671a01ab243ecf4ec17f0f534da86a4b8460db9d7c33fb305cacab37072cae86"
+      "byteLength": 119126,
+      "sha256": "53259a233d5afa072356eb976757614e7d24a2643b2ab78376e77c40c64150be"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",
@@ -4308,6 +4308,11 @@
       "path": "runtime/method/6.10.0/prd.instructions.md",
       "byteLength": 2841,
       "sha256": "85906cc9a544adedca6b00fa383c222d169f7e324e42f3905002a9430bbf30fb"
+    },
+    {
+      "path": "runtime/method/6.10.0/spec.instructions.md",
+      "byteLength": 2574,
+      "sha256": "6d906443b1da33b59fade6608017ce2be88906248ac1dd9f4515adcf25b5fc54"
     },
     {
       "path": "runtime/method/6.10.0/prfaq.instructions.md",
@@ -5663,15 +5668,15 @@
       "sourceId": "method",
       "member": "src/bmm-skills/module-help.csv",
       "packagePath": "source/method/6.10.0/src/bmm-skills/module-help.csv",
-      "sha256": "ad4373d7e58a31aaef601ae39cf76b26bae7fd420b108e44660427384652d4bf",
-      "byteLength": 6989
+      "sha256": "77f8c08d6230b291aa056d21a66566932ad374c944289eca6798e1bd5b6fd677",
+      "byteLength": 6872
     },
     {
       "sourceId": "method",
       "member": "src/bmm-skills/module.yaml",
       "packagePath": "source/method/6.10.0/src/bmm-skills/module.yaml",
-      "sha256": "5a2a4ff761b3a4f92730442386486f32318152fc0dfdd225dc6765a3bc2ec100",
-      "byteLength": 4485
+      "sha256": "de593a6656737302257b7f48207146ed0343ee816ca3642ed1f70980535a1659",
+      "byteLength": 4469
     },
     {
       "sourceId": "method",
@@ -5824,8 +5829,8 @@
       "sourceId": "method",
       "member": "src/core-skills/bmad-help/SKILL.md",
       "packagePath": "source/method/6.10.0/src/core-skills/bmad-help/SKILL.md",
-      "sha256": "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
-      "byteLength": 4617
+      "sha256": "970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
+      "byteLength": 4603
     },
     {
       "sourceId": "method",
@@ -5957,15 +5962,15 @@
       "sourceId": "method",
       "member": "src/core-skills/module-help.csv",
       "packagePath": "source/method/6.10.0/src/core-skills/module-help.csv",
-      "sha256": "e801caeb1bf6484277867067c60be3c2aeec39beaa75254e64ddf8ce8f3b617d",
-      "byteLength": 2911
+      "sha256": "95cd2da33233264a6e14086eb5635352af0d8f9e240c2adb80e32020fa9794f3",
+      "byteLength": 2878
     },
     {
       "sourceId": "method",
       "member": "src/core-skills/module.yaml",
       "packagePath": "source/method/6.10.0/src/core-skills/module.yaml",
-      "sha256": "46f8972746f0d4e49358fdf94b0c1ba856fd7a8eb66abc75d5aaff0624540479",
-      "byteLength": 904
+      "sha256": "75cb5eccdd193b3282a948f57b27273112aabd619eb29fcca442d33003a914fb",
+      "byteLength": 1104
     }
   ]
 }

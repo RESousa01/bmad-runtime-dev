@@ -121,13 +121,15 @@
       "canonicalId": "bmm:bmad-spec",
       "sourcePath": "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
       "sourceSha256": "sha256:5b5680dbf01dbfc5b4a5485e70f20ea48ac21a1d6137c4ea2ff704262dcc45d2",
-      "decision": "adopt",
-      "supportState": "exact",
-      "owner": null,
-      "rationale": null,
-      "semanticDiffRef": null,
-      "supportedVersions": [],
-      "migrationPolicy": null,
+      "decision": "adapt",
+      "supportState": "adapted",
+      "owner": "MTH-09",
+      "rationale": "Forge preserves the pinned Spec kernel, append-only memlog, companion, Story Breakdown, validation, and mode semantics while replacing source-directed Python/process/filesystem execution and heuristic TTY detection with explicit generic-runtime modes, typed plans, reviewed host inputs, Airlock decisions, and durable Method checkpoints.",
+      "semanticDiffRef": "docs/bmad/skills/bmad-spec.md#field-by-field-semantic-adaptation",
+      "supportedVersions": [
+        "Forge 0.1.0-beta.1"
+      ],
+      "migrationPolicy": "Persist canonical capability bmm:bmad-spec, source/resource hashes, resolved configuration/customization identities, and Method checkpoints. On any pinned source or projection drift, reject the stale binding and require generic runtime rebind plus fresh context review before resume.",
       "deprecationPolicy": null
     },
     {
@@ -163,13 +165,15 @@
       "canonicalId": "bmm:bmad-architecture",
       "sourcePath": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
       "sourceSha256": "sha256:89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf",
-      "decision": "adopt",
-      "supportState": "exact",
-      "owner": null,
-      "rationale": null,
-      "semanticDiffRef": null,
-      "supportedVersions": [],
-      "migrationPolicy": null,
+      "decision": "adapt",
+      "supportState": "adapted",
+      "owner": "Forge BMAD Runtime",
+      "rationale": "Preserve create, update, validate, interactive, headless, artifact, reviewer, and recovery semantics while replacing source-directed scripts, subagents, web lookups, external handoffs, and direct file effects with typed plans and governed host ports.",
+      "semanticDiffRef": "docs/bmad/skills/bmad-architecture.md#semantic-diff",
+      "supportedVersions": [
+        "0.1.x"
+      ],
+      "migrationPolicy": "re-evaluate_against_each_pinned_method_upgrade",
       "deprecationPolicy": null
     },
     {
@@ -177,13 +181,16 @@
       "canonicalId": "bmm:bmad-check-implementation-readiness",
       "sourcePath": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
       "sourceSha256": "sha256:a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
-      "decision": "adopt",
-      "supportState": "exact",
-      "owner": null,
-      "rationale": null,
-      "semanticDiffRef": null,
-      "supportedVersions": [],
-      "migrationPolicy": null,
+      "decision": "adapt",
+      "supportState": "adapted",
+      "owner": "Forge BMAD Runtime / MTH-13",
+      "rationale": "The pinned 6.10.0 source is interactive-only and halts at each menu. Forge adds a bounded headless invocation that must supply reviewed answers for the same six checkpoints and produces the same report topology; all filesystem, process, model, persistence, and Help-following effects remain typed host plans.",
+      "semanticDiffRef": "docs/bmad/skills/bmad-check-implementation-readiness.md#semantic-diff",
+      "supportedVersions": [
+        "bmad-method@6.10.0",
+        "forge@0.1.x"
+      ],
+      "migrationPolicy": "Re-review and regenerate the adapter, fixtures, Help topology, and persisted binding whenever the pinned Method source version, six-step workflow, invocation-mode contract, or Forge 0.1 execution contract changes.",
       "deprecationPolicy": null
     },
     {
@@ -557,8 +564,8 @@
       "sourceSha256": "sha256:970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
       "decision": "adapt",
       "supportState": "adapted",
-      "owner": "MTH-core-skills",
-      "rationale": "crates/desktop-runtime/src/bmad/help.rs already implements a model-free deterministic Help engine (availability, next-steps, alias resolution, capability projection, catalog counts). The pinned SKILL.md's remote module-doc fetch and open-ended general-question answering are explicitly model-driven behaviors that engine does not, and structurally cannot, perform, so this row reports adapted rather than exact.",
+      "owner": "MTH-40",
+      "rationale": "The existing deterministic Help engine remains the source-grounded availability, next-step, alias, and catalog authority. MTH-40 closes the pinned entrypoint plus four catalog/module resources, prepares typed file-read, process, web, and model plans through the generic runtime seam, and binds the prepared exact invocation to the established durable MethodSessionService. Remote module documentation and open-ended answers remain host-reviewed adaptations, so support is adapted rather than exact.",
       "semanticDiffRef": null,
       "supportedVersions": [],
       "migrationPolicy": null,

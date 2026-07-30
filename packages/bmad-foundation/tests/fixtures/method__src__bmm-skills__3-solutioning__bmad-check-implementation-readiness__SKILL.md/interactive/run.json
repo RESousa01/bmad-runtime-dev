@@ -5,6 +5,14 @@
   "description": "Six-step, just-in-time step-file progression (document discovery through final assessment) validating PRD, UX, Architecture, and Epics/Stories completeness and alignment, halting at each menu for user input.",
   "inputs": {
     "config": "{project-root}/_bmad/bmm/config.yaml",
+    "reviewedAnswers": {
+      "documentDiscovery": "PRD, architecture, UX, and epics were inventoried.",
+      "prdAnalysis": "Functional and non-functional requirements are complete.",
+      "epicCoverageValidation": "Every requirement maps to an epic and story.",
+      "uxAlignment": "UX flows agree with the architecture constraints.",
+      "epicQualityReview": "Stories are independently testable and sequenced.",
+      "finalAssessment": "READY. No critical issue remains."
+    },
     "customization": [
       "{skill-root}/customize.toml",
       "{project-root}/_bmad/custom/bmad-check-implementation-readiness.toml",
@@ -14,18 +22,14 @@
   "outputs": {
     "outputLocations": ["planning_artifacts"],
     "artifact": "{planning_artifacts}/implementation-readiness-report-{date}.md",
-    "artifactKind": "document"
-  },
-  "sourceDerivedWorkflow": {
-    "steps": [
-      "step-01-document-discovery",
-      "step-02-prd-analysis",
-      "step-03-epic-coverage-validation",
-      "step-04-ux-alignment",
-      "step-05-epic-quality-review",
-      "step-06-final-assessment"
-    ],
-    "requiresUserConfirmationBeforeStep02": true,
-    "completionHook": "persist_artifacts"
+    "artifactKind": "document",
+    "reportSections": [
+      "Document Discovery",
+      "PRD Analysis",
+      "Epic Coverage Validation",
+      "UX Alignment",
+      "Epic Quality Review",
+      "Summary and Recommendations"
+    ]
   }
 }

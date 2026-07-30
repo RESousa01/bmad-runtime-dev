@@ -117,6 +117,17 @@ impl MethodStepTable {
         &self.table_hash
     }
 
+    #[must_use]
+    pub fn ordered_keys(&self) -> Vec<&str> {
+        let mut ordered = Vec::with_capacity(self.steps.len());
+        let mut current = Some(self.initial_step_key.as_str());
+        while let Some(key) = current {
+            ordered.push(key);
+            current = self.steps.get(key).and_then(Option::as_deref);
+        }
+        ordered
+    }
+
     fn expected_next(&self, current: &str) -> Option<&Option<String>> {
         self.steps.get(current)
     }
@@ -277,6 +288,15 @@ impl MethodAdvanceResult {
     pub fn parse_json(source: &[u8]) -> Result<Self, MethodError> {
         serde_json::from_slice(source)
             .map_err(|_| MethodError::new(MethodErrorCode::MethodResultInvalid))
+    }
+
+    /// Computes the canonical accepted-result hash used by trusted host proof.
+    ///
+    /// # Errors
+    ///
+    /// Returns a stable Method validation error when serialization fails.
+    pub fn canonical_hash(&self) -> Result<Sha256Digest, MethodError> {
+        method_advance_result_hash(self)
     }
 }
 
@@ -640,6 +660,28 @@ impl MethodSession {
         self.exact_binding
             .as_ref()
             .ok_or_else(|| MethodError::new(MethodErrorCode::MethodBindingStale))
+    }
+
+    #[must_use]
+    pub fn current_step_key(&self) -> Option<&str> {
+        self.current_step_key.as_deref()
+    }
+
+    /// Returns the sealed successor for the current step.
+    ///
+    /// # Errors
+    ///
+    /// Returns a stable recovery error when the persisted table is absent.
+    pub fn next_step_key(&self) -> Result<Option<&str>, MethodError> {
+        let current = self
+            .current_step_key
+            .as_deref()
+            .ok_or_else(|| MethodError::new(MethodErrorCode::MethodStoreRecoveryRequired))?;
+        self.step_table
+            .as_ref()
+            .and_then(|table| table.expected_next(current))
+            .map(|next| next.as_deref())
+            .ok_or_else(|| MethodError::new(MethodErrorCode::MethodStoreRecoveryRequired))
     }
 
     /// Derives the exact authority hash that D2 must bind to this Method session.
@@ -2109,6 +2151,7 @@ mod verified_result_tests {
                 skill_name: "bmad-architecture".to_owned(),
                 normalized_action: Some("create".to_owned()),
             },
+            invocation_mode: crate::generated_contracts::BmadInvocationMode::Interactive,
             package_descriptor_hash: digest("descriptor"),
             package_source_hash: digest("source"),
             instruction_projection_hash: digest("instructions"),

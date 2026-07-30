@@ -368,33 +368,45 @@ impl BmadCatalogBuilder {
         let mut catalog = Self::build_bound(package, sources, help_graph_hash)?;
         let mut observed = BTreeSet::new();
         for row in support {
-            let normalized_action = row.action.as_deref().or_else(|| {
-                package
-                    .skills
-                    .iter()
-                    .find(|skill| {
-                        skill.module_code == row.module_code
-                            && skill.skill_name == row.skill_name
-                            && skill.actions.len() == 1
-                    })
-                    .and_then(|skill| skill.actions.first().map(String::as_str))
-            });
             let identity = (
                 row.module_code.as_str(),
                 row.skill_name.as_str(),
-                normalized_action,
+                row.action.as_deref(),
             );
             if !observed.insert(identity) {
                 return Err(BmadKernelErrorCode::HelpCatalogInvalid.into());
             }
-            let candidate = catalog
+            let candidates = catalog
                 .help_actions
-                .iter_mut()
+                .iter()
+                .enumerate()
                 .find(|candidate| {
+                    let candidate = candidate.1;
                     candidate.module_code == row.module_code
                         && candidate.skill_name == row.skill_name
-                        && candidate.action.as_deref() == normalized_action
+                        && row
+                            .action
+                            .as_ref()
+                            .is_none_or(|action| candidate.action.as_ref() == Some(action))
                 })
+                .map(|candidate| candidate.0)
+                .ok_or(BmadKernelErrorCode::HelpCatalogInvalid)?;
+            if row.action.is_none()
+                && catalog
+                    .help_actions
+                    .iter()
+                    .filter(|candidate| {
+                        candidate.module_code == row.module_code
+                            && candidate.skill_name == row.skill_name
+                    })
+                    .count()
+                    != 1
+            {
+                return Err(BmadKernelErrorCode::HelpCatalogInvalid.into());
+            }
+            let candidate = catalog
+                .help_actions
+                .get_mut(candidates)
                 .ok_or(BmadKernelErrorCode::HelpCatalogInvalid)?;
             candidate.availability = if row.runtime_available {
                 BmadCatalogAvailability::Available

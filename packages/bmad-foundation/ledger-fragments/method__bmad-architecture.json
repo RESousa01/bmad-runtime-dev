@@ -2,9 +2,12 @@
   "rowId": "method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
   "decision": "adapt",
   "supportState": "adapted",
-  "owner": "MTH-12",
-  "rationale": "The governed architecture projection closes every pinned source member and executes the source-shaped create progression through the typed architecture session, but the sealed normalized projection exposes only create while upstream also detects update and validate conversational intents. The generic runtime has no leased intent-to-session binding, restart deserializer, or validate-report output contract for this skill, so the row must report an explicit adaptation rather than exact source equivalence.",
-  "semanticDiffRef": "docs/bmad/skills/bmad-architecture.md#compatibility-decision",
-  "supportedVersions": ["Forge current", "bmad-method 6.10.0"],
-  "migrationPolicy": "Promote to adopt only after the shared generic runtime binds create/update/validate and interactive/headless inputs to durable architecture sessions, persists and restores those sessions, and implements the source validate report contract."
+  "owner": "Forge BMAD Runtime",
+  "rationale": "Preserve create, update, validate, interactive, headless, artifact, reviewer, and recovery semantics while replacing source-directed scripts, subagents, web lookups, external handoffs, and direct file effects with typed plans and governed host ports.",
+  "semanticDiffRef": "docs/bmad/skills/bmad-architecture.md#semantic-diff",
+  "supportedVersions": [
+    "0.1.x"
+  ],
+  "migrationPolicy": "re-evaluate_against_each_pinned_method_upgrade",
+  "deprecationPolicy": null
 }

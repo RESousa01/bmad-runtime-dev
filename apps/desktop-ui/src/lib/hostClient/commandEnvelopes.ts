@@ -195,6 +195,8 @@ export function buildCapabilityPrepareEnvelope(
   workspaceId: string,
   workspaceGrantEpoch: number,
   capabilityId: string,
+  action: "create" | "update" | "validate" | null,
+  mode: "interactive" | "headless" | null,
   contextPaths: string[],
 ): CommandEnvelope<
   "bmad.capability.prepare",
@@ -202,6 +204,8 @@ export function buildCapabilityPrepareEnvelope(
     workspaceId: string;
     workspaceGrantEpoch: number;
     capabilityId: string;
+    action: "create" | "update" | "validate" | null;
+    mode: "interactive" | "headless" | null;
     contextPaths: string[];
   }
 > {
@@ -217,6 +221,8 @@ export function buildCapabilityPrepareEnvelope(
       workspaceId: asContractId(workspaceId),
       workspaceGrantEpoch: asUnsignedInteger(workspaceGrantEpoch),
       capabilityId,
+      action,
+      mode,
       contextPaths,
     },
   };

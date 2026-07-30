@@ -260,6 +260,7 @@ impl BmadSkillExecutionContract {
         input: BmadSkillExecutionBindingInput,
     ) -> Result<BmadSkillExecutionRequest, BmadSkillExecutionError> {
         let branch = self.branch(input.mode, &input.action)?;
+        let normalized_action = (!input.action.is_empty()).then(|| input.action.clone());
         let resources = BmadResourceSet::new(self.descriptor.declared_resources().to_vec())
             .map_err(|_| BmadSkillExecutionError::ResourceMismatch)?;
         let (module_code, skill_name) = canonical_skill_identity(&self.descriptor)?;
@@ -268,8 +269,9 @@ impl BmadSkillExecutionContract {
                 package_version_id: self.package_version_id.clone(),
                 module_code: module_code.to_owned(),
                 skill_name: skill_name.to_owned(),
-                normalized_action: Some(input.action.clone()),
+                normalized_action: normalized_action.clone(),
             },
+            invocation_mode: input.mode,
             package_descriptor_hash: self.package_descriptor_hash,
             package_source_hash: self.package_source_hash,
             instruction_projection_hash: self.instruction_projection_hash,
@@ -299,13 +301,23 @@ impl BmadSkillExecutionContract {
             .map_err(|_| BmadSkillExecutionError::BindingMismatch)?;
         Ok(BmadSkillExecutionRequest {
             mode: input.mode,
-            action: Some(input.action),
+            action: normalized_action,
             exact_binding,
             resources,
             resolved_config_graph_hash: input.resolved_config_graph_hash,
             resolved_config_hash: input.resolved_config_hash,
             resolved_customization_hash: input.resolved_customization_hash,
         })
+    }
+
+    #[must_use]
+    pub const fn workflow(&self) -> &BmadSkillExecutionWorkflow {
+        &self.workflow
+    }
+
+    #[must_use]
+    pub fn tool_intents(&self) -> &[BmadSkillToolIntent] {
+        &self.tool_intents
     }
 
     /// Computes the sealed resource-set digest used in an exact Method binding.
@@ -338,10 +350,7 @@ impl BmadSkillExecutionContract {
         validate_invocation(&descriptor, &self.execution_profile, &request)?;
         validate_resources(&descriptor, request.resources(), self.resource_set_hash)?;
         validate_binding(self, &request)?;
-        let action = request
-            .action
-            .as_deref()
-            .ok_or(BmadSkillExecutionError::UnsupportedInvocation)?;
+        let action = request.action.as_deref().unwrap_or_default();
         let branch = self.branch(request.mode, action)?.clone();
         let step_table = build_step_table(&branch.workflow)?;
         let authority_requirements = self
@@ -543,7 +552,7 @@ impl BmadSkillExecutionCompiler {
         request: BmadSkillExecutionRequest,
     ) -> Result<BmadPreparedSkillExecution, BmadSkillExecutionError> {
         let descriptor = skill.descriptor();
-        let contract = skill.execution_contract()?;
+        let contract = skill.execution_contract_for_action(request.action.as_deref())?;
         contract.prepare(descriptor, request)
     }
 }
@@ -691,9 +700,17 @@ fn validate_branches(
         .iter()
         .copied()
         .collect::<BTreeSet<_>>();
+    let branch_actions = if declared_actions.is_empty() {
+        BTreeSet::from([""])
+    } else {
+        declared_actions
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>()
+    };
     let mut observed = BTreeSet::new();
     for branch in branches {
-        if !declared_actions.contains(&branch.action)
+        if !branch_actions.contains(branch.action.as_str())
             || !declared_modes.contains(&branch.mode)
             || !observed.insert((branch.action.as_str(), branch.mode))
             || branch.required_status_fields.len() > 32
@@ -713,13 +730,9 @@ fn validate_branches(
         validate_artifact_expectations(descriptor.artifact_kinds(), &branch.artifact_expectations)?;
         validate_workflow(&branch.workflow, resources)?;
     }
-    let expected = declared_actions
+    let expected = branch_actions
         .iter()
-        .flat_map(|action| {
-            declared_modes
-                .iter()
-                .map(move |mode| (action.as_str(), *mode))
-        })
+        .flat_map(|action| declared_modes.iter().map(move |mode| (*action, *mode)))
         .collect::<BTreeSet<_>>();
     if observed != expected {
         return Err(BmadSkillExecutionError::ContractInvalid);
@@ -807,20 +820,17 @@ fn validate_binding(
         .map_err(|_| BmadSkillExecutionError::BindingMismatch)?;
     let (module, skill) = canonical_skill_identity(&contract.descriptor)?;
     let binding = &request.exact_binding;
-    let branch = request
-        .action
-        .as_deref()
-        .and_then(|action| {
-            contract
-                .branches
-                .iter()
-                .find(|branch| branch.mode == request.mode && branch.action == action)
-        })
+    let action = request.action.as_deref().unwrap_or_default();
+    let branch = contract
+        .branches
+        .iter()
+        .find(|branch| branch.mode == request.mode && branch.action == action)
         .ok_or(BmadSkillExecutionError::UnsupportedInvocation)?;
     if binding.capability_key.package_version_id != contract.package_version_id
         || binding.capability_key.module_code != module
         || binding.capability_key.skill_name != skill
         || binding.capability_key.normalized_action != request.action
+        || binding.invocation_mode != request.mode
         || binding.package_descriptor_hash != contract.package_descriptor_hash
         || binding.package_source_hash != contract.package_source_hash
         || binding.instruction_projection_hash != contract.instruction_projection_hash

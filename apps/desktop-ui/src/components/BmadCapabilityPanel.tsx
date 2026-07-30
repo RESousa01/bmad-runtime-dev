@@ -41,7 +41,11 @@ export interface BmadCapabilityPanelProps {
   readonly onApprove: (manifestHash: string) => void;
   readonly onCancel: (manifestHash: string, decisionId: string) => void;
   readonly onClose: () => void;
-  readonly onPrepare: (contextPaths: readonly string[]) => void;
+  readonly onPrepare: (
+    contextPaths: readonly string[],
+    action: "create" | "update" | "validate" | null,
+    mode: "interactive" | "headless" | null,
+  ) => void;
   readonly onReviewChangeSet?: () => void;
   readonly onSubmit: (manifestHash: string, decisionId: string) => void;
   readonly phase: CapabilityRunPhase;
@@ -207,6 +211,9 @@ export function BmadCapabilityPanel({
   onSubmit,
   phase,
 }: BmadCapabilityPanelProps) {
+  const isCanonicalPrd = capabilityId === "bmm:bmad-prd";
+  const [prdAction, setPrdAction] = useState<"create" | "update" | "validate">("create");
+  const [prdMode, setPrdMode] = useState<"interactive" | "headless">("interactive");
   const [rawPaths, setRawPaths] = useState("");
   const { paths: selectedPaths, droppedOverCap } = parseContextPaths(rawPaths);
   const panelRef = useRunPanelFocus();
@@ -276,6 +283,40 @@ export function BmadCapabilityPanel({
             is checked against a fixed shape, and any file change it proposes
             goes to Changes for you to approve before anything is written.
           </p>
+          {isCanonicalPrd ? (
+            <fieldset>
+              <legend>PRD execution branch</legend>
+              <label>
+                Action
+                <select
+                  aria-label="PRD action"
+                  disabled={phase.kind === "preparing"}
+                  onChange={(event) =>
+                    setPrdAction(event.target.value as "create" | "update" | "validate")
+                  }
+                  value={prdAction}
+                >
+                  <option value="create">Create</option>
+                  <option value="update">Update</option>
+                  <option value="validate">Validate</option>
+                </select>
+              </label>
+              <label>
+                Mode
+                <select
+                  aria-label="PRD mode"
+                  disabled={phase.kind === "preparing"}
+                  onChange={(event) =>
+                    setPrdMode(event.target.value as "interactive" | "headless")
+                  }
+                  value={prdMode}
+                >
+                  <option value="interactive">Interactive</option>
+                  <option value="headless">Headless</option>
+                </select>
+              </label>
+            </fieldset>
+          ) : null}
           <label>
             Context file paths (one relative path per line)
             <textarea
@@ -303,7 +344,13 @@ export function BmadCapabilityPanel({
           ) : null}
           <Button
             isDisabled={selectedPaths.length === 0 || phase.kind === "preparing"}
-            onPress={() => onPrepare(selectedPaths)}
+            onPress={() =>
+              onPrepare(
+                selectedPaths,
+                isCanonicalPrd ? prdAction : null,
+                isCanonicalPrd ? prdMode : null,
+              )
+            }
             variant="secondary"
           >
             {phase.kind === "preparing"
@@ -364,7 +411,13 @@ export function BmadCapabilityPanel({
             </Button>
             {reviewExpired ? (
               <Button
-                onPress={() => onPrepare(phase.contextPaths)}
+                onPress={() =>
+                  onPrepare(
+                    phase.contextPaths,
+                    isCanonicalPrd ? prdAction : null,
+                    isCanonicalPrd ? prdMode : null,
+                  )
+                }
                 variant="secondary"
               >
                 Prepare this context again
@@ -402,7 +455,13 @@ export function BmadCapabilityPanel({
             </Button>
             {consentExpired ? (
               <Button
-                onPress={() => onPrepare(phase.contextPaths)}
+                onPress={() =>
+                  onPrepare(
+                    phase.contextPaths,
+                    isCanonicalPrd ? prdAction : null,
+                    isCanonicalPrd ? prdMode : null,
+                  )
+                }
                 variant="secondary"
               >
                 Prepare this context again

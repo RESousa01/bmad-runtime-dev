@@ -173,7 +173,7 @@ impl BmadMethodSkill for BmadPrdSkill {
                 "sha256:65e0dcb5dcff1b99942491f13db5a25002e3dae54dbb6a2017edfc9017daafcf",
             )?,
             capability_catalog_hash: digest(
-                "sha256:56e4a4583b6e35790afbe8f968b2cc5f78d6d8baee54ec5167a8bf4db03b1875",
+                "sha256:d6a3198652479968f7b7f6e2eacb16af2611143631200c2a5dfc3f492400de00",
             )?,
             distribution_profile: "sapphirus_package".to_owned(),
             install_profile: "SapphirusManagedV1".to_owned(),

@@ -2639,6 +2639,15 @@
       ]
     },
     {
+      "sourceMemberId": "method-248",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Preserve Deep Recon intent and topology while replacing source-directed files, processes, web, browser, subagents, and handoffs with typed host-governed plans."
+        }
+      ]
+    },
+    {
       "sourceMemberId": "builder-001",
       "treatments": [
         {
@@ -3365,23 +3374,20 @@
       },
       "state": "sealed_read_only",
       "actions": [],
-      "action": "create",
+      "action": null,
       "authority": "none",
       "distributionProfile": "sapphirus_package",
       "installProfile": "SapphirusManagedV1",
-      "entrypointKind": "step_jit",
+      "entrypointKind": "direct",
       "validationProfile": "MethodOfficialSkillV6",
       "sourceMemberIds": [
-        "method-018",
-        "method-019",
         "method-022",
         "method-023",
         "method-024",
         "method-025",
         "method-026",
-        "method-027",
-        "method-028",
-        "method-029"
+        "method-029",
+        "method-137"
       ]
     },
     {
@@ -3815,6 +3821,31 @@
       ]
     },
     {
+      "path": "runtime/method/6.10.0/spec.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-spec",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": null,
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-004",
+        "method-238",
+        "method-239",
+        "method-240",
+        "method-241",
+        "method-242"
+      ]
+    },
+    {
       "path": "runtime/method/6.10.0/correct-course.instructions.md",
       "classification": "method",
       "sourceIdentity": {
@@ -3856,6 +3887,32 @@
         "method-004",
         "method-048",
         "method-049"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/deep-recon.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-deep-recon",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [
+        "draft",
+        "process",
+        "run",
+        "refresh",
+        "deepen"
+      ],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "direct",
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-248"
       ]
     },
     {

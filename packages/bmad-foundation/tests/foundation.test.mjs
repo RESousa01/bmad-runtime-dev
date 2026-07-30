@@ -35,6 +35,7 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/correct-course.instructions.md",
   "runtime/method/6.10.0/create-epics-and-stories.instructions.md",
   "runtime/method/6.10.0/create-story.instructions.md",
+  "runtime/method/6.10.0/deep-recon.instructions.md",
   "runtime/method/6.10.0/dev-persona.instructions.md",
   "runtime/method/6.10.0/dev-story.instructions.md",
   "runtime/method/6.10.0/document-project.instructions.md",
@@ -50,6 +51,7 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/qa-tests.instructions.md",
   "runtime/method/6.10.0/quick-dev.instructions.md",
   "runtime/method/6.10.0/retrospective.instructions.md",
+  "runtime/method/6.10.0/spec.instructions.md",
   "runtime/method/6.10.0/sprint-planning.instructions.md",
   "runtime/method/6.10.0/tech-writer-persona.instructions.md",
   "runtime/method/6.10.0/technical-research.instructions.md",
@@ -69,6 +71,7 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-correct-course.package.json",
   "normalized/bmad-create-epics-and-stories.package.json",
   "normalized/bmad-create-story.package.json",
+  "normalized/bmad-deep-recon.package.json",
   "normalized/bmad-dev-story.package.json",
   "normalized/bmad-dev.package.json",
   "normalized/bmad-document-project.package.json",
@@ -84,6 +87,7 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-qa-generate-e2e-tests.package.json",
   "normalized/bmad-quick-dev.package.json",
   "normalized/bmad-retrospective.package.json",
+  "normalized/bmad-spec.package.json",
   "normalized/bmad-sprint-planning.package.json",
   "normalized/bmad-tech-writer-explain-concept.package.json",
   "normalized/bmad-tech-writer-mermaid-gen.package.json",
@@ -125,9 +129,11 @@ const requiredPackagePaths = Object.freeze([
   "scripts/generate-catalog.mjs",
   "scripts/import-source.mjs",
   "scripts/resource-closure.mjs",
+  "scripts/test.mjs",
   "scripts/verify-source-notes.mjs",
   "scripts/verify-source-identities.mjs",
   "scripts/verify.mjs",
+  "tests/bmad-spec.test.mjs",
   ...normalizedPaths,
   ...managedOutputPaths,
 ].sort());
@@ -245,6 +251,7 @@ const expectedTreatmentDecisionSets = Object.freeze({
   "method-065": ["adopt", "adapt"],
   "method-066": ["adopt", "adapt"],
   "method-067": ["adopt", "adapt"],
+  "method-248": ["adapt"],
   "method-064": ["adopt", "adapt"],
   "method-065": ["adopt", "adapt"],
   "method-066": ["adopt", "adapt"],
@@ -299,6 +306,9 @@ const expectedTreatmentDecisionSets = Object.freeze({
 });
 
 const expectedProjectionSourceMemberIds = Object.freeze({
+  "runtime/method/6.10.0/deep-recon.instructions.md": [
+    "method-248",
+  ],
   "runtime/method/6.10.0/document-project.instructions.md": [
     "method-004",
     "method-064",
@@ -368,6 +378,14 @@ const expectedProjectionSourceMemberIds = Object.freeze({
     "method-004",
     "method-044",
     "method-045",
+  ],
+  "runtime/method/6.10.0/spec.instructions.md": [
+    "method-004",
+    "method-238",
+    "method-239",
+    "method-240",
+    "method-241",
+    "method-242",
   ],
   "runtime/method/6.10.0/qa-tests.instructions.md": [
     "method-004",
@@ -462,16 +480,13 @@ const expectedProjectionSourceMemberIds = Object.freeze({
     "method-021",
   ],
   "runtime/method/6.10.0/architecture-create.instructions.md": [
-    "method-018",
-    "method-019",
     "method-022",
     "method-023",
     "method-024",
     "method-025",
     "method-026",
-    "method-027",
-    "method-028",
     "method-029",
+    "method-137",
   ],
   "runtime/builder/2.1.0/agent-create-rebuild.instructions.md": [
     "builder-003",
@@ -552,7 +567,7 @@ const expectedProjectionSourceMemberIds = Object.freeze({
 
 const criticalMembers = Object.freeze({
   "method:src/core-skills/bmad-help/SKILL.md":
-    "718077d741e20d9c94f3c2b7827047f2d18a90b85c3cc2eecd449e28b7b0d642",
+    "970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2",
   "method:src/bmm-skills/1-analysis/bmad-agent-tech-writer/write-document.md":
     "c0ddfd981f765b82cba0921dad331cd1fa32bacdeea1f02320edfd60a0ae7e6f",
   "method:src/bmm-skills/1-analysis/bmad-agent-tech-writer/mermaid-gen.md":
@@ -600,6 +615,37 @@ async function readJson(relativePath) {
   const bytes = await readFile(path.join(packageRoot, relativePath));
   return JSON.parse(bytes.toString("utf8"));
 }
+
+// Break caught: the architecture envelope previously kept an old SKILL hash,
+// omitted the linter tests, pulled unrelated agent/shim files into the package,
+// and labeled headless/script resources deferred or rejected.
+test("normalized Architecture envelope seals exactly the recursive pinned skill closure", async () => {
+  const envelope = await readJson("normalized/bmad-architecture.package.json");
+  const projection = envelope.instructionProjection;
+  const declared = [projection.sourceEntrypoint, ...projection.sourceResources];
+  const expected = [
+    "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+    "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
+    "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
+    "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
+    "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
+    "src/bmm-skills/3-solutioning/bmad-architecture/scripts/lint_spine.py",
+    "src/bmm-skills/3-solutioning/bmad-architecture/scripts/tests/test_lint_spine.py",
+  ];
+
+  assert.equal(envelope.capability.normalizedAction, null);
+  assert.deepEqual(
+    declared.map((resource) => resource.path).sort(),
+    expected,
+  );
+  assert.ok(declared.every((resource) => resource.treatment === "adapt"));
+  for (const resource of declared) {
+    const bytes = await readFile(
+      path.join(packageRoot, "source/method/6.10.0", resource.path),
+    );
+    assert.equal(resource.contentHash, `sha256:${createHash("sha256").update(bytes).digest("hex")}`);
+  }
+});
 
 async function assertRegularFile(relativePath) {
   const absolutePath = path.join(packageRoot, relativePath);
@@ -714,6 +760,7 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
     "reseal.mjs",
     "resource-closure.mjs",
     "source-accounting.mjs",
+    "test.mjs",
     "verify-dependency-graph.mjs",
     "verify-source-identities.mjs",
     "verify-source-notes.mjs",
@@ -721,6 +768,7 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
   ]);
   assert.deepEqual(await readdir(path.join(packageRoot, "tests")), [
     "bmad-capability-catalog.test.mjs",
+    "bmad-spec.test.mjs",
     "builder-catalog.test.mjs",
     "builder-source-closure.test.mjs",
     "compatibility-ledger.test.mjs",
@@ -800,7 +848,7 @@ test("the semantic ledger locks source identity, licenses, and managed bytes", a
     ]),
   );
   assert.equal(members.size, ledger.sourceMembers.length, "source member identities must be unique");
-  assert.equal(members.size, 294, "the reviewed source set must be exact and closed");
+  assert.equal(members.size, 295, "the reviewed source set must be exact and closed");
   // ADR-0008 intake may only *append* a treatment (adopt for shipped text,
   // reject for executables). It must never rewrite a previously reviewed
   // decision, so every originally reviewed member's decision set must survive
@@ -1012,7 +1060,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
   }
 
   const method = projections.filter((projection) => projection.classification === "method");
-  assert.equal(method.length, 31);
+  assert.equal(method.length, 32);
   assert.ok(method.every((projection) => projection.state === "sealed_read_only"));
 
   const agentActions = projections

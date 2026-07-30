@@ -2,17 +2,29 @@
   "rowId": "method:src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
   "canonicalId": "bmm:bmad-check-implementation-readiness",
   "mode": "headless",
-  "description": "Catalog-declared headless mode. No headless path is named in the pinned source or its six step files -- every step halts at a menu and states content is never generated without user input. Recorded as a fidelity gap; see the adapter's module doc.",
+  "description": "Explicit Forge adaptation: the host supplies reviewed answers for every source-defined menu checkpoint and the adapter produces the same six-section report as interactive mode.",
   "inputs": {
-    "config": "{project-root}/_bmad/bmm/config.yaml"
+    "config": "{project-root}/_bmad/bmm/config.yaml",
+    "reviewedAnswers": {
+      "documentDiscovery": "PRD, architecture, UX, and epics were inventoried.",
+      "prdAnalysis": "Functional and non-functional requirements are complete.",
+      "epicCoverageValidation": "Every requirement maps to an epic and story.",
+      "uxAlignment": "UX flows agree with the architecture constraints.",
+      "epicQualityReview": "Stories are independently testable and sequenced.",
+      "finalAssessment": "READY. No critical issue remains."
+    }
   },
   "outputs": {
     "outputLocations": ["planning_artifacts"],
     "artifact": "{planning_artifacts}/implementation-readiness-report-{date}.md",
-    "artifactKind": "document"
-  },
-  "sourceDerivedContract": {
-    "sourceDeclared": false,
-    "expectedDisposition": "unsupported_by_pinned_source"
+    "artifactKind": "document",
+    "reportSections": [
+      "Document Discovery",
+      "PRD Analysis",
+      "Epic Coverage Validation",
+      "UX Alignment",
+      "Epic Quality Review",
+      "Summary and Recommendations"
+    ]
   }
 }

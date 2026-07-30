@@ -1262,7 +1262,11 @@ export function App({
   /// Narrows the runtime for the closures below, which need the typed client.
   const capabilityClient = hostRuntime.kind === "ready" ? hostRuntime.client : null;
 
-  async function prepareCapabilityRun(contextPaths: readonly string[]) {
+  async function prepareCapabilityRun(
+    contextPaths: readonly string[],
+    action: "create" | "update" | "validate" | null,
+    mode: "interactive" | "headless" | null,
+  ) {
     await runCapabilityAction(anyPhase, async ({ route, run, workspace }) => {
       if (capabilityClient === null) return;
       capabilitySessions.setActiveCapabilityRun({ ...run, phase: { kind: "preparing" } });
@@ -1270,6 +1274,8 @@ export function App({
         workspace.workspaceId,
         workspace.grantEpoch,
         run.capabilityId,
+        action,
+        mode,
         [...contextPaths],
       );
       route((current) => current === null
@@ -2570,7 +2576,8 @@ export function App({
       library: bmadLibraryState,
       openRun: openCapabilityRun,
       personaPerspectives,
-      prepareRun: (contextPaths) => void prepareCapabilityRun(contextPaths),
+      prepareRun: (contextPaths, action, mode) =>
+        void prepareCapabilityRun(contextPaths, action, mode),
       proposeChangeSet: (capabilityId) => void proposeCapabilityChangeSet(capabilityId),
       refreshWorkflow: () => void refreshWorkflowState(),
       reloadLibrary: () => {

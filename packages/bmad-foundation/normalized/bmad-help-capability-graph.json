@@ -1,8 +1,8 @@
 {
   "schemaVersion": "sapphirus.bmad-help-capability-graph.v1",
   "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
-  "sourceCatalogSha256": "56e4a4583b6e35790afbe8f968b2cc5f78d6d8baee54ec5167a8bf4db03b1875",
-  "sourceAliasCatalogSha256": "d0e7ea9d2caf0c1a72afcebe658213a69b485ef6ddda3ef5c83668de2c31287e",
+  "sourceCatalogSha256": "827092afa5909dd4f17bf0363fbd55c3a558519b55c7d0eb9fcddc7b64dd4301",
+  "sourceAliasCatalogSha256": "61c003eeb122724cbb95d74d17834dfd6d03ac0e028dd269403fd172915a822f",
   "nodeCount": 45,
   "nodes": [
     {
@@ -386,12 +386,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "exact",
-      "uiState": "planned",
+      "supportState": "adapted",
+      "uiState": "runtime_available",
       "rowIds": [
         "method:src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md"
       ],
-      "nodeHash": "sha256:ff703467572499567a52e86547d2e4a50933ee10da7b97f4b7bec4bc7edddaaa"
+      "nodeHash": "sha256:52048d8bd9986ea909dc19e699147f419431f4b42d668f30cfb34ca7cd1b5afa"
     },
     {
       "id": "bmm:bmad-sprint-planning",
@@ -831,5 +831,5 @@
       "deprecated": true
     }
   ],
-  "graphHash": "sha256:d6b774a77181addc64c428a136881a6340b0af8ac699263ad9e2eab3bf76da14"
+  "graphHash": "sha256:ba0c32277593d9bc4f063caaeeabb88bd35cb03b602d80784fb09dc357d061c5"
 }

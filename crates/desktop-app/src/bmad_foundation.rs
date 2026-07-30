@@ -17,9 +17,9 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:f5599c0ccbd727472101aab6e27c269a0902c9a78d4e3b28c15ae110d7afae71";
+    "sha256:9e4ad81607765a46e03722abf6aa2112aca95b986a1247933755b6ed2f7a167f";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:3df763238260208e0a94924b49fec1e62522ef5ae58240ca57d402f5d0d92deb";
+    "sha256:e3a213237ac36308ffc86617150c413558528037536f9b3eddc95c3f7fb1a2ac";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_CAPABILITY_GRAPH_PATH: &str = "normalized/bmad-help-capability-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
@@ -29,7 +29,7 @@ const WORKFLOW_GRAPH_PATH: &str = "source/method/6.10.0/src/bmm-skills/module-he
 const CORE_SKILL_CATALOG_PATH: &str = "source/method/6.10.0/src/core-skills/module-help.csv";
 const SEMANTIC_LEDGER_PATH: &str = "semantic-source-ledger.json";
 const HELP_INSTRUCTION_PATH: &str = "runtime/method/6.10.0/bmad-help.instructions.md";
-const METHOD_RUNTIME_PATHS: [&str; 31] = [
+const METHOD_RUNTIME_PATHS: [&str; 32] = [
     "runtime/method/6.10.0/analyst-persona.instructions.md",
     "runtime/method/6.10.0/architect-persona.instructions.md",
     "runtime/method/6.10.0/architecture-create.instructions.md",
@@ -54,6 +54,7 @@ const METHOD_RUNTIME_PATHS: [&str; 31] = [
     "runtime/method/6.10.0/qa-tests.instructions.md",
     "runtime/method/6.10.0/quick-dev.instructions.md",
     "runtime/method/6.10.0/retrospective.instructions.md",
+    "runtime/method/6.10.0/spec.instructions.md",
     "runtime/method/6.10.0/sprint-planning.instructions.md",
     "runtime/method/6.10.0/tech-writer-persona.instructions.md",
     "runtime/method/6.10.0/technical-research.instructions.md",
@@ -64,7 +65,7 @@ const METHOD_RUNTIME_PATHS: [&str; 31] = [
 ];
 /// ADR-0008 adopted upstream bodies live only here.
 const ADOPTED_SOURCE_ROOT: &str = "source/method/6.10.0/";
-const EXPECTED_RESOURCE_PATHS: [&str; 85] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 87] = [
     "NOTICE.md",
     "adoption-ledger.json",
     "builder-source-ledger.json",
@@ -96,6 +97,7 @@ const EXPECTED_RESOURCE_PATHS: [&str; 85] = [
     "normalized/bmad-qa-generate-e2e-tests.package.json",
     "normalized/bmad-quick-dev.package.json",
     "normalized/bmad-retrospective.package.json",
+    "normalized/bmad-spec.package.json",
     "normalized/bmad-sprint-planning.package.json",
     "normalized/bmad-tech-writer-explain-concept.package.json",
     "normalized/bmad-tech-writer-mermaid-gen.package.json",
@@ -139,6 +141,7 @@ const EXPECTED_RESOURCE_PATHS: [&str; 85] = [
     "runtime/method/6.10.0/qa-tests.instructions.md",
     "runtime/method/6.10.0/quick-dev.instructions.md",
     "runtime/method/6.10.0/retrospective.instructions.md",
+    "runtime/method/6.10.0/spec.instructions.md",
     "runtime/method/6.10.0/sprint-planning.instructions.md",
     "runtime/method/6.10.0/tech-writer-persona.instructions.md",
     "runtime/method/6.10.0/technical-research.instructions.md",
@@ -952,10 +955,12 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
     ) || matches!(
         (kind, path),
         (RuntimeContentKind::NormalizedContract, value) if value.starts_with("normalized/")
-            || matches!(
-                value,
-                "capability-catalog.json" | "compatibility-aliases.json"
-            )
+    ) || matches!(
+        (kind, path),
+        (
+            RuntimeContentKind::NormalizedContract,
+            "capability-catalog.json" | "compatibility-aliases.json"
+        )
     ) || matches!((kind, path), (RuntimeContentKind::LegalNotice, "NOTICE.md"))
         || matches!(
             (kind, path),

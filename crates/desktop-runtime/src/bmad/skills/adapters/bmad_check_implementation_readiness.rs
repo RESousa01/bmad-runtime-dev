@@ -1,171 +1,275 @@
-//! The `bmad-check-implementation-readiness` skill adapter.
+//! The `bmad-check-implementation-readiness` Method adapter.
 //!
-//! Without this module, MTH-13 has no typed descriptor to hand the runtime,
-//! Help, or the compatibility ledger -- they would each have to re-derive
-//! this skill's shape from the pinned `SKILL.md` prose themselves.
-//!
-//! The pinned source (`packages/bmad-foundation/source/method/6.10.0/src/
-//! bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md`)
-//! is a micro-file, step-sequenced workflow: activation resolves a
-//! `workflow` customization block, then execution hands off to
-//! `steps/step-01-document-discovery.md` through
-//! `steps/step-06-final-assessment.md`, each step self-contained and loaded
-//! just-in-time. Step 6's own frontmatter fixes the output path:
-//! `outputFile: '{planning_artifacts}/implementation-readiness-report-
-//! {{date}}.md'`.
-//!
-//! `declared_actions` stays empty: the source names no fixed,
-//! separately-invocable action -- the workflow is a single linear
-//! progression through its step files -- matching the catalog row's
-//! `action: null`.
-//!
-//! **Modes gap**: `capability-catalog.json` declares both `interactive` and
-//! `headless` for this rowId, but neither the `SKILL.md` nor any of its six
-//! step files names a headless path anywhere (unlike `bmad-architecture`,
-//! which explicitly forks on "Headless (no interactive user)", or
-//! `bmad-prfaq`'s documented `--headless` flag). Every step file instead
-//! repeats "HALT — wait for user input" and "NEVER generate content without
-//! user input". `supported_modes` still declares both, per the non-negotiable
-//! rule that a descriptor "declares its catalog-declared modes" -- but this
-//! is reported as a fidelity gap: the harness cannot represent "catalog says
-//! headless, but the source text never describes what headless does here."
+//! The pinned skill is a six-step, just-in-time workflow. This adapter keeps
+//! those step files as immutable resources and compiles their order into the
+//! shared Method step table. It does not execute the Python customization
+//! resolver, inspect project files, write the report, call a model, or invoke
+//! `bmad-help`; those source-declared effects become typed tool intents and
+//! therefore inert action-plan requirements at this authority boundary.
 
 use crate::generated_contracts::{
     BmadArtifactCompletionHookRunHook, BmadArtifactKind, BmadInvocationMode,
 };
 use crate::{
     BmadMethodSkill, BmadResource, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillSupportState, Sha256Digest,
+    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
+    BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillRecoverySemantics,
+    BmadSkillSupportState, BmadSkillToolIntent, ContractId, MethodArtifactExpectation,
+    MethodEvidenceClass, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
+    MethodResourcePolicy, MethodRuntimeRequirement, Sha256Digest,
 };
 
-/// Adapter for the pinned `bmad-check-implementation-readiness` Method skill
-/// (MTH-13).
+const ROOT: &str = "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness";
+const SKILL_PATH: &str =
+    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md";
+
+/// Adapter for the pinned implementation-readiness workflow (MTH-13).
 pub struct BmadCheckImplementationReadinessSkill;
 
 impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
     fn descriptor(&self) -> BmadSkillDescriptor {
         BmadSkillDescriptor::new(BmadSkillDescriptorInput {
             canonical_id: "bmm:bmad-check-implementation-readiness".to_owned(),
-            source_path: "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/\
-SKILL.md"
-                .to_owned(),
-            // Matches capability-catalog.json's row for this rowId; see
-            // `bmad_method_solutioning_skills.rs`, which binds against the
-            // catalog directly rather than trusting this literal alone.
-            // `from_bytes` is infallible (a `const fn` over a fixed-size
-            // array), so no fallible `parse` + panic-on-error is needed here.
-            source_sha256: Sha256Digest::from_bytes([
-                0xa7, 0xe1, 0x2e, 0xae, 0x2b, 0xdb, 0x5a, 0x95, 0xcc, 0x05, 0x34, 0xe6, 0xd5, 0xbf,
-                0x58, 0xe7, 0xce, 0x4b, 0x94, 0x73, 0x27, 0xa4, 0x94, 0xd4, 0x75, 0xef, 0x98, 0xe6,
-                0x7f, 0x03, 0x71, 0x8a,
-            ]),
-            // The source names no fixed action -- a single linear step-file
-            // progression. Catalog row records `action: null`. See module
-            // doc.
+            source_path: SKILL_PATH.to_owned(),
+            source_sha256: source_hash(
+                "sha256:a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
+            ),
             declared_actions: Vec::new(),
             supported_modes: vec![
                 BmadInvocationMode::Interactive,
                 BmadInvocationMode::Headless,
             ],
-            // No predecessor/follower is named as a fixed edge in the
-            // source text.
             predecessor: None,
-            follower: None,
-            // Step 4 ("Load Config") explicitly resolves
-            // `{planning_artifacts}` "for output location and artifact
-            // scanning", and Step 6's frontmatter writes the report there.
+            // Final Assessment explicitly says to invoke `bmad-help`.
+            follower: Some("bmm:bmad-help".to_owned()),
             output_locations: vec!["planning_artifacts".to_owned()],
-            // Step 6's `outputFile` is a single markdown report document.
             artifact_kinds: vec![BmadArtifactKind::Document],
-            // "Save the final report" / "Save state" appears throughout the
-            // step files, and Step 6 explicitly saves the completed report.
             completion_hooks: vec![BmadArtifactCompletionHookRunHook::PersistArtifacts],
-            // The full recursively owned source directory is immutable
-            // package data. Declaring its exact identities lets the generic
-            // resolver establish source closure without this adapter reading,
-            // interpreting, or granting authority to the pinned prose.
             declared_resources: vec![
-                source_resource(
-                    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
-                    [
-                        0xa7, 0xe1, 0x2e, 0xae, 0x2b, 0xdb, 0x5a, 0x95, 0xcc, 0x05, 0x34, 0xe6,
-                        0xd5, 0xbf, 0x58, 0xe7, 0xce, 0x4b, 0x94, 0x73, 0x27, 0xa4, 0x94, 0xd4,
-                        0x75, 0xef, 0x98, 0xe6, 0x7f, 0x03, 0x71, 0x8a,
-                    ],
+                resource(
+                    SKILL_PATH,
+                    "sha256:a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
                 ),
-                source_resource(
-                    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/customize.toml",
-                    [
-                        0x57, 0x1d, 0x81, 0x08, 0x7b, 0x7a, 0x6d, 0x91, 0x4c, 0xf7, 0xc2, 0xf2,
-                        0x1a, 0xa2, 0x63, 0x54, 0xea, 0xc3, 0x85, 0xbb, 0x2f, 0x5c, 0xfe, 0xab,
-                        0xc5, 0x91, 0x89, 0x2c, 0xbb, 0x98, 0xd0, 0x36,
-                    ],
+                resource(
+                    &format!("{ROOT}/customize.toml"),
+                    "sha256:571d81087b7a6d914cf7c2f21aa26354eac385bb2f5cfeabc591892cbb98d036",
                 ),
-                source_resource(
-                    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-01-document-discovery.md",
-                    [
-                        0xc7, 0x63, 0xb5, 0x12, 0xd5, 0x59, 0x06, 0x12, 0x24, 0x33, 0xcb, 0x65,
-                        0xc1, 0xbc, 0xd5, 0xb5, 0xb2, 0x83, 0xe4, 0x5e, 0xac, 0xdc, 0x07, 0x28,
-                        0x1c, 0x8e, 0xc7, 0x59, 0x6b, 0x6b, 0x39, 0x80,
-                    ],
+                resource(
+                    &format!("{ROOT}/steps/step-01-document-discovery.md"),
+                    "sha256:c763b512d55906122433cb65c1bcd5b5b283e45eacdc07281c8ec7596b6b3980",
                 ),
-                source_resource(
-                    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-02-prd-analysis.md",
-                    [
-                        0x38, 0xbe, 0x2b, 0xf4, 0xb9, 0x24, 0xc0, 0xb5, 0xb3, 0x95, 0xb5, 0x7d,
-                        0x68, 0xf6, 0x85, 0xd7, 0x90, 0xad, 0xe7, 0xb1, 0xa6, 0xc1, 0x09, 0x93,
-                        0xd3, 0xc5, 0x50, 0x67, 0x5f, 0x87, 0xd9, 0x54,
-                    ],
+                resource(
+                    &format!("{ROOT}/steps/step-02-prd-analysis.md"),
+                    "sha256:38be2bf4b924c0b5b395b57d68f685d790ade7b1a6c10993d3c550675f87d954",
                 ),
-                source_resource(
-                    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-03-epic-coverage-validation.md",
-                    [
-                        0x7b, 0x18, 0x7f, 0x03, 0xa4, 0x7c, 0xba, 0x03, 0x25, 0xfc, 0xfd, 0x10,
-                        0x24, 0x04, 0x10, 0xdb, 0x9c, 0x59, 0xd9, 0x37, 0x68, 0x34, 0x2f, 0xc2,
-                        0xdd, 0x3d, 0xe2, 0xa0, 0x1e, 0xc2, 0x33, 0x56,
-                    ],
+                resource(
+                    &format!("{ROOT}/steps/step-03-epic-coverage-validation.md"),
+                    "sha256:7b187f03a47cba0325fcfd10240410db9c59d93768342fc2dd3de2a01ec23356",
                 ),
-                source_resource(
-                    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-04-ux-alignment.md",
-                    [
-                        0xf7, 0x1e, 0x5f, 0x0d, 0x77, 0x61, 0x5e, 0x88, 0x5a, 0xe4, 0x0f, 0xde,
-                        0xe6, 0xb0, 0x4c, 0x1d, 0xd6, 0xe4, 0x72, 0xc8, 0x71, 0xf8, 0x7b, 0x51,
-                        0x5f, 0xe8, 0x69, 0xcb, 0x5f, 0x69, 0x66, 0xfb,
-                    ],
+                resource(
+                    &format!("{ROOT}/steps/step-04-ux-alignment.md"),
+                    "sha256:f71e5f0d77615e885ae40fdee6b04c1dd6e472c871f87b515fe869cb5f6966fb",
                 ),
-                source_resource(
-                    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-05-epic-quality-review.md",
-                    [
-                        0xd8, 0xa8, 0x4e, 0x57, 0xf4, 0xe3, 0xa3, 0x21, 0x73, 0x4b, 0x5b, 0x5d,
-                        0x09, 0x34, 0x58, 0xce, 0xb1, 0xe3, 0x38, 0x74, 0x4f, 0x18, 0x95, 0x4c,
-                        0x5a, 0x20, 0x4f, 0x5c, 0xe3, 0x57, 0x61, 0x85,
-                    ],
+                resource(
+                    &format!("{ROOT}/steps/step-05-epic-quality-review.md"),
+                    "sha256:d8a84e57f4e3a321734b5b5d093458ceb1e338744f18954c5a204f5ce3576185",
                 ),
-                source_resource(
-                    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/steps/step-06-final-assessment.md",
-                    [
-                        0x1b, 0x9c, 0x8c, 0x2a, 0x21, 0x95, 0x0f, 0x85, 0xe0, 0x52, 0xe0, 0x53,
-                        0x09, 0xbf, 0xcb, 0x3b, 0xfe, 0x38, 0x15, 0x7b, 0xa6, 0xfc, 0xa4, 0x02,
-                        0xcc, 0xf3, 0x74, 0x44, 0xe7, 0xf1, 0xce, 0xe3,
-                    ],
+                resource(
+                    &format!("{ROOT}/steps/step-06-final-assessment.md"),
+                    "sha256:1b9c8c2a21950f85e052e05309bfcb3bfe38157ba6fca402ccf37444e7f1cee3",
                 ),
-                source_resource(
-                    "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/templates/readiness-report-template.md",
-                    [
-                        0x0d, 0xa9, 0x7a, 0xb1, 0xe3, 0x88, 0x18, 0xe6, 0x42, 0xf3, 0x6d, 0xc0,
-                        0xef, 0x24, 0xd2, 0xda, 0xe6, 0x9f, 0xc6, 0xe0, 0xbe, 0x59, 0x92, 0x4d,
-                        0xc2, 0xdb, 0xf4, 0x43, 0x29, 0x73, 0x8f, 0xf6,
-                    ],
+                resource(
+                    &format!("{ROOT}/templates/readiness-report-template.md"),
+                    "sha256:0da97ab1e38818e642f36dc0ef24d2dae69fc6e0be59924dc2dbf44329738ff6",
                 ),
             ],
             support_state: BmadSkillSupportState::Exact,
         })
-        .unwrap_or_else(|_| unreachable!("this adapter's fields satisfy the harness's own bounds"))
+        .unwrap_or_else(|_| unreachable!("pinned readiness descriptor is bounded and canonical"))
+    }
+
+    fn execution_contract(&self) -> Result<BmadSkillExecutionContract, BmadSkillExecutionError> {
+        let descriptor = self.descriptor();
+        let execution_profile = execution_profile(&descriptor)?;
+
+        BmadSkillExecutionContract::new(BmadSkillExecutionContractInput {
+            descriptor,
+            package_name: "bmad-method".to_owned(),
+            package_version: "6.10.0".to_owned(),
+            package_version_id: contract_id(
+                "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+            )?,
+            package_descriptor_hash: digest(
+                "sha256:cd406cecc48f302b9969f208a4adbf7b2a8d10a3d1d3fb67ccd3116042776c92",
+            )?,
+            package_source_hash: digest(
+                "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
+            )?,
+            instruction_projection_hash: digest(
+                "sha256:8335100a0c468f03cf6187a0dc58dcc0435328727c1740f7c70b947122a58cca",
+            )?,
+            capability_catalog_hash: digest(
+                "sha256:141c49232e202e4981244e13d336f840998c065503d418e218516da7e6b16515",
+            )?,
+            distribution_profile: "sapphirus_package".to_owned(),
+            install_profile: "SapphirusManagedV1".to_owned(),
+            execution_profile,
+            validation_profile_hash: digest(
+                "sha256:3e851de810792a1caacb2f4e4c1ac2134359f5b9da8c3870c6c37b967b03efba",
+            )?,
+            method_schema_hash: digest(
+                "sha256:dda02f453dcf4edbb3fc66e0ad3a7c59d7087f5b44b526e40c435456c8c248c2",
+            )?,
+            workflow: workflow()?,
+            action_branches: Vec::new(),
+            tool_intents: vec![
+                BmadSkillToolIntent::FileRead,
+                BmadSkillToolIntent::FileWrite,
+                BmadSkillToolIntent::Process,
+                BmadSkillToolIntent::ExternalHandoff,
+            ],
+            artifact_expectations: vec![artifact_expectation()?],
+            recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
+        })
     }
 }
 
-fn source_resource(path: &str, content_hash: [u8; 32]) -> BmadResource {
-    BmadResource::new(path, Sha256Digest::from_bytes(content_hash)).unwrap_or_else(|_| {
-        unreachable!("all pinned implementation-readiness resource paths are canonical")
+fn execution_profile(
+    descriptor: &BmadSkillDescriptor,
+) -> Result<MethodExecutionProfile, BmadSkillExecutionError> {
+    MethodExecutionProfile::from_source(
+        MethodExecutionProfileData {
+            entrypoint_kind: "step_jit".to_owned(),
+            invocation_modes: MethodInvocationModes {
+                interactive: true,
+                headless: true,
+                actions: Vec::new(),
+            },
+            required_runtimes: vec![MethodRuntimeRequirement {
+                runtime: "python".to_owned(),
+                version_range: ">=3".to_owned(),
+                required: false,
+            }],
+            resource_policy: MethodResourcePolicy {
+                entrypoint_timing: "invocation_start".to_owned(),
+                resource_timing: "current_step_only".to_owned(),
+                declared_resource_paths: descriptor
+                    .declared_resources()
+                    .iter()
+                    .map(|resource| resource.path().to_owned())
+                    .collect(),
+            },
+            declared_tool_intents: vec![
+                "file_read".to_owned(),
+                "file_write".to_owned(),
+                "process".to_owned(),
+                "external_handoff".to_owned(),
+            ],
+            state_hints: vec!["memlog".to_owned(), "artifact_workspace".to_owned()],
+            completion_evidence: vec![
+                "artifact".to_owned(),
+                "event".to_owned(),
+                "status_evidence".to_owned(),
+            ],
+            customization_profile: "method_skill_toml".to_owned(),
+            validation_profile: "MethodStepWorkflowV6".to_owned(),
+        },
+        digest("sha256:4dce9489113476ed4da1944a00b88c2b4eef3e1509a2c0be7b5bb1623c1d1fe2")?,
+    )
+    .map_err(|_| BmadSkillExecutionError::ContractInvalid)
+}
+
+fn workflow() -> Result<BmadSkillExecutionWorkflow, BmadSkillExecutionError> {
+    let steps = [
+        (
+            "document_discovery",
+            Some("prd_analysis"),
+            "step-01-document-discovery.md",
+            "sha256:c763b512d55906122433cb65c1bcd5b5b283e45eacdc07281c8ec7596b6b3980",
+        ),
+        (
+            "prd_analysis",
+            Some("epic_coverage_validation"),
+            "step-02-prd-analysis.md",
+            "sha256:38be2bf4b924c0b5b395b57d68f685d790ade7b1a6c10993d3c550675f87d954",
+        ),
+        (
+            "epic_coverage_validation",
+            Some("ux_alignment"),
+            "step-03-epic-coverage-validation.md",
+            "sha256:7b187f03a47cba0325fcfd10240410db9c59d93768342fc2dd3de2a01ec23356",
+        ),
+        (
+            "ux_alignment",
+            Some("epic_quality_review"),
+            "step-04-ux-alignment.md",
+            "sha256:f71e5f0d77615e885ae40fdee6b04c1dd6e472c871f87b515fe869cb5f6966fb",
+        ),
+        (
+            "epic_quality_review",
+            Some("final_assessment"),
+            "step-05-epic-quality-review.md",
+            "sha256:d8a84e57f4e3a321734b5b5d093458ceb1e338744f18954c5a204f5ce3576185",
+        ),
+        (
+            "final_assessment",
+            None,
+            "step-06-final-assessment.md",
+            "sha256:1b9c8c2a21950f85e052e05309bfcb3bfe38157ba6fca402ccf37444e7f1cee3",
+        ),
+    ];
+    Ok(BmadSkillExecutionWorkflow {
+        initial_step_key: "document_discovery".to_owned(),
+        steps: steps
+            .into_iter()
+            .map(
+                |(step_key, next_step_key, file, hash)| -> Result<_, BmadSkillExecutionError> {
+                    Ok(BmadSkillExecutionStep {
+                        step_key: step_key.to_owned(),
+                        next_step_key: next_step_key.map(str::to_owned),
+                        source_resource_path: format!("{ROOT}/steps/{file}"),
+                        source_resource_hash: digest(hash)?,
+                    })
+                },
+            )
+            .collect::<Result<Vec<_>, _>>()?,
     })
+}
+
+fn artifact_expectation() -> Result<MethodArtifactExpectation, BmadSkillExecutionError> {
+    MethodArtifactExpectation::from_source(MethodArtifactExpectation {
+        expectation_kind: "method_artifact".to_owned(),
+        expectation_id: contract_id("expectation_01J00000000000000000000013")?,
+        artifact_kind: "document".to_owned(),
+        required: true,
+        storage_scope: "app_local".to_owned(),
+        expected_media_type: "text/markdown".to_owned(),
+        expected_content_schema_hash: None,
+        source_output_hint: Some(
+            "{planning_artifacts}/implementation-readiness-report-{{date}}.md".to_owned(),
+        ),
+        completion_evidence_class: MethodEvidenceClass::Authoritative,
+        expectation_hash: digest(
+            "sha256:77677e4bf282ffc1d8d843d3e9403c7b11895c687a425da15966d370fffa37b2",
+        )?,
+    })
+    .map_err(|_| BmadSkillExecutionError::ContractInvalid)
+}
+
+fn resource(path: &str, hash: &str) -> BmadResource {
+    BmadResource::new(path, source_hash(hash))
+        .unwrap_or_else(|_| unreachable!("pinned readiness resource path is canonical"))
+}
+
+fn source_hash(value: &str) -> Sha256Digest {
+    Sha256Digest::parse(value)
+        .unwrap_or_else(|_| unreachable!("pinned readiness resource hash is canonical"))
+}
+
+fn digest(value: &str) -> Result<Sha256Digest, BmadSkillExecutionError> {
+    Sha256Digest::parse(value).map_err(|_| BmadSkillExecutionError::ContractInvalid)
+}
+
+fn contract_id(value: &str) -> Result<ContractId, BmadSkillExecutionError> {
+    ContractId::new(value).map_err(|_| BmadSkillExecutionError::ContractInvalid)
 }
