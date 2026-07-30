@@ -114,7 +114,25 @@ release, Azure, or pilot readiness.
 
 ## Merge interpretation
 
-The BMAD work is being merged for preservation and review. A merge does not
-change a partial task into a passed task. Review status and authoritative
-receipts remain the completion boundary.
+All eight started BMAD branch tips are now reachable from local `main`:
 
+- MTH-08: `ead276e1`
+- MTH-09: `9fb93a39`
+- MTH-10: `17cf7dcd`
+- MTH-12: `e9917f4a`
+- MTH-13: `dad978f0`
+- MTH-38: `bed86e62`
+- MTH-40: `f927107a`
+- MTH-42: `cad2748f`
+
+Merge commits on `main` are `deb8d086`, `8f18bf1d`, `b06c4601`,
+`106cba19`, `8ea16d10`, `172dfe58`, and `fb797fed`.
+
+Where frozen branches conflicted in shared runtime or generated files, the
+accepted MTH-08/MTH-09-side working-tree version was retained. The complete
+frozen branch commit remains reachable through the merge parent, so its exact
+candidate diff can be recovered later without putting unresolved or older
+shared projections into the current `main` tree.
+
+A merge does not change a partial task into a passed task. Review status and
+authoritative receipts remain the completion boundary.

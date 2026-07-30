@@ -8,6 +8,11 @@ Implementation is stopped after the already-started Method branches are
 preserved. No untouched backlog task should be started until the owner
 explicitly resumes this plan.
 
+All started branch tips have been merged into local `main` for reachability.
+Conflicting shared/generated files kept the accepted integration-side version;
+the complete frozen candidate remains available from the second parent of its
+merge commit.
+
 Do not delete or rewrite the following worktrees until their changes are
 confirmed in the integration history:
 
@@ -128,4 +133,3 @@ A restart is safe when:
 - the latest accepted task has a clean independent review;
 - the next task starts from that accepted tree;
 - no unrelated Foundry changes are included in the BMAD task diff.
-
