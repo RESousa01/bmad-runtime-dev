@@ -135,7 +135,7 @@ impl BmadMethodSkill for BmadReviewSkill {
                 "sha256:2f21311006a41374538839354ce69bcf336da5c5f43760e17a3ecf58a588d605",
             )?,
             capability_catalog_hash: digest(
-                "sha256:56d3fa2bee74bd5e39d2e5b139755f25447fccf840332f2853eb092e99487f63",
+                "sha256:92b1cd6892be3685d8d583574361b56ba335a44846b2b2f5e77f177ebdc8dba6",
             )?,
             distribution_profile: "sapphirus_package".to_owned(),
             install_profile: "SapphirusManagedV1".to_owned(),

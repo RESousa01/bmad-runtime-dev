@@ -50,6 +50,7 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/qa-tests.instructions.md",
   "runtime/method/6.10.0/quick-dev.instructions.md",
   "runtime/method/6.10.0/retrospective.instructions.md",
+  "runtime/method/6.10.0/review.instructions.md",
   "runtime/method/6.10.0/sprint-planning.instructions.md",
   "runtime/method/6.10.0/tech-writer-persona.instructions.md",
   "runtime/method/6.10.0/technical-research.instructions.md",
@@ -84,6 +85,7 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-qa-generate-e2e-tests.package.json",
   "normalized/bmad-quick-dev.package.json",
   "normalized/bmad-retrospective.package.json",
+  "normalized/bmad-review.package.json",
   "normalized/bmad-sprint-planning.package.json",
   "normalized/bmad-tech-writer-explain-concept.package.json",
   "normalized/bmad-tech-writer-mermaid-gen.package.json",
@@ -383,6 +385,19 @@ const expectedProjectionSourceMemberIds = Object.freeze({
     "method-004",
     "method-062",
     "method-063",
+  ],
+  "runtime/method/6.10.0/review.instructions.md": [
+    "method-233",
+    "method-234",
+    "method-235",
+    "method-236",
+    "method-248",
+    "method-249",
+    "method-250",
+    "method-251",
+    "method-252",
+    "method-253",
+    "method-254",
   ],
   "runtime/method/6.10.0/sprint-planning.instructions.md": [
     "method-004",
@@ -800,7 +815,7 @@ test("the semantic ledger locks source identity, licenses, and managed bytes", a
     ]),
   );
   assert.equal(members.size, ledger.sourceMembers.length, "source member identities must be unique");
-  assert.equal(members.size, 294, "the reviewed source set must be exact and closed");
+  assert.equal(members.size, 301, "the reviewed source set must be exact and closed");
   // ADR-0008 intake may only *append* a treatment (adopt for shipped text,
   // reject for executables). It must never rewrite a previously reviewed
   // decision, so every originally reviewed member's decision set must survive
@@ -1012,7 +1027,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
   }
 
   const method = projections.filter((projection) => projection.classification === "method");
-  assert.equal(method.length, 31);
+  assert.equal(method.length, 32);
   assert.ok(method.every((projection) => projection.state === "sealed_read_only"));
 
   const agentActions = projections
@@ -1533,9 +1548,9 @@ test("capability closure ledger covers every roster menu path exactly once", asy
   }
 
   // The denominator is the ADR-0005 menu capabilities, the ADR-0006 Builder
-  // operations, and the ADR-0008 core skills. Core skills have no agent menu
-  // path — upstream invokes them from inside other skills — so they are
-  // counted by their adopted-source binding instead.
+  // operations, and canonical ADR-0008 core capabilities. Compatibility-only
+  // review lenses resolve to `core:bmad-review` before dispatch, so they do not
+  // remain parallel executable capability records.
   const menuCapabilityIds = new Set(expectedMenuPaths.map(([, , id]) => id));
   const coreSkillRecords = records.filter((record) =>
     record.managedProjection?.startsWith("source/method/6.10.0/src/core-skills/") === true);
@@ -1543,10 +1558,21 @@ test("capability closure ledger covers every roster menu path exactly once", asy
     assert.equal(record.agentCodes.length, 0, `${record.capabilityId} must have no menu path`);
     assert.equal(record.sourceDecision, "verbatim_adoption_under_adr_0008");
   }
-  assert.equal(coreSkillRecords.length, 9, "core skill denominator drift");
+  assert.equal(coreSkillRecords.length, 4, "canonical core capability denominator drift");
+  const directCoreRecords = records.filter(
+    (record) => record.capabilityId === "core:bmad-review",
+  );
+  assert.equal(directCoreRecords.length, 1, "canonical review denominator drift");
+  assert.equal(
+    directCoreRecords[0].managedProjection,
+    "runtime/method/6.10.0/review.instructions.md",
+  );
   assert.equal(
     records.length,
-    menuCapabilityIds.size + expectedBuilderOperations.length + coreSkillRecords.length,
+    menuCapabilityIds.size
+      + expectedBuilderOperations.length
+      + coreSkillRecords.length
+      + directCoreRecords.length,
     "denominator drift: unexpected extra or missing capability records",
   );
 });

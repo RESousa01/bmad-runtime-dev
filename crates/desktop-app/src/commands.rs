@@ -2399,15 +2399,13 @@ fn prepare_canonical_method_session(
         Err(desktop_runtime::BmadSkillExecutionError::ContractUnavailable) => return Ok(()),
         Err(_) => return Err(method_integrity_error()),
     };
-    let descriptor = skill.describe().map_err(|_| method_integrity_error())?;
+    let descriptor = skill.descriptor();
     let customization_hash = descriptor
         .declared_resources()
         .iter()
-        .find(|resource| {
-            resource.path() == "src/core-skills/bmad-review/customize.toml"
-        })
+        .find(|resource| resource.path().ends_with("/customize.toml"))
         .map(desktop_runtime::BmadResource::content_hash)
-        .ok_or_else(method_integrity_error)?;
+        .unwrap_or_else(|| descriptor.source_sha256());
     let contract = skill
         .execution_contract()
         .map_err(|_| method_integrity_error())?;
@@ -2432,7 +2430,7 @@ fn prepare_canonical_method_session(
         })
         .map_err(|_| method_integrity_error())?;
     let prepared = BmadDomainRuntime
-        .prepare_skill_execution(skill, request)
+        .prepare_skill_execution(skill, request.clone())
         .map_err(|_| method_integrity_error())?;
 
     let identity = state
@@ -2479,12 +2477,12 @@ fn prepare_canonical_method_session(
             skill,
             request,
             CreateMethodSession {
-            session_id: session_id.clone(),
-            owner_scope_ref: scope.owner_scope_ref.clone(),
-            project_id: project_id.clone(),
-            run_id: run_id.clone(),
-            authority_ref: scope.authority_ref.clone(),
-            created_at,
+                session_id: session_id.clone(),
+                owner_scope_ref: scope.owner_scope_ref.clone(),
+                project_id: project_id.clone(),
+                run_id: run_id.clone(),
+                authority_ref: scope.authority_ref.clone(),
+                created_at,
             },
         )
         .map_err(|_| method_integrity_error())?;
@@ -4229,8 +4227,9 @@ mod tests {
     }
 
     use desktop_runtime::{
-        sha256_bytes, BmadHelpIntent, BmadLibraryProjectionScope, ContractId, LocalCommand,
-        LocalErrorCode, ModelProviderId, UnixMillis,
+        canonical_hash, sha256_bytes, BmadHelpIntent, BmadLibraryProjectionScope, ContractId,
+        LocalCommand, LocalErrorCode, MethodSessionRepository, MethodSessionScope, MethodState,
+        ModelProviderId, UnixMillis,
     };
     use desktop_store::{
         BmadHelpRunCompletionReceipt, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
@@ -5088,6 +5087,69 @@ planning_artifacts = \"{project-root}/docs/plan\"
             .is_err(),
             "a changed preimage must fail closed"
         );
+        Ok(())
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn production_review_prepare_dispatches_and_persists_the_method_binding(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::RelativeWorkspacePath;
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, workspace, workspace_id) = ready_workspace_state();
+        std::fs::write(
+            workspace.path().join("review-target.md"),
+            b"# Review target\n\nA concrete governed review input.\n",
+        )?;
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let workspace_contract = id(&workspace_id);
+        let capability = "core:bmad-review";
+
+        let HostCommandData::CapabilityReview(review) = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            workspace_contract,
+            1,
+            capability,
+            vec![RelativeWorkspacePath::new("review-target.md")?],
+            UnixMillis(42_000),
+        )
+        .expect("production review preparation")
+        else {
+            return Err("expected a capability review projection".into());
+        };
+
+        let authority = state.ready_authority().expect("ready authority");
+        let identity = state.local_identity(&authority).expect("local identity");
+        let authority_ref = identity.authority_ref().expect("authority ref");
+        let project_id = id("project_01J00000000000000000000000");
+        let session_digest = canonical_hash(
+            "bmad-method-session-id",
+            1,
+            &(capability, review.run_id.as_str()),
+        )?;
+        let session_id =
+            crate::bmad_model::context::derived_contract_id("method", session_digest)?;
+        let scope = MethodSessionScope {
+            owner_scope_ref: identity.owner_scope_ref().clone(),
+            project_id,
+            run_id: review.run_id,
+            authority_ref,
+        };
+        let persisted = state
+            .method_store(&authority)?
+            .load_method_session(&scope, &session_id)?
+            .ok_or("production caller did not persist a Method session")?;
+        assert_eq!(persisted.state(), MethodState::ContextReviewRequired);
+        assert_eq!(persisted.version(), 3);
+        let exact = persisted.current_binding()?;
+        assert_eq!(exact.capability_key.module_code, "core");
+        assert_eq!(exact.capability_key.skill_name, "bmad-review");
         Ok(())
     }
 

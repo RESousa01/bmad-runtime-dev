@@ -142,6 +142,39 @@ test("BMAD Help exposes canonical PRD exact runtime availability without promoti
   );
 });
 
+test("BMAD Help exposes one canonical review node with report output and governed aliases", async () => {
+  const graph = await readJson("normalized/bmad-help-capability-graph.json");
+  const review = graph.nodes.find((node) => node.id === "core:bmad-review");
+
+  assert.equal(review?.supportState, "exact");
+  assert.equal(review?.uiState, "runtime_available");
+  assert.deepEqual(review?.predecessorIds, []);
+  assert.deepEqual(review?.followerIds, []);
+  assert.deepEqual(review?.outputLocations, ["report_path"]);
+  assert.deepEqual(review?.rowIds, [
+    "method:src/core-skills/bmad-review/SKILL.md",
+    "method:src/core-skills/v6-shims/bmad-editorial-review-prose/SKILL.md",
+    "method:src/core-skills/v6-shims/bmad-editorial-review-structure/SKILL.md",
+    "method:src/core-skills/v6-shims/bmad-editorial-review/SKILL.md",
+    "method:src/core-skills/v6-shims/bmad-review-adversarial-general/SKILL.md",
+    "method:src/core-skills/v6-shims/bmad-review-edge-case-hunter/SKILL.md",
+    "method:src/core-skills/v6-shims/bmad-review-verification-gap/SKILL.md",
+  ]);
+  assert.deepEqual(
+    graph.aliasEdges
+      .filter((edge) => edge.canonicalId === "core:bmad-review")
+      .map((edge) => [edge.aliasId, edge.deprecated]),
+    [
+      ["core:bmad-editorial-review", true],
+      ["core:bmad-editorial-review-prose", true],
+      ["core:bmad-editorial-review-structure", true],
+      ["core:bmad-review-adversarial-general", true],
+      ["core:bmad-review-edge-case-hunter", true],
+      ["core:bmad-review-verification-gap", true],
+    ],
+  );
+});
+
 test("BMAD Help action graph nodes are unique and canonically ordered", async () => {
   const graph = await readJson("normalized/bmad-help-capability-graph.json");
   const ids = graph.nodes.map((node) => node.id);

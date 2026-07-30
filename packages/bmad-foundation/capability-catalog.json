@@ -10,7 +10,7 @@
       "version": "2.1.0"
     }
   },
-  "sourceAccountingSha256": "c2e539f5c6c7bf8ea89136b7a2fe923ede1f7f974e322ca569e49f513c9bbfb9",
+  "sourceAccountingSha256": "e2ca79419332ae475ac9273aef1f2a355b2288e8d97bc7be97e0cfa4615ce036",
   "compatibilityLedgerSha256": "d18849dd9fb6a99c9804e430dcf7f9fe87bd68082a9dd00068aef2ef3d886a53",
   "counts": {
     "method": 48,
@@ -1603,7 +1603,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "report_path"
       ],
       "supportState": "exact",
       "uiState": "runtime_available",
@@ -1647,7 +1647,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "report_path"
       ],
       "supportState": "unavailable",
       "uiState": "planned",
@@ -1691,7 +1691,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "report_path"
       ],
       "supportState": "unavailable",
       "uiState": "planned",
@@ -1735,7 +1735,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "report_path"
       ],
       "supportState": "unavailable",
       "uiState": "planned",
@@ -1779,7 +1779,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "report_path"
       ],
       "supportState": "unavailable",
       "uiState": "planned",
@@ -1823,7 +1823,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "report_path"
       ],
       "supportState": "unavailable",
       "uiState": "planned",
@@ -1867,7 +1867,7 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "report_path"
       ],
       "supportState": "unavailable",
       "uiState": "planned",
@@ -2289,5 +2289,5 @@
       ]
     }
   ],
-  "catalogSha256": "56d3fa2bee74bd5e39d2e5b139755f25447fccf840332f2853eb092e99487f63"
+  "catalogSha256": "92b1cd6892be3685d8d583574361b56ba335a44846b2b2f5e77f177ebdc8dba6"
 }

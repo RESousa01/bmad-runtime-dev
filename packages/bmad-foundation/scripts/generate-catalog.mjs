@@ -78,7 +78,9 @@ function methodRow(member, aliasesByTarget, ledgerByRowId) {
       "post_validation",
       "durable_evidence",
     ],
-    outputs: ["governed_artifact"],
+    outputs: member.target_capability === "core:bmad-review"
+      ? ["report_path"]
+      : ["governed_artifact"],
     supportState: ledgerRow.supportState,
     uiState: member.ui_state,
     visibility: "public",

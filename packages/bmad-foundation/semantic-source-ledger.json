@@ -3208,6 +3208,10 @@
         {
           "decision": "adopt",
           "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Project the canonical review workflow through the typed Method compiler, durable session service, and host-governed authority boundary."
         }
       ]
     },
@@ -3220,6 +3224,10 @@
         {
           "decision": "adopt",
           "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Resolve customization as pinned configuration data inside the canonical review execution contract."
         }
       ]
     },
@@ -3232,6 +3240,10 @@
         {
           "decision": "adopt",
           "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review reference as inert, hash-verified input to the canonical review projection."
         }
       ]
     },
@@ -3244,90 +3256,10 @@
         {
           "decision": "adopt",
           "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
-        }
-      ]
-    },
-    {
-      "id": "method-248",
-      "sourceId": "method",
-      "member": "src/core-skills/bmad-review/references/lens-edge-case-hunter.md",
-      "sha256": "f2709e3adb40943ea0f19d0797be379caf0875eaef9a55081dc1e170e8288b68",
-      "treatments": [
+        },
         {
-          "decision": "adopt",
-          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
-        }
-      ]
-    },
-    {
-      "id": "method-249",
-      "sourceId": "method",
-      "member": "src/core-skills/bmad-review/references/lens-prose.md",
-      "sha256": "4cbcb1eaea8567d272f5db7c6cdfd74ed5a8aae6831053cb2f01cbfc2cb98b98",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
-        }
-      ]
-    },
-    {
-      "id": "method-250",
-      "sourceId": "method",
-      "member": "src/core-skills/bmad-review/references/lens-structure.md",
-      "sha256": "98c08221f517133e57ef6325013935360c3365ebd7dcb8411b2050d7df507ee3",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
-        }
-      ]
-    },
-    {
-      "id": "method-251",
-      "sourceId": "method",
-      "member": "src/core-skills/bmad-review/references/lens-verification-gap.md",
-      "sha256": "6a424589b2f95021467dd357874163c219158d5a0acdbeb0970ba9e61692f289",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
-        }
-      ]
-    },
-    {
-      "id": "method-252",
-      "sourceId": "method",
-      "member": "src/core-skills/bmad-review/references/structure-models.md",
-      "sha256": "f84f85070e1af75f2482757aba9d37d69d805a20826d185527e598f2ba6b9292",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
-        }
-      ]
-    },
-    {
-      "id": "method-253",
-      "sourceId": "method",
-      "member": "src/core-skills/bmad-review/scripts/tests/test_word_metrics.py",
-      "sha256": "3b5a285d3c9f611b3cda8c9c1d52d6b214c1f72e6e64a94ea5b0e220db5a8765",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
-        }
-      ]
-    },
-    {
-      "id": "method-254",
-      "sourceId": "method",
-      "member": "src/core-skills/bmad-review/scripts/word_metrics.py",
-      "sha256": "fb45007a7f3cfc18d13ee8bd4787facdaae297570193bc769456297dd33da78b",
-      "treatments": [
-        {
-          "decision": "adopt",
-          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
         }
       ]
     },
@@ -3460,6 +3392,118 @@
         {
           "decision": "reject",
           "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "id": "method-248",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-edge-case-hunter.md",
+      "sha256": "f2709e3adb40943ea0f19d0797be379caf0875eaef9a55081dc1e170e8288b68",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
+        }
+      ]
+    },
+    {
+      "id": "method-249",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-prose.md",
+      "sha256": "4cbcb1eaea8567d272f5db7c6cdfd74ed5a8aae6831053cb2f01cbfc2cb98b98",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
+        }
+      ]
+    },
+    {
+      "id": "method-250",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-structure.md",
+      "sha256": "98c08221f517133e57ef6325013935360c3365ebd7dcb8411b2050d7df507ee3",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
+        }
+      ]
+    },
+    {
+      "id": "method-251",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/lens-verification-gap.md",
+      "sha256": "6a424589b2f95021467dd357874163c219158d5a0acdbeb0970ba9e61692f289",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
+        }
+      ]
+    },
+    {
+      "id": "method-252",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/references/structure-models.md",
+      "sha256": "f84f85070e1af75f2482757aba9d37d69d805a20826d185527e598f2ba6b9292",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review structure model as inert, hash-verified input to the canonical projection."
+        }
+      ]
+    },
+    {
+      "id": "method-253",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/scripts/tests/test_word_metrics.py",
+      "sha256": "3b5a285d3c9f611b3cda8c9c1d52d6b214c1f72e6e64a94ea5b0e220db5a8765",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain the source test semantics as conformance evidence for the governed review metrics path."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Executable source cannot gain runtime authority directly; process use remains host-governed."
+        }
+      ]
+    },
+    {
+      "id": "method-254",
+      "sourceId": "method",
+      "member": "src/core-skills/bmad-review/scripts/word_metrics.py",
+      "sha256": "fb45007a7f3cfc18d13ee8bd4787facdaae297570193bc769456297dd33da78b",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain the word-metric semantics behind the canonical review process-intent boundary."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Executable source cannot gain runtime authority directly; process use remains host-governed."
         }
       ]
     },
@@ -4260,8 +4304,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 118432,
-      "sha256": "671a01ab243ecf4ec17f0f534da86a4b8460db9d7c33fb305cacab37072cae86"
+      "byteLength": 122770,
+      "sha256": "a0733f6bacae379e703053ea29005557da914b066fab91d2c94973bbbc7192b3"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",
@@ -4417,6 +4461,11 @@
       "path": "runtime/method/6.10.0/retrospective.instructions.md",
       "byteLength": 1757,
       "sha256": "0c38f80466d60843ece1e39598abe69ba8bf5b02c424f75a5865422889083def"
+    },
+    {
+      "path": "runtime/method/6.10.0/review.instructions.md",
+      "byteLength": 2465,
+      "sha256": "7e5be8df1c36113d38c89d31cb04606d5cd1867347466b764f439ed70fe14925"
     },
     {
       "path": "runtime/method/6.10.0/sprint-planning.instructions.md",
@@ -6029,20 +6078,6 @@
       "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/references/structure-models.md",
       "sha256": "f84f85070e1af75f2482757aba9d37d69d805a20826d185527e598f2ba6b9292",
       "byteLength": 1972
-    },
-    {
-      "sourceId": "method",
-      "member": "src/core-skills/bmad-review/scripts/tests/test_word_metrics.py",
-      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/scripts/tests/test_word_metrics.py",
-      "sha256": "3b5a285d3c9f611b3cda8c9c1d52d6b214c1f72e6e64a94ea5b0e220db5a8765",
-      "byteLength": 1556
-    },
-    {
-      "sourceId": "method",
-      "member": "src/core-skills/bmad-review/scripts/word_metrics.py",
-      "packagePath": "source/method/6.10.0/src/core-skills/bmad-review/scripts/word_metrics.py",
-      "sha256": "fb45007a7f3cfc18d13ee8bd4787facdaae297570193bc769456297dd33da78b",
-      "byteLength": 3441
     },
     {
       "sourceId": "method",

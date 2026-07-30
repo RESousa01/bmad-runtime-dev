@@ -1525,6 +1525,30 @@ mod tests {
     }
 
     #[test]
+    fn canonical_review_dispatch_resolves_aliases_before_the_single_runtime_adapter() {
+        let canonical = canonical_method_skill("core:bmad-review")
+            .expect("canonical review resolves to its runtime adapter");
+        assert_eq!(canonical.descriptor().canonical_id(), "core:bmad-review");
+        assert!(canonical.execution_contract().is_ok());
+        for alias in [
+            "core:bmad-editorial-review",
+            "core:bmad-editorial-review-prose",
+            "core:bmad-editorial-review-structure",
+            "core:bmad-review-adversarial-general",
+            "core:bmad-review-edge-case-hunter",
+            "core:bmad-review-verification-gap",
+        ] {
+            let resolved = canonical_method_skill(alias)
+                .unwrap_or_else(|_| panic!("{alias} must resolve before dispatch"));
+            assert_eq!(resolved.descriptor().canonical_id(), "core:bmad-review");
+            assert_eq!(
+                capability_binding(alias).map(|binding| binding.id),
+                Some("core:bmad-review")
+            );
+        }
+    }
+
+    #[test]
     fn a_full_capability_context_load_seals_with_the_memlog() {
         let mut candidates = vec![
             sealed_instruction_candidate(b"Follow the sealed BMAD method.")

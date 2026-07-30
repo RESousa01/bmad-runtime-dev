@@ -17,9 +17,9 @@ use thiserror::Error;
 const MAX_RESOURCE_BYTES: u64 = 1_048_576;
 const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
-    "sha256:499c4906246cb80d003983e037e6c415ee2664f70732db53422fe242a433124e";
+    "sha256:e089428a6ef1ed30ddc6c043ab9df059a5786e54a04d6604249112d5be53f84d";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:8ab0860c81e47be3fb8358d264b0a69b64af24df999314bdd48597fe12586548";
+    "sha256:715607fe5778a26afe7ee261b4b9f84adea3be5d40718f5ef3dadce53b451b91";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
@@ -49,12 +49,12 @@ const METHOD_RUNTIME_PATHS: [&str; 32] = [
     "runtime/method/6.10.0/mermaid-gen.instructions.md",
     "runtime/method/6.10.0/pm-persona.instructions.md",
     "runtime/method/6.10.0/prd.instructions.md",
-    "runtime/method/6.10.0/review.instructions.md",
     "runtime/method/6.10.0/prfaq.instructions.md",
     "runtime/method/6.10.0/product-brief.instructions.md",
     "runtime/method/6.10.0/qa-tests.instructions.md",
     "runtime/method/6.10.0/quick-dev.instructions.md",
     "runtime/method/6.10.0/retrospective.instructions.md",
+    "runtime/method/6.10.0/review.instructions.md",
     "runtime/method/6.10.0/sprint-planning.instructions.md",
     "runtime/method/6.10.0/tech-writer-persona.instructions.md",
     "runtime/method/6.10.0/technical-research.instructions.md",
@@ -65,9 +65,12 @@ const METHOD_RUNTIME_PATHS: [&str; 32] = [
 ];
 /// ADR-0008 adopted upstream bodies live only here.
 const ADOPTED_SOURCE_ROOT: &str = "source/method/6.10.0/";
-const EXPECTED_RESOURCE_PATHS: [&str; 81] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 87] = [
     "NOTICE.md",
     "adoption-ledger.json",
+    "builder-source-ledger.json",
+    "capability-catalog.json",
+    "compatibility-aliases.json",
     "licenses/BMAD-BUILDER-MIT.txt",
     "licenses/BMAD-METHOD-MIT.txt",
     "normalized/bmad-analyst.package.json",
@@ -89,12 +92,12 @@ const EXPECTED_RESOURCE_PATHS: [&str; 81] = [
     "normalized/bmad-market-research.package.json",
     "normalized/bmad-pm.package.json",
     "normalized/bmad-prd.package.json",
-    "normalized/bmad-review.package.json",
     "normalized/bmad-prfaq.package.json",
     "normalized/bmad-product-brief.package.json",
     "normalized/bmad-qa-generate-e2e-tests.package.json",
     "normalized/bmad-quick-dev.package.json",
     "normalized/bmad-retrospective.package.json",
+    "normalized/bmad-review.package.json",
     "normalized/bmad-sprint-planning.package.json",
     "normalized/bmad-tech-writer-explain-concept.package.json",
     "normalized/bmad-tech-writer-mermaid-gen.package.json",
@@ -133,12 +136,12 @@ const EXPECTED_RESOURCE_PATHS: [&str; 81] = [
     "runtime/method/6.10.0/mermaid-gen.instructions.md",
     "runtime/method/6.10.0/pm-persona.instructions.md",
     "runtime/method/6.10.0/prd.instructions.md",
-    "runtime/method/6.10.0/review.instructions.md",
     "runtime/method/6.10.0/prfaq.instructions.md",
     "runtime/method/6.10.0/product-brief.instructions.md",
     "runtime/method/6.10.0/qa-tests.instructions.md",
     "runtime/method/6.10.0/quick-dev.instructions.md",
     "runtime/method/6.10.0/retrospective.instructions.md",
+    "runtime/method/6.10.0/review.instructions.md",
     "runtime/method/6.10.0/sprint-planning.instructions.md",
     "runtime/method/6.10.0/tech-writer-persona.instructions.md",
     "runtime/method/6.10.0/technical-research.instructions.md",
@@ -147,6 +150,9 @@ const EXPECTED_RESOURCE_PATHS: [&str; 81] = [
     "runtime/method/6.10.0/validate-doc.instructions.md",
     "runtime/method/6.10.0/write-document.instructions.md",
     "semantic-source-ledger.json",
+    "source-accounting.json",
+    "source-lock.json",
+    "source-manifest.json",
 ];
 
 /// Every sealed persona projection envelope, joined to the roster by
@@ -440,8 +446,8 @@ pub fn load_bmad_foundation(
     }
 
     let manifest_bytes = read_bounded_regular(root, "runtime-manifest.json")?;
-    let manifest: RuntimeManifest =
-        deserialize_strict(&manifest_bytes).map_err(|_| BmadFoundationError::ManifestInvalid)?;
+    let manifest: RuntimeManifest = deserialize_strict(&manifest_bytes)
+        .map_err(|_| BmadFoundationError::ManifestInvalid)?;
     validate_manifest_identity(&manifest)?;
     let roster_content_hash = manifest
         .resources
@@ -897,7 +903,12 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
         (RuntimeContentKind::ManagedInstruction, value) if value.starts_with("runtime/")
     ) || matches!(
         (kind, path),
-        (RuntimeContentKind::NormalizedContract, value) if value.starts_with("normalized/")
+        (RuntimeContentKind::NormalizedContract, value)
+            if value.starts_with("normalized/")
+                || matches!(
+                    value,
+                    "capability-catalog.json" | "compatibility-aliases.json"
+                )
     ) || matches!((kind, path), (RuntimeContentKind::LegalNotice, "NOTICE.md"))
         || matches!(
             (kind, path),
@@ -907,7 +918,12 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
             (kind, path),
             (
                 RuntimeContentKind::ProvenanceLedger,
-                "adoption-ledger.json" | "semantic-source-ledger.json"
+                "adoption-ledger.json"
+                    | "builder-source-ledger.json"
+                    | "semantic-source-ledger.json"
+                    | "source-accounting.json"
+                    | "source-lock.json"
+                    | "source-manifest.json"
             )
         )
         || matches!(

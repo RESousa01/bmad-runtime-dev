@@ -2509,6 +2509,10 @@
         {
           "decision": "adopt",
           "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Project the canonical review workflow through the typed Method compiler, durable session service, and host-governed authority boundary."
         }
       ]
     },
@@ -2518,6 +2522,10 @@
         {
           "decision": "adopt",
           "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Resolve customization as pinned configuration data inside the canonical review execution contract."
         }
       ]
     },
@@ -2527,6 +2535,10 @@
         {
           "decision": "adopt",
           "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review reference as inert, hash-verified input to the canonical review projection."
         }
       ]
     },
@@ -2536,6 +2548,10 @@
         {
           "decision": "adopt",
           "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
         }
       ]
     },
@@ -2635,6 +2651,97 @@
         {
           "decision": "reject",
           "rationale": "Executable source; ADR-0003 executable exclusion survives ADR-0008."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-248",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-249",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-250",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-251",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review lens as inert, hash-verified input rather than an independent executor."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-252",
+      "treatments": [
+        {
+          "decision": "adopt",
+          "rationale": "Verbatim MIT-licensed method text adopted under ADR-0008."
+        },
+        {
+          "decision": "adapt",
+          "rationale": "Bind the retained review structure model as inert, hash-verified input to the canonical projection."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-253",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain the source test semantics as conformance evidence for the governed review metrics path."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Executable source cannot gain runtime authority directly; process use remains host-governed."
+        }
+      ]
+    },
+    {
+      "sourceMemberId": "method-254",
+      "treatments": [
+        {
+          "decision": "adapt",
+          "rationale": "Retain the word-metric semantics behind the canonical review process-intent boundary."
+        },
+        {
+          "decision": "reject",
+          "rationale": "Executable source cannot gain runtime authority directly; process use remains host-governed."
         }
       ]
     },
@@ -4010,6 +4117,36 @@
         "method-004",
         "method-062",
         "method-063"
+      ]
+    },
+    {
+      "path": "runtime/method/6.10.0/review.instructions.md",
+      "classification": "method",
+      "sourceIdentity": {
+        "sourceId": "method",
+        "skill": "bmad-review",
+        "profile": "MethodOfficialSkillV6"
+      },
+      "state": "sealed_read_only",
+      "actions": [],
+      "action": null,
+      "authority": "none",
+      "distributionProfile": "sapphirus_package",
+      "installProfile": "SapphirusManagedV1",
+      "entrypointKind": "direct",
+      "validationProfile": "MethodOfficialSkillV6",
+      "sourceMemberIds": [
+        "method-233",
+        "method-234",
+        "method-235",
+        "method-236",
+        "method-248",
+        "method-249",
+        "method-250",
+        "method-251",
+        "method-252",
+        "method-253",
+        "method-254"
       ]
     },
     {
