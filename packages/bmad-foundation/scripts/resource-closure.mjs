@@ -713,6 +713,7 @@ function verifiedInventory(source, manifest, sourceRoot) {
     fail(`${source.id} manifest count differs from the pinned archive count`);
   }
   const archivedFiles = manifestMembers.filter((entry) => entry.entry_type === "file");
+  const symlinkMetadata = manifestMembers.filter((entry) => entry.entry_type === "symlink_metadata");
   const sidecars = source.id === "builder" ? builderGovernanceSidecars : [];
   const expectedDiskPaths = new Set([...archivedFiles.map((entry) => entry.path), ...sidecars]);
   const actualDiskPaths = listRegularFiles(sourceRoot);
@@ -727,7 +728,7 @@ function verifiedInventory(source, manifest, sourceRoot) {
       fail(`${source.id} source hash drift for ${member.path}`);
     }
   }
-  return { members: actualDiskPaths, sidecars, manifestMembers };
+  return { members: actualDiskPaths, sidecars, manifestMembers, archivedFiles, symlinkMetadata };
 }
 
 function buildPackageClosure(source, manifest, sourceRoot) {
@@ -784,7 +785,20 @@ function buildPackageClosure(source, manifest, sourceRoot) {
     }),
   );
   return {
-    source: { id: source.id, version: source.version, archive_sha256: source.archive_sha256, archive_member_count: source.regular_file_count, governance_sidecars: inventory.sidecars },
+    source: {
+      id: source.id,
+      version: source.version,
+      archive_sha256: source.archive_sha256,
+      archive_member_count: source.regular_file_count,
+      regular_file_count: inventory.archivedFiles.length,
+      symlink_metadata: inventory.symlinkMetadata.map((entry) => ({
+        path: entry.path,
+        link_target: entry.link_target,
+        sha256: entry.sha256,
+        archive_mode: entry.archive_mode,
+      })),
+      governance_sidecars: inventory.sidecars,
+    },
     members: members.map((path) => ({ path, ...identityByPath.get(path) })),
     content_hash_cache: [...contentCache.entries()].map(([content_hash, identities]) => ({
       content_hash,
@@ -863,6 +877,8 @@ export function run(argv = process.argv.slice(2)) {
       packages: selectedPackages.map((closure) => ({
         source: closure.source,
         members: closure.members.length,
+        regular_files: closure.source.regular_file_count,
+        symlink_metadata_entries: closure.source.symlink_metadata.length,
         cache_entries: closure.content_hash_cache.length,
         edge_dispositions: closure.declared_edges.map((edge) => ({
           source_id: edge.source_id,

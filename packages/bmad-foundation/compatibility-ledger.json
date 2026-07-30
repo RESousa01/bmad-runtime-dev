@@ -177,13 +177,16 @@
       "canonicalId": "bmm:bmad-check-implementation-readiness",
       "sourcePath": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
       "sourceSha256": "sha256:a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
-      "decision": "adopt",
-      "supportState": "exact",
-      "owner": null,
-      "rationale": null,
-      "semanticDiffRef": null,
-      "supportedVersions": [],
-      "migrationPolicy": null,
+      "decision": "adapt",
+      "supportState": "adapted",
+      "owner": "Forge BMAD Runtime / MTH-13",
+      "rationale": "The pinned 6.10.0 source is interactive-only and halts at each menu. Forge adds a bounded headless invocation that must supply reviewed answers for the same six checkpoints and produces the same report topology; all filesystem, process, model, persistence, and Help-following effects remain typed host plans.",
+      "semanticDiffRef": "docs/bmad/skills/bmad-check-implementation-readiness.md#semantic-diff",
+      "supportedVersions": [
+        "bmad-method@6.10.0",
+        "forge@0.1.x"
+      ],
+      "migrationPolicy": "Re-review and regenerate the adapter, fixtures, Help topology, and persisted binding whenever the pinned Method source version, six-step workflow, invocation-mode contract, or Forge 0.1 execution contract changes.",
       "deprecationPolicy": null
     },
     {

@@ -14,9 +14,10 @@ use desktop_ipc::{
     ModelAuthStatusKindProjection, ValidatedCommandEnvelope,
 };
 use desktop_runtime::{
-    canonical_hash, BmadHelpIntent, BmadLibraryProjectionScope, CommandReceipt, ContractId,
-    CreateInertBmadHelpSession, InertBmadHelpSessionCoordinator, LocalCommand, LocalError,
-    LocalErrorCode, ProjectionEventKind, RelativeWorkspacePath, Sha256Digest, UnixMillis,
+    canonical_hash, sha256_bytes, BmadDomainRuntime, BmadHelpIntent, BmadLibraryProjectionScope,
+    BmadSkillHostBindingInput, CommandReceipt, ContractId, CreateInertBmadHelpSession,
+    CreateMethodSession, InertBmadHelpSessionCoordinator, LocalCommand, LocalError, LocalErrorCode,
+    MethodSessionService, ProjectionEventKind, RelativeWorkspacePath, Sha256Digest, UnixMillis,
 };
 use desktop_store::{
     BmadHelpRunCreateRequest, BmadHelpRunCreationReceipt, BmadHelpRunLatest,
@@ -2354,11 +2355,24 @@ fn prepare_bmad_capability_run(
         },
     )
     .map_err(map_capability_error)?;
+    let method_run_id = prepare_input.run_id.clone();
     let review = state
         .bmad_capabilities
         .lock()
         .prepare(prepare_input)
         .map_err(map_capability_error)?;
+    if let Err(error) = dispatch_canonical_method_session(
+        state,
+        authority.authority(),
+        capability_id,
+        &method_run_id,
+        &project_id,
+        &configuration,
+        created_at,
+    ) {
+        state.bmad_capabilities.lock().invalidate();
+        return Err(error);
+    }
     drop(authority);
     Ok(HostCommandData::CapabilityReview(
         crate::wire::CapabilityReviewWire::new(
@@ -2366,6 +2380,113 @@ fn prepare_bmad_capability_run(
             architecture_step.map(crate::bmad_architecture::selected_step_progress),
         ),
     ))
+}
+
+fn dispatch_canonical_method_session(
+    state: &HostState,
+    authority: &ReadyAuthorityGuard<'_>,
+    capability_id: &str,
+    run_id: &ContractId,
+    project_id: &ContractId,
+    configuration: &crate::bmad_model::config::HelpModelConfiguration,
+    created_at: UnixMillis,
+) -> Result<(), LocalError> {
+    let skill = match crate::bmad_capability_host::canonical_method_skill(capability_id) {
+        Ok(skill) => skill,
+        Err(_) => return Ok(()),
+    };
+    let contract = skill.execution_contract().map_err(|_| {
+        LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The reviewed Method execution contract is unavailable.",
+            false,
+        )
+    })?;
+    let model_binding = configuration.trusted_profile.method_binding();
+    let request = contract
+        .bind_host_request(BmadSkillHostBindingInput {
+            mode: desktop_runtime::generated_contracts::BmadInvocationMode::Interactive,
+            action: None,
+            resolved_config_graph_hash: configuration.policy_hash,
+            resolved_config_hash: canonical_hash(
+                "bmad-capability-config-resolution",
+                1,
+                &(
+                    configuration.provider_profile_hash,
+                    configuration.deployment_hash,
+                    configuration.policy_hash,
+                ),
+            )
+            .map_err(|_| {
+                LocalError::new(
+                    LocalErrorCode::IntegrityFailure,
+                    "The reviewed Method configuration could not be bound.",
+                    false,
+                )
+            })?,
+            resolved_customization_hash: skill.descriptor().source_sha256(),
+            egress_profile_hash: model_binding.data.egress_profile_hash,
+            model_binding,
+        })
+        .map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The reviewed Method host binding is invalid.",
+                false,
+            )
+        })?;
+    let local_identity = state
+        .local_identity(authority)
+        .map_err(|_| recovery_error())?;
+    let session_id = method_session_id_for_capability_run(capability_id, run_id)?;
+    let creation = CreateMethodSession {
+        session_id,
+        owner_scope_ref: local_identity.owner_scope_ref().clone(),
+        project_id: project_id.clone(),
+        run_id: run_id.clone(),
+        authority_ref: local_identity
+            .authority_ref()
+            .map_err(|_| recovery_error())?,
+        created_at,
+    };
+    let store = state
+        .method_store(authority)
+        .map_err(|_| recovery_error())?;
+    let service = MethodSessionService::new(store);
+    let dispatched = BmadDomainRuntime
+        .dispatch_skill_execution(&service, skill, request, creation)
+        .map_err(|_| {
+            LocalError::new(
+                LocalErrorCode::IntegrityFailure,
+                "The reviewed Method session could not be persisted.",
+                false,
+            )
+        })?;
+    if dispatched.session().state() != desktop_runtime::MethodState::CapabilityBound {
+        return Err(LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The reviewed Method session did not reach CapabilityBound.",
+            false,
+        ));
+    }
+    Ok(())
+}
+
+fn method_session_id_for_capability_run(
+    capability_id: &str,
+    run_id: &ContractId,
+) -> Result<ContractId, LocalError> {
+    crate::bmad_model::context::derived_contract_id(
+        "methodsession",
+        sha256_bytes(format!("{capability_id}:{}", run_id.as_str()).as_bytes()),
+    )
+    .map_err(|_| {
+        LocalError::new(
+            LocalErrorCode::IntegrityFailure,
+            "The reviewed Method session identity could not be derived.",
+            false,
+        )
+    })
 }
 
 fn approve_bmad_capability_run(
@@ -5018,6 +5139,64 @@ planning_artifacts = \"{project-root}/docs/plan\"
             return Err("expected a latest-run projection".into());
         };
         assert!(!latest.found);
+        Ok(())
+    }
+
+    #[cfg(feature = "deterministic-help")]
+    #[test]
+    fn readiness_prepare_persists_capability_bound_method_session(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use desktop_runtime::{
+            MethodSessionRepository as _, MethodSessionScope, MethodState, UnixMillis,
+        };
+
+        let foundation = load_bmad_foundation(foundation_path()).expect("sealed foundation");
+        let (state, _storage, _workspace, workspace_id) = ready_workspace_state();
+        state.bind_renderer("main").expect("renderer binding");
+        let renderer = state
+            .renderer_session_authority("main")
+            .expect("renderer authority");
+        let workspace_id = id(&workspace_id);
+        let capability_id = "bmm:bmad-check-implementation-readiness";
+        let review = prepare_bmad_capability_run(
+            &state,
+            &foundation,
+            &renderer,
+            workspace_id,
+            1,
+            capability_id,
+            Vec::new(),
+            UnixMillis(10_000),
+        )
+        .expect("production prepare entry");
+        let HostCommandData::CapabilityReview(review) = review else {
+            return Err("expected capability review".into());
+        };
+
+        let authority = state.ready_authority().expect("ready authority");
+        let identity = state.local_identity(&authority)?;
+        let scope = MethodSessionScope {
+            owner_scope_ref: identity.owner_scope_ref().clone(),
+            project_id: id("project_01J00000000000000000000000"),
+            run_id: review.run_id.clone(),
+            authority_ref: identity.authority_ref()?,
+        };
+        let session_id =
+            super::method_session_id_for_capability_run(capability_id, &review.run_id)
+                .expect("derived Method session identity");
+        let session = state
+            .method_store(&authority)?
+            .load_method_session(&scope, &session_id)?
+            .expect("production prepare persisted Method session");
+        assert_eq!(session.state(), MethodState::CapabilityBound);
+        assert_eq!(
+            session
+                .current_binding()
+                .expect("CapabilityBound owns an exact binding")
+                .capability_key
+                .skill_name,
+            "bmad-check-implementation-readiness"
+        );
         Ok(())
     }
 

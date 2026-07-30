@@ -26,6 +26,96 @@ const SKILL_PATH: &str =
 /// Adapter for the pinned implementation-readiness workflow (MTH-13).
 pub struct BmadCheckImplementationReadinessSkill;
 
+/// Host-reviewed answers for the six source-defined readiness checkpoints.
+///
+/// Interactive mode gathers these values one menu at a time. Headless mode
+/// receives the same bounded values from its caller; it does not skip a
+/// checkpoint or synthesize an answer.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BmadImplementationReadinessAnswers {
+    pub document_discovery: String,
+    pub prd_analysis: String,
+    pub epic_coverage_validation: String,
+    pub ux_alignment: String,
+    pub epic_quality_review: String,
+    pub final_assessment: String,
+}
+
+/// The source-faithful report projection produced from reviewed answers.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BmadImplementationReadinessReport {
+    artifact_path: String,
+    markdown: String,
+}
+
+impl BmadImplementationReadinessReport {
+    #[must_use]
+    pub fn artifact_path(&self) -> &str {
+        &self.artifact_path
+    }
+
+    #[must_use]
+    pub fn markdown(&self) -> &str {
+        &self.markdown
+    }
+}
+
+impl BmadCheckImplementationReadinessSkill {
+    /// Projects either invocation mode into the same six-section report.
+    ///
+    /// # Errors
+    ///
+    /// Fails closed when any source checkpoint has no reviewed answer or the
+    /// host-supplied ISO date is not a bounded `YYYY-MM-DD` token.
+    pub fn render_reviewed_report(
+        mode: BmadInvocationMode,
+        date: &str,
+        answers: &BmadImplementationReadinessAnswers,
+    ) -> Result<BmadImplementationReadinessReport, BmadSkillExecutionError> {
+        if !matches!(
+            mode,
+            BmadInvocationMode::Interactive | BmadInvocationMode::Headless
+        ) || !valid_iso_date(date)
+        {
+            return Err(BmadSkillExecutionError::ContractInvalid);
+        }
+        let sections = [
+            ("Document Discovery", answers.document_discovery.trim()),
+            ("PRD Analysis", answers.prd_analysis.trim()),
+            (
+                "Epic Coverage Validation",
+                answers.epic_coverage_validation.trim(),
+            ),
+            ("UX Alignment", answers.ux_alignment.trim()),
+            ("Epic Quality Review", answers.epic_quality_review.trim()),
+            (
+                "Summary and Recommendations",
+                answers.final_assessment.trim(),
+            ),
+        ];
+        if sections
+            .iter()
+            .any(|(_, value)| value.is_empty() || value.len() > 256 * 1024)
+        {
+            return Err(BmadSkillExecutionError::ContractInvalid);
+        }
+        let mut markdown = String::from("# Implementation Readiness Assessment\n");
+        for (title, value) in sections {
+            markdown.push_str("\n## ");
+            markdown.push_str(title);
+            markdown.push_str("\n\n");
+            markdown.push_str(value);
+            markdown.push('\n');
+        }
+        Ok(BmadImplementationReadinessReport {
+            artifact_path: format!(
+                "{{planning_artifacts}}/implementation-readiness-report-{date}.md"
+            ),
+            markdown,
+        })
+    }
+}
+
 impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
     fn descriptor(&self) -> BmadSkillDescriptor {
         BmadSkillDescriptor::new(BmadSkillDescriptorInput {
@@ -83,7 +173,7 @@ impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
                     "sha256:0da97ab1e38818e642f36dc0ef24d2dae69fc6e0be59924dc2dbf44329738ff6",
                 ),
             ],
-            support_state: BmadSkillSupportState::Exact,
+            support_state: BmadSkillSupportState::Adapted,
         })
         .unwrap_or_else(|_| unreachable!("pinned readiness descriptor is bounded and canonical"))
     }
@@ -100,16 +190,16 @@ impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
                 "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
             )?,
             package_descriptor_hash: digest(
-                "sha256:cd406cecc48f302b9969f208a4adbf7b2a8d10a3d1d3fb67ccd3116042776c92",
+                "sha256:68819d02db3b55ea601bf01d74735e87bebbdd1280bcc569e8d5ac382421ee6c",
             )?,
             package_source_hash: digest(
                 "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
             )?,
             instruction_projection_hash: digest(
-                "sha256:8335100a0c468f03cf6187a0dc58dcc0435328727c1740f7c70b947122a58cca",
+                "sha256:b172026ded583a1ced331350008da4828cc5e008d853dc329034781b8888010a",
             )?,
             capability_catalog_hash: digest(
-                "sha256:4aa54a86e1bd868cb84cfcdb4d790a088dd0d2f370ac230c1082092acb5be60f",
+                "sha256:08bb673dcf335fbdcf672343337960dae996789d281fde29eb2c6fd6e4548b44",
             )?,
             distribution_profile: "sapphirus_package".to_owned(),
             install_profile: "SapphirusManagedV1".to_owned(),
@@ -131,6 +221,14 @@ impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
             recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
         })
     }
+}
+
+fn valid_iso_date(value: &str) -> bool {
+    value.len() == 10
+        && value.bytes().enumerate().all(|(index, byte)| {
+            matches!(index, 4 | 7) && byte == b'-'
+                || !matches!(index, 4 | 7) && byte.is_ascii_digit()
+        })
 }
 
 fn execution_profile(

@@ -9,12 +9,12 @@ use desktop_runtime::{
         BmadActionPlanKind, BmadArtifactCompletionHookRunHook, BmadArtifactKind, BmadInvocationMode,
     },
     sha256_bytes, AuthorityRef, BmadCheckImplementationReadinessSkill, BmadDomainRuntime,
-    BmadMethodSkill, BmadSkillHostBindingInput, BmadSkillRecoverySemantics, BmadSkillSupportState,
-    BmadSkillToolIntent, ContractId, CreateMethodSession, MethodAdvanceDisposition,
-    MethodAdvanceReceipt, MethodAdvanceRequest, MethodArtifactProvenance, MethodExactBinding,
-    MethodModelBinding, MethodModelBindingData, MethodPersistenceEvent, MethodSession,
-    MethodSessionRepository, MethodSessionScope, MethodSessionService, MethodState, Sha256Digest,
-    UnixMillis,
+    BmadImplementationReadinessAnswers, BmadMethodSkill, BmadSkillHostBindingInput,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
+    CreateMethodSession, MethodAdvanceDisposition, MethodAdvanceReceipt, MethodAdvanceRequest,
+    MethodArtifactProvenance, MethodContextDecision, MethodExactBinding, MethodModelBinding,
+    MethodModelBindingData, MethodPersistenceEvent, MethodSession, MethodSessionRepository,
+    MethodSessionScope, MethodSessionService, MethodState, Sha256Digest, UnixMillis,
 };
 
 const SKILL_ROOT: &str = "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness";
@@ -66,6 +66,7 @@ struct RepositoryError;
 #[derive(Default)]
 struct Repository {
     sessions: Mutex<Vec<MethodSession>>,
+    events: Mutex<Vec<MethodPersistenceEvent>>,
 }
 
 impl MethodSessionRepository for &Repository {
@@ -95,19 +96,27 @@ impl MethodSessionRepository for &Repository {
 
     fn begin_method_advance(
         &self,
-        _: &MethodSessionScope,
-        _: &ContractId,
-        _: &MethodExactBinding,
-        _: MethodAdvanceRequest,
+        scope: &MethodSessionScope,
+        session_id: &ContractId,
+        observed_binding: &MethodExactBinding,
+        request: MethodAdvanceRequest,
     ) -> Result<MethodAdvanceReceipt, Self::Error> {
-        Err(RepositoryError)
+        let mut sessions = self.sessions.lock().map_err(|_| RepositoryError)?;
+        let session = sessions
+            .iter_mut()
+            .find(|candidate| candidate.scope() == *scope && candidate.session_id() == *session_id)
+            .ok_or(RepositoryError)?;
+        session
+            .validate_review_for(observed_binding)
+            .map_err(|_| RepositoryError)?;
+        session.begin_advance(request).map_err(|_| RepositoryError)
     }
 
     fn persist_method_transition(
         &self,
         session: &MethodSession,
         _: u64,
-        _: MethodPersistenceEvent,
+        event: MethodPersistenceEvent,
     ) -> Result<(), Self::Error> {
         let mut sessions = self.sessions.lock().map_err(|_| RepositoryError)?;
         let current = sessions
@@ -115,6 +124,7 @@ impl MethodSessionRepository for &Repository {
             .find(|candidate| candidate.session_id() == session.session_id())
             .ok_or(RepositoryError)?;
         *current = session.clone();
+        self.events.lock().map_err(|_| RepositoryError)?.push(event);
         Ok(())
     }
 
@@ -130,15 +140,19 @@ impl MethodSessionRepository for &Repository {
 }
 
 fn creation(mode: BmadInvocationMode) -> CreateMethodSession {
+    creation_named(mode, "initial")
+}
+
+fn creation_named(mode: BmadInvocationMode, attempt: &str) -> CreateMethodSession {
     let suffix = match mode {
         BmadInvocationMode::Interactive => "interactive",
         BmadInvocationMode::Headless => "headless",
     };
     CreateMethodSession {
-        session_id: id(&format!("session_readiness_{suffix}")),
+        session_id: id(&format!("session_readiness_{suffix}_{attempt}")),
         owner_scope_ref: id("ownerscope_readiness"),
         project_id: id("project_readiness"),
-        run_id: id(&format!("run_readiness_{suffix}")),
+        run_id: id(&format!("run_readiness_{suffix}_{attempt}")),
         authority_ref: AuthorityRef {
             authority_kind: "desktop_local_store".to_owned(),
             authority_id: id("authority_readiness"),
@@ -147,6 +161,46 @@ fn creation(mode: BmadInvocationMode) -> CreateMethodSession {
             authority_epoch: 1,
         },
         created_at: UnixMillis(1_000),
+    }
+}
+
+fn review_decision(session: &MethodSession, label: &str) -> MethodContextDecision {
+    MethodContextDecision {
+        decision_id: id(&format!("decision_readiness_{label}")),
+        manifest_hash: test_digest(&format!("manifest {label}")),
+        consent_hash: test_digest(&format!("consent {label}")),
+        context_digest: test_digest(&format!("context {label}")),
+        binding_hash: session
+            .current_binding()
+            .expect("bound session")
+            .binding_hash()
+            .expect("binding hash"),
+        reviewed_at: UnixMillis(2_000),
+    }
+}
+
+fn advance_request(
+    session: &MethodSession,
+    decision: &MethodContextDecision,
+    label: &str,
+) -> MethodAdvanceRequest {
+    let invocation_id = id(&format!("invoke_readiness_{label}"));
+    let d2_model_invocation_binding_hash = test_digest(&format!("d2 invocation {label}"));
+    MethodAdvanceRequest {
+        model_request_id: id(&format!("modelreq_readiness_{label}")),
+        idempotency_key: format!("readiness-{label}"),
+        decision_id: decision.decision_id.clone(),
+        decision_consumption_hash: test_digest(&format!("decision consumption {label}")),
+        model_request_hash: test_digest(&format!("model request {label}")),
+        session_authority_hash: session
+            .session_authority_hash()
+            .expect("session authority hash"),
+        d2_model_invocation_binding_hash,
+        model_bridge_binding_hash: session
+            .model_bridge_binding_hash(&d2_model_invocation_binding_hash)
+            .expect("bridge binding hash"),
+        invocation_id,
+        expected_version: session.version(),
     }
 }
 
@@ -177,7 +231,7 @@ fn implementation_readiness_descriptor_closes_every_owned_source_member() {
         descriptor.completion_hooks(),
         [BmadArtifactCompletionHookRunHook::PersistArtifacts]
     );
-    assert_eq!(descriptor.support_state(), BmadSkillSupportState::Exact);
+    assert_eq!(descriptor.support_state(), BmadSkillSupportState::Adapted);
     assert_eq!(
         descriptor
             .declared_resources()
@@ -333,6 +387,212 @@ fn readiness_dispatch_prepares_and_persists_both_modes_through_method_service() 
         prepared[1].artifact_expectations()
     );
     assert_eq!(prepared[0].step_table(), prepared[1].step_table());
+}
+
+#[test]
+fn interactive_and_headless_render_the_same_real_six_section_report() {
+    let answers = BmadImplementationReadinessAnswers {
+        document_discovery: "PRD, architecture, UX, and epics were inventoried.".to_owned(),
+        prd_analysis: "Functional and non-functional requirements are complete.".to_owned(),
+        epic_coverage_validation: "Every requirement maps to an epic and story.".to_owned(),
+        ux_alignment: "UX flows agree with the architecture constraints.".to_owned(),
+        epic_quality_review: "Stories are independently testable and sequenced.".to_owned(),
+        final_assessment: "READY. No critical issue remains.".to_owned(),
+    };
+    let interactive = BmadCheckImplementationReadinessSkill::render_reviewed_report(
+        BmadInvocationMode::Interactive,
+        "2026-07-29",
+        &answers,
+    )
+    .expect("interactive output");
+    let headless = BmadCheckImplementationReadinessSkill::render_reviewed_report(
+        BmadInvocationMode::Headless,
+        "2026-07-29",
+        &answers,
+    )
+    .expect("headless output");
+
+    assert_eq!(interactive, headless);
+    assert_eq!(
+        interactive.artifact_path(),
+        "{planning_artifacts}/implementation-readiness-report-2026-07-29.md"
+    );
+    for heading in [
+        "## Document Discovery",
+        "## PRD Analysis",
+        "## Epic Coverage Validation",
+        "## UX Alignment",
+        "## Epic Quality Review",
+        "## Summary and Recommendations",
+    ] {
+        assert!(interactive.markdown().contains(heading));
+    }
+
+    let mut incomplete = answers;
+    incomplete.ux_alignment.clear();
+    assert!(
+        BmadCheckImplementationReadinessSkill::render_reviewed_report(
+            BmadInvocationMode::Headless,
+            "2026-07-29",
+            &incomplete,
+        )
+        .is_err(),
+        "headless cannot skip a source menu checkpoint"
+    );
+}
+
+#[test]
+fn persisted_lifecycle_covers_cancel_fail_retry_repair_restart_resume_and_stale_upgrade() {
+    let repository = Repository::default();
+    let service = MethodSessionService::new(&repository);
+    let runtime = BmadDomainRuntime;
+    let contract = BmadCheckImplementationReadinessSkill
+        .execution_contract()
+        .expect("execution contract");
+
+    let bind = |mode, config_label: &str| {
+        let model_binding = model_binding();
+        contract
+            .bind_host_request(BmadSkillHostBindingInput {
+                mode,
+                action: None,
+                resolved_config_graph_hash: test_digest(&format!("graph {config_label}")),
+                resolved_config_hash: test_digest(&format!("config {config_label}")),
+                resolved_customization_hash: test_digest(&format!("customization {config_label}")),
+                egress_profile_hash: model_binding.data.egress_profile_hash,
+                model_binding,
+            })
+            .expect("host request")
+    };
+
+    let cancelled = runtime
+        .dispatch_skill_execution(
+            &service,
+            &BmadCheckImplementationReadinessSkill,
+            bind(BmadInvocationMode::Interactive, "cancel"),
+            creation_named(BmadInvocationMode::Interactive, "cancel"),
+        )
+        .expect("cancel branch dispatch");
+    let cancelled = service
+        .cancel(
+            &cancelled.session().scope(),
+            &cancelled.session().session_id(),
+            cancelled.session().version(),
+        )
+        .expect("persist cancellation");
+    assert_eq!(cancelled.state(), MethodState::Cancelled);
+
+    let failed = runtime
+        .dispatch_skill_execution(
+            &service,
+            &BmadCheckImplementationReadinessSkill,
+            bind(BmadInvocationMode::Headless, "failed"),
+            creation_named(BmadInvocationMode::Headless, "failed"),
+        )
+        .expect("failed attempt dispatch");
+    let failed = service
+        .request_context_review(
+            &failed.session().scope(),
+            &failed.session().session_id(),
+            failed.session().version(),
+        )
+        .expect("request review");
+    let decision = review_decision(&failed, "failed");
+    let failed = service
+        .record_context_review(
+            &failed.scope(),
+            &failed.session_id(),
+            failed.version(),
+            decision.clone(),
+        )
+        .expect("persist answers and approval");
+    let request = advance_request(&failed, &decision, "failed");
+    let binding = failed.current_binding().expect("binding").clone();
+    let (advancing, _) = service
+        .begin_advance(&failed.scope(), &failed.session_id(), &binding, request)
+        .expect("persist model invocation and decision consumption");
+    assert_eq!(advancing.state(), MethodState::Advancing);
+    let failed = service
+        .record_incomplete(
+            &advancing.scope(),
+            &advancing.session_id(),
+            advancing.version(),
+        )
+        .expect("persist failure");
+    assert_eq!(failed.state(), MethodState::Incomplete);
+
+    let retry = runtime
+        .dispatch_skill_execution(
+            &service,
+            &BmadCheckImplementationReadinessSkill,
+            bind(BmadInvocationMode::Headless, "retry"),
+            creation_named(BmadInvocationMode::Headless, "retry"),
+        )
+        .expect("retry is a distinct persisted attempt");
+    assert_eq!(retry.session().state(), MethodState::CapabilityBound);
+    assert_eq!(
+        service
+            .resume(&failed.scope(), &failed.session_id())
+            .expect("failed attempt remains durable")
+            .state(),
+        MethodState::Incomplete
+    );
+
+    let review_required = service
+        .request_context_review(
+            &retry.session().scope(),
+            &retry.session().session_id(),
+            retry.session().version(),
+        )
+        .expect("repair branch enters review");
+    let mut repaired_binding = retry.prepared().exact_binding().clone();
+    repaired_binding.config_resolution_hash = test_digest("repaired config resolution");
+    let repaired = service
+        .rebind_invocation(
+            &review_required.scope(),
+            &review_required.session_id(),
+            review_required.version(),
+            repaired_binding,
+            retry.prepared().step_table().clone(),
+        )
+        .expect("persist repaired configuration binding");
+    assert_eq!(repaired.state(), MethodState::CapabilityBound);
+
+    let stale_review = service
+        .request_context_review(
+            &repaired.scope(),
+            &repaired.session_id(),
+            repaired.version(),
+        )
+        .expect("stale-source review");
+    let mut upgraded_binding = stale_review.current_binding().expect("binding").clone();
+    upgraded_binding.package_source_hash = test_digest("upgraded pinned source");
+    let upgraded = service
+        .rebind_invocation(
+            &stale_review.scope(),
+            &stale_review.session_id(),
+            stale_review.version(),
+            upgraded_binding.clone(),
+            retry.prepared().step_table().clone(),
+        )
+        .expect("persist stale-source upgrade");
+    let resumed = service
+        .resume(&upgraded.scope(), &upgraded.session_id())
+        .expect("restart/resume authoritative state");
+    assert_eq!(resumed, upgraded);
+    assert_eq!(
+        resumed.current_binding().expect("upgraded binding"),
+        &upgraded_binding
+    );
+
+    let events = repository.events.lock().expect("event log");
+    for event in [
+        MethodPersistenceEvent::Cancelled,
+        MethodPersistenceEvent::Incomplete,
+        MethodPersistenceEvent::CapabilityRebound,
+    ] {
+        assert!(events.contains(&event), "missing persisted event {event:?}");
+    }
 }
 
 // Break caught: importing a direct filesystem, process, network, scheduler,

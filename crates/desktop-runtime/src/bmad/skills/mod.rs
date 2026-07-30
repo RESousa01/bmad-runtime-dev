@@ -14,8 +14,9 @@ pub use adapters::{
     BmadAgentTechWriterSkill, BmadAgentUxDesignerSkill, BmadArchitectureSkill,
     BmadBrainstormingSkill, BmadCheckImplementationReadinessSkill, BmadCreateEpicsAndStoriesSkill,
     BmadCustomizeSkill, BmadDeepReconSkill, BmadDocumentProjectSkill, BmadForgeIdeaSkill,
-    BmadGenerateProjectContextSkill, BmadHelpSkill, BmadPartyModeSkill, BmadPrdSkill,
-    BmadPrfaqSkill, BmadProductBriefSkill, BmadReviewSkill, BmadSpecSkill, BmadUxSkill,
+    BmadGenerateProjectContextSkill, BmadHelpSkill, BmadImplementationReadinessAnswers,
+    BmadImplementationReadinessReport, BmadPartyModeSkill, BmadPrdSkill, BmadPrfaqSkill,
+    BmadProductBriefSkill, BmadReviewSkill, BmadSpecSkill, BmadUxSkill,
 };
 pub use execution::{
     BmadDispatchedSkillExecution, BmadPreparedSkillExecution, BmadSkillDispatchError,

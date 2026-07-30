@@ -77,6 +77,7 @@ pub use bmad::{
     BmadHelpNoRecommendationReason, BmadHelpProjectState, BmadHelpQuery, BmadHelpQueryError,
     BmadHelpRecommendation, BmadHelpRecordIds, BmadHelpSkill, BmadHelpSourceRef,
     BmadHelpSupportState, BmadHelpSupportStateTable, BmadHostInputReplacement,
+    BmadImplementationReadinessAnswers, BmadImplementationReadinessReport,
     BmadInactiveBuilderDraft, BmadInstallationActivationPlan, BmadInstallationError,
     BmadInstalledSkillRecord, BmadInvocationError, BmadInvocationRequest, BmadInvocationResolver,
     BmadInvocationSuppliedValue, BmadKernelError, BmadKernelErrorCode, BmadLoadedMethodPackage,

@@ -13,7 +13,7 @@
     "sourceEntrypoint": {
       "path": "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
       "contentHash": "sha256:a7e12eae2bdb5a95cc0534e6d5bf58e7ce4b947327a494d475ef98e67f03718a",
-      "treatment": "adopt"
+      "treatment": "adapt"
     },
     "sourceResources": [
       {
@@ -91,7 +91,7 @@
         "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
       }
     ],
-    "projectionHash": "sha256:8335100a0c468f03cf6187a0dc58dcc0435328727c1740f7c70b947122a58cca"
+    "projectionHash": "sha256:b172026ded583a1ced331350008da4828cc5e008d853dc329034781b8888010a"
   },
-  "projectionEnvelopeHash": "sha256:cd406cecc48f302b9969f208a4adbf7b2a8d10a3d1d3fb67ccd3116042776c92"
+  "projectionEnvelopeHash": "sha256:68819d02db3b55ea601bf01d74735e87bebbdd1280bcc569e8d5ac382421ee6c"
 }

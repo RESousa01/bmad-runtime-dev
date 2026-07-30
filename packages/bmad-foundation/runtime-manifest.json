@@ -23,13 +23,13 @@
     },
     {
       "path": "capability-catalog.json",
-      "contentHash": "sha256:93ed7312aefb638ee7a0b7b48310a04374aeb4dcdbd30da661e5eff1bfba3466",
-      "byteLength": 68033,
+      "contentHash": "sha256:dad581e554b53cca80ec1abbd7b1fa3ff3ee539d406cd7afbe0347fe5610665f",
+      "byteLength": 68035,
       "contentKind": "normalized_contract"
     },
     {
       "path": "compatibility-aliases.json",
-      "contentHash": "sha256:bd8f4a8da3303f25c64e384b410b0cd709ae3ee151ffed5d61e5a3a86b539b71",
+      "contentHash": "sha256:886f24197ce22a89415bba4bb6c4473fec398aeb33c7d053000e21a95982fcb4",
       "byteLength": 6715,
       "contentKind": "normalized_contract"
     },
@@ -71,7 +71,7 @@
     },
     {
       "path": "normalized/bmad-check-implementation-readiness.package.json",
-      "contentHash": "sha256:e05a6784b006803cb0b124f7d36a6ed1085a549a42d971dd57e3f228b3dde5ca",
+      "contentHash": "sha256:8d7062f48589ff4043169fb4fa5de52f7c233fa0986d28d99a1f35378cd015c5",
       "byteLength": 4353,
       "contentKind": "normalized_contract"
     },
@@ -131,8 +131,8 @@
     },
     {
       "path": "normalized/bmad-help-capability-graph.json",
-      "contentHash": "sha256:ae1c60d510fc3f826d1ebd621d144ddb952dcd7a953f68eacc457b2e8ae712c6",
-      "byteLength": 25508,
+      "contentHash": "sha256:e26029ce8064f52b49979a9e5f6c588fcae4711b78ea6c9ef086c8cf8cead72c",
+      "byteLength": 25510,
       "contentKind": "normalized_contract"
     },
     {
@@ -497,8 +497,8 @@
     },
     {
       "path": "source-accounting.json",
-      "contentHash": "sha256:ddece27db6324b869374e729f0fa0dd643f3b1ad7ef19328fe3eec7b86eadf10",
-      "byteLength": 756749,
+      "contentHash": "sha256:ce32eb00fc71718161b9747d6d4728faf1217b6276732fd352aad670cb6fea58",
+      "byteLength": 756771,
       "contentKind": "provenance_ledger"
     },
     {
@@ -514,5 +514,5 @@
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:0940b3985ab2e0483fae85d37a125d830e931c8f0262f0bad38ca6fd9833850c"
+  "manifestHash": "sha256:163e5aa3cc9f0f9c43b71cf4f047541458745e8fb3499918ffbedf25ffdaba8f"
 }

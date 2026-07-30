@@ -478,7 +478,7 @@ export const bmadCapabilities = [
     "outputs": [
       "governed_artifact"
     ],
-    "supportState": "exact",
+    "supportState": "adapted",
     "uiState": "runtime_available",
     "visibility": "public",
     "evidence": [

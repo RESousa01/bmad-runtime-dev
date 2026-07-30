@@ -424,7 +424,7 @@ static BMAD_PRD_SKILL: BmadPrdSkill = BmadPrdSkill;
 static BMAD_CHECK_IMPLEMENTATION_READINESS_SKILL: BmadCheckImplementationReadinessSkill =
     BmadCheckImplementationReadinessSkill;
 
-fn canonical_method_skill(
+pub(crate) fn canonical_method_skill(
     capability_id: &str,
 ) -> Result<&'static dyn BmadMethodSkill, BmadSkillExecutionError> {
     let binding =

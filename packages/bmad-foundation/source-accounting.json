@@ -33,7 +33,8 @@
     "builder_public_actions": 9,
     "builder_internal_actions": 1,
     "runtime_support": {
-      "exact": 2,
+      "adapted": 1,
+      "exact": 1,
       "implementation_pending": 51
     },
     "ui_support": {
@@ -10091,7 +10092,7 @@
         "authority_negative",
         "output_conformance"
       ],
-      "support_state": "exact",
+      "support_state": "adapted",
       "ui_state": "runtime_available",
       "release_state": "qualified"
     },

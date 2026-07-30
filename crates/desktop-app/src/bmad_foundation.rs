@@ -19,7 +19,7 @@ const MAX_TOTAL_BYTES: usize = 16_777_216;
 const EXPECTED_SEMANTIC_LEDGER_HASH: &str =
     "sha256:f5599c0ccbd727472101aab6e27c269a0902c9a78d4e3b28c15ae110d7afae71";
 const EXPECTED_MANIFEST_HASH: &str =
-    "sha256:eb83ab5bcec0bc5475b625fbfa57b31556f2a3373c0941556929ff09b8408595";
+    "sha256:163e5aa3cc9f0f9c43b71cf4f047541458745e8fb3499918ffbedf25ffdaba8f";
 const DESCRIPTOR_PATH: &str = "normalized/bmad-help.package.json";
 const HELP_ACTION_GRAPH_PATH: &str = "normalized/bmad-help-action-graph.json";
 const ADOPTION_LEDGER_PATH: &str = "adoption-ledger.json";
@@ -64,9 +64,12 @@ const METHOD_RUNTIME_PATHS: [&str; 31] = [
 ];
 /// ADR-0008 adopted upstream bodies live only here.
 const ADOPTED_SOURCE_ROOT: &str = "source/method/6.10.0/";
-const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 85] = [
     "NOTICE.md",
     "adoption-ledger.json",
+    "builder-source-ledger.json",
+    "capability-catalog.json",
+    "compatibility-aliases.json",
     "licenses/BMAD-BUILDER-MIT.txt",
     "licenses/BMAD-METHOD-MIT.txt",
     "normalized/bmad-analyst.package.json",
@@ -144,6 +147,9 @@ const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
     "runtime/method/6.10.0/validate-doc.instructions.md",
     "runtime/method/6.10.0/write-document.instructions.md",
     "semantic-source-ledger.json",
+    "source-accounting.json",
+    "source-lock.json",
+    "source-manifest.json",
 ];
 
 /// Every sealed persona projection envelope, joined to the roster by
@@ -895,6 +901,12 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
     ) || matches!(
         (kind, path),
         (RuntimeContentKind::NormalizedContract, value) if value.starts_with("normalized/")
+    ) || matches!(
+        (kind, path),
+        (
+            RuntimeContentKind::NormalizedContract,
+            "capability-catalog.json" | "compatibility-aliases.json"
+        )
     ) || matches!((kind, path), (RuntimeContentKind::LegalNotice, "NOTICE.md"))
         || matches!(
             (kind, path),
@@ -904,7 +916,12 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
             (kind, path),
             (
                 RuntimeContentKind::ProvenanceLedger,
-                "adoption-ledger.json" | "semantic-source-ledger.json"
+                "adoption-ledger.json"
+                    | "builder-source-ledger.json"
+                    | "semantic-source-ledger.json"
+                    | "source-accounting.json"
+                    | "source-lock.json"
+                    | "source-manifest.json"
             )
         )
         || matches!(
