@@ -16,7 +16,13 @@
 // `packages/bmad-foundation/scripts/resource-closure.mjs` deliberately, so a
 // caller invoking either script does not have to learn two conventions.
 
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -36,12 +42,18 @@ function readJson(path) {
 
 function usage() {
   fail(
-    "usage: node packages/bmad-foundation/scripts/conformance.mjs (--skill <rowId> | --all) [--all-modes] [--strict]",
+    "usage: node packages/bmad-foundation/scripts/conformance.mjs (--skill <rowId> | --all) [--all-modes | --mode all] [--strict | --check] [--json <path>]",
   );
 }
 
 function parseArgs(argv) {
-  const flags = { skill: null, all: false, allModes: false, strict: false };
+  const flags = {
+    skill: null,
+    all: false,
+    allModes: false,
+    strict: false,
+    json: null,
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === "--skill") {
@@ -52,8 +64,18 @@ function parseArgs(argv) {
       flags.all = true;
     } else if (token === "--all-modes") {
       flags.allModes = true;
+    } else if (token === "--mode") {
+      index += 1;
+      if (argv[index] !== "all") usage();
+      flags.allModes = true;
     } else if (token === "--strict") {
       flags.strict = true;
+    } else if (token === "--check") {
+      flags.strict = true;
+    } else if (token === "--json") {
+      index += 1;
+      flags.json = argv[index];
+      if (!flags.json) usage();
     } else {
       usage();
     }
@@ -78,6 +100,21 @@ function methodRows(catalog) {
   return catalog.capabilities.filter(
     (capability) => capability.source.class === "primary_method_skill",
   );
+}
+
+function resolveSkillSelector(selector, catalog) {
+  const rows = methodRows(catalog);
+  const exact = rows.find((row) => row.rowId === selector);
+  if (exact) return exact.rowId;
+  const matches = rows.filter(
+    (row) =>
+      row.source.path === selector
+      || row.source.path.endsWith(`/${selector}/SKILL.md`),
+  );
+  if (matches.length !== 1) {
+    fail(`skill selector ${selector} did not resolve exactly once`);
+  }
+  return matches[0].rowId;
 }
 
 // Skills are addressed by `rowId`, not `canonicalId`: several source
@@ -130,11 +167,16 @@ function checkSkill(rowId, catalog, ledger, { allModes }) {
 }
 
 export function run(argv = process.argv.slice(2)) {
+  let receiptPath = null;
   try {
     const flags = parseArgs(argv);
+    receiptPath = flags.json;
+    if (receiptPath) rmSync(receiptPath, { force: true });
     const catalog = readJson(catalogPath);
     const ledger = readJson(ledgerPath);
-    const targets = flags.all ? methodRows(catalog).map((row) => row.rowId) : [flags.skill];
+    const targets = flags.all
+      ? methodRows(catalog).map((row) => row.rowId)
+      : [resolveSkillSelector(flags.skill, catalog)];
 
     const failures = targets.flatMap((rowId) =>
       checkSkill(rowId, catalog, ledger, { allModes: flags.allModes || flags.all }),
@@ -149,9 +191,16 @@ export function run(argv = process.argv.slice(2)) {
       skillsChecked: targets.length,
       skills: targets,
     };
-    process.stdout.write(`${JSON.stringify(summary)}\n`);
+    const serialized = `${JSON.stringify(summary)}\n`;
+    if (receiptPath) writeFileSync(receiptPath, serialized, "utf8");
+    process.stdout.write(serialized);
     return 0;
   } catch (error) {
+    if (!receiptPath) {
+      const index = argv.indexOf("--json");
+      receiptPath = index >= 0 ? argv[index + 1] : null;
+    }
+    if (receiptPath) rmSync(receiptPath, { force: true });
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     return 1;
   }

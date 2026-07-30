@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "sapphirus.bmad100.method-golden.v1",
+  "taskId": "MTH-09",
+  "canonicalId": "bmm:bmad-spec",
+  "sourcePackage": {
+    "id": "method",
+    "version": "6.10.0",
+    "archiveSha256": "2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02"
+  },
+  "sourceEntrypoint": "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
+  "sourceResources": [
+    {
+      "path": "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
+      "sha256": "5b5680dbf01dbfc5b4a5485e70f20ea48ac21a1d6137c4ea2ff704262dcc45d2"
+    },
+    {
+      "path": "src/bmm-skills/2-plan-workflows/bmad-spec/customize.toml",
+      "sha256": "a89e0f53f9b6386c281dd0158a21801a6b16f122085fd68b0220cd403c18f830"
+    },
+    {
+      "path": "src/bmm-skills/2-plan-workflows/bmad-spec/assets/headless-schemas.md",
+      "sha256": "83afb3614716db2347d83586a67b9c524492dd50db5282436ccb35c99fb5f08a"
+    },
+    {
+      "path": "src/bmm-skills/2-plan-workflows/bmad-spec/assets/spec-template.md",
+      "sha256": "4b3a032c045fdd0903933446fc07f93e879997f28a0294ed4344da71192b20ee"
+    },
+    {
+      "path": "src/bmm-skills/2-plan-workflows/bmad-spec/assets/stories-schema.md",
+      "sha256": "4f8137c00e2710288354a4466d1cfb90704f4b2a04bd3b63924218fd589cc6a9"
+    }
+  ],
+  "contractBinding": {
+    "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+    "projectionHash": "sha256:29618d69874a84b4cd7c69c824302797cb0d1903a546680eadc58dff9883f7e9",
+    "projectionEnvelopeHash": "sha256:5cc516413fe1245c289ead8d701655d698643f86686c41a9f6d6d1d8771c734e"
+  },
+  "declaredModes": [
+    "interactive",
+    "headless"
+  ],
+  "requiredOutputs": {
+    "interactive": {
+      "artifactKinds": [
+        "document",
+        "file_set"
+      ],
+      "sourceOutputHint": "output_folder",
+      "required": [
+        "SPEC.md",
+        ".memlog"
+      ],
+      "optional": [
+        "companion files",
+        "stories"
+      ]
+    },
+    "headless": {
+      "artifactKinds": [
+        "document",
+        "file_set"
+      ],
+      "sourceOutputHint": "output_folder",
+      "required": [
+        "SPEC.md",
+        ".memlog"
+      ],
+      "optional": [
+        "companion files"
+      ]
+    }
+  },
+  "workflow": {
+    "steps": [
+      "activate",
+      "resolve_intent",
+      "distill",
+      "coherence",
+      "preservation",
+      "complete"
+    ],
+    "sourceCases": [
+      "interactive_create",
+      "headless_create",
+      "missing_input_block",
+      "missing_slug_block",
+      "update_from_memlog",
+      "no_change_review",
+      "interactive_stories",
+      "headless_never_stories"
+    ]
+  },
+  "lifecycleCases": [
+    "cancel",
+    "fail",
+    "retry",
+    "repair",
+    "restart",
+    "resume",
+    "stale_catalog_upgrade"
+  ],
+  "topology": {
+    "predecessors": [],
+    "followers": [],
+    "helpOutputLocations": [
+      "governed_artifact"
+    ]
+  },
+  "authority": {
+    "sourceIntents": [
+      "file_read",
+      "file_write",
+      "process",
+      "subagent",
+      "external_handoff"
+    ],
+    "excludedIntents": [
+      "network",
+      "browser"
+    ],
+    "runtimeAuthority": "host_governed_only"
+  }
+}

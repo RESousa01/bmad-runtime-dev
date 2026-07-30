@@ -121,13 +121,15 @@
       "canonicalId": "bmm:bmad-spec",
       "sourcePath": "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
       "sourceSha256": "sha256:5b5680dbf01dbfc5b4a5485e70f20ea48ac21a1d6137c4ea2ff704262dcc45d2",
-      "decision": "adopt",
-      "supportState": "exact",
-      "owner": null,
-      "rationale": null,
-      "semanticDiffRef": null,
-      "supportedVersions": [],
-      "migrationPolicy": null,
+      "decision": "adapt",
+      "supportState": "adapted",
+      "owner": "MTH-09",
+      "rationale": "Forge preserves the pinned Spec kernel, append-only memlog, companion, Story Breakdown, validation, and mode semantics while replacing source-directed Python/process/filesystem execution and heuristic TTY detection with explicit generic-runtime modes, typed plans, reviewed host inputs, Airlock decisions, and durable Method checkpoints.",
+      "semanticDiffRef": "docs/bmad/skills/bmad-spec.md#field-by-field-semantic-adaptation",
+      "supportedVersions": [
+        "Forge 0.1.0-beta.1"
+      ],
+      "migrationPolicy": "Persist canonical capability bmm:bmad-spec, source/resource hashes, resolved configuration/customization identities, and Method checkpoints. On any pinned source or projection drift, reject the stale binding and require generic runtime rebind plus fresh context review before resume.",
       "deprecationPolicy": null
     },
     {

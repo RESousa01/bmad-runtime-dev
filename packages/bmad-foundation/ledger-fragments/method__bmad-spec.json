@@ -1,5 +1,12 @@
 {
   "rowId": "method:src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
-  "decision": "adopt",
-  "supportState": "exact"
+  "decision": "adapt",
+  "supportState": "adapted",
+  "owner": "MTH-09",
+  "rationale": "Forge preserves the pinned Spec kernel, append-only memlog, companion, Story Breakdown, validation, and mode semantics while replacing source-directed Python/process/filesystem execution and heuristic TTY detection with explicit generic-runtime modes, typed plans, reviewed host inputs, Airlock decisions, and durable Method checkpoints.",
+  "semanticDiffRef": "docs/bmad/skills/bmad-spec.md#field-by-field-semantic-adaptation",
+  "supportedVersions": [
+    "Forge 0.1.0-beta.1"
+  ],
+  "migrationPolicy": "Persist canonical capability bmm:bmad-spec, source/resource hashes, resolved configuration/customization identities, and Method checkpoints. On any pinned source or projection drift, reject the stale binding and require generic runtime rebind plus fresh context review before resume."
 }

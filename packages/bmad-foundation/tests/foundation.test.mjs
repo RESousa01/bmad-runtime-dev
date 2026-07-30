@@ -50,6 +50,7 @@ const runtimePaths = Object.freeze([
   "runtime/method/6.10.0/qa-tests.instructions.md",
   "runtime/method/6.10.0/quick-dev.instructions.md",
   "runtime/method/6.10.0/retrospective.instructions.md",
+  "runtime/method/6.10.0/spec.instructions.md",
   "runtime/method/6.10.0/sprint-planning.instructions.md",
   "runtime/method/6.10.0/tech-writer-persona.instructions.md",
   "runtime/method/6.10.0/technical-research.instructions.md",
@@ -74,6 +75,7 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-document-project.package.json",
   "normalized/bmad-domain-research.package.json",
   "normalized/bmad-help-action-graph.json",
+  "normalized/bmad-help-capability-graph.json",
   "normalized/bmad-help.package.json",
   "normalized/bmad-market-research.package.json",
   "normalized/bmad-pm.package.json",
@@ -83,6 +85,7 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-qa-generate-e2e-tests.package.json",
   "normalized/bmad-quick-dev.package.json",
   "normalized/bmad-retrospective.package.json",
+  "normalized/bmad-spec.package.json",
   "normalized/bmad-sprint-planning.package.json",
   "normalized/bmad-tech-writer-explain-concept.package.json",
   "normalized/bmad-tech-writer-mermaid-gen.package.json",
@@ -94,6 +97,8 @@ const normalizedPaths = Object.freeze([
   "normalized/bmad-ux.package.json",
   "normalized/bmm-agent-roster.json",
   "normalized/builder-agent.package.json",
+  "normalized/builder-alias-registry.json",
+  "normalized/builder-capability-catalog.json",
   "normalized/builder-workflow.package.json",
 ]);
 
@@ -125,6 +130,7 @@ const requiredPackagePaths = Object.freeze([
   "scripts/verify-source-notes.mjs",
   "scripts/verify-source-identities.mjs",
   "scripts/verify.mjs",
+  "tests/bmad-spec.test.mjs",
   ...normalizedPaths,
   ...managedOutputPaths,
 ].sort());
@@ -365,6 +371,14 @@ const expectedProjectionSourceMemberIds = Object.freeze({
     "method-004",
     "method-044",
     "method-045",
+  ],
+  "runtime/method/6.10.0/spec.instructions.md": [
+    "method-004",
+    "method-238",
+    "method-239",
+    "method-240",
+    "method-241",
+    "method-242",
   ],
   "runtime/method/6.10.0/qa-tests.instructions.md": [
     "method-004",
@@ -675,6 +689,9 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
       "capability-catalog.json",
       "capability-closure-ledger.json",
       "compatibility-aliases.json",
+      "compatibility-ledger.json",
+      "dependency-graph.json",
+      "ledger-fragments",
       "licenses",
       "normalized",
       "package.json",
@@ -699,26 +716,35 @@ test("the BMAD-04 package topology contains only reviewed normalized runtime dat
   assert.deepEqual(await readdir(path.join(packageRoot, "scripts")), [
     "builder-resource-closure.mjs",
     "classify-scripts.mjs",
+    "conformance.mjs",
+    "generate-builder-catalog.mjs",
     "generate-catalog.mjs",
     "import-source.mjs",
     "intake.mjs",
+    "merge-ledger-fragments.mjs",
     "reseal.mjs",
     "resource-closure.mjs",
     "source-accounting.mjs",
+    "verify-dependency-graph.mjs",
     "verify-source-identities.mjs",
     "verify-source-notes.mjs",
     "verify.mjs",
   ]);
   assert.deepEqual(await readdir(path.join(packageRoot, "tests")), [
     "bmad-capability-catalog.test.mjs",
+    "bmad-spec.test.mjs",
+    "builder-catalog.test.mjs",
     "builder-source-closure.test.mjs",
+    "compatibility-ledger.test.mjs",
     "fixtures",
     "foundation.test.mjs",
+    "help-catalog.test.mjs",
     "import-source.test.mjs",
     // Fidelity conformance over the vendored corpus (ADR-0010). Pinned here as
     // well as in `verify.mjs` so adding a file to the sealed package stays a
     // two-place, deliberate act rather than something a stray write can do.
     "method-fidelity.test.mjs",
+    "method-task-verification.test.mjs",
     "resource-closure.test.mjs",
     "script-inventory.test.mjs",
     "source-accounting.test.mjs",
@@ -998,7 +1024,7 @@ test("the adoption ledger closes every citation and grants no runtime authority"
   }
 
   const method = projections.filter((projection) => projection.classification === "method");
-  assert.equal(method.length, 31);
+  assert.equal(method.length, 32);
   assert.ok(method.every((projection) => projection.state === "sealed_read_only"));
 
   const agentActions = projections

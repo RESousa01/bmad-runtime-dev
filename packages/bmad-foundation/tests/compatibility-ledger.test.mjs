@@ -59,14 +59,23 @@ test("every ledger row's source sha256 and canonicalId match the catalog's", () 
   }
 });
 
-// Break caught: the ledger reporting Phase 2 complete while a row still
-// carries the freshly-seeded `pending` decision -- the gate must refuse a
-// `pending` row rather than silently treating "not yet decided" as passing.
-test("a pending row fails the gate predicate and the seed carries no other decision", () => {
-  for (const row of ledger.rows) {
-    assert.equal(row.decision, "pending");
-    assert.equal(row.supportState, "unavailable");
-    assert.equal(rowPassesGate(row), false);
+// Break caught: accepting a decisionless row, or rejecting a reviewed decision,
+// would let the conformance gate either promote unfinished work or discard
+// evidence already reviewed for one of the catalog's 48 identities.
+test("pending rows fail while reviewed decisions obey the gate predicate", () => {
+  const pending = ledger.rows.filter((row) => row.decision === "pending");
+  const reviewed = ledger.rows.filter((row) => row.decision !== "pending");
+
+  assert.ok(pending.length > 0, "the synthetic/current seed must retain pending work");
+  assert.ok(reviewed.length > 0, "reviewed fragments must produce decided rows");
+  for (const row of pending) {
+    assert.equal(row.supportState, "unavailable", row.rowId);
+    assert.equal(rowPassesGate(row), false, row.rowId);
+  }
+  for (const row of reviewed) {
+    assert.ok(["adopt", "adapt", "shim"].includes(row.decision), row.rowId);
+    assert.notEqual(row.supportState, "unavailable", row.rowId);
+    assert.equal(rowPassesGate(row), true, row.rowId);
   }
 });
 
@@ -75,4 +84,27 @@ test("ledger row ordering is canonical (ascending rowId, no duplicates)", () => 
   const sorted = [...ids].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
   assert.deepEqual(ids, sorted);
   assert.equal(new Set(ids).size, ids.length);
+});
+
+// Break caught: promoting the canonical PRD in the decision ledger while the
+// generated catalog still reports the old pending state leaves Help/UI truth
+// stale; promoting its three legacy shim rows at the same time would be the
+// opposite error.
+test("catalog support state is projected from each exact compatibility-ledger row", () => {
+  const catalogByRowId = new Map(catalogMethodRows().map((row) => [row.rowId, row]));
+  const prdRows = ledger.rows.filter((row) => row.canonicalId === "bmm:bmad-prd");
+  const canonical = prdRows.find(
+    (row) => row.rowId === "method:src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+  );
+  const legacyAliases = prdRows.filter((row) => row !== canonical);
+
+  assert.equal(canonical?.decision, "adopt");
+  assert.equal(canonical?.supportState, "exact");
+  assert.equal(catalogByRowId.get(canonical.rowId)?.supportState, "exact");
+  assert.equal(legacyAliases.length, 3);
+  for (const row of legacyAliases) {
+    assert.equal(row.decision, "pending", row.rowId);
+    assert.equal(row.supportState, "unavailable", row.rowId);
+    assert.equal(catalogByRowId.get(row.rowId)?.supportState, "unavailable", row.rowId);
+  }
 });

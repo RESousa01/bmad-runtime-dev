@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "sapphirus.bmad.method-golden.v1",
+  "canonicalId": "bmm:bmad-prd",
+  "source": {
+    "entrypoint": "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+    "entrypointSha256": "5d7b4719a1fa9e4f7d4cbeeb4a412c79e141bc77e8e25ba442b85e1c5c587f3f",
+    "headlessReference": "src/bmm-skills/2-plan-workflows/bmad-prd/references/headless.md",
+    "headlessReferenceSha256": "4dad58ebee63933a53179016513ff94d143ce9f68e226489d390e2c36bf1d848",
+    "validationReference": "src/bmm-skills/2-plan-workflows/bmad-prd/references/validate.md",
+    "validationReferenceSha256": "71f28774e85c673a5c48af607af541e6a08e10076a2d46d0763885fafc74f201"
+  },
+  "executionContract": {
+    "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+    "projectionHash": "sha256:020773a36111d798aaadbed06a1aaa40ae4c830140ebcd2b4f035245beb29d17",
+    "projectionEnvelopeHash": "sha256:b3d3a62bee24df5565de4182f4774765c3abb5d829e05e3c72f362ae823601bc",
+    "workflowStep": "facilitate_prd",
+    "declaredModes": ["interactive", "headless"],
+    "typedToolIntents": ["file_read", "file_write", "process", "web", "subagent", "external_handoff"],
+    "recoverySemantics": "MethodCheckpoint"
+  },
+  "cases": [
+    {
+      "id": "interactive-create-finalize",
+      "mode": "interactive",
+      "intent": "create",
+      "requiredOutput": {
+        "artifact": "{doc_workspace}/prd.md",
+        "frontmatterStatus": "final",
+        "auditTrail": "{doc_workspace}/.memlog.md"
+      },
+      "sourceSteps": ["activation", "discovery", "finalize"],
+      "completionHook": "persist_artifacts"
+    },
+    {
+      "id": "headless-create-complete",
+      "mode": "headless",
+      "intent": "create",
+      "callerInputs": ["intent", "brief", "doc_workspace"],
+      "expectedStatus": "complete",
+      "requiredOutput": "{doc_workspace}/prd.md"
+    },
+    {
+      "id": "headless-create-partial",
+      "mode": "headless",
+      "intent": "create",
+      "callerInputs": ["intent", "doc_workspace"],
+      "expectedStatus": "partial",
+      "requiredStatusFields": ["assumptions", "open_questions"],
+      "requiredOutput": "{doc_workspace}/prd.md"
+    },
+    {
+      "id": "headless-ambiguous-blocked",
+      "mode": "headless",
+      "intent": null,
+      "expectedStatus": "blocked",
+      "requiredStatusFields": ["reason"],
+      "forbiddenOutputs": ["{doc_workspace}/prd.md"]
+    },
+    {
+      "id": "headless-validate-report",
+      "mode": "headless",
+      "intent": "validate",
+      "expectedStatusField": {"offer_to_update": true},
+      "requiredOutputs": [
+        "{doc_workspace}/validation-report.html",
+        "{doc_workspace}/validation-report.md"
+      ],
+      "forbiddenEffects": ["modify_prd"]
+    },
+    {
+      "id": "update-recovers-missing-memlog",
+      "mode": "interactive_or_headless",
+      "intent": "update",
+      "precondition": "{doc_workspace}/prd.md exists and {doc_workspace}/.memlog.md is missing",
+      "requiredWorkflow": ["initialize_memlog", "bootstrap_recovered_decisions", "surface_conflicts", "finalize"]
+    },
+    {
+      "id": "generic-runtime-recovery-boundary",
+      "mode": "interactive_or_headless",
+      "intent": "create_update_or_validate",
+      "runtimeOwned": ["cancel", "failure", "retry", "repair", "restart", "resume", "source_upgrade"],
+      "boundary": "The adapter declares immutable source identities and an inert execution contract; all recovery transitions, typed plans, Airlock decisions, governed effects, sessions, persistence, and durable evidence remain owned by the existing generic BMAD Method runtime."
+    }
+  ]
+}

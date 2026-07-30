@@ -6,6 +6,7 @@
 //! private submodule.
 
 mod adapters;
+mod execution;
 mod harness;
 
 pub use adapters::{
@@ -15,6 +16,13 @@ pub use adapters::{
     BmadCustomizeSkill, BmadDeepReconSkill, BmadDocumentProjectSkill, BmadForgeIdeaSkill,
     BmadGenerateProjectContextSkill, BmadHelpSkill, BmadPartyModeSkill, BmadPrdSkill,
     BmadPrfaqSkill, BmadProductBriefSkill, BmadReviewSkill, BmadSpecSkill, BmadUxSkill,
+};
+pub use execution::{
+    BmadPreparedSkillExecution, BmadSkillAuthorityRequirement, BmadSkillExecutionBindingInput,
+    BmadSkillExecutionBranch, BmadSkillExecutionCompiler, BmadSkillExecutionContract,
+    BmadSkillExecutionContractInput, BmadSkillExecutionError, BmadSkillExecutionPreparedPlan,
+    BmadSkillExecutionRequest, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillRecoverySemantics, BmadSkillToolIntent,
 };
 pub use harness::{
     BmadMethodSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillHarnessError,

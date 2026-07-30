@@ -33,13 +33,17 @@
     "builder_public_actions": 9,
     "builder_internal_actions": 1,
     "runtime_support": {
-      "implementation_pending": 53
+      "adapted": 1,
+      "exact": 1,
+      "implementation_pending": 51
     },
     "ui_support": {
-      "planned": 53
+      "planned": 51,
+      "runtime_available": 2
     },
     "release_state": {
-      "blocked_pending_conformance": 53
+      "blocked_pending_conformance": 51,
+      "qualified": 2
     }
   },
   "builder_actions": [
@@ -9490,9 +9494,9 @@
         "authority_negative",
         "output_conformance"
       ],
-      "support_state": "implementation_pending",
-      "ui_state": "planned",
-      "release_state": "blocked_pending_conformance"
+      "support_state": "exact",
+      "ui_state": "runtime_available",
+      "release_state": "qualified"
     },
     {
       "member_key": "method:src/bmm-skills/2-plan-workflows/bmad-spec/assets/headless-schemas.md",
@@ -9584,9 +9588,9 @@
         "authority_negative",
         "output_conformance"
       ],
-      "support_state": "implementation_pending",
-      "ui_state": "planned",
-      "release_state": "blocked_pending_conformance"
+      "support_state": "adapted",
+      "ui_state": "runtime_available",
+      "release_state": "qualified"
     },
     {
       "member_key": "method:src/bmm-skills/2-plan-workflows/bmad-ux/assets/color-themes.md",

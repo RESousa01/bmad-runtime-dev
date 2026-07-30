@@ -10,7 +10,8 @@
       "version": "2.1.0"
     }
   },
-  "sourceAccountingSha256": "ff4c0d670244fdcb5ea5bf0ac8dcbc3c333135fe71efd16e536e37865c5b10e2",
+  "sourceAccountingSha256": "168f72d54426bc4dd5564270d128e0f3569e8dba5c69b6a9bb1618e7029f121e",
+  "compatibilityLedgerSha256": "39cff760550c3d4ddb8fb0707200067a93aef55e09e2cdad71f22e6e02f5e32c",
   "counts": {
     "method": 48,
     "builderPublic": 9,
@@ -44,7 +45,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -81,7 +82,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -118,7 +119,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -155,7 +156,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -192,7 +193,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -229,7 +230,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -266,7 +267,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -307,8 +308,8 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
-      "uiState": "planned",
+      "supportState": "exact",
+      "uiState": "runtime_available",
       "visibility": "public",
       "evidence": [
         {
@@ -344,8 +345,8 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
-      "uiState": "planned",
+      "supportState": "adapted",
+      "uiState": "runtime_available",
       "visibility": "public",
       "evidence": [
         {
@@ -381,7 +382,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -418,7 +419,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -457,7 +458,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -494,7 +495,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -531,7 +532,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -568,7 +569,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -605,7 +606,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -642,7 +643,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -679,7 +680,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -716,7 +717,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -753,7 +754,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -790,7 +791,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -827,7 +828,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -864,7 +865,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -901,7 +902,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -938,7 +939,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -975,7 +976,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1012,7 +1013,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1051,7 +1052,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1092,7 +1093,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1133,7 +1134,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1174,7 +1175,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1215,7 +1216,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1256,7 +1257,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1297,7 +1298,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1334,7 +1335,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1371,7 +1372,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1408,7 +1409,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1449,7 +1450,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1486,7 +1487,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1523,7 +1524,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "adapted",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1560,7 +1561,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1604,7 +1605,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1648,7 +1649,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1692,7 +1693,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1736,7 +1737,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1780,7 +1781,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1824,7 +1825,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -1868,7 +1869,7 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "implementation_pending",
+      "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -2288,5 +2289,5 @@
       ]
     }
   ],
-  "catalogSha256": "80af8969ee6546d2f482d145d6011135795ae54626707f9ce3ca547fcb77906e"
+  "catalogSha256": "6957e06d4ee5235a167a10e4ec22029090df662ffdfc18b652fb54759bcd158d"
 }

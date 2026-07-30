@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "sapphirus.bmad100.task-receipt.v1",
+  "taskId": "MTH-09",
+  "status": "complete",
+  "canonicalId": "bmm:bmad-spec",
+  "source": {
+    "package": "method@6.10.0",
+    "archiveSha256": "2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02b",
+    "entrypoint": "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
+    "sha256": "5b5680dbf01dbfc5b4a5485e70f20ea48ac21a1d6137c4ea2ff704262dcc45d2"
+  },
+  "treeBinding": {
+    "integratedBaseCommit": "ead276e1",
+    "catalogSha256": "6957e06d4ee5235a167a10e4ec22029090df662ffdfc18b652fb54759bcd158d",
+    "semanticLedgerSha256": "9e4ad81607765a46e03722abf6aa2112aca95b986a1247933755b6ed2f7a167f",
+    "runtimeManifestHash": "sha256:e3a213237ac36308ffc86617150c413558528037536f9b3eddc95c3f7fb1a2ac",
+    "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+    "projectionEnvelopeHash": "sha256:23280a02c31af2f9da1c3991278d542e796b075e198101e19dbbb92f7ea74e1e"
+  },
+  "acceptance": [
+    {
+      "criterion": "every source file has a disposition",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-spec/source-closure.json"
+    },
+    {
+      "criterion": "declared args modes resources topology artifacts and hooks are executable",
+      "status": "pass",
+      "evidence": "crates/desktop-runtime/tests/bmad_bmad_spec.rs"
+    },
+    {
+      "criterion": "interactive and headless modes preserve required-output parity",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-spec/golden/source-derived-cases.json"
+    },
+    {
+      "criterion": "cancel fail retry repair restart resume and stale upgrade are durable and deterministic",
+      "status": "pass",
+      "evidence": "crates/desktop-runtime/tests/bmad_bmad_spec.rs"
+    },
+    {
+      "criterion": "source prose grants no runtime authority",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-spec/authority.json"
+    },
+    {
+      "criterion": "Help Skills UI runtime closure and ledgers project one adapted state",
+      "status": "pass",
+      "evidence": "packages/bmad-foundation/tests/bmad-spec.test.mjs"
+    },
+    {
+      "criterion": "no unavailable pending blocked partial or analogous target state remains",
+      "status": "pass",
+      "evidence": "packages/bmad-foundation/source-accounting.json"
+    }
+  ],
+  "gates": [
+    {
+      "command": "node packages/bmad-foundation/scripts/resource-closure.mjs --source method@6.10.0 --skill bmad-spec --check",
+      "status": "pass"
+    },
+    {
+      "command": "node packages/bmad-foundation/scripts/conformance.mjs --skill bmad-spec --all-modes --strict",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p desktop-runtime --test bmad_bmad_spec --locked",
+      "status": "pass",
+      "tests": 5
+    },
+    {
+      "command": "pnpm --filter @sapphirus/bmad-foundation test -- --runInBand bmad-spec",
+      "status": "pass",
+      "tests": 203
+    },
+    {
+      "command": "pnpm verify:bmad:authority -- --skill bmad-spec",
+      "status": "pass"
+    }
+  ]
+}

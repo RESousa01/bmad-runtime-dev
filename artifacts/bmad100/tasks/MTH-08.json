@@ -1,0 +1,236 @@
+{
+  "task_id": "MTH-08",
+  "status": "complete",
+  "phase": 2,
+  "commit": "cfdaef333bb285f8126e844d6225bafd85b2ad3c",
+  "source_hashes": {
+    "baseline_task_source_tree": "15645c295c223bc9b509adf0dc53bbe937f43c7c",
+    "candidate_base_tree": "50591fd383442be9b4b20c8ca76dbb29a13a76d9",
+    "final_task_source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17"
+  },
+  "evidence_semantics": {
+    "verified_implementation_commit": "cfdaef333bb285f8126e844d6225bafd85b2ad3c",
+    "verified_implementation_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+    "initial_receipt_commit": "07d1ae3de5f17fdffdd98bdb5d0adfa693f34cf2",
+    "initial_receipt_tree": "57436ca4021257be8f91514d01b48e2f5b267a0f",
+    "relationship": "final_task_source_tree is the exact tested implementation tree supplied as repository.worktree_tree to transitionTask. The canonical receipt and report are evidence-only descendants committed after that tree; they do not redefine or claim to have been inputs to their own recorded commands.",
+    "updater_contract": "requirePassEvidence requires patch.final_tree to equal repository.worktree_tree and every required command.source_tree to equal patch.final_tree. It does not require the Git commit containing the receipt to equal the verified implementation commit."
+  },
+  "scope_resolution": [
+    {
+      "paths": [
+        "packages/bmad-foundation/source/method/6.10.0/.vscode/settings.json",
+        "packages/bmad-foundation/source/method/6.10.0/package-lock.json"
+      ],
+      "resolution": "Retained by the reviewer-required clean source-topology repair. The committed authoritative source manifest identifies both as Method 6.10.0 members with the exact SHA-256 values below; they are required members of the pinned Method source tree consumed by MTH-08 closure verification.",
+      "governing_manifest": {
+        "path": "packages/bmad-foundation/source-manifest.json",
+        "source_id": "method",
+        "source_version": "6.10.0",
+        "entries": [
+          {
+            "path": ".vscode/settings.json",
+            "sha256": "0e391501f65d10db323be3cadd0bfcf6118ed270f5e134c13cefcbbcb331ee12"
+          },
+          {
+            "path": "package-lock.json",
+            "sha256": "c1e0de1fe219b251097ac78f275c42250595c075f63fab39b47800fbd92e883d"
+          }
+        ]
+      },
+      "reviewer_scope": "MTH-08 reviewer round 2 clean-topology requirement",
+      "content_hashes": {
+        ".vscode/settings.json": "0e391501f65d10db323be3cadd0bfcf6118ed270f5e134c13cefcbbcb331ee12",
+        "package-lock.json": "c1e0de1fe219b251097ac78f275c42250595c075f63fab39b47800fbd92e883d"
+      }
+    }
+  ],
+  "row_id": "method:src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+  "decision": "adapt",
+  "support_state": "exact",
+  "files_changed": [
+    ".gitattributes",
+    ".superpowers/sdd/15-full-plan/task-MTH-08-report.md",
+    "apps/desktop-ui/src/App.tsx",
+    "apps/desktop-ui/src/app/AppProviders.tsx",
+    "apps/desktop-ui/src/components/BmadCapabilityPanel.test.tsx",
+    "apps/desktop-ui/src/components/BmadCapabilityPanel.tsx",
+    "apps/desktop-ui/src/components/BmadLibraryPanel.test.tsx",
+    "apps/desktop-ui/src/components/BmadLibraryPanel.tsx",
+    "apps/desktop-ui/src/components/BmadWorkflowPanel.test.tsx",
+    "apps/desktop-ui/src/features/skills/bmadCoverage.test.ts",
+    "apps/desktop-ui/src/features/skills/bmadCoverage.ts",
+    "apps/desktop-ui/src/features/skills/skillAvailability.test.ts",
+    "apps/desktop-ui/src/generated/bmadCapabilities.ts",
+    "apps/desktop-ui/src/lib/hostClient/client.ts",
+    "apps/desktop-ui/src/lib/hostClient/commandEnvelopes.ts",
+    "artifacts/bmad100/tasks/MTH-08.json",
+    "crates/desktop-app/src/bmad_capability_host.rs",
+    "crates/desktop-app/src/bmad_foundation.rs",
+    "crates/desktop-app/src/bmad_model/capability_coordinator.rs",
+    "crates/desktop-app/src/commands.rs",
+    "crates/desktop-cloud/src/model.rs",
+    "crates/desktop-ipc/src/envelope.rs",
+    "crates/desktop-runtime/src/bmad/binding.rs",
+    "crates/desktop-runtime/src/bmad/catalog.rs",
+    "crates/desktop-runtime/src/bmad/help_binding.rs",
+    "crates/desktop-runtime/src/bmad/method.rs",
+    "crates/desktop-runtime/src/bmad/mod.rs",
+    "crates/desktop-runtime/src/bmad/skills/adapters/bmad_prd.rs",
+    "crates/desktop-runtime/src/bmad/skills/execution.rs",
+    "crates/desktop-runtime/src/bmad/skills/mod.rs",
+    "crates/desktop-runtime/src/command.rs",
+    "crates/desktop-runtime/src/lib.rs",
+    "crates/desktop-runtime/tests/bmad_bmad_prd.rs",
+    "crates/desktop-runtime/tests/bmad_method_session.rs",
+    "crates/desktop-runtime/tests/bmad_skill_execution.rs",
+    "crates/desktop-store/tests/bmad_method_store.rs",
+    "packages/bmad-foundation/normalized/bmad-prd.package.json",
+    "packages/bmad-foundation/runtime-manifest.json",
+    "packages/bmad-foundation/scripts/conformance.mjs",
+    "packages/bmad-foundation/scripts/generate-catalog.mjs",
+    "packages/bmad-foundation/scripts/resource-closure.mjs",
+    "packages/bmad-foundation/source/method/6.10.0/.vscode/settings.json",
+    "packages/bmad-foundation/source/method/6.10.0/package-lock.json",
+    "packages/bmad-foundation/tests/method-task-verification.test.mjs",
+    "tools/bmad100/verify-authority.mjs"
+  ],
+  "leased_files": [
+    "packages/bmad-foundation/normalized/bmad-prd.package.json",
+    "packages/bmad-foundation/ledger-fragments/method__bmad-prd.json",
+    "packages/bmad-foundation/source-accounting.json",
+    "packages/bmad-foundation/compatibility-ledger.json",
+    "packages/bmad-foundation/compatibility-aliases.json",
+    "packages/bmad-foundation/capability-catalog.json",
+    "packages/bmad-foundation/scripts/source-accounting.mjs",
+    "packages/bmad-foundation/scripts/verify-dependency-graph.mjs",
+    "packages/bmad-foundation/scripts/verify.mjs",
+    "packages/bmad-foundation/scripts/generate-catalog.mjs",
+    "packages/bmad-foundation/scripts/generate-builder-catalog.mjs",
+    "packages/bmad-foundation/tests/foundation.test.mjs",
+    "packages/bmad-foundation/tests/source-accounting.test.mjs",
+    "packages/bmad-foundation/tests/bmad-capability-catalog.test.mjs",
+    "packages/bmad-foundation/tests/compatibility-ledger.test.mjs",
+    "packages/bmad-foundation/tests/help-catalog.test.mjs",
+    "packages/bmad-foundation/tests/builder-catalog.test.mjs",
+    "packages/bmad-foundation/normalized/bmad-help-capability-graph.json",
+    "packages/bmad-foundation/normalized/builder-alias-registry.json",
+    "packages/bmad-foundation/normalized/builder-capability-catalog.json",
+    "packages/bmad-foundation/runtime-manifest.json",
+    "packages/bmad-foundation/package.json",
+    "crates/desktop-runtime/src/bmad/skills/adapters/bmad_prd.rs",
+    "crates/desktop-runtime/src/bmad/skills/adapters/mod.rs",
+    "crates/desktop-runtime/src/bmad/skills/harness.rs",
+    "crates/desktop-runtime/src/bmad/skills/execution.rs",
+    "crates/desktop-runtime/src/bmad/skills/mod.rs",
+    "crates/desktop-runtime/src/bmad/mod.rs",
+    "crates/desktop-runtime/src/lib.rs",
+    "crates/desktop-app/src/bmad_foundation.rs",
+    "crates/desktop-app/src/bmad_capability_host.rs",
+    "crates/desktop-app/src/commands.rs",
+    "crates/desktop-app/src/generated/bmad_capabilities.rs",
+    "crates/desktop-runtime/src/bmad/help_binding.rs",
+    "crates/desktop-runtime/src/bmad/catalog.rs",
+    "apps/desktop-ui/src/generated/bmadCapabilities.ts",
+    "apps/desktop-ui/src/components/BmadLibraryPanel.tsx",
+    "apps/desktop-ui/src/components/BmadLibraryPanel.test.tsx",
+    "apps/desktop-ui/src/features/skills/bmadCoverage.ts",
+    "apps/desktop-ui/src/features/skills/bmadCoverage.test.ts",
+    "apps/desktop-ui/src/features/skills/skillAvailability.ts",
+    "apps/desktop-ui/src/features/skills/skillAvailability.test.ts",
+    "crates/desktop-runtime/tests/bmad_bmad_prd.rs",
+    "crates/desktop-runtime/tests/bmad_skill_execution.rs",
+    "packages/bmad-foundation/normalized/bmad-help-action-graph.json",
+    "packages/bmad-foundation/tests/fixtures/method__src__bmm-skills__2-plan-workflows__bmad-prd__SKILL.md",
+    "docs/bmad/skills/bmad-prd.md",
+    "artifacts/bmad100/method/bmad-prd"
+  ],
+  "commands": [
+    {
+      "command": "node packages/bmad-foundation/scripts/resource-closure.mjs --source method@6.10.0 --skill bmad-prd --check",
+      "cwd": ".",
+      "exit_code": 0,
+      "source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+      "evidence_recorded_at": "2026-07-29T21:40:00+02:00",
+      "required_for_pass": true
+    },
+    {
+      "command": "node packages/bmad-foundation/scripts/conformance.mjs --skill bmad-prd --all-modes --strict",
+      "cwd": ".",
+      "exit_code": 0,
+      "source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+      "evidence_recorded_at": "2026-07-29T21:40:00+02:00",
+      "required_for_pass": true
+    },
+    {
+      "command": "cargo test -p desktop-runtime --test bmad_bmad_prd --locked",
+      "cwd": ".",
+      "exit_code": 0,
+      "source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+      "evidence_recorded_at": "2026-07-29T21:40:00+02:00",
+      "required_for_pass": true
+    },
+    {
+      "command": "pnpm --filter @sapphirus/bmad-foundation test -- --runInBand bmad-prd",
+      "cwd": ".",
+      "exit_code": 0,
+      "source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+      "evidence_recorded_at": "2026-07-29T21:40:00+02:00",
+      "required_for_pass": true
+    },
+    {
+      "command": "pnpm verify:bmad:authority -- --skill bmad-prd",
+      "cwd": ".",
+      "exit_code": 0,
+      "source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+      "evidence_recorded_at": "2026-07-29T21:40:00+02:00",
+      "required_for_pass": true
+    },
+    {
+      "command": "cargo test -p desktop-app canonical_prd --features deterministic-help --locked --no-fail-fast",
+      "cwd": ".",
+      "exit_code": 0,
+      "source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+      "evidence_recorded_at": "2026-07-29T21:40:00+02:00",
+      "required_for_pass": true
+    },
+    {
+      "command": "cargo test -p desktop-app capability_cancel_blocks_submission --features deterministic-help --locked",
+      "cwd": ".",
+      "exit_code": 0,
+      "source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+      "evidence_recorded_at": "2026-07-29T21:40:00+02:00",
+      "required_for_pass": true
+    },
+    {
+      "command": "pnpm --dir apps/desktop-ui test && pnpm --dir apps/desktop-ui typecheck && pnpm --dir apps/desktop-ui lint -- --max-warnings=0",
+      "cwd": ".",
+      "exit_code": 0,
+      "source_tree": "820fe9a065202499403a21f0d317b15dbe89fd17",
+      "evidence_recorded_at": "2026-07-29T21:40:00+02:00",
+      "required_for_pass": true
+    }
+  ],
+  "counts": {
+    "foundation_tests_passed": 196,
+    "ui_tests_passed": 1540,
+    "runtime_prd_tests_passed": 5,
+    "production_lifecycle_tests_passed": 4,
+    "actions": 3,
+    "invocation_modes": 2
+  },
+  "evidence_hashes": {
+    "source_closure": "b803c23172f40eefd07e702c6b7b001e99160b0e452404eb24a9eec2b8d5fb73",
+    "conformance": "ee3fd9260133895d5059c98bde31e846a280d3c6d75c84686349ed2d922e55d6",
+    "authority": "ec0f51d02e90180d1fd48172e0b3b70d5829aeb407b7a47c741aa385c6bc8006",
+    "source_derived_cases": "7c7aee6de83a5464a290d0742bfcbd1d5b1763242b467fcdbb84d796591fbbb2"
+  },
+  "review": {
+    "rounds": 2,
+    "spec": "pass",
+    "quality": "pass",
+    "reviewer": "coordinator_reviewer_round_2",
+    "open_findings": 0
+  },
+  "blockers": []
+}

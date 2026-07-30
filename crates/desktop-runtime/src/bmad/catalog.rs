@@ -138,6 +138,19 @@ pub struct BmadHelpCatalogSource {
     contents: String,
 }
 
+/// Generated canonical support fact applied to one Help candidate.
+///
+/// The source graph remains non-authorizing data. This value only determines
+/// whether Help may recommend the candidate; execution still crosses its own
+/// typed plan and authority boundary.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BmadGeneratedHelpSupport {
+    pub module_code: String,
+    pub skill_name: String,
+    pub action: Option<String>,
+    pub runtime_available: bool,
+}
+
 impl BmadHelpCatalogSource {
     /// Creates one bounded, module-scoped help catalog source.
     ///
@@ -337,6 +350,76 @@ impl BmadCatalogBuilder {
             capability_catalog_hash,
             projection_hash,
         })
+    }
+
+    /// Builds and reseals a Help catalog using generated canonical support
+    /// facts instead of the legacy installed-skill inference matrix.
+    ///
+    /// # Errors
+    ///
+    /// Fails closed when a generated support row is duplicated, has no exact
+    /// candidate, or leaves any candidate without a support decision.
+    pub fn build_generated_bound(
+        package: &BmadLoadedPackage,
+        sources: &[BmadHelpCatalogSource],
+        help_graph_hash: Sha256Digest,
+        support: &[BmadGeneratedHelpSupport],
+    ) -> Result<BmadCatalog, BmadKernelError> {
+        let mut catalog = Self::build_bound(package, sources, help_graph_hash)?;
+        let mut observed = BTreeSet::new();
+        for row in support {
+            let identity = (
+                row.module_code.as_str(),
+                row.skill_name.as_str(),
+                row.action.as_deref(),
+            );
+            if !observed.insert(identity) {
+                return Err(BmadKernelErrorCode::HelpCatalogInvalid.into());
+            }
+            let candidates = catalog
+                .help_actions
+                .iter()
+                .enumerate()
+                .find(|candidate| {
+                    let candidate = candidate.1;
+                    candidate.module_code == row.module_code
+                        && candidate.skill_name == row.skill_name
+                        && row
+                            .action
+                            .as_ref()
+                            .is_none_or(|action| candidate.action.as_ref() == Some(action))
+                })
+                .map(|candidate| candidate.0)
+                .ok_or(BmadKernelErrorCode::HelpCatalogInvalid)?;
+            if row.action.is_none()
+                && catalog
+                    .help_actions
+                    .iter()
+                    .filter(|candidate| {
+                        candidate.module_code == row.module_code
+                            && candidate.skill_name == row.skill_name
+                    })
+                    .count()
+                    != 1
+            {
+                return Err(BmadKernelErrorCode::HelpCatalogInvalid.into());
+            }
+            let candidate = catalog
+                .help_actions
+                .get_mut(candidates)
+                .ok_or(BmadKernelErrorCode::HelpCatalogInvalid)?;
+            candidate.availability = if row.runtime_available {
+                BmadCatalogAvailability::Available
+            } else {
+                BmadCatalogAvailability::CapabilityDisabled
+            };
+        }
+        if observed.len() != catalog.help_actions.len() {
+            return Err(BmadKernelErrorCode::HelpCatalogInvalid.into());
+        }
+        catalog.projection_hash =
+            catalog_projection_hash(&catalog.installed_skills, &catalog.help_actions)?;
+        Ok(catalog)
     }
 }
 

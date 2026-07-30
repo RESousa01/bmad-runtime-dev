@@ -310,9 +310,8 @@ describe("BmadWorkflowPanel", () => {
   /// matrix records one row per upstream directory, so the action has to come
   /// off before the matrix is asked. Otherwise every multi-action step of the
   /// graph reads as a skill nobody recorded.
-  it("asks the coverage matrix about the skill behind a multi-action step key", async () => {
+  it("asks the coverage matrix about the skill behind a multi-action step key", () => {
     const onStartStep = vi.fn();
-    const user = userEvent.setup();
     render(
       <BmadWorkflowPanel
         error={null}
@@ -339,10 +338,9 @@ describe("BmadWorkflowPanel", () => {
 
     const row = screen.getByRole("listitem");
     expect(within(row).queryByText("Not known")).toBeNull();
-    await user.click(within(row).getByRole("button", { name: "Start" }));
-    expect(onStartStep).toHaveBeenCalledWith(
-      expect.objectContaining({ key: "bmad-create-story:validate" }),
-    );
+    expect(within(row).queryByRole("button", { name: "Start" })).toBeNull();
+    expect(within(row).getByText("Cannot run here")).toBeTruthy();
+    expect(onStartStep).not.toHaveBeenCalled();
   });
 
   /// Regression guard: an incomplete step that is not yet available rendered

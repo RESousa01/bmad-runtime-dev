@@ -309,6 +309,16 @@ impl AuthorizedModelRequest {
     }
 
     #[must_use]
+    pub fn invocation_id(&self) -> &ContractId {
+        &self.invocation_id
+    }
+
+    #[must_use]
+    pub fn decision_id(&self) -> &ContractId {
+        &self.decision_id
+    }
+
+    #[must_use]
     pub fn purpose(&self) -> &str {
         &self.purpose
     }

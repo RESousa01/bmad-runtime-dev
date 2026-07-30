@@ -22,7 +22,8 @@ use desktop_runtime::{
     canonical_hash, deserialize_strict_json, sha256_bytes, BmadAgentRoster, BmadBuilderDraftFile,
     BmadBuilderDraftKind, BmadCandidateChange, BmadCapabilityOutput, BmadClosureCapabilityId,
     BmadDocumentArtifact, BmadDocumentSection, BmadGovernedChangeSet, BmadInactiveBuilderDraft,
-    ContractId, RelativeWorkspacePath, Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+    BmadInvocationMode, BmadMethodSkill, BmadPrdSkill, BmadSpecSkill, ContractId,
+    RelativeWorkspacePath, Sha256Digest, UnixMillis, BMAD_DOCUMENT_ARTIFACT_SCHEMA,
     BMAD_GOVERNED_CHANGE_SET_SCHEMA, BMAD_INACTIVE_BUILDER_DRAFT_SCHEMA,
 };
 use serde::Serialize;
@@ -36,7 +37,10 @@ use crate::bmad_model::capability_coordinator::{
 use crate::bmad_model::config::{HelpModelConfiguration, HelpModelMode};
 use crate::bmad_model::context::derived_contract_id;
 use crate::generated::bmad_capabilities::{
-    CAPABILITIES as GENERATED_CAPABILITIES, COMPATIBILITY_ALIASES as GENERATED_ALIASES,
+    BUILDER_INTERNAL_ACTION_ROW_COUNT, BUILDER_PUBLIC_ACTION_ROW_COUNT,
+    CAPABILITIES as GENERATED_CAPABILITIES, CAPABILITY_ROW_COUNT,
+    COMPATIBILITY_ALIASES as GENERATED_ALIASES, METHOD_CAPABILITY_ROW_COUNT,
+    UI_ADVERTISED_CAPABILITIES,
 };
 
 /// One reviewed menu capability binding: identity, archetype, projection.
@@ -44,6 +48,54 @@ pub(crate) struct CapabilityBinding {
     pub id: &'static str,
     pub output_schema_id: &'static str,
     pub projection_path: &'static str,
+}
+
+/// Generated-catalog-selected Method adapter and its user-selected branch.
+pub(crate) struct GeneratedMethodDispatch {
+    pub skill: Box<dyn BmadMethodSkill>,
+    pub action: String,
+    pub mode: BmadInvocationMode,
+}
+
+/// Resolves only generated, public, runtime-available canonical Method rows.
+///
+/// The generated row chooses the source adapter; command routing never keeps a
+/// second handwritten capability predicate or constructs a skill directly.
+pub(crate) fn generated_method_dispatch(
+    capability_id: &str,
+    action: Option<&str>,
+    mode: Option<BmadInvocationMode>,
+) -> Result<Option<GeneratedMethodDispatch>, BmadProjectionError> {
+    let Some(row) = UI_ADVERTISED_CAPABILITIES
+        .iter()
+        .find(|row| row.canonical_id == capability_id && row.source_id == "method")
+    else {
+        return Ok(None);
+    };
+    let Some(mode) = mode else {
+        return Err(BmadProjectionError::Unavailable);
+    };
+    let (skill, action): (Box<dyn BmadMethodSkill>, String) = match row.source_path {
+        "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md" => (
+            Box::new(BmadPrdSkill),
+            action.ok_or(BmadProjectionError::Unavailable)?.to_owned(),
+        ),
+        "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md" if action.is_none() => {
+            (Box::new(BmadSpecSkill), String::new())
+        }
+        _ => return Err(BmadProjectionError::Unavailable),
+    };
+    Ok(Some(GeneratedMethodDispatch {
+        skill,
+        action,
+        mode,
+    }))
+}
+
+pub(crate) fn is_generated_method_capability(capability_id: &str) -> bool {
+    UI_ADVERTISED_CAPABILITIES
+        .iter()
+        .any(|row| row.canonical_id == capability_id && row.source_id == "method")
 }
 
 /// The 38 reviewed capabilities: 24 unique menu capabilities (ADR-0005),
@@ -202,8 +254,8 @@ pub(crate) const CAPABILITY_TABLE: [CapabilityBinding; 38] = [
     // descriptor, not in this id.
     CapabilityBinding {
         id: "bmm:bmad-spec",
-        output_schema_id: BMAD_GOVERNED_CHANGE_SET_SCHEMA,
-        projection_path: "source/method/6.10.0/src/core-skills/bmad-spec/SKILL.md",
+        output_schema_id: BMAD_DOCUMENT_ARTIFACT_SCHEMA,
+        projection_path: "runtime/method/6.10.0/spec.instructions.md",
     },
     CapabilityBinding {
         id: "bmm:bmad-advanced-elicitation",
@@ -388,9 +440,31 @@ pub(crate) const METHOD_MENU_CAPABILITY_TABLE: [BmadRuntimeMenuCapabilityBinding
 ];
 
 pub(crate) fn capability_binding(capability_id: &str) -> Option<&'static CapabilityBinding> {
+    if !generated_catalog_shape_is_current() {
+        return None;
+    }
     CAPABILITY_TABLE.iter().find(|binding| {
         binding.id == capability_id && builder_binding_has_canonical_catalog_target(binding)
     })
+}
+
+fn generated_catalog_shape_is_current() -> bool {
+    GENERATED_CAPABILITIES.len() == CAPABILITY_ROW_COUNT
+        && GENERATED_CAPABILITIES
+            .iter()
+            .filter(|row| row.source_id == "method")
+            .count()
+            == METHOD_CAPABILITY_ROW_COUNT
+        && GENERATED_CAPABILITIES
+            .iter()
+            .filter(|row| row.source_id == "builder" && row.visibility == "public")
+            .count()
+            == BUILDER_PUBLIC_ACTION_ROW_COUNT
+        && GENERATED_CAPABILITIES
+            .iter()
+            .filter(|row| row.source_id == "builder" && row.visibility == "internal")
+            .count()
+            == BUILDER_INTERNAL_ACTION_ROW_COUNT
 }
 
 fn catalog_target(capability_id: &str) -> Option<&'static str> {
@@ -454,8 +528,21 @@ pub(crate) fn runtime_capability_enabled(
     roster: &BmadAgentRoster,
     binding: &CapabilityBinding,
 ) -> Result<bool, BmadProjectionError> {
+    if binding.id == "bmm:bmad-prd"
+        && !UI_ADVERTISED_CAPABILITIES
+            .iter()
+            .any(|row| row.canonical_id == binding.id)
+    {
+        return Err(BmadProjectionError::Unavailable);
+    }
     if binding.id.starts_with("builder:") && binding.projection_path.starts_with("runtime/builder/")
     {
+        return Ok(true);
+    }
+    // A generated Method capability that the sealed catalog advertises as
+    // runtime-available is dispatched through the canonical Method session
+    // path. It need not also occupy a roster menu slot (for example, Spec).
+    if is_generated_method_capability(binding.id) {
         return Ok(true);
     }
     if is_core_skill_binding(binding) {

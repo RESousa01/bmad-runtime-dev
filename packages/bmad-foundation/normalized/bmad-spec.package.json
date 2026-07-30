@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "sapphirus.bmad-foundation-method-projection.v1",
+  "packageVersionId": "pkgver_8B33C55A4D67D0B258FEDBB75D1CB09DBC7F711BC9BDC794D8B052B31FCE6D86",
+  "lifecycleState": "sealed_read_only",
+  "capability": {
+    "moduleCode": "bmm",
+    "skillName": "bmad-spec",
+    "normalizedAction": null
+  },
+  "instructionProjection": {
+    "projectionId": "projection_6D906443B1DA33B59FADE6608017CE2BE88906248AC1DD9F4515ADCF25B5FC54",
+    "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
+    "sourceEntrypoint": {
+      "path": "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
+      "contentHash": "sha256:5b5680dbf01dbfc5b4a5485e70f20ea48ac21a1d6137c4ea2ff704262dcc45d2",
+      "treatment": "adapt"
+    },
+    "sourceResources": [
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-spec/customize.toml",
+        "contentHash": "sha256:a89e0f53f9b6386c281dd0158a21801a6b16f122085fd68b0220cd403c18f830",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-spec/assets/headless-schemas.md",
+        "contentHash": "sha256:83afb3614716db2347d83586a67b9c524492dd50db5282436ccb35c99fb5f08a",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-spec/assets/spec-template.md",
+        "contentHash": "sha256:4b3a032c045fdd0903933446fc07f93e879997f28a0294ed4344da71192b20ee",
+        "treatment": "adapt"
+      },
+      {
+        "path": "src/bmm-skills/2-plan-workflows/bmad-spec/assets/stories-schema.md",
+        "contentHash": "sha256:4f8137c00e2710288354a4466d1cfb90704f4b2a04bd3b63924218fd589cc6a9",
+        "treatment": "adapt"
+      }
+    ],
+    "sourceSections": [],
+    "managedInstruction": {
+      "path": "runtime/method/6.10.0/spec.instructions.md",
+      "contentHash": "sha256:6d906443b1da33b59fade6608017ce2be88906248ac1dd9f4515adcf25b5fc54",
+      "format": "SapphirusManagedV1"
+    },
+    "blockedToolIntents": [
+      "external_handoff",
+      "file_read",
+      "file_write",
+      "process",
+      "subagent"
+    ],
+    "hostInputReplacements": [
+      {
+        "toolIntent": "external_handoff",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "file_read",
+        "inputKind": "bounded_resource_set",
+        "inputSchemaHash": "sha256:877f8d441a8a7309ac142dec2e6b7a0686fbef21d66683d64a9f2e9db1af7ec9"
+      },
+      {
+        "toolIntent": "file_write",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "process",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      },
+      {
+        "toolIntent": "subagent",
+        "inputKind": "unavailable_fact",
+        "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
+      }
+    ],
+    "projectionHash": "sha256:884facf72c30139829c9d1ec3cd63bcd651126abfecb7b5db2da4ed21af591a9"
+  },
+  "projectionEnvelopeHash": "sha256:23280a02c31af2f9da1c3991278d542e796b075e198101e19dbbb92f7ea74e1e"
+}

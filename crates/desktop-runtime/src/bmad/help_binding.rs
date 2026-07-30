@@ -5,51 +5,17 @@ use serde_json::json;
 use crate::{canonical_hash, generated_contracts, Sha256Digest};
 
 use super::{
-    BmadCapabilityKey, BmadCatalog, BmadCatalogAvailability, BmadEntrypointKind, BmadHelpAction,
-    BmadHelpEvidenceToken, BmadInstalledSkillRecord, BmadKernelError, BmadKernelErrorCode,
-    BmadSealedHelpInvocation, MethodExactBinding, MethodExecutionProfile,
-    MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding, MethodModelBindingData,
-    MethodResourcePolicy, MethodRuntimeRequirement, MethodStepTable,
+    BmadCapabilityKey, BmadCatalog, BmadCatalogAvailability, BmadHelpAction, BmadHelpEvidenceToken,
+    BmadKernelError, BmadKernelErrorCode, BmadSealedHelpInvocation, MethodExactBinding,
+    MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes, MethodModelBinding,
+    MethodModelBindingData, MethodResourcePolicy, MethodRuntimeRequirement, MethodStepTable,
 };
 
-const HELP_ACTION_GRAPH_HASH: &str =
-    "sha256:bf744053f998e035b9a9013f158e2a89db26a6cb59b2d4b2574cdeb33bbc16aa";
 const HELP_CUSTOMIZATION_HASH: &str =
     "sha256:41d2f0d68d0a47e8fb9eeccd89f0409f2ab08a72eb1a76500d87a0919ecb9c8a";
 const HELP_VALIDATION_PROFILE_HASH: &str =
     "sha256:ddd086622be73b637cdcb3562b4459ac3853f1aeae34a53c43775af66e4cbdf0";
 const MAX_HELP_EVIDENCE_TOKENS_PER_CAPABILITY: usize = 64;
-
-const ARCHITECTURE_ROW: [&str; 13] = [
-    "BMad Method",
-    "bmad-architecture",
-    "Architecture",
-    "CA",
-    "Offer once requirements exist (a PRD or spec; plus UX if present) and the user is ready to move from what to how. Also offer any time independently-built parts risk diverging. Produces the architecture spine: the invariants that keep features epics and stories consistent. Comes before epics and stories and scales from a quick spine to a full architecture (brownfield: ratifies the existing codebase).",
-    "",
-    "",
-    "3-solutioning",
-    "",
-    "",
-    "true",
-    "planning_artifacts",
-    "architecture",
-];
-const HELP_ROW: [&str; 13] = [
-    "Core",
-    "bmad-help",
-    "BMad Help",
-    "BH",
-    "",
-    "",
-    "",
-    "anytime",
-    "",
-    "",
-    "false",
-    "",
-    "",
-];
 
 /// Trusted, inert D2 model/profile facts used to compile a Help plan.
 ///
@@ -128,6 +94,13 @@ impl BmadTrustedHelpModelProfile {
     #[must_use]
     pub const fn request_schema_hash(&self) -> Sha256Digest {
         self.binding.data.request_schema_hash
+    }
+
+    /// Returns the validated exact Method model binding for a host-owned
+    /// Method-skill invocation.
+    #[must_use]
+    pub fn method_model_binding(&self) -> MethodModelBinding {
+        self.binding.clone()
     }
 }
 
@@ -340,6 +313,7 @@ impl BmadHelpBindingCompiler {
         )?;
         let exact_binding = MethodExactBinding {
             capability_key,
+            invocation_mode: crate::generated_contracts::BmadInvocationMode::Interactive,
             package_descriptor_hash: source.descriptor_hash(),
             package_source_hash: source.source_snapshot_hash(),
             instruction_projection_hash: source.projection_hash(),
@@ -405,126 +379,32 @@ fn verify_exact_catalog(
     catalog: &BmadCatalog,
 ) -> Result<(), BmadKernelError> {
     catalog.verify_integrity().map_err(|_| binding_mismatch())?;
-    let action_graph_hash = generated_digest(HELP_ACTION_GRAPH_HASH)?;
-    let expected_catalog_hash = canonical_hash(
-        "bmad-capability-catalog-binding",
-        1,
-        &(
-            source.package_version_id(),
-            source.descriptor_hash(),
-            source.observed_inventory_hash(),
-            action_graph_hash,
-        ),
-    )
-    .map_err(|_| binding_mismatch())?;
-    if catalog.capability_catalog_hash() != expected_catalog_hash
-        || catalog.installed_skills.len() != 2
-        || catalog.help_actions.len() != 2
-        || !installed_skill_matches(
-            &catalog.installed_skills[0],
-            "bmm",
-            "bmad-architecture",
-            "Create Architecture",
-            "Create the architecture spine that keeps independently built units consistent.",
-            BmadEntrypointKind::StepJit,
-            &["create"],
-            "MethodStepWorkflowV6",
-            "sha256:8ac94c1e6c5be5fd6e7d446ba3800c0f170d80e730464a859b43c58732cf1063",
-            false,
-        )?
-        || !installed_skill_matches(
-            &catalog.installed_skills[1],
-            "core",
-            "bmad-help",
-            "BMad Help",
-            "Provide source-grounded Method guidance from the installed catalog.",
-            BmadEntrypointKind::Direct,
-            &[],
-            "MethodOfficialSkillV6",
-            "sha256:02b16af451ee6b4a60d0e446f0ea911b6b57f0c646845ed8bdd81ce09f2e1485",
-            true,
-        )?
-        || !help_action_matches(
-            &catalog.help_actions[0],
-            source,
-            expected_catalog_hash,
-            "bmm",
-            "bmad-architecture",
-            Some("create"),
-            &ARCHITECTURE_ROW,
-        )
-        || !help_action_matches(
-            &catalog.help_actions[1],
-            source,
-            expected_catalog_hash,
-            "core",
-            "bmad-help",
-            None,
-            &HELP_ROW,
-        )
+    let expected_catalog_hash = catalog.capability_catalog_hash();
+    let identities_match = catalog.help_actions.iter().all(|action| {
+        action.key.capability_catalog_hash == expected_catalog_hash
+            && action.key.package_version_id == *source.package_version_id()
+            && action.key.module_code == action.module_code
+            && action.key.skill_name == action.skill_name
+            && action.key.action == action.action
+    });
+    let has_generated_prd = catalog.help_actions.iter().any(|action| {
+        action.module_code == "bmm"
+            && action.skill_name == "bmad-prd"
+            && action.availability == BmadCatalogAvailability::Available
+    });
+    let has_generated_help = catalog.help_actions.iter().any(|action| {
+        action.module_code == "core"
+            && action.skill_name == "bmad-help"
+            && action.availability == BmadCatalogAvailability::Available
+    });
+    if catalog.help_actions.is_empty()
+        || !identities_match
+        || !has_generated_prd
+        || !has_generated_help
     {
         return Err(binding_mismatch());
     }
     Ok(())
-}
-
-#[allow(clippy::too_many_arguments)]
-fn installed_skill_matches(
-    skill: &BmadInstalledSkillRecord,
-    module_code: &str,
-    skill_name: &str,
-    display_name: &str,
-    description: &str,
-    entrypoint_kind: BmadEntrypointKind,
-    actions: &[&str],
-    validation_profile: &str,
-    execution_profile_hash: &str,
-    structurally_eligible: bool,
-) -> Result<bool, BmadKernelError> {
-    Ok(skill.module_code == module_code
-        && skill.skill_name == skill_name
-        && skill.display_name == display_name
-        && skill.description == description
-        && skill.entrypoint_kind == entrypoint_kind
-        && skill
-            .actions
-            .iter()
-            .map(String::as_str)
-            .eq(actions.iter().copied())
-        && skill.distribution_profile == "sapphirus_package"
-        && skill.install_profile == "SapphirusManagedV1"
-        && skill.validation_profile == validation_profile
-        && skill.execution_profile_hash == generated_digest(execution_profile_hash)?
-        && !skill.capability_enabled
-        && skill.structurally_eligible == structurally_eligible
-        && !skill.hidden_from_help)
-}
-
-fn help_action_matches(
-    action: &BmadHelpAction,
-    source: &BmadSealedHelpInvocation,
-    capability_catalog_hash: Sha256Digest,
-    module_code: &str,
-    skill_name: &str,
-    normalized_action: Option<&str>,
-    source_row: &[&str; 13],
-) -> bool {
-    action.key.capability_catalog_hash == capability_catalog_hash
-        && action.key.package_version_id == *source.package_version_id()
-        && action.key.module_code == module_code
-        && action.key.skill_name == skill_name
-        && action.key.action.as_deref() == normalized_action
-        && action.module_code == module_code
-        && action.skill_name == skill_name
-        && action.action.as_deref() == normalized_action
-        && action.availability == BmadCatalogAvailability::CapabilityDisabled
-        && !action.network_reference_present
-        && action.source_ordinal == 0
-        && action
-            .raw_source_row()
-            .iter()
-            .map(String::as_str)
-            .eq(source_row.iter().copied())
 }
 
 fn help_execution_profile() -> MethodExecutionProfileData {

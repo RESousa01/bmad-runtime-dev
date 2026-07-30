@@ -30,6 +30,39 @@ test("every pinned source member has one governed source-accounting treatment", 
   );
 });
 
+// Break caught: leaving a completed Phase 2 Method row in the
+// generator's blanket pending state makes every downstream projection stale
+// again the next time source-accounting.json is regenerated.
+test("the canonical PRD and Spec source rows are runtime-qualified while other rows stay pending", async () => {
+  const accounting = JSON.parse(await readFile(accountingPath, "utf8"));
+  const prd = accounting.members.find(
+    (member) => member.path === "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
+  );
+  const spec = accounting.members.find(
+    (member) => member.path === "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
+  );
+
+  assert.equal(prd?.support_state, "exact");
+  assert.equal(prd?.ui_state, "runtime_available");
+  assert.equal(prd?.release_state, "qualified");
+  assert.equal(spec?.support_state, "adapted");
+  assert.equal(spec?.ui_state, "runtime_available");
+  assert.equal(spec?.release_state, "qualified");
+  assert.deepEqual(accounting.totals.runtime_support, {
+    adapted: 1,
+    exact: 1,
+    implementation_pending: 51,
+  });
+  assert.deepEqual(accounting.totals.ui_support, {
+    planned: 51,
+    runtime_available: 2,
+  });
+  assert.deepEqual(accounting.totals.release_state, {
+    blocked_pending_conformance: 51,
+    qualified: 2,
+  });
+});
+
 test("missing and contradictory accounting rows fail closed", async () => {
   const temporaryRoot = await mkdtemp(resolve(tmpdir(), "bmad-source-accounting-"));
   try {

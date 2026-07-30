@@ -10,7 +10,7 @@
 // verify:bmad:authority -- --skill <rowId>`, and `--all` as the final gate):
 // it scans a skill's pinned source directory for a literal authority-shaped
 // reference, and, once the skill's Rust adapter exists at the conventional
-// path (`crates/desktop-runtime/src/bmad/skills/adapters/<fixtureDirName>.rs`),
+// path (`crates/desktop-runtime/src/bmad/skills/adapters/<skill_id>.rs`),
 // scans that too and asserts it declares no capability beyond what
 // `crates/desktop-runtime/src/bmad/skills/harness.rs` structurally permits
 // -- nothing, by construction.
@@ -21,11 +21,17 @@
 // `process.exitCode = 1`. A successful run prints one JSON summary to
 // stdout.
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-
-import { fixtureDirName } from "../../packages/bmad-foundation/scripts/conformance.mjs";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const foundationRoot = resolve(repositoryRoot, "packages/bmad-foundation");
@@ -92,20 +98,26 @@ function readJson(path) {
 
 function usage() {
   fail(
-    "usage: node tools/bmad100/verify-authority.mjs (--skill <rowId> | --all)",
+    "usage: node tools/bmad100/verify-authority.mjs (--skill <rowId-or-skill-id> | --all) [--json <path>]",
   );
 }
 
 function parseArgs(argv) {
-  const flags = { skill: null, all: false };
+  const flags = { skill: null, all: false, json: null };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
-    if (token === "--skill") {
+    if (token === "--") {
+      continue;
+    } else if (token === "--skill") {
       index += 1;
       flags.skill = argv[index];
       if (!flags.skill) usage();
     } else if (token === "--all") {
       flags.all = true;
+    } else if (token === "--json") {
+      index += 1;
+      flags.json = argv[index];
+      if (!flags.json) usage();
     } else {
       usage();
     }
@@ -118,6 +130,20 @@ function methodRows(catalog) {
   return catalog.capabilities.filter(
     (capability) => capability.source.class === "primary_method_skill",
   );
+}
+
+function resolveSkillSelector(selector, rows) {
+  const exact = rows.find((row) => row.rowId === selector);
+  if (exact) return exact.rowId;
+  const matches = rows.filter((row) => row.source.path.split("/").at(-2) === selector);
+  if (matches.length !== 1) {
+    fail(
+      matches.length === 0
+        ? `unknown skill ${selector} (not a method capability in the catalog)`
+        : `ambiguous skill ${selector}; use the full rowId`,
+    );
+  }
+  return matches[0].rowId;
 }
 
 function listFiles(root) {
@@ -183,7 +209,8 @@ function checkSkill(rowId, catalog) {
     );
   }
 
-  const adapterPath = resolve(adapterDir, `${fixtureDirName(rowId)}.rs`);
+  const skillId = catalogRow.source.path.split("/").at(-2);
+  const adapterPath = resolve(adapterDir, `${skillId.replaceAll("-", "_")}.rs`);
   if (existsSync(adapterPath)) {
     const text = readFileSync(adapterPath, "utf8");
     for (const violation of violatingLines(adapterPath, text)) {
@@ -196,10 +223,15 @@ function checkSkill(rowId, catalog) {
 }
 
 export function run(argv = process.argv.slice(2)) {
+  let evidencePath = null;
   try {
     const flags = parseArgs(argv);
+    evidencePath = flags.json ? resolve(repositoryRoot, flags.json) : null;
     const catalog = readJson(catalogPath);
-    const targets = flags.all ? methodRows(catalog).map((row) => row.rowId) : [flags.skill];
+    const rows = methodRows(catalog);
+    const targets = flags.all
+      ? rows.map((row) => row.rowId)
+      : [resolveSkillSelector(flags.skill, rows)];
 
     const failures = targets.flatMap((rowId) => checkSkill(rowId, catalog));
     if (failures.length > 0) fail(failures[0]);
@@ -210,9 +242,16 @@ export function run(argv = process.argv.slice(2)) {
       skillsChecked: targets.length,
       skills: targets,
     };
+    if (evidencePath) {
+      mkdirSync(dirname(evidencePath), { recursive: true });
+      writeFileSync(evidencePath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
+    }
     process.stdout.write(`${JSON.stringify(summary)}\n`);
     return 0;
   } catch (error) {
+    if (evidencePath && existsSync(evidencePath)) {
+      rmSync(evidencePath, { force: true });
+    }
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     return 1;
   }
