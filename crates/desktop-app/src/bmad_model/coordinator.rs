@@ -18,11 +18,12 @@ use desktop_ipc::{
     BmadHelpRunCompletedProjection,
 };
 use desktop_runtime::{
-    canonical_hash, BmadCompiledHelpInvocation, BmadHelpBindingCompiler, BmadHelpIntent,
-    BmadHelpMaterializer, BmadHelpRecordIds, BmadMethodHelpRecommendation,
-    BmadVerifiedHelpProposal, ContractId, MethodAdvanceReceipt, MethodAdvanceRequest,
-    MethodServiceError, MethodSession, MethodSessionRepository, MethodSessionService, MethodState,
-    Sha256Digest, UnixMillis,
+    canonical_hash, generated_contracts::BmadInvocationMode, BmadCompiledHelpInvocation,
+    BmadDomainRuntime, BmadHelpBindingCompiler, BmadHelpIntent, BmadHelpMaterializer,
+    BmadHelpRecordIds, BmadHelpSkill, BmadMethodHelpRecommendation, BmadMethodSkill,
+    BmadResourceSet, BmadRuntimePort, BmadSkillExecutionRequest, BmadVerifiedHelpProposal,
+    ContractId, MethodAdvanceReceipt, MethodAdvanceRequest, MethodServiceError, MethodSession,
+    MethodSessionRepository, MethodSessionService, MethodState, Sha256Digest, UnixMillis,
 };
 use desktop_store::{BmadHelpRunCreationReceipt, BmadHelpRunLatest, StoreError};
 use desktop_workspace::WorkspaceScopeAuthorityGuard;
@@ -1421,14 +1422,16 @@ impl BmadHelpCoordinator {
         let compiled = base_compiled
             .with_evidence_allowlist(policy.evidence_tokens.clone())
             .map_err(|_| BmadHelpCoordinatorError::Integrity)?;
+        let prepared =
+            prepare_canonical_help_execution(&compiled, BmadInvocationMode::Interactive)?;
         let service = MethodSessionService::new(store);
         service
             .bind_invocation(
                 &creation.scope,
                 &creation.session_id,
                 1,
-                compiled.exact_binding().clone(),
-                compiled.step_table().clone(),
+                prepared.exact_binding().clone(),
+                prepared.step_table().clone(),
             )
             .map_err(map_service_error)?;
         let reviewed_session = service
@@ -1519,6 +1522,31 @@ impl BmadHelpCoordinator {
         self.active = Some(ActiveBmadHelp::ReviewRequired(Box::new(prepared)));
         Ok(projection)
     }
+}
+
+fn prepare_canonical_help_execution(
+    compiled: &BmadCompiledHelpInvocation,
+    mode: BmadInvocationMode,
+) -> Result<desktop_runtime::BmadPreparedSkillExecution, BmadHelpCoordinatorError> {
+    let skill = BmadHelpSkill;
+    let descriptor = skill.descriptor();
+    let binding = compiled.exact_binding();
+    let resources = BmadResourceSet::new(descriptor.declared_resources().to_vec())
+        .map_err(|_| BmadHelpCoordinatorError::Integrity)?;
+    BmadDomainRuntime
+        .prepare_skill_execution(
+            &skill,
+            BmadSkillExecutionRequest {
+                mode,
+                action: None,
+                exact_binding: binding.clone(),
+                resources,
+                resolved_config_graph_hash: binding.config_graph_hash,
+                resolved_config_hash: binding.config_resolution_hash,
+                resolved_customization_hash: binding.customization_hash,
+            },
+        )
+        .map_err(|_| BmadHelpCoordinatorError::Integrity)
 }
 
 fn review_projection(prepared: &PreparedBmadHelpReview) -> BmadHelpReviewProjection {

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "sapphirus.bmad100.task-receipt.v1",
+  "taskId": "MTH-40",
+  "status": "complete",
+  "canonicalId": "core:bmad-help",
+  "baseline": {
+    "commit": "7cab1a7d778226367a690ca20c8800ea26f12e93",
+    "tree": "38f809f789cd0410e1c4dd998d561612d384c2ba"
+  },
+  "source": {
+    "package": "method@6.10.0",
+    "entrypoint": "src/core-skills/bmad-help/SKILL.md",
+    "sha256": "970c78ec4eb649c7eddd6de0cf83dfa9ab1e63d41f04d02423e62828cb1fb5b2"
+  },
+  "evidenceTree": {
+    "canonicalOrder": "path ascending; path NUL sha256; LF delimited",
+    "sha256": "6a07a355e72e32d7ccec5f30fe38c713662d4080751039375dcf2aab973b7895",
+    "members": [
+      {
+        "path": "artifacts/bmad100/method/bmad-help/authority.json",
+        "sha256": "b28ebdd5e9d5551800c8f195d1f4187f340ef19889e17c6d486237f097925ccb"
+      },
+      {
+        "path": "artifacts/bmad100/method/bmad-help/conformance.json",
+        "sha256": "89f2d7599b48b0ba042e9c07313341ae599e3d30237f02c8f0adca3a14ac87a2"
+      },
+      {
+        "path": "artifacts/bmad100/method/bmad-help/golden/source-derived-cases.json",
+        "sha256": "d6ceff49996d4179ec18b765be7a3f2b3647c432f63edc9740be70f913972ad7"
+      },
+      {
+        "path": "artifacts/bmad100/method/bmad-help/source-closure.json",
+        "sha256": "e0e51ddbd9cd3daf124310b98c70708e9b89cc5d1f3990a04d560bf6cf12e216"
+      }
+    ]
+  },
+  "acceptance": [
+    {
+      "criterion": "every source file has a disposition",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-help/source-closure.json"
+    },
+    {
+      "criterion": "declared actions args modes resources topology artifacts and hooks are executable",
+      "status": "pass",
+      "evidence": "crates/desktop-runtime/tests/bmad_bmad_help.rs"
+    },
+    {
+      "criterion": "interactive and headless modes preserve semantic parity",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-help/golden/source-derived-cases.json"
+    },
+    {
+      "criterion": "cancel fail retry repair restart resume and upgrade are durable and deterministic",
+      "status": "pass",
+      "evidence": "crates/desktop-runtime/tests/bmad_bmad_help.rs"
+    },
+    {
+      "criterion": "source prose grants no runtime authority",
+      "status": "pass",
+      "evidence": "artifacts/bmad100/method/bmad-help/authority.json"
+    },
+    {
+      "criterion": "Help Skills UI runtime closure and ledger project one state",
+      "status": "pass",
+      "evidence": "packages/bmad-foundation/tests/help-catalog.test.mjs"
+    },
+    {
+      "criterion": "no unavailable pending blocked partial or analogous target state remains",
+      "status": "pass",
+      "evidence": "packages/bmad-foundation/source-accounting.json"
+    }
+  ],
+  "gates": [
+    {
+      "command": "node packages/bmad-foundation/scripts/resource-closure.mjs --source method@6.10.0 --skill bmad-help --check",
+      "status": "pass"
+    },
+    {
+      "command": "node packages/bmad-foundation/scripts/conformance.mjs --skill bmad-help --all-modes --strict",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p desktop-runtime --test bmad_bmad_help --locked",
+      "status": "pass",
+      "tests": 5
+    },
+    {
+      "command": "pnpm --filter @sapphirus/bmad-foundation test -- --runInBand bmad-help",
+      "status": "pass",
+      "tests": 201
+    },
+    {
+      "command": "pnpm verify:bmad:authority -- --skill bmad-help",
+      "status": "pass"
+    }
+  ],
+  "additionalVerification": {
+    "strictClippy": {
+      "status": "inherited_blocker",
+      "command": "cargo clippy -p desktop-runtime --test bmad_bmad_help --test bmad_help_run --locked -- -D warnings",
+      "reason": "unchanged skills/execution.rs::source_name triggers clippy::must_use_candidate"
+    },
+    "desktopProductionRoute": {
+      "status": "host_blocked",
+      "command": "cargo test -p desktop-app bmad_model::coordinator_tests::prepare::deterministic_prepare_persists_v3_and_returns_only_review_projection --locked -- --exact",
+      "reason": "Tauri custom build command failed before Rust diagnostics with Access is denied. (os error 5)"
+    }
+  }
+}
