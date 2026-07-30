@@ -85,6 +85,15 @@ const retentionCategoryLabels: Record<string, string> = {
   execution_results: "Change results",
   help_runs: "Help runs",
   model_selections: "Model choices",
+  bmad_skill_sessions: "BMAD skill sessions",
+  bmad_skill_session_events: "BMAD skill session events",
+  bmad_artifacts: "BMAD artifacts",
+  bmad_artifact_events: "BMAD artifact events",
+  memory_entries: "Long-term memory entries",
+  builder_lifecycles: "Builder lifecycles",
+  builder_lifecycle_events: "Builder lifecycle events",
+  bmad_installations: "BMAD installations",
+  bmad_installation_events: "BMAD installation events",
 };
 
 export interface SettingsDialogProps {

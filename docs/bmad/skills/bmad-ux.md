@@ -41,3 +41,19 @@ key-screen mocks, runs an opt-in reviewer gate, and marks both files
 
 **adopt / exact.** No semantic divergence was found between the pinned
 source and the harness descriptor.
+
+## Resource and authority closure
+
+The adapter declares all 17 files in the pinned `bmad-ux` subtree by
+canonical source path and SHA-256. This includes the examples, creative-tool
+instructions, validation template, headless contract, and both UX spines'
+working references. The runtime receives those resources as immutable data;
+the adapter itself has no file, process, network, model, or scheduler access.
+
+The two upstream references to `github:google-labs-code/design.md` are not
+runtime authority. They are bound to the exact pinned occurrences in
+`SKILL.md` and `references/design-md-spec.md`; no run may fetch mutable GitHub
+content. The local working reference remains content-addressed at
+`sha256:d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590`.
+The shared source-closure policy records the final provenance disposition and
+is the activation gate for this capability.

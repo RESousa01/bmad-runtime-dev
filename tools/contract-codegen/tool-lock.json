@@ -4,7 +4,7 @@
   "bootstrapLocks": {
     "pnpm": {
       "file": "pnpm-lock.yaml",
-      "sha256": "5d42ebb11cd644ca857d873e08442b384416a487df777b8933037f4d0e05211b",
+      "sha256": "fbfa675b0fab819d51cee9b93361a0a61383610099d7b6ebf6a455e9bf093cf9",
       "status": "reviewed"
     },
     "cargo": {

@@ -18,13 +18,12 @@ use std::sync::Mutex;
 
 use async_trait::async_trait;
 use desktop_cloud::{
-    project_model_access_request_v2, resolve_model_selection,
-    validate_model_capabilities, AuthorizedModelRequest, CanonicalProjectionInputsV2, CloudError,
-    ConsentSubject, ConsentWindow, DeclaredModelTool, HttpExecutor, HttpResponse,
-    InstallationConsentSigner, LeaseBinding, ModelCapabilityRejection, ModelCatalogRequest,
-    ModelSelectionOutcome, OutboundHttpRequest, PersistedModelSelection, RegistrationBinding,
-    RequestedModelWork, ResolvedModelSelection, SupportApiOrigin, SupportApiTransport,
-    TenantPolicyBinding, VerifiedModelCatalog,
+    project_model_access_request_v2, resolve_model_selection, validate_model_capabilities,
+    AuthorizedModelRequest, CanonicalProjectionInputsV2, CloudError, ConsentSubject, ConsentWindow,
+    DeclaredModelTool, HttpExecutor, HttpResponse, InstallationConsentSigner, LeaseBinding,
+    ModelCapabilityRejection, ModelCatalogRequest, ModelSelectionOutcome, OutboundHttpRequest,
+    PersistedModelSelection, RegistrationBinding, RequestedModelWork, ResolvedModelSelection,
+    SupportApiOrigin, SupportApiTransport, TenantPolicyBinding, VerifiedModelCatalog,
 };
 use desktop_egress::{
     local_egress_manifest_hash_v2, ApproveDecisionInput, ConsentService, ConsumeDecisionInput,
@@ -199,8 +198,7 @@ fn expected_manifest_hash(facts: &ModelSelectionBindingV2) -> Sha256Digest {
         context_snapshot_id: facts.context_snapshot_id.clone(),
         canonical_output_schema_id: (facts.request_mode == ModelRequestMode::StructuredResponse)
             .then(|| id("sapphirus.bmad-method-help-proposal.v1")),
-        canonical_output_schema_hash: (facts.request_mode
-            == ModelRequestMode::StructuredResponse)
+        canonical_output_schema_hash: (facts.request_mode == ModelRequestMode::StructuredResponse)
             .then(|| sha256_bytes(b"schema")),
         retention_mode: RetentionMode::TransientNoStore,
         budget_class: facts.budget_class.clone(),
@@ -655,9 +653,15 @@ fn modest_work(tools: &[DeclaredModelTool]) -> RequestedModelWork<'_> {
 
 #[tokio::test]
 async fn capabilities_are_checked_against_the_profile_before_review() {
-    let catalog =
-        verified_catalog(PROFILE_ID, vec![profile_value(PROFILE_ID, &text_only_capabilities(), &tight_limits())])
-            .await;
+    let catalog = verified_catalog(
+        PROFILE_ID,
+        vec![profile_value(
+            PROFILE_ID,
+            &text_only_capabilities(),
+            &tight_limits(),
+        )],
+    )
+    .await;
     let selection = selection_for(&catalog);
     let no_tools: [DeclaredModelTool; 0] = [];
     validate_model_capabilities(&catalog, &selection, &modest_work(&no_tools))
@@ -740,17 +744,26 @@ async fn capabilities_are_checked_against_the_profile_before_review() {
 /// than by capability.
 #[tokio::test]
 async fn a_stale_selection_is_refused_rather_than_reinterpreted() {
-    let catalog =
-        verified_catalog(PROFILE_ID, vec![profile_value(PROFILE_ID, &text_only_capabilities(), &tight_limits())])
-            .await;
+    let catalog = verified_catalog(
+        PROFILE_ID,
+        vec![profile_value(
+            PROFILE_ID,
+            &text_only_capabilities(),
+            &tight_limits(),
+        )],
+    )
+    .await;
     let selection = selection_for(&catalog);
     let no_tools: [DeclaredModelTool; 0] = [];
 
-    let newer = verified_catalog("fixture-alpha", vec![profile_value(
+    let newer = verified_catalog(
         "fixture-alpha",
-        &text_only_capabilities(),
-        &tight_limits(),
-    )])
+        vec![profile_value(
+            "fixture-alpha",
+            &text_only_capabilities(),
+            &tight_limits(),
+        )],
+    )
     .await;
     assert_eq!(
         validate_model_capabilities(&newer, &selection, &modest_work(&no_tools)),
@@ -772,8 +785,11 @@ async fn streaming_chat_may_not_demand_a_structured_output_schema() {
         "structuredOutput": true,
         "reasoning": true
     });
-    let catalog =
-        verified_catalog(PROFILE_ID, vec![profile_value(PROFILE_ID, &capable, &tight_limits())]).await;
+    let catalog = verified_catalog(
+        PROFILE_ID,
+        vec![profile_value(PROFILE_ID, &capable, &tight_limits())],
+    )
+    .await;
     let selection = selection_for(&catalog);
     let no_tools: [DeclaredModelTool; 0] = [];
     assert_eq!(

@@ -83,6 +83,48 @@ export function compareSemVer(left, right) {
   return 0;
 }
 
+function validateLifecyclePhase(phase, label, expectedVersion, publisher, expectedFromVersion = null) {
+  const keys = [
+    ...(expectedFromVersion === null ? [] : ["fromVersion"]),
+    "installedVersion",
+    "installedExecutableSha256",
+    "installedExecutableAuthenticodeStatus",
+    "installedExecutableSignerThumbprint",
+    "installedExecutableTimestamperThumbprint",
+    "launchSmoke",
+    "uninstall",
+    "installRootRemoved",
+    "uninstallRegistrationRemoved",
+  ];
+  assertExactKeys(phase, keys, label);
+  if (
+    phase.installedVersion !== expectedVersion ||
+    (expectedFromVersion !== null && phase.fromVersion !== expectedFromVersion) ||
+    phase.installedExecutableAuthenticodeStatus !== "Valid" ||
+    phase.installedExecutableSignerThumbprint?.toUpperCase() !== publisher
+  ) {
+    throw new Error(`${label} version, signature, or publisher identity is invalid`);
+  }
+  requireDigest(phase.installedExecutableSha256, `${label} installed executable`);
+  requireText(phase.installedExecutableTimestamperThumbprint, `${label} timestamp`);
+  for (const gate of ["launchSmoke", "uninstall", "installRootRemoved", "uninstallRegistrationRemoved"]) {
+    if (phase[gate] !== true) throw new Error(`${label} gate ${gate} did not pass`);
+  }
+}
+
+function validateFoundationPhase(phase, label) {
+  assertExactKeys(phase, ["exactFileCount", "missing", "unexpected", "hashMismatches"], label);
+  if (
+    !Number.isInteger(phase.exactFileCount) ||
+    phase.exactFileCount <= 0 ||
+    phase.missing !== 0 ||
+    phase.unexpected !== 0 ||
+    phase.hashMismatches !== 0
+  ) {
+    throw new Error(`${label} did not pass`);
+  }
+}
+
 function validateEvidence(build, lifecycle, expectedRevision, expectedVersion, expectedPriorVersion) {
   if (compareSemVer(expectedPriorVersion, expectedVersion) >= 0) throw new Error("prior release version must precede the current release version");
   assertExactKeys(build, ["schemaVersion", "sourceRevision", "sourceTreeState", "productVersion", "releaseMetadata", "toolchain", "sbom", "certificateThumbprint", "certificateNotAfterUtc", "timestampProtocol", "application", "installer"], "build evidence");
@@ -126,33 +168,30 @@ function validateEvidence(build, lifecycle, expectedRevision, expectedVersion, e
   requireText(build.installer.timestamperThumbprint, "installer timestamp");
 
   assertExactKeys(lifecycle, ["schemaVersion", "generatedAtUtc", "artifact", "priorArtifact", "lifecycle", "bundledFoundation"], "lifecycle evidence");
-  if (lifecycle.schemaVersion !== 1 || lifecycle.priorArtifact === null) throw new Error("lifecycle evidence schema or prior artifact is invalid");
+  if (lifecycle.schemaVersion !== 2 || lifecycle.priorArtifact === null) throw new Error("lifecycle evidence schema or prior artifact is invalid");
   const artifactKeys = ["fileName", "byteLength", "sha256", "expectedVersion", "authenticodeStatus", "signerThumbprint", "timestamperThumbprint"];
   assertExactKeys(lifecycle.artifact, artifactKeys, "current lifecycle artifact");
   assertExactKeys(lifecycle.priorArtifact, artifactKeys, "prior lifecycle artifact");
-  assertExactKeys(lifecycle.lifecycle, ["freshInstall", "upgradedFromVersion", "installedVersion", "installedExecutableSha256", "installedExecutableAuthenticodeStatus", "installedExecutableSignerThumbprint", "installedExecutableTimestamperThumbprint", "launchSmoke", "uninstall", "installRootRemoved", "uninstallRegistrationRemoved", "residueScope"], "lifecycle result");
-  assertExactKeys(lifecycle.bundledFoundation, ["exactFileCount", "missing", "unexpected", "hashMismatches"], "bundled foundation result");
+  assertExactKeys(lifecycle.lifecycle, ["freshInstall", "upgrade", "residueScope"], "lifecycle result");
+  assertExactKeys(lifecycle.bundledFoundation, ["freshInstall", "upgrade"], "bundled foundation result");
+  if (lifecycle.lifecycle.upgrade === null || lifecycle.bundledFoundation.upgrade === null) {
+    throw new Error("signed lifecycle evidence requires separate fresh-install and upgrade phases");
+  }
   const publisher = build.certificateThumbprint.toUpperCase();
   if (
     lifecycle.artifact.expectedVersion !== expectedVersion ||
     lifecycle.priorArtifact.expectedVersion !== expectedPriorVersion ||
-    lifecycle.lifecycle.installedVersion !== expectedVersion ||
-    lifecycle.lifecycle.upgradedFromVersion !== expectedPriorVersion ||
     lifecycle.artifact.authenticodeStatus !== "Valid" ||
     lifecycle.priorArtifact.authenticodeStatus !== "Valid" ||
-    lifecycle.lifecycle.installedExecutableAuthenticodeStatus !== "Valid" ||
     lifecycle.artifact.signerThumbprint?.toUpperCase() !== publisher ||
-    lifecycle.priorArtifact.signerThumbprint?.toUpperCase() !== publisher ||
-    lifecycle.lifecycle.installedExecutableSignerThumbprint?.toUpperCase() !== publisher
+    lifecycle.priorArtifact.signerThumbprint?.toUpperCase() !== publisher
   ) throw new Error("lifecycle version, signature, or publisher identity is invalid");
-  for (const value of [lifecycle.artifact.timestamperThumbprint, lifecycle.priorArtifact.timestamperThumbprint, lifecycle.lifecycle.installedExecutableTimestamperThumbprint]) requireText(value, "lifecycle timestamp");
-  for (const gate of ["freshInstall", "launchSmoke", "uninstall", "installRootRemoved", "uninstallRegistrationRemoved"]) {
-    if (lifecycle.lifecycle[gate] !== true) throw new Error(`lifecycle gate ${gate} did not pass`);
-  }
+  for (const value of [lifecycle.artifact.timestamperThumbprint, lifecycle.priorArtifact.timestamperThumbprint]) requireText(value, "lifecycle timestamp");
+  validateLifecyclePhase(lifecycle.lifecycle.freshInstall, "fresh-install lifecycle", expectedVersion, publisher);
+  validateLifecyclePhase(lifecycle.lifecycle.upgrade, "upgrade lifecycle", expectedVersion, publisher, expectedPriorVersion);
   if (lifecycle.lifecycle.residueScope !== "install-root-and-uninstall-registration") throw new Error("lifecycle residue scope is invalid");
-  if (!Number.isInteger(lifecycle.bundledFoundation.exactFileCount) || lifecycle.bundledFoundation.exactFileCount <= 0 || lifecycle.bundledFoundation.missing !== 0 || lifecycle.bundledFoundation.unexpected !== 0 || lifecycle.bundledFoundation.hashMismatches !== 0) {
-    throw new Error("bundled foundation qualification did not pass");
-  }
+  validateFoundationPhase(lifecycle.bundledFoundation.freshInstall, "fresh-install bundled foundation qualification");
+  validateFoundationPhase(lifecycle.bundledFoundation.upgrade, "upgrade bundled foundation qualification");
 }
 
 export function createReleaseAttestationPredicate({
@@ -176,7 +215,8 @@ export function createReleaseAttestationPredicate({
     build.application?.sha256 !== applicationSha256 ||
     build.sbom?.sha256 !== sbomSha256 ||
     lifecycle.artifact?.sha256 !== installerSha256 ||
-    lifecycle.lifecycle?.installedExecutableSha256 !== applicationSha256
+    lifecycle.lifecycle?.freshInstall?.installedExecutableSha256 !== applicationSha256 ||
+    lifecycle.lifecycle?.upgrade?.installedExecutableSha256 !== applicationSha256
   ) {
     throw new Error("qualification evidence does not bind the exact attestation subjects");
   }

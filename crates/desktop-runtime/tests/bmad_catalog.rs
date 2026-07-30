@@ -4,10 +4,10 @@ use std::collections::BTreeMap;
 
 use desktop_runtime::{
     canonical_hash, sha256_bytes, BmadAgentRosterBuilder, BmadAgentSource, BmadArtifactEvidence,
-    BmadCatalogAvailability, BmadCatalogBuilder, BmadEntrypointKind, BmadHelpAdvisor,
-    BmadHelpCatalogSource, BmadHelpConfidence, BmadHelpIntent, BmadKernelErrorCode,
-    BmadLoadedPackage, BmadLoadedSkill, BmadMenuTargetKind, BmadReviewedPromptReference,
-    BmadUnavailableDependency, ContractId,
+    BmadCatalogAvailability, BmadCatalogBuilder, BmadEntrypointKind, BmadGeneratedHelpSupport,
+    BmadHelpAdvisor, BmadHelpCatalogSource, BmadHelpConfidence, BmadHelpIntent,
+    BmadKernelErrorCode, BmadLoadedPackage, BmadLoadedSkill, BmadMenuTargetKind,
+    BmadReviewedPromptReference, BmadUnavailableDependency, ContractId,
 };
 use serde_json::{json, Value};
 
@@ -227,6 +227,35 @@ fn single_action_skills_infer_their_normalized_action_without_mutating_the_raw_r
         package().package_version_id
     );
     assert_eq!(architecture.raw_source_row()[5], "");
+}
+
+#[test]
+fn generated_support_follows_single_action_normalization() {
+    let bmm = source(
+        "bmm",
+        &["BMad Method,bmad-architecture,Architecture,,Create architecture.,,,solutioning,,,false,governed_artifact,governed_artifact"],
+    );
+    let support = [BmadGeneratedHelpSupport {
+        module_code: "bmm".to_owned(),
+        skill_name: "bmad-architecture".to_owned(),
+        action: None,
+        runtime_available: true,
+    }];
+
+    let catalog = BmadCatalogBuilder::build_generated_bound(
+        &package(),
+        &[bmm],
+        sha256_bytes(b"generated graph"),
+        &support,
+    )
+    .expect("generated support should bind to the normalized action identity");
+
+    let architecture = catalog.help_actions.first().expect("architecture action");
+    assert_eq!(architecture.action.as_deref(), Some("create"));
+    assert_eq!(
+        architecture.availability,
+        BmadCatalogAvailability::Available
+    );
 }
 
 #[test]

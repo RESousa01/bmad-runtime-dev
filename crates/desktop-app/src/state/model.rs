@@ -195,8 +195,7 @@ impl HostState {
             .collect();
         let catalog = held.cached.catalog();
         let catalog_version = catalog.catalog_version().to_owned();
-        let outcome =
-            desktop_cloud::resolve_model_selection(catalog, current.as_ref(), &history);
+        let outcome = desktop_cloud::resolve_model_selection(catalog, current.as_ref(), &history);
         Ok(match outcome {
             desktop_cloud::ModelSelectionOutcome::Selected { selection, source } => {
                 CatalogSelectionOutcome::Selected {

@@ -75,9 +75,13 @@ const sealedEdgeDispositions = [
     member_sha256:
       "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
     literal: "https://github.com/google-labs-code/design.md",
-    disposition: "external_authority_rejected",
+    disposition: "external_authority_rejected_pinned_projection",
     authority_identity: "github:google-labs-code/design.md",
     governance_owner: "MTH-10",
+    projection_member_path:
+      "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
+    projection_member_sha256:
+      "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
   },
   {
     ...methodPackage,
@@ -85,9 +89,13 @@ const sealedEdgeDispositions = [
     member_sha256:
       "250d2794f2b8e316bb1ba4666f0728970afd8a5d2707ac1cceac6c21e63730b6",
     literal: "https://github.com/google-labs-code/design.md",
-    disposition: "external_authority_rejected",
+    disposition: "external_authority_rejected_pinned_projection",
     authority_identity: "github:google-labs-code/design.md",
     governance_owner: "MTH-10",
+    projection_member_path:
+      "src/bmm-skills/2-plan-workflows/bmad-ux/references/design-md-spec.md",
+    projection_member_sha256:
+      "d04d5f663607aba3f3181e818ae33856e6caf5e560dcb16fa64ed80b7cf3d590",
   },
 ];
 
@@ -403,6 +411,26 @@ function validatedDispositionIndex(source, memberRecords, dispositions) {
         );
       }
     } else if (
+      disposition.disposition ===
+      "external_authority_rejected_pinned_projection"
+    ) {
+      const projection = membersByPath.get(
+        disposition.projection_member_path,
+      );
+      if (
+        !/^https?:/iu.test(disposition.literal) ||
+        !disposition.authority_identity ||
+        !disposition.governance_owner ||
+        target ||
+        !projection ||
+        !disposition.projection_member_sha256 ||
+        projection.contentHash !== disposition.projection_member_sha256
+      ) {
+        fail(
+          `${source.id} invalid pinned-projection disposition for ${disposition.member_path}: ${disposition.literal}`,
+        );
+      }
+    } else if (
       disposition.disposition !== "package_resource_mandatory" &&
       disposition.disposition !== "package_resource_optional"
     ) {
@@ -526,6 +554,13 @@ export function evaluateResourceReferences({
           ? {
               authority_identity: sealed.authority_identity,
               governance_owner: sealed.governance_owner,
+            }
+          : {}),
+        ...(sealed?.projection_member_path
+          ? {
+              projection_member_path: sealed.projection_member_path,
+              projection_member_sha256:
+                sealed.projection_member_sha256,
             }
           : {}),
       };
@@ -924,6 +959,13 @@ export function run(argv = process.argv.slice(2)) {
             ? {
                 authority_identity: edge.authority_identity,
                 governance_owner: edge.governance_owner,
+              }
+            : {}),
+          ...(edge.projection_member_path
+            ? {
+                projection_member_path: edge.projection_member_path,
+                projection_member_sha256:
+                  edge.projection_member_sha256,
               }
             : {}),
         })),

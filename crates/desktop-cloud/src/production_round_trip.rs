@@ -363,11 +363,8 @@ where
                 now,
             )
             .await?;
-        let outcome = resolve_model_selection(
-            fetch.cached().catalog(),
-            stage.current,
-            stage.recent,
-        );
+        let outcome =
+            resolve_model_selection(fetch.cached().catalog(), stage.current, stage.recent);
         Ok(ReviewableModelSelection { fetch, outcome })
     }
 

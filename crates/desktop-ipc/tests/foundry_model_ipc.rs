@@ -9,8 +9,8 @@
 #![allow(clippy::expect_used)]
 
 use desktop_ipc::{
-    Admission, AdmissionPolicy, CommandEnvelopeValidator, IpcValidationContext,
-    IpcValidationError, RequestGate,
+    Admission, AdmissionPolicy, CommandEnvelopeValidator, IpcValidationContext, IpcValidationError,
+    RequestGate,
 };
 use desktop_runtime::{ContractId, LocalCommand, UnixMillis};
 use serde_json::{json, Value};
@@ -333,10 +333,15 @@ fn effect_classification_matches_the_reviewed_lane() {
     }
 }
 
-fn admit(command: &str, payload: &Value, request_id: &str) -> Result<Admission, IpcValidationError> {
+fn admit(
+    command: &str,
+    payload: &Value,
+    request_id: &str,
+) -> Result<Admission, IpcValidationError> {
     let gate = RequestGate::new(AdmissionPolicy::default());
-    let parsed = CommandEnvelopeValidator::parse(&envelope(request_id, command, payload), &context())
-        .expect("valid envelope");
+    let parsed =
+        CommandEnvelopeValidator::parse(&envelope(request_id, command, payload), &context())
+            .expect("valid envelope");
     gate.admit(&parsed, UnixMillis(10_000))?;
     gate.admit(&parsed, UnixMillis(10_001))
 }
@@ -465,8 +470,8 @@ fn the_catalog_gained_no_generic_http_path_shell_or_secret_command() {
         "forbiddenNameFragments": FORBIDDEN_FRAGMENTS.as_slice(),
         "genericCapabilityFindings": Vec::<String>::new(),
     });
-    let destination = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../artifacts/foundry/rust");
+    let destination =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../artifacts/foundry/rust");
     std::fs::create_dir_all(&destination).expect("evidence directory");
     let mut encoded = serde_json::to_string_pretty(&evidence).expect("evidence JSON");
     encoded.push('\n');

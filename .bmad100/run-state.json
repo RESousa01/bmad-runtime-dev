@@ -1,0 +1,180 @@
+{
+  "schema_version": "1.0",
+  "run_id": "dc30d654-3c81-492a-b854-ac745a6cb46c",
+  "repository_commit": "2521f082aeab491157dc4222ecef76b3b5c2e5ac",
+  "source_identities": {
+    "method": "2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02b",
+    "builder": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852"
+  },
+  "current_task": "MTH-08",
+  "status": "running",
+  "completed": [
+    "SRC-01",
+    "SRC-02",
+    "SRC-03",
+    "SRC-04",
+    "SRC-05",
+    "SRC-06",
+    "SRC-07",
+    "SRC-08",
+    "SRC-09",
+    "SRC-11",
+    "SRC-10",
+    "SRC-12",
+    "SEC-01",
+    "BLD-01",
+    "ENG-01",
+    "QAL-01",
+    "ENG-03",
+    "ENG-02",
+    "ENG-04",
+    "ENG-05",
+    "ENG-06",
+    "ENG-07",
+    "ENG-08",
+    "ENG-10",
+    "ENG-12",
+    "ENG-13",
+    "ENG-14",
+    "ENG-15",
+    "ENG-09",
+    "ENG-18",
+    "ENG-11",
+    "ENG-16",
+    "BLD-02"
+  ],
+  "failed": [],
+  "blocked": [
+    {
+      "task_id": "ENG-18",
+      "blocker_id": "ENV-01",
+      "scope": "non_blocking_environment"
+    },
+    {
+      "task_id": "BLD-02",
+      "blocker_id": "ENV-02",
+      "scope": "non_blocking_environment"
+    },
+    {
+      "task_id": "BLD-02",
+      "blocker_id": "ENV-03",
+      "scope": "non_blocking_environment"
+    },
+    {
+      "task_id": "MTH-09",
+      "blocker_id": "INT-MTH08-BRIDGE",
+      "scope": "blocked_internal"
+    },
+    {
+      "task_id": "MTH-10",
+      "blocker_id": "INT-MTH08-BRIDGE",
+      "scope": "blocked_internal"
+    },
+    {
+      "task_id": "MTH-12",
+      "blocker_id": "INT-MTH08-BRIDGE",
+      "scope": "blocked_internal"
+    },
+    {
+      "task_id": "MTH-13",
+      "blocker_id": "INT-MTH08-BRIDGE",
+      "scope": "blocked_internal"
+    }
+  ],
+  "skipped": [],
+  "active_leases": [
+    {
+      "task_id": "MTH-08",
+      "baseline_tree": "15645c295c223bc9b509adf0dc53bbe937f43c7c",
+      "files": [
+        "packages/bmad-foundation/normalized/bmad-prd.package.json",
+        "packages/bmad-foundation/ledger-fragments/method__bmad-prd.json",
+        "packages/bmad-foundation/source-accounting.json",
+        "packages/bmad-foundation/compatibility-ledger.json",
+        "packages/bmad-foundation/compatibility-aliases.json",
+        "packages/bmad-foundation/capability-catalog.json",
+        "packages/bmad-foundation/scripts/source-accounting.mjs",
+        "packages/bmad-foundation/scripts/verify-dependency-graph.mjs",
+        "packages/bmad-foundation/scripts/verify.mjs",
+        "packages/bmad-foundation/scripts/generate-catalog.mjs",
+        "packages/bmad-foundation/scripts/generate-builder-catalog.mjs",
+        "packages/bmad-foundation/tests/foundation.test.mjs",
+        "packages/bmad-foundation/tests/source-accounting.test.mjs",
+        "packages/bmad-foundation/tests/bmad-capability-catalog.test.mjs",
+        "packages/bmad-foundation/tests/compatibility-ledger.test.mjs",
+        "packages/bmad-foundation/tests/help-catalog.test.mjs",
+        "packages/bmad-foundation/tests/builder-catalog.test.mjs",
+        "packages/bmad-foundation/normalized/bmad-help-capability-graph.json",
+        "packages/bmad-foundation/normalized/builder-alias-registry.json",
+        "packages/bmad-foundation/normalized/builder-capability-catalog.json",
+        "packages/bmad-foundation/runtime-manifest.json",
+        "packages/bmad-foundation/package.json",
+        "crates/desktop-runtime/src/bmad/skills/adapters/bmad_prd.rs",
+        "crates/desktop-runtime/src/bmad/skills/adapters/mod.rs",
+        "crates/desktop-runtime/src/bmad/skills/harness.rs",
+        "crates/desktop-runtime/src/bmad/skills/execution.rs",
+        "crates/desktop-runtime/src/bmad/skills/mod.rs",
+        "crates/desktop-runtime/src/bmad/mod.rs",
+        "crates/desktop-runtime/src/lib.rs",
+        "crates/desktop-app/src/bmad_foundation.rs",
+        "crates/desktop-app/src/bmad_capability_host.rs",
+        "crates/desktop-app/src/commands.rs",
+        "crates/desktop-app/src/generated/bmad_capabilities.rs",
+        "crates/desktop-runtime/src/bmad/help_binding.rs",
+        "crates/desktop-runtime/src/bmad/catalog.rs",
+        "apps/desktop-ui/src/generated/bmadCapabilities.ts",
+        "apps/desktop-ui/src/components/BmadLibraryPanel.tsx",
+        "apps/desktop-ui/src/components/BmadLibraryPanel.test.tsx",
+        "apps/desktop-ui/src/features/skills/bmadCoverage.ts",
+        "apps/desktop-ui/src/features/skills/bmadCoverage.test.ts",
+        "apps/desktop-ui/src/features/skills/skillAvailability.ts",
+        "apps/desktop-ui/src/features/skills/skillAvailability.test.ts",
+        "crates/desktop-runtime/tests/bmad_bmad_prd.rs",
+        "crates/desktop-runtime/tests/bmad_skill_execution.rs",
+        "packages/bmad-foundation/normalized/bmad-help-action-graph.json",
+        "packages/bmad-foundation/tests/fixtures/method__src__bmm-skills__2-plan-workflows__bmad-prd__SKILL.md",
+        "docs/bmad/skills/bmad-prd.md",
+        "artifacts/bmad100/method/bmad-prd"
+      ]
+    }
+  ],
+  "conflicts": [
+    {
+      "task_id": "SRC-05",
+      "type": "stale_repository_path",
+      "governing_path": "desktop-ui/src/features/bmad/__tests__/current-characterization.test.tsx",
+      "resolved_path": "apps/desktop-ui/src/features/bmad/__tests__/current-characterization.test.tsx",
+      "resolution": "The backlog verification targets @forge/desktop-ui, whose authoritative package root is apps/desktop-ui; preserve the required test identity under that package."
+    },
+    {
+      "task_id": "SRC-05",
+      "type": "stale_behavior_assumption",
+      "governing_claim": "Capture ordinary-chat/BMAD capability coupling as a target-state failing case.",
+      "observed_baseline": "HEAD and the SRC-05 baseline tree already gate ordinary chat only on chat.send, workspace grant, and model readiness.",
+      "resolution": "Retain the historical coupling defect as migration provenance with status already_repaired, and bind the replacement ID to a passing production-code regression instead of fabricating an expected failure."
+    },
+    {
+      "task_id": "MTH-01..MTH-23",
+      "type": "invalidated_completion_evidence",
+      "governing_claim": "A Method task is complete only after its exact task identity, seven acceptance criteria, per-skill verification commands, evidence paths, and final tree binding pass freshly.",
+      "observed_baseline": "All 23 saved Method artifacts contain only three acceptance checks and omit the required per-skill source-closure, conformance, authority, and golden evidence roots. Artifacts MTH-16 through MTH-23 additionally carry the row identities belonging to MTH-35 through MTH-42.",
+      "resolution": "Reopened all Phase 2 tasks. Preserve the existing adapters, ledger fragments, fixtures, and docs as candidate implementation; regenerate fresh task-bound evidence before restoring any completed identity."
+    },
+    {
+      "task_id": "MTH-08",
+      "type": "shared_runtime_scope_expansion",
+      "governing_claim": "Each Method skill must be reachable through a governed generic runtime with source-bound modes, resources, durable state, typed plans, model/artifact evidence, and recovery behavior.",
+      "observed_baseline": "BmadMethodSkill exposes descriptor() only and no production caller consumes descriptors; BmadRuntimePort accepts only prebuilt generic session/artifact intents, so the candidate PRD adapter is unreachable and cannot prove acceptance criteria 2 through 5.",
+      "resolution": "MTH-08 owns the minimal descriptor-to-existing-MethodSession engine bridge in the shared runtime files under an exclusive coordinator lease. Reuse MethodSession, MethodExactBinding, MethodStepTable, MethodSessionService, action plans, and host ports; do not introduce a parallel lifecycle or authority path."
+    },
+    {
+      "task_id": "MTH-08",
+      "type": "stale_parallel_help_projection",
+      "governing_claim": "Help, runtime closure, compatibility ledger, catalog, and UI must derive from one authoritative capability source; parallel or handwritten catalogs are prohibited.",
+      "observed_baseline": "normalized/bmad-help-capability-graph.json is hand-authored, omitted from the sealed foundation topology, and stale. Its sourceCatalogSha256 does not match capability-catalog.json, and its sourceAliasCatalogSha256 equals the current catalog hash rather than compatibility-aliases.json.",
+      "resolution": "Do not allowlist the stale graph. Replace it with a deterministic generated projection from the canonical catalog and aliases, then seal/register it or retire the redundant projection if the governing Help architecture does not consume it."
+    }
+  ],
+  "last_verified_task": "BLD-02",
+  "final_scorecard": null
+}

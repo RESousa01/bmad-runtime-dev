@@ -164,7 +164,8 @@ jobs:
           $lifecycleEvidence = Get-Content "${{ runner.temp }}/sapphirus-signed-lifecycle-evidence.json" -Raw | ConvertFrom-Json
           if (
             $buildEvidence.installer.sha256 -ne $lifecycleEvidence.artifact.sha256 -or
-            $buildEvidence.application.sha256 -ne $lifecycleEvidence.lifecycle.installedExecutableSha256
+            $buildEvidence.application.sha256 -ne $lifecycleEvidence.lifecycle.freshInstall.installedExecutableSha256 -or
+            $buildEvidence.application.sha256 -ne $lifecycleEvidence.lifecycle.upgrade.installedExecutableSha256
           ) {
             throw 'Lifecycle evidence does not describe the exact signed build artifacts.'
           }

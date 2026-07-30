@@ -1,0 +1,58 @@
+{
+  "source": [
+    "source archive/package metadata",
+    "source/import ledger",
+    "resource closure scripts/tests",
+    "root manifests/toolchain/CI"
+  ],
+  "contracts": [
+    "relevant schemas",
+    "generators",
+    "generated language targets",
+    "golden fixtures",
+    "protocol compatibility tests"
+  ],
+  "runtime": [
+    "task interfaces",
+    "generic runtime ports/state",
+    "named Rust modules/tests",
+    "relevant source skill/resource",
+    "authority and persistence contracts"
+  ],
+  "method": [
+    "one MTH task",
+    "one pinned skill directory recursively",
+    "compatibility row",
+    "generic runtime interfaces",
+    "skill fixtures/tests",
+    "Help/catalog projection"
+  ],
+  "builder": [
+    "one BLD task",
+    "relevant Builder skill/resources/scripts/tests",
+    "Builder lifecycle contracts",
+    "generic runtime/security ports",
+    "Builder UI projection if applicable"
+  ],
+  "ui": [
+    "one UI task",
+    "generated projection/contracts",
+    "approved prototype tokens/components",
+    "named components/tests/fixtures",
+    "host client interfaces"
+  ],
+  "security": [
+    "one SEC task",
+    "threat/action/data-flow scope",
+    "named policy/runtime modules",
+    "negative fixtures",
+    "relevant source scripts/imports"
+  ],
+  "quality": [
+    "one QAL task",
+    "all dependency evidence manifests",
+    "verification tool",
+    "required real environment/runbook",
+    "fresh command logs"
+  ]
+}

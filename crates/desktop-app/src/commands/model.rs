@@ -44,7 +44,10 @@ fn catalog_projection_input(
             profile_id: profile.profile_id.as_str().to_owned(),
             display_name: profile.display_name.as_str().to_owned(),
             description: profile.description.as_str().to_owned(),
-            family: profile.family.as_ref().map(|family| family.as_str().to_owned()),
+            family: profile
+                .family
+                .as_ref()
+                .map(|family| family.as_str().to_owned()),
             availability: map_selectable_availability(profile.availability),
             status_detail: profile
                 .status_detail

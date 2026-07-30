@@ -99,6 +99,16 @@ committed lock at HEAD** (`sha256:28fa1837…`), so the npm side of this review
 has no delta left to assess. `Cargo.lock` is unchanged from this review's
 conclusion (`sha256:5e1d1eac…`).
 
+**Amended 2026-07-29 (fast-uri advisory).** Production audit identified
+`fast-uri@3.1.3` through `@sapphirus/contracts > ajv` as affected by
+GHSA-v2hh-gcrm-f6hx (host confusion through a literal backslash authority
+delimiter). The workspace now overrides that single transitive package to the
+patched `fast-uri@3.1.4`. The reviewed lock diff changes only the override
+metadata, the `fast-uri` resolution/integrity, and Ajv's resolved edge; no
+other resolved npm package version changed. A fresh `pnpm audit --prod`
+reported zero advisories. The reviewed `pnpm-lock.yaml` digest is
+`fbfa675b0fab819d51cee9b93361a0a61383610099d7b6ebf6a455e9bf093cf9`.
+
 ## Residual risk
 
 - `cargo-deny` is not installed in this environment, so the licence and

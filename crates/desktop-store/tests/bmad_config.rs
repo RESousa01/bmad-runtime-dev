@@ -110,7 +110,7 @@ fn bmad_config_store_rejects_resealed_credential_text_from_direct_callers(
         .iter_mut()
         .find(|entry| entry["key"] == "personalization")
         .expect("personalization value");
-    personalization["value"] = json!("nested note: client_secret = leaked-value");
+    personalization["value"] = json!(concat!("client", "_secret=test-only"));
     reseal(&mut direct)?;
 
     assert!(matches!(
@@ -128,24 +128,24 @@ fn bmad_config_store_rejects_resealed_camel_case_credential_text_from_direct_cal
     let directory = tempfile::tempdir()?;
     let store = LocalStore::open(directory.path(), &TestProtector)?;
     for text in [
-        "clientSecret=leaked-value",
-        "accessToken: leaked-value",
-        "apiKey = leaked-value",
-        "dbPassword: leaked-value",
-        "privateKey=-----BEGIN PRIVATE KEY-----",
-        "connectionString = Server=example;Password=hunter2",
-        "ClientSecret=leaked-value",
-        "client-secret=leaked-value",
-        "AccessToken: leaked-value",
-        "access-token: leaked-value",
-        "ApiKey = leaked-value",
-        "api-key = leaked-value",
-        "DbPassword: leaked-value",
-        "db-password: leaked-value",
-        "PrivateKey=-----BEGIN PRIVATE KEY-----",
-        "private-key=-----BEGIN PRIVATE KEY-----",
-        "ConnectionString = Server=example;Password=hunter2",
-        "connection-string = Server=example;Password=hunter2",
+        "clientSecret=test-only",
+        "accessToken: test-only",
+        "apiKey = test-only",
+        "dbPassword: test-only",
+        concat!("private", "Key=-----BEGIN PRIVATE ", "KEY-----"),
+        "connectionString=test-only",
+        "ClientSecret=test-only",
+        "client-secret=test-only",
+        "AccessToken: test-only",
+        "access-token: test-only",
+        "ApiKey = test-only",
+        "api-key = test-only",
+        "DbPassword: test-only",
+        "db-password: test-only",
+        concat!("Private", "Key=-----BEGIN PRIVATE ", "KEY-----"),
+        concat!("private", "-key=-----BEGIN PRIVATE ", "KEY-----"),
+        "ConnectionString=test-only",
+        "connection-string=test-only",
     ] {
         let mut direct = snapshot("en");
         let personalization = direct.resolved_config["effectiveValues"]

@@ -1,0 +1,3451 @@
+{
+  "schema_version": "1.0",
+  "name": "sapphirus-bmad-100-single-run",
+  "source_identities": {
+    "method": {
+      "package": "bmad-method",
+      "version": "6.10.0",
+      "node": ">=20.12.0",
+      "archive": "BMAD-METHOD-main(1).zip",
+      "sha256": "2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02b",
+      "file_count": 597,
+      "skill_md_count": 57,
+      "primary_skill_count": 48
+    },
+    "builder": {
+      "package": "bmad-builder",
+      "version": "2.1.0",
+      "node": ">=22.0.0",
+      "archive": "bmad-builder-main(1).zip",
+      "sha256": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852",
+      "file_count": 299,
+      "skill_md_count": 13,
+      "primary_skill_count": 5,
+      "public_action_count": 9,
+      "internal_action_count": 1
+    }
+  },
+  "definition": "Binary completion: every mandatory source-derived denominator and gate passes; no averaging.",
+  "task_count": 156,
+  "phase_count": 7,
+  "topological_order": [
+    "SRC-01",
+    "SRC-02",
+    "SRC-05",
+    "SRC-06",
+    "SRC-03",
+    "SRC-04",
+    "SRC-10",
+    "SRC-07",
+    "SEC-01",
+    "BLD-01",
+    "SRC-08",
+    "QAL-01",
+    "SRC-09",
+    "SRC-11",
+    "ENG-01",
+    "SRC-12",
+    "ENG-02",
+    "ENG-03",
+    "ENG-04",
+    "ENG-05",
+    "ENG-06",
+    "ENG-07",
+    "ENG-08",
+    "ENG-10",
+    "ENG-15",
+    "ENG-09",
+    "ENG-12",
+    "ENG-13",
+    "ENG-18",
+    "ENG-14",
+    "ENG-11",
+    "ENG-16",
+    "BLD-02",
+    "SEC-02",
+    "MTH-01",
+    "MTH-02",
+    "MTH-03",
+    "MTH-04",
+    "MTH-05",
+    "MTH-06",
+    "MTH-07",
+    "MTH-08",
+    "MTH-09",
+    "MTH-10",
+    "MTH-11",
+    "MTH-12",
+    "MTH-13",
+    "MTH-14",
+    "MTH-15",
+    "MTH-16",
+    "MTH-17",
+    "MTH-18",
+    "MTH-19",
+    "MTH-20",
+    "MTH-21",
+    "MTH-22",
+    "MTH-23",
+    "MTH-24",
+    "MTH-25",
+    "MTH-26",
+    "MTH-27",
+    "MTH-35",
+    "MTH-36",
+    "MTH-37",
+    "MTH-38",
+    "MTH-39",
+    "MTH-40",
+    "MTH-41",
+    "MTH-42",
+    "ENG-17",
+    "BLD-03",
+    "BLD-23",
+    "UI-01",
+    "SEC-03",
+    "SEC-04",
+    "MTH-29",
+    "MTH-31",
+    "MTH-34",
+    "MTH-28",
+    "MTH-30",
+    "MTH-32",
+    "MTH-33",
+    "MTH-43",
+    "MTH-44",
+    "MTH-45",
+    "MTH-46",
+    "MTH-47",
+    "MTH-48",
+    "BLD-04",
+    "BLD-06",
+    "BLD-14",
+    "BLD-20",
+    "BLD-25",
+    "QAL-02",
+    "UI-02",
+    "SEC-06",
+    "BLD-05",
+    "BLD-07",
+    "BLD-15",
+    "BLD-22",
+    "BLD-26",
+    "BLD-28",
+    "QAL-03",
+    "UI-03",
+    "UI-04",
+    "BLD-08",
+    "SEC-07",
+    "SEC-12",
+    "BLD-24",
+    "BLD-16",
+    "BLD-17",
+    "BLD-32",
+    "SEC-08",
+    "BLD-09",
+    "BLD-21",
+    "BLD-18",
+    "BLD-19",
+    "BLD-27",
+    "SEC-09",
+    "BLD-10",
+    "BLD-11",
+    "UI-07",
+    "UI-06",
+    "BLD-29",
+    "SEC-10",
+    "BLD-12",
+    "BLD-13",
+    "BLD-30",
+    "SEC-11",
+    "QAL-07",
+    "UI-05",
+    "BLD-31",
+    "BLD-33",
+    "UI-08",
+    "SEC-05",
+    "BLD-34",
+    "BLD-35",
+    "UI-10",
+    "BLD-36",
+    "UI-09",
+    "QAL-04",
+    "UI-11",
+    "QAL-05",
+    "QAL-06",
+    "QAL-11",
+    "QAL-08",
+    "UI-12",
+    "QAL-09",
+    "QAL-10",
+    "QAL-12",
+    "QAL-13",
+    "QAL-14",
+    "QAL-15",
+    "QAL-16",
+    "QAL-17",
+    "QAL-18"
+  ],
+  "task_index": {
+    "SRC-01": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P0",
+      "title": "Restore one authoritative monorepo root",
+      "depends": [],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-01.json"
+      ],
+      "order": 1
+    },
+    "SRC-02": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P0",
+      "title": "Pin exact Method and Builder source identities",
+      "depends": [
+        "SRC-01"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-02.json"
+      ],
+      "order": 2
+    },
+    "SRC-03": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P0",
+      "title": "Import complete verbatim source trees",
+      "depends": [
+        "SRC-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-03.json"
+      ],
+      "order": 5
+    },
+    "SRC-04": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P0",
+      "title": "Generate complete source-to-runtime accounting",
+      "depends": [
+        "SRC-03"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-04.json"
+      ],
+      "order": 6
+    },
+    "SRC-05": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P0",
+      "title": "Freeze current behavior before migration",
+      "depends": [
+        "SRC-01"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-05.json"
+      ],
+      "order": 3
+    },
+    "SRC-06": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P0",
+      "title": "Repair verification-toolchain compatibility",
+      "depends": [
+        "SRC-01"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-06.json"
+      ],
+      "order": 4
+    },
+    "SRC-07": {
+      "phase": 0,
+      "subsystem": "contracts",
+      "priority": "P0",
+      "title": "Define the canonical BMAD contract family",
+      "depends": [
+        "SRC-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-07.json"
+      ],
+      "order": 8
+    },
+    "SRC-08": {
+      "phase": 0,
+      "subsystem": "contracts",
+      "priority": "P0",
+      "title": "Generate cross-language types and fixtures",
+      "depends": [
+        "SRC-07"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-08.json"
+      ],
+      "order": 11
+    },
+    "SRC-09": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P0",
+      "title": "Generate the canonical capability and alias catalog",
+      "depends": [
+        "SRC-04",
+        "SRC-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-09.json"
+      ],
+      "order": 13
+    },
+    "SRC-10": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P1",
+      "title": "Correct stale Builder documentation and distribution assumptions",
+      "depends": [
+        "SRC-03"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-10.json"
+      ],
+      "order": 7
+    },
+    "SRC-11": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P0",
+      "title": "Create resumable one-turn execution state",
+      "depends": [
+        "SRC-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-11.json"
+      ],
+      "order": 14
+    },
+    "SRC-12": {
+      "phase": 0,
+      "subsystem": "source",
+      "priority": "P0",
+      "title": "Implement the binary BMAD-100 scorecard",
+      "depends": [
+        "SRC-04",
+        "SRC-09",
+        "SRC-11"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SRC-12.json"
+      ],
+      "order": 16
+    },
+    "ENG-01": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Split BMAD runtime into bounded modules",
+      "depends": [
+        "SRC-08",
+        "SRC-09"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-01.json"
+      ],
+      "order": 15
+    },
+    "ENG-02": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement safe recursive resource resolution",
+      "depends": [
+        "ENG-01",
+        "SRC-03"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-02.json"
+      ],
+      "order": 17
+    },
+    "ENG-03": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement layered configuration resolution",
+      "depends": [
+        "ENG-01",
+        "SRC-07"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-03.json"
+      ],
+      "order": 18
+    },
+    "ENG-04": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement customization and activation overlays",
+      "depends": [
+        "ENG-02",
+        "ENG-03"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-04.json"
+      ],
+      "order": 19
+    },
+    "ENG-05": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement the durable generic skill state machine",
+      "depends": [
+        "ENG-01",
+        "ENG-02",
+        "ENG-03",
+        "ENG-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-05.json"
+      ],
+      "order": 20
+    },
+    "ENG-06": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement interactive/headless parity",
+      "depends": [
+        "ENG-05"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-06.json"
+      ],
+      "order": 21
+    },
+    "ENG-07": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement artifacts, lineage, and completion hooks",
+      "depends": [
+        "ENG-05"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-07.json"
+      ],
+      "order": 22
+    },
+    "ENG-08": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement deterministic action and model orchestration",
+      "depends": [
+        "ENG-05",
+        "ENG-07"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-08.json"
+      ],
+      "order": 23
+    },
+    "ENG-09": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement capability dependency closure",
+      "depends": [
+        "ENG-02",
+        "ENG-08",
+        "SRC-09"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-09.json"
+      ],
+      "order": 26
+    },
+    "ENG-10": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement persistent facts, memlog, summaries, and sanctum stores",
+      "depends": [
+        "ENG-05",
+        "ENG-07"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-10.json"
+      ],
+      "order": 24
+    },
+    "ENG-11": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement canonical deterministic BMAD Help",
+      "depends": [
+        "SRC-09",
+        "ENG-09"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-11.json"
+      ],
+      "order": 31
+    },
+    "ENG-12": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement canonical review and validation lenses",
+      "depends": [
+        "ENG-07",
+        "ENG-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-12.json"
+      ],
+      "order": 27
+    },
+    "ENG-13": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement cancellation, failure, retry, and repair",
+      "depends": [
+        "ENG-05",
+        "ENG-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-13.json"
+      ],
+      "order": 28
+    },
+    "ENG-14": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement BMAD Model Context projection",
+      "depends": [
+        "ENG-08",
+        "ENG-10"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-14.json"
+      ],
+      "order": 30
+    },
+    "ENG-15": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Migrate Builder persistence to the full lifecycle",
+      "depends": [
+        "SRC-07",
+        "ENG-05",
+        "ENG-07"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-15.json"
+      ],
+      "order": 25
+    },
+    "ENG-16": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Implement governed installation and atomic catalog activation",
+      "depends": [
+        "ENG-09",
+        "ENG-15"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-16.json"
+      ],
+      "order": 32
+    },
+    "ENG-17": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P1",
+      "title": "Implement source/package upgrade and compatibility migration",
+      "depends": [
+        "SRC-02",
+        "ENG-16"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-17.json"
+      ],
+      "order": 70
+    },
+    "ENG-18": {
+      "phase": 1,
+      "subsystem": "runtime",
+      "priority": "P0",
+      "title": "Separate ordinary chat from BMAD capability closure",
+      "depends": [
+        "ENG-08",
+        "SRC-09"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/ENG-18.json"
+      ],
+      "order": 29
+    },
+    "MTH-01": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Complete canonical Method skill `bmad-agent-analyst`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-01.json",
+        "artifacts/bmad100/method/bmad-agent-analyst/source-closure.json",
+        "artifacts/bmad100/method/bmad-agent-analyst/conformance.json",
+        "artifacts/bmad100/method/bmad-agent-analyst/authority.json",
+        "artifacts/bmad100/method/bmad-agent-analyst/golden/**"
+      ],
+      "order": 35
+    },
+    "MTH-02": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Complete canonical Method skill `bmad-agent-tech-writer`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-02.json",
+        "artifacts/bmad100/method/bmad-agent-tech-writer/source-closure.json",
+        "artifacts/bmad100/method/bmad-agent-tech-writer/conformance.json",
+        "artifacts/bmad100/method/bmad-agent-tech-writer/authority.json",
+        "artifacts/bmad100/method/bmad-agent-tech-writer/golden/**"
+      ],
+      "order": 36
+    },
+    "MTH-03": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-document-project`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-03.json",
+        "artifacts/bmad100/method/bmad-document-project/source-closure.json",
+        "artifacts/bmad100/method/bmad-document-project/conformance.json",
+        "artifacts/bmad100/method/bmad-document-project/authority.json",
+        "artifacts/bmad100/method/bmad-document-project/golden/**"
+      ],
+      "order": 37
+    },
+    "MTH-04": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-prfaq`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-04.json",
+        "artifacts/bmad100/method/bmad-prfaq/source-closure.json",
+        "artifacts/bmad100/method/bmad-prfaq/conformance.json",
+        "artifacts/bmad100/method/bmad-prfaq/authority.json",
+        "artifacts/bmad100/method/bmad-prfaq/golden/**"
+      ],
+      "order": 38
+    },
+    "MTH-05": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-product-brief`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-05.json",
+        "artifacts/bmad100/method/bmad-product-brief/source-closure.json",
+        "artifacts/bmad100/method/bmad-product-brief/conformance.json",
+        "artifacts/bmad100/method/bmad-product-brief/authority.json",
+        "artifacts/bmad100/method/bmad-product-brief/golden/**"
+      ],
+      "order": 39
+    },
+    "MTH-06": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Complete canonical Method skill `bmad-agent-pm`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-06.json",
+        "artifacts/bmad100/method/bmad-agent-pm/source-closure.json",
+        "artifacts/bmad100/method/bmad-agent-pm/conformance.json",
+        "artifacts/bmad100/method/bmad-agent-pm/authority.json",
+        "artifacts/bmad100/method/bmad-agent-pm/golden/**"
+      ],
+      "order": 40
+    },
+    "MTH-07": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Complete canonical Method skill `bmad-agent-ux-designer`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-07.json",
+        "artifacts/bmad100/method/bmad-agent-ux-designer/source-closure.json",
+        "artifacts/bmad100/method/bmad-agent-ux-designer/conformance.json",
+        "artifacts/bmad100/method/bmad-agent-ux-designer/authority.json",
+        "artifacts/bmad100/method/bmad-agent-ux-designer/golden/**"
+      ],
+      "order": 41
+    },
+    "MTH-08": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P0",
+      "title": "Complete canonical Method skill `bmad-prd`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-08.json",
+        "artifacts/bmad100/method/bmad-prd/source-closure.json",
+        "artifacts/bmad100/method/bmad-prd/conformance.json",
+        "artifacts/bmad100/method/bmad-prd/authority.json",
+        "artifacts/bmad100/method/bmad-prd/golden/**"
+      ],
+      "order": 42
+    },
+    "MTH-09": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P0",
+      "title": "Complete canonical Method skill `bmad-spec`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-09.json",
+        "artifacts/bmad100/method/bmad-spec/source-closure.json",
+        "artifacts/bmad100/method/bmad-spec/conformance.json",
+        "artifacts/bmad100/method/bmad-spec/authority.json",
+        "artifacts/bmad100/method/bmad-spec/golden/**"
+      ],
+      "order": 43
+    },
+    "MTH-10": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P0",
+      "title": "Complete canonical Method skill `bmad-ux`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-10.json",
+        "artifacts/bmad100/method/bmad-ux/source-closure.json",
+        "artifacts/bmad100/method/bmad-ux/conformance.json",
+        "artifacts/bmad100/method/bmad-ux/authority.json",
+        "artifacts/bmad100/method/bmad-ux/golden/**"
+      ],
+      "order": 44
+    },
+    "MTH-11": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Complete canonical Method skill `bmad-agent-architect`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-11.json",
+        "artifacts/bmad100/method/bmad-agent-architect/source-closure.json",
+        "artifacts/bmad100/method/bmad-agent-architect/conformance.json",
+        "artifacts/bmad100/method/bmad-agent-architect/authority.json",
+        "artifacts/bmad100/method/bmad-agent-architect/golden/**"
+      ],
+      "order": 45
+    },
+    "MTH-12": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-architecture`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-12.json",
+        "artifacts/bmad100/method/bmad-architecture/source-closure.json",
+        "artifacts/bmad100/method/bmad-architecture/conformance.json",
+        "artifacts/bmad100/method/bmad-architecture/authority.json",
+        "artifacts/bmad100/method/bmad-architecture/golden/**"
+      ],
+      "order": 46
+    },
+    "MTH-13": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-check-implementation-readiness`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-13.json",
+        "artifacts/bmad100/method/bmad-check-implementation-readiness/source-closure.json",
+        "artifacts/bmad100/method/bmad-check-implementation-readiness/conformance.json",
+        "artifacts/bmad100/method/bmad-check-implementation-readiness/authority.json",
+        "artifacts/bmad100/method/bmad-check-implementation-readiness/golden/**"
+      ],
+      "order": 47
+    },
+    "MTH-14": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-create-epics-and-stories`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-14.json",
+        "artifacts/bmad100/method/bmad-create-epics-and-stories/source-closure.json",
+        "artifacts/bmad100/method/bmad-create-epics-and-stories/conformance.json",
+        "artifacts/bmad100/method/bmad-create-epics-and-stories/authority.json",
+        "artifacts/bmad100/method/bmad-create-epics-and-stories/golden/**"
+      ],
+      "order": 48
+    },
+    "MTH-15": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Complete canonical Method skill `bmad-generate-project-context`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-15.json",
+        "artifacts/bmad100/method/bmad-generate-project-context/source-closure.json",
+        "artifacts/bmad100/method/bmad-generate-project-context/conformance.json",
+        "artifacts/bmad100/method/bmad-generate-project-context/authority.json",
+        "artifacts/bmad100/method/bmad-generate-project-context/golden/**"
+      ],
+      "order": 49
+    },
+    "MTH-16": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Complete canonical Method skill `bmad-agent-dev`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-16.json",
+        "artifacts/bmad100/method/bmad-agent-dev/source-closure.json",
+        "artifacts/bmad100/method/bmad-agent-dev/conformance.json",
+        "artifacts/bmad100/method/bmad-agent-dev/authority.json",
+        "artifacts/bmad100/method/bmad-agent-dev/golden/**"
+      ],
+      "order": 50
+    },
+    "MTH-17": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-checkpoint-preview`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-17.json",
+        "artifacts/bmad100/method/bmad-checkpoint-preview/source-closure.json",
+        "artifacts/bmad100/method/bmad-checkpoint-preview/conformance.json",
+        "artifacts/bmad100/method/bmad-checkpoint-preview/authority.json",
+        "artifacts/bmad100/method/bmad-checkpoint-preview/golden/**"
+      ],
+      "order": 51
+    },
+    "MTH-18": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-code-review`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-18.json",
+        "artifacts/bmad100/method/bmad-code-review/source-closure.json",
+        "artifacts/bmad100/method/bmad-code-review/conformance.json",
+        "artifacts/bmad100/method/bmad-code-review/authority.json",
+        "artifacts/bmad100/method/bmad-code-review/golden/**"
+      ],
+      "order": 52
+    },
+    "MTH-19": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-correct-course`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-19.json",
+        "artifacts/bmad100/method/bmad-correct-course/source-closure.json",
+        "artifacts/bmad100/method/bmad-correct-course/conformance.json",
+        "artifacts/bmad100/method/bmad-correct-course/authority.json",
+        "artifacts/bmad100/method/bmad-correct-course/golden/**"
+      ],
+      "order": 53
+    },
+    "MTH-20": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-create-story`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-20.json",
+        "artifacts/bmad100/method/bmad-create-story/source-closure.json",
+        "artifacts/bmad100/method/bmad-create-story/conformance.json",
+        "artifacts/bmad100/method/bmad-create-story/authority.json",
+        "artifacts/bmad100/method/bmad-create-story/golden/**"
+      ],
+      "order": 54
+    },
+    "MTH-21": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-dev-auto`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-21.json",
+        "artifacts/bmad100/method/bmad-dev-auto/source-closure.json",
+        "artifacts/bmad100/method/bmad-dev-auto/conformance.json",
+        "artifacts/bmad100/method/bmad-dev-auto/authority.json",
+        "artifacts/bmad100/method/bmad-dev-auto/golden/**"
+      ],
+      "order": 55
+    },
+    "MTH-22": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-dev-story`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-22.json",
+        "artifacts/bmad100/method/bmad-dev-story/source-closure.json",
+        "artifacts/bmad100/method/bmad-dev-story/conformance.json",
+        "artifacts/bmad100/method/bmad-dev-story/authority.json",
+        "artifacts/bmad100/method/bmad-dev-story/golden/**"
+      ],
+      "order": 56
+    },
+    "MTH-23": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-qa-generate-e2e-tests`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-23.json",
+        "artifacts/bmad100/method/bmad-qa-generate-e2e-tests/source-closure.json",
+        "artifacts/bmad100/method/bmad-qa-generate-e2e-tests/conformance.json",
+        "artifacts/bmad100/method/bmad-qa-generate-e2e-tests/authority.json",
+        "artifacts/bmad100/method/bmad-qa-generate-e2e-tests/golden/**"
+      ],
+      "order": 57
+    },
+    "MTH-24": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-quick-dev`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-24.json",
+        "artifacts/bmad100/method/bmad-quick-dev/source-closure.json",
+        "artifacts/bmad100/method/bmad-quick-dev/conformance.json",
+        "artifacts/bmad100/method/bmad-quick-dev/authority.json",
+        "artifacts/bmad100/method/bmad-quick-dev/golden/**"
+      ],
+      "order": 58
+    },
+    "MTH-25": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-retrospective`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-25.json",
+        "artifacts/bmad100/method/bmad-retrospective/source-closure.json",
+        "artifacts/bmad100/method/bmad-retrospective/conformance.json",
+        "artifacts/bmad100/method/bmad-retrospective/authority.json",
+        "artifacts/bmad100/method/bmad-retrospective/golden/**"
+      ],
+      "order": 59
+    },
+    "MTH-26": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-sprint-planning`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-26.json",
+        "artifacts/bmad100/method/bmad-sprint-planning/source-closure.json",
+        "artifacts/bmad100/method/bmad-sprint-planning/conformance.json",
+        "artifacts/bmad100/method/bmad-sprint-planning/authority.json",
+        "artifacts/bmad100/method/bmad-sprint-planning/golden/**"
+      ],
+      "order": 60
+    },
+    "MTH-27": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-sprint-status`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-27.json",
+        "artifacts/bmad100/method/bmad-sprint-status/source-closure.json",
+        "artifacts/bmad100/method/bmad-sprint-status/conformance.json",
+        "artifacts/bmad100/method/bmad-sprint-status/authority.json",
+        "artifacts/bmad100/method/bmad-sprint-status/golden/**"
+      ],
+      "order": 61
+    },
+    "MTH-28": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-create-architecture` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-12"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-28.json",
+        "artifacts/bmad100/method/bmad-create-architecture/source-closure.json",
+        "artifacts/bmad100/method/bmad-create-architecture/conformance.json",
+        "artifacts/bmad100/method/bmad-create-architecture/authority.json",
+        "artifacts/bmad100/method/bmad-create-architecture/golden/**"
+      ],
+      "order": 79
+    },
+    "MTH-29": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-create-prd` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-29.json",
+        "artifacts/bmad100/method/bmad-create-prd/source-closure.json",
+        "artifacts/bmad100/method/bmad-create-prd/conformance.json",
+        "artifacts/bmad100/method/bmad-create-prd/authority.json",
+        "artifacts/bmad100/method/bmad-create-prd/golden/**"
+      ],
+      "order": 76
+    },
+    "MTH-30": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-domain-research` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-38"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-30.json",
+        "artifacts/bmad100/method/bmad-domain-research/source-closure.json",
+        "artifacts/bmad100/method/bmad-domain-research/conformance.json",
+        "artifacts/bmad100/method/bmad-domain-research/authority.json",
+        "artifacts/bmad100/method/bmad-domain-research/golden/**"
+      ],
+      "order": 80
+    },
+    "MTH-31": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-edit-prd` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-31.json",
+        "artifacts/bmad100/method/bmad-edit-prd/source-closure.json",
+        "artifacts/bmad100/method/bmad-edit-prd/conformance.json",
+        "artifacts/bmad100/method/bmad-edit-prd/authority.json",
+        "artifacts/bmad100/method/bmad-edit-prd/golden/**"
+      ],
+      "order": 77
+    },
+    "MTH-32": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-market-research` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-38"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-32.json",
+        "artifacts/bmad100/method/bmad-market-research/source-closure.json",
+        "artifacts/bmad100/method/bmad-market-research/conformance.json",
+        "artifacts/bmad100/method/bmad-market-research/authority.json",
+        "artifacts/bmad100/method/bmad-market-research/golden/**"
+      ],
+      "order": 81
+    },
+    "MTH-33": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-technical-research` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-38"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-33.json",
+        "artifacts/bmad100/method/bmad-technical-research/source-closure.json",
+        "artifacts/bmad100/method/bmad-technical-research/conformance.json",
+        "artifacts/bmad100/method/bmad-technical-research/authority.json",
+        "artifacts/bmad100/method/bmad-technical-research/golden/**"
+      ],
+      "order": 82
+    },
+    "MTH-34": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-validate-prd` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-34.json",
+        "artifacts/bmad100/method/bmad-validate-prd/source-closure.json",
+        "artifacts/bmad100/method/bmad-validate-prd/conformance.json",
+        "artifacts/bmad100/method/bmad-validate-prd/authority.json",
+        "artifacts/bmad100/method/bmad-validate-prd/golden/**"
+      ],
+      "order": 78
+    },
+    "MTH-35": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-advanced-elicitation`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-35.json",
+        "artifacts/bmad100/method/bmad-advanced-elicitation/source-closure.json",
+        "artifacts/bmad100/method/bmad-advanced-elicitation/conformance.json",
+        "artifacts/bmad100/method/bmad-advanced-elicitation/authority.json",
+        "artifacts/bmad100/method/bmad-advanced-elicitation/golden/**"
+      ],
+      "order": 62
+    },
+    "MTH-36": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-brainstorming`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-36.json",
+        "artifacts/bmad100/method/bmad-brainstorming/source-closure.json",
+        "artifacts/bmad100/method/bmad-brainstorming/conformance.json",
+        "artifacts/bmad100/method/bmad-brainstorming/authority.json",
+        "artifacts/bmad100/method/bmad-brainstorming/golden/**"
+      ],
+      "order": 63
+    },
+    "MTH-37": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Complete canonical Method skill `bmad-customize`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-37.json",
+        "artifacts/bmad100/method/bmad-customize/source-closure.json",
+        "artifacts/bmad100/method/bmad-customize/conformance.json",
+        "artifacts/bmad100/method/bmad-customize/authority.json",
+        "artifacts/bmad100/method/bmad-customize/golden/**"
+      ],
+      "order": 64
+    },
+    "MTH-38": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P0",
+      "title": "Complete canonical Method skill `bmad-deep-recon`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-38.json",
+        "artifacts/bmad100/method/bmad-deep-recon/source-closure.json",
+        "artifacts/bmad100/method/bmad-deep-recon/conformance.json",
+        "artifacts/bmad100/method/bmad-deep-recon/authority.json",
+        "artifacts/bmad100/method/bmad-deep-recon/golden/**"
+      ],
+      "order": 65
+    },
+    "MTH-39": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Complete canonical Method skill `bmad-forge-idea`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-39.json",
+        "artifacts/bmad100/method/bmad-forge-idea/source-closure.json",
+        "artifacts/bmad100/method/bmad-forge-idea/conformance.json",
+        "artifacts/bmad100/method/bmad-forge-idea/authority.json",
+        "artifacts/bmad100/method/bmad-forge-idea/golden/**"
+      ],
+      "order": 66
+    },
+    "MTH-40": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P0",
+      "title": "Complete canonical Method skill `bmad-help`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-40.json",
+        "artifacts/bmad100/method/bmad-help/source-closure.json",
+        "artifacts/bmad100/method/bmad-help/conformance.json",
+        "artifacts/bmad100/method/bmad-help/authority.json",
+        "artifacts/bmad100/method/bmad-help/golden/**"
+      ],
+      "order": 67
+    },
+    "MTH-41": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Complete canonical Method skill `bmad-party-mode`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-41.json",
+        "artifacts/bmad100/method/bmad-party-mode/source-closure.json",
+        "artifacts/bmad100/method/bmad-party-mode/conformance.json",
+        "artifacts/bmad100/method/bmad-party-mode/authority.json",
+        "artifacts/bmad100/method/bmad-party-mode/golden/**"
+      ],
+      "order": 68
+    },
+    "MTH-42": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P0",
+      "title": "Complete canonical Method skill `bmad-review`",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-42.json",
+        "artifacts/bmad100/method/bmad-review/source-closure.json",
+        "artifacts/bmad100/method/bmad-review/conformance.json",
+        "artifacts/bmad100/method/bmad-review/authority.json",
+        "artifacts/bmad100/method/bmad-review/golden/**"
+      ],
+      "order": 69
+    },
+    "MTH-43": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P2",
+      "title": "Implement `bmad-editorial-review` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-43.json",
+        "artifacts/bmad100/method/bmad-editorial-review/source-closure.json",
+        "artifacts/bmad100/method/bmad-editorial-review/conformance.json",
+        "artifacts/bmad100/method/bmad-editorial-review/authority.json",
+        "artifacts/bmad100/method/bmad-editorial-review/golden/**"
+      ],
+      "order": 83
+    },
+    "MTH-44": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-editorial-review-prose` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-44.json",
+        "artifacts/bmad100/method/bmad-editorial-review-prose/source-closure.json",
+        "artifacts/bmad100/method/bmad-editorial-review-prose/conformance.json",
+        "artifacts/bmad100/method/bmad-editorial-review-prose/authority.json",
+        "artifacts/bmad100/method/bmad-editorial-review-prose/golden/**"
+      ],
+      "order": 84
+    },
+    "MTH-45": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-editorial-review-structure` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-45.json",
+        "artifacts/bmad100/method/bmad-editorial-review-structure/source-closure.json",
+        "artifacts/bmad100/method/bmad-editorial-review-structure/conformance.json",
+        "artifacts/bmad100/method/bmad-editorial-review-structure/authority.json",
+        "artifacts/bmad100/method/bmad-editorial-review-structure/golden/**"
+      ],
+      "order": 85
+    },
+    "MTH-46": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-review-adversarial-general` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-46.json",
+        "artifacts/bmad100/method/bmad-review-adversarial-general/source-closure.json",
+        "artifacts/bmad100/method/bmad-review-adversarial-general/conformance.json",
+        "artifacts/bmad100/method/bmad-review-adversarial-general/authority.json",
+        "artifacts/bmad100/method/bmad-review-adversarial-general/golden/**"
+      ],
+      "order": 86
+    },
+    "MTH-47": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-review-edge-case-hunter` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-47.json",
+        "artifacts/bmad100/method/bmad-review-edge-case-hunter/source-closure.json",
+        "artifacts/bmad100/method/bmad-review-edge-case-hunter/conformance.json",
+        "artifacts/bmad100/method/bmad-review-edge-case-hunter/authority.json",
+        "artifacts/bmad100/method/bmad-review-edge-case-hunter/golden/**"
+      ],
+      "order": 87
+    },
+    "MTH-48": {
+      "phase": 2,
+      "subsystem": "method",
+      "priority": "P1",
+      "title": "Implement `bmad-review-verification-gap` as a tested compatibility alias",
+      "depends": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/MTH-48.json",
+        "artifacts/bmad100/method/bmad-review-verification-gap/source-closure.json",
+        "artifacts/bmad100/method/bmad-review-verification-gap/conformance.json",
+        "artifacts/bmad100/method/bmad-review-verification-gap/authority.json",
+        "artifacts/bmad100/method/bmad-review-verification-gap/golden/**"
+      ],
+      "order": 88
+    },
+    "BLD-01": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Import and close the complete Builder source graph",
+      "depends": [
+        "SRC-03",
+        "SRC-04",
+        "SRC-10"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-01.json",
+        "artifacts/bmad100/builder/bld-01/verification.json",
+        "artifacts/bmad100/builder/bld-01/fixtures/**"
+      ],
+      "order": 10
+    },
+    "BLD-02": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Generate the canonical Builder action and capability catalog",
+      "depends": [
+        "BLD-01",
+        "SRC-09",
+        "ENG-09"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-02.json",
+        "artifacts/bmad100/builder/bld-02/verification.json",
+        "artifacts/bmad100/builder/bld-02/fixtures/**"
+      ],
+      "order": 33
+    },
+    "BLD-03": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Expand Builder contracts and migrate existing drafts",
+      "depends": [
+        "SRC-07",
+        "SRC-08",
+        "ENG-15",
+        "BLD-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-03.json",
+        "artifacts/bmad100/builder/bld-03/verification.json",
+        "artifacts/bmad100/builder/bld-03/fixtures/**"
+      ],
+      "order": 71
+    },
+    "BLD-04": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement Setup configuration discovery and resolution",
+      "depends": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-03",
+        "ENG-06"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-04.json",
+        "artifacts/bmad100/builder/bld-04/verification.json",
+        "artifacts/bmad100/builder/bld-04/fixtures/**"
+      ],
+      "order": 89
+    },
+    "BLD-05": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement atomic Setup merge and anti-zombie cleanup",
+      "depends": [
+        "BLD-04",
+        "ENG-16",
+        "SEC-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-05.json",
+        "artifacts/bmad100/builder/bld-05/verification.json",
+        "artifacts/bmad100/builder/bld-05/fixtures/**"
+      ],
+      "order": 97
+    },
+    "BLD-06": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement the common Agent Builder process kernel",
+      "depends": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-05",
+        "ENG-06",
+        "ENG-08",
+        "ENG-10"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-06.json",
+        "artifacts/bmad100/builder/bld-06/verification.json",
+        "artifacts/bmad100/builder/bld-06/fixtures/**"
+      ],
+      "order": 90
+    },
+    "BLD-07": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Complete stateless agent authoring",
+      "depends": [
+        "BLD-06",
+        "ENG-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-07.json",
+        "artifacts/bmad100/builder/bld-07/verification.json",
+        "artifacts/bmad100/builder/bld-07/fixtures/**"
+      ],
+      "order": 98
+    },
+    "BLD-08": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Complete memory-agent sanctum and first-breath authoring",
+      "depends": [
+        "BLD-06",
+        "ENG-10",
+        "SEC-06"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-08.json",
+        "artifacts/bmad100/builder/bld-08/verification.json",
+        "artifacts/bmad100/builder/bld-08/fixtures/**"
+      ],
+      "order": 106
+    },
+    "BLD-09": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Complete autonomous-agent standing orders and PULSE",
+      "depends": [
+        "BLD-08",
+        "SEC-06",
+        "SEC-12"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-09.json",
+        "artifacts/bmad100/builder/bld-09/verification.json",
+        "artifacts/bmad100/builder/bld-09/fixtures/**"
+      ],
+      "order": 114
+    },
+    "BLD-10": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement source-faithful agent edit and rebuild",
+      "depends": [
+        "BLD-06",
+        "BLD-07",
+        "BLD-08",
+        "BLD-09"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-10.json",
+        "artifacts/bmad100/builder/bld-10/verification.json",
+        "artifacts/bmad100/builder/bld-10/fixtures/**"
+      ],
+      "order": 120
+    },
+    "BLD-11": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement deterministic Agent Builder quality analysis",
+      "depends": [
+        "BLD-06",
+        "BLD-07",
+        "BLD-08",
+        "BLD-09",
+        "ENG-12"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-11.json",
+        "artifacts/bmad100/builder/bld-11/verification.json",
+        "artifacts/bmad100/builder/bld-11/fixtures/**"
+      ],
+      "order": 121
+    },
+    "BLD-12": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement Agent Builder model lenses and reports",
+      "depends": [
+        "BLD-11",
+        "ENG-14",
+        "SEC-07",
+        "SEC-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-12.json",
+        "artifacts/bmad100/builder/bld-12/verification.json",
+        "artifacts/bmad100/builder/bld-12/fixtures/**"
+      ],
+      "order": 126
+    },
+    "BLD-13": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Port and sandbox Agent Builder scripts and templates",
+      "depends": [
+        "BLD-01",
+        "BLD-07",
+        "BLD-08",
+        "BLD-11",
+        "SEC-01",
+        "SEC-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-13.json",
+        "artifacts/bmad100/builder/bld-13/verification.json",
+        "artifacts/bmad100/builder/bld-13/fixtures/**"
+      ],
+      "order": 127
+    },
+    "BLD-14": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement the common Workflow Builder kernel",
+      "depends": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-05",
+        "ENG-06",
+        "ENG-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-14.json",
+        "artifacts/bmad100/builder/bld-14/verification.json",
+        "artifacts/bmad100/builder/bld-14/fixtures/**"
+      ],
+      "order": 91
+    },
+    "BLD-15": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Complete workflow and utility skill generation",
+      "depends": [
+        "BLD-14",
+        "ENG-04",
+        "ENG-07"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-15.json",
+        "artifacts/bmad100/builder/bld-15/verification.json",
+        "artifacts/bmad100/builder/bld-15/fixtures/**"
+      ],
+      "order": 99
+    },
+    "BLD-16": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement workflow edit and rebuild with semantic diffs",
+      "depends": [
+        "BLD-14",
+        "BLD-15"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-16.json",
+        "artifacts/bmad100/builder/bld-16/verification.json",
+        "artifacts/bmad100/builder/bld-16/fixtures/**"
+      ],
+      "order": 110
+    },
+    "BLD-17": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement deterministic Workflow Builder quality analysis",
+      "depends": [
+        "BLD-14",
+        "BLD-15",
+        "ENG-12"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-17.json",
+        "artifacts/bmad100/builder/bld-17/verification.json",
+        "artifacts/bmad100/builder/bld-17/fixtures/**"
+      ],
+      "order": 111
+    },
+    "BLD-18": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement the full Convert Skill process",
+      "depends": [
+        "BLD-14",
+        "BLD-15",
+        "BLD-17",
+        "SEC-03"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-18.json",
+        "artifacts/bmad100/builder/bld-18/verification.json",
+        "artifacts/bmad100/builder/bld-18/fixtures/**"
+      ],
+      "order": 116
+    },
+    "BLD-19": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Port and sandbox Workflow Builder scripts and customization",
+      "depends": [
+        "BLD-01",
+        "BLD-15",
+        "BLD-17",
+        "SEC-01",
+        "SEC-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-19.json",
+        "artifacts/bmad100/builder/bld-19/verification.json",
+        "artifacts/bmad100/builder/bld-19/fixtures/**"
+      ],
+      "order": 117
+    },
+    "BLD-20": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement Module Builder ideation",
+      "depends": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-05",
+        "ENG-06",
+        "ENG-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-20.json",
+        "artifacts/bmad100/builder/bld-20/verification.json",
+        "artifacts/bmad100/builder/bld-20/fixtures/**"
+      ],
+      "order": 92
+    },
+    "BLD-21": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement multi-skill Module Builder creation",
+      "depends": [
+        "BLD-20",
+        "BLD-23",
+        "BLD-24",
+        "SEC-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-21.json",
+        "artifacts/bmad100/builder/bld-21/verification.json",
+        "artifacts/bmad100/builder/bld-21/fixtures/**"
+      ],
+      "order": 115
+    },
+    "BLD-22": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement standalone module scaffolding",
+      "depends": [
+        "BLD-20",
+        "BLD-23",
+        "SEC-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-22.json",
+        "artifacts/bmad100/builder/bld-22/verification.json",
+        "artifacts/bmad100/builder/bld-22/fixtures/**"
+      ],
+      "order": 100
+    },
+    "BLD-23": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement complete Module Builder validation",
+      "depends": [
+        "BLD-01",
+        "BLD-02",
+        "ENG-12"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-23.json",
+        "artifacts/bmad100/builder/bld-23/verification.json",
+        "artifacts/bmad100/builder/bld-23/fixtures/**"
+      ],
+      "order": 72
+    },
+    "BLD-24": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement the reusable setup-skill template",
+      "depends": [
+        "BLD-05",
+        "BLD-20",
+        "BLD-23"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-24.json",
+        "artifacts/bmad100/builder/bld-24/verification.json",
+        "artifacts/bmad100/builder/bld-24/fixtures/**"
+      ],
+      "order": 109
+    },
+    "BLD-25": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement the Eval Runner data model and platform adapters",
+      "depends": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-05",
+        "ENG-07"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-25.json",
+        "artifacts/bmad100/builder/bld-25/verification.json",
+        "artifacts/bmad100/builder/bld-25/fixtures/**"
+      ],
+      "order": 93
+    },
+    "BLD-26": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement outcome evaluations",
+      "depends": [
+        "BLD-25",
+        "SEC-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-26.json",
+        "artifacts/bmad100/builder/bld-26/verification.json",
+        "artifacts/bmad100/builder/bld-26/fixtures/**"
+      ],
+      "order": 101
+    },
+    "BLD-27": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement quality evaluations and graders",
+      "depends": [
+        "BLD-25",
+        "BLD-26",
+        "ENG-12",
+        "SEC-07",
+        "SEC-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-27.json",
+        "artifacts/bmad100/builder/bld-27/verification.json",
+        "artifacts/bmad100/builder/bld-27/fixtures/**"
+      ],
+      "order": 118
+    },
+    "BLD-28": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement trigger evaluations and description optimization",
+      "depends": [
+        "BLD-25",
+        "SRC-09",
+        "ENG-11"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-28.json",
+        "artifacts/bmad100/builder/bld-28/verification.json",
+        "artifacts/bmad100/builder/bld-28/fixtures/**"
+      ],
+      "order": 102
+    },
+    "BLD-29": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement isolated and optional Docker eval execution",
+      "depends": [
+        "BLD-25",
+        "BLD-26",
+        "BLD-27",
+        "BLD-28",
+        "SEC-01",
+        "SEC-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-29.json",
+        "artifacts/bmad100/builder/bld-29/verification.json",
+        "artifacts/bmad100/builder/bld-29/fixtures/**"
+      ],
+      "order": 124
+    },
+    "BLD-30": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement benchmark, baseline, variant, and regression analysis",
+      "depends": [
+        "BLD-26",
+        "BLD-27",
+        "BLD-28",
+        "BLD-29"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-30.json",
+        "artifacts/bmad100/builder/bld-30/verification.json",
+        "artifacts/bmad100/builder/bld-30/fixtures/**"
+      ],
+      "order": 128
+    },
+    "BLD-31": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement the governed Builder improvement loop",
+      "depends": [
+        "BLD-11",
+        "BLD-17",
+        "BLD-30",
+        "ENG-13"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-31.json",
+        "artifacts/bmad100/builder/bld-31/verification.json",
+        "artifacts/bmad100/builder/bld-31/fixtures/**"
+      ],
+      "order": 132
+    },
+    "BLD-32": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Adopt Builder samples and upstream tests as conformance fixtures",
+      "depends": [
+        "BLD-01",
+        "BLD-07",
+        "BLD-15",
+        "BLD-23",
+        "BLD-25"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-32.json",
+        "artifacts/bmad100/builder/bld-32/verification.json",
+        "artifacts/bmad100/builder/bld-32/fixtures/**"
+      ],
+      "order": 112
+    },
+    "BLD-33": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement Builder review and promotion manifests",
+      "depends": [
+        "BLD-03",
+        "BLD-11",
+        "BLD-17",
+        "BLD-23",
+        "BLD-30",
+        "SEC-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-33.json",
+        "artifacts/bmad100/builder/bld-33/verification.json",
+        "artifacts/bmad100/builder/bld-33/fixtures/**"
+      ],
+      "order": 133
+    },
+    "BLD-34": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Install, activate, run, and roll back Builder output",
+      "depends": [
+        "BLD-33",
+        "ENG-16",
+        "SEC-05"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-34.json",
+        "artifacts/bmad100/builder/bld-34/verification.json",
+        "artifacts/bmad100/builder/bld-34/fixtures/**"
+      ],
+      "order": 136
+    },
+    "BLD-35": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Implement Builder source and generated-package upgrades",
+      "depends": [
+        "BLD-01",
+        "BLD-34",
+        "ENG-17"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-35.json",
+        "artifacts/bmad100/builder/bld-35/verification.json",
+        "artifacts/bmad100/builder/bld-35/fixtures/**"
+      ],
+      "order": 137
+    },
+    "BLD-36": {
+      "phase": 3,
+      "subsystem": "builder",
+      "priority": "P0",
+      "title": "Create the binary Builder completion gate",
+      "depends": [
+        "BLD-02",
+        "BLD-05",
+        "BLD-13",
+        "BLD-18",
+        "BLD-24",
+        "BLD-32",
+        "BLD-34",
+        "BLD-35",
+        "QAL-01",
+        "QAL-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/BLD-36.json",
+        "artifacts/bmad100/builder/bld-36/verification.json",
+        "artifacts/bmad100/builder/bld-36/fixtures/**"
+      ],
+      "order": 139
+    },
+    "SEC-01": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Classify every BMAD and Builder script",
+      "depends": [
+        "SRC-03",
+        "SRC-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-01.json",
+        "artifacts/bmad100/security/sec-01/verification.json",
+        "artifacts/bmad100/security/sec-01/negative-tests/**"
+      ],
+      "order": 9
+    },
+    "SEC-02": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Implement the BMAD script sandbox and execution profiles",
+      "depends": [
+        "SEC-01",
+        "ENG-08",
+        "ENG-13"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-02.json",
+        "artifacts/bmad100/security/sec-02/verification.json",
+        "artifacts/bmad100/security/sec-02/negative-tests/**"
+      ],
+      "order": 34
+    },
+    "SEC-03": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Implement import quarantine and archive/URL defenses",
+      "depends": [
+        "SEC-01",
+        "SEC-02",
+        "ENG-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-03.json",
+        "artifacts/bmad100/security/sec-03/verification.json",
+        "artifacts/bmad100/security/sec-03/negative-tests/**"
+      ],
+      "order": 74
+    },
+    "SEC-04": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Extend Airlock with BMAD-specific action classes",
+      "depends": [
+        "SRC-08",
+        "ENG-08",
+        "SEC-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-04.json",
+        "artifacts/bmad100/security/sec-04/verification.json",
+        "artifacts/bmad100/security/sec-04/negative-tests/**"
+      ],
+      "order": 75
+    },
+    "SEC-05": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Make Builder promotion and catalog activation transactional",
+      "depends": [
+        "SEC-04",
+        "ENG-16",
+        "BLD-33"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-05.json",
+        "artifacts/bmad100/security/sec-05/verification.json",
+        "artifacts/bmad100/security/sec-05/negative-tests/**"
+      ],
+      "order": 135
+    },
+    "SEC-06": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Define memory and autonomous-agent policy",
+      "depends": [
+        "ENG-10",
+        "SEC-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-06.json",
+        "artifacts/bmad100/security/sec-06/verification.json",
+        "artifacts/bmad100/security/sec-06/negative-tests/**"
+      ],
+      "order": 96
+    },
+    "SEC-07": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Enforce privacy classification and Model Context minimization",
+      "depends": [
+        "ENG-14",
+        "SEC-04",
+        "SEC-06"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-07.json",
+        "artifacts/bmad100/security/sec-07/verification.json",
+        "artifacts/bmad100/security/sec-07/negative-tests/**"
+      ],
+      "order": 107
+    },
+    "SEC-08": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Enforce explicit model trust modes and no silent fallback",
+      "depends": [
+        "ENG-08",
+        "ENG-18",
+        "SEC-07"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-08.json",
+        "artifacts/bmad100/security/sec-08/verification.json",
+        "artifacts/bmad100/security/sec-08/negative-tests/**"
+      ],
+      "order": 113
+    },
+    "SEC-09": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Bind managed requests and signed receipts to exact BMAD content",
+      "depends": [
+        "SEC-07",
+        "SEC-08",
+        "SRC-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-09.json",
+        "artifacts/bmad100/security/sec-09/verification.json",
+        "artifacts/bmad100/security/sec-09/negative-tests/**"
+      ],
+      "order": 119
+    },
+    "SEC-10": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Implement privacy-safe evidence and telemetry",
+      "depends": [
+        "ENG-07",
+        "SEC-07",
+        "SEC-09"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-10.json",
+        "artifacts/bmad100/security/sec-10/verification.json",
+        "artifacts/bmad100/security/sec-10/negative-tests/**"
+      ],
+      "order": 125
+    },
+    "SEC-11": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Complete the BMAD/Builder threat model and abuse-case suite",
+      "depends": [
+        "SEC-01",
+        "SEC-03",
+        "SEC-04",
+        "SEC-06",
+        "SEC-08",
+        "SEC-09",
+        "SEC-10"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-11.json",
+        "artifacts/bmad100/security/sec-11/verification.json",
+        "artifacts/bmad100/security/sec-11/negative-tests/**"
+      ],
+      "order": 129
+    },
+    "SEC-12": {
+      "phase": 5,
+      "subsystem": "security",
+      "priority": "P0",
+      "title": "Implement runtime, Builder, scheduler, and global kill switches",
+      "depends": [
+        "ENG-13",
+        "SEC-04",
+        "SEC-06"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/SEC-12.json",
+        "artifacts/bmad100/security/sec-12/verification.json",
+        "artifacts/bmad100/security/sec-12/negative-tests/**"
+      ],
+      "order": 108
+    },
+    "UI-01": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Generate Skills and Help from the canonical catalog",
+      "depends": [
+        "SRC-09",
+        "ENG-11",
+        "BLD-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-01.json",
+        "artifacts/bmad100/ui/ui-01/component-tests.json",
+        "artifacts/bmad100/ui/ui-01/visual/**",
+        "artifacts/bmad100/ui/ui-01/a11y.json"
+      ],
+      "order": 73
+    },
+    "UI-02": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Implement the generic BMAD run experience",
+      "depends": [
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-13",
+        "UI-01"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-02.json",
+        "artifacts/bmad100/ui/ui-02/component-tests.json",
+        "artifacts/bmad100/ui/ui-02/visual/**",
+        "artifacts/bmad100/ui/ui-02/a11y.json"
+      ],
+      "order": 95
+    },
+    "UI-03": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Integrate BMAD into the minimalist task shell and Model Context",
+      "depends": [
+        "ENG-14",
+        "UI-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-03.json",
+        "artifacts/bmad100/ui/ui-03/component-tests.json",
+        "artifacts/bmad100/ui/ui-03/visual/**",
+        "artifacts/bmad100/ui/ui-03/a11y.json"
+      ],
+      "order": 104
+    },
+    "UI-04": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Build the full Builder Studio shell",
+      "depends": [
+        "BLD-03",
+        "BLD-06",
+        "BLD-14",
+        "BLD-20",
+        "BLD-25",
+        "UI-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-04.json",
+        "artifacts/bmad100/ui/ui-04/component-tests.json",
+        "artifacts/bmad100/ui/ui-04/visual/**",
+        "artifacts/bmad100/ui/ui-04/a11y.json"
+      ],
+      "order": 105
+    },
+    "UI-05": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Implement Agent Builder authoring UI for all profiles",
+      "depends": [
+        "BLD-07",
+        "BLD-08",
+        "BLD-09",
+        "BLD-10",
+        "BLD-11",
+        "BLD-12",
+        "BLD-13",
+        "UI-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-05.json",
+        "artifacts/bmad100/ui/ui-05/component-tests.json",
+        "artifacts/bmad100/ui/ui-05/visual/**",
+        "artifacts/bmad100/ui/ui-05/a11y.json"
+      ],
+      "order": 131
+    },
+    "UI-06": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Implement Workflow Builder and Convert UI",
+      "depends": [
+        "BLD-14",
+        "BLD-15",
+        "BLD-16",
+        "BLD-17",
+        "BLD-18",
+        "BLD-19",
+        "UI-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-06.json",
+        "artifacts/bmad100/ui/ui-06/component-tests.json",
+        "artifacts/bmad100/ui/ui-06/visual/**",
+        "artifacts/bmad100/ui/ui-06/a11y.json"
+      ],
+      "order": 123
+    },
+    "UI-07": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Implement Setup and Module Builder UI",
+      "depends": [
+        "BLD-04",
+        "BLD-05",
+        "BLD-20",
+        "BLD-21",
+        "BLD-22",
+        "BLD-23",
+        "BLD-24",
+        "UI-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-07.json",
+        "artifacts/bmad100/ui/ui-07/component-tests.json",
+        "artifacts/bmad100/ui/ui-07/visual/**",
+        "artifacts/bmad100/ui/ui-07/a11y.json"
+      ],
+      "order": 122
+    },
+    "UI-08": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Implement Eval Runner and improvement-loop UI",
+      "depends": [
+        "BLD-25",
+        "BLD-26",
+        "BLD-27",
+        "BLD-28",
+        "BLD-29",
+        "BLD-30",
+        "BLD-31",
+        "UI-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-08.json",
+        "artifacts/bmad100/ui/ui-08/component-tests.json",
+        "artifacts/bmad100/ui/ui-08/visual/**",
+        "artifacts/bmad100/ui/ui-08/a11y.json"
+      ],
+      "order": 134
+    },
+    "UI-09": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Implement compatibility, provenance, and source-upgrade UI",
+      "depends": [
+        "ENG-17",
+        "BLD-35",
+        "MTH-48",
+        "UI-01"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-09.json",
+        "artifacts/bmad100/ui/ui-09/component-tests.json",
+        "artifacts/bmad100/ui/ui-09/visual/**",
+        "artifacts/bmad100/ui/ui-09/a11y.json"
+      ],
+      "order": 140
+    },
+    "UI-10": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Implement installed custom skill/module management",
+      "depends": [
+        "BLD-34",
+        "SEC-05",
+        "UI-01",
+        "UI-04"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-10.json",
+        "artifacts/bmad100/ui/ui-10/component-tests.json",
+        "artifacts/bmad100/ui/ui-10/visual/**",
+        "artifacts/bmad100/ui/ui-10/a11y.json"
+      ],
+      "order": 138
+    },
+    "UI-11": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Meet accessibility and five-state coverage for all BMAD surfaces",
+      "depends": [
+        "UI-01",
+        "UI-02",
+        "UI-03",
+        "UI-04",
+        "UI-05",
+        "UI-06",
+        "UI-07",
+        "UI-08",
+        "UI-09",
+        "UI-10"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-11.json",
+        "artifacts/bmad100/ui/ui-11/component-tests.json",
+        "artifacts/bmad100/ui/ui-11/visual/**",
+        "artifacts/bmad100/ui/ui-11/a11y.json"
+      ],
+      "order": 142
+    },
+    "UI-12": {
+      "phase": 4,
+      "subsystem": "ui",
+      "priority": "P0",
+      "title": "Delete legacy BMAD/Builder UI and CSS after parity",
+      "depends": [
+        "UI-11",
+        "QAL-06",
+        "QAL-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/UI-12.json",
+        "artifacts/bmad100/ui/ui-12/component-tests.json",
+        "artifacts/bmad100/ui/ui-12/visual/**",
+        "artifacts/bmad100/ui/ui-12/a11y.json"
+      ],
+      "order": 147
+    },
+    "QAL-01": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Verify complete Method and Builder source/resource closure",
+      "depends": [
+        "SRC-04",
+        "BLD-01"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-01.json",
+        "artifacts/bmad100/quality/qal-01/report.json",
+        "artifacts/bmad100/quality/qal-01/logs/**"
+      ],
+      "order": 12
+    },
+    "QAL-02": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Verify contract closure and cross-language generation",
+      "depends": [
+        "SRC-08",
+        "BLD-03"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-02.json",
+        "artifacts/bmad100/quality/qal-02/report.json",
+        "artifacts/bmad100/quality/qal-02/logs/**"
+      ],
+      "order": 94
+    },
+    "QAL-03": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Run semantic conformance for all 48 Method skills",
+      "depends": [
+        "MTH-01",
+        "MTH-02",
+        "MTH-03",
+        "MTH-04",
+        "MTH-05",
+        "MTH-06",
+        "MTH-07",
+        "MTH-08",
+        "MTH-09",
+        "MTH-10",
+        "MTH-11",
+        "MTH-12",
+        "MTH-13",
+        "MTH-14",
+        "MTH-15",
+        "MTH-16",
+        "MTH-17",
+        "MTH-18",
+        "MTH-19",
+        "MTH-20",
+        "MTH-21",
+        "MTH-22",
+        "MTH-23",
+        "MTH-24",
+        "MTH-25",
+        "MTH-26",
+        "MTH-27",
+        "MTH-28",
+        "MTH-29",
+        "MTH-30",
+        "MTH-31",
+        "MTH-32",
+        "MTH-33",
+        "MTH-34",
+        "MTH-35",
+        "MTH-36",
+        "MTH-37",
+        "MTH-38",
+        "MTH-39",
+        "MTH-40",
+        "MTH-41",
+        "MTH-42",
+        "MTH-43",
+        "MTH-44",
+        "MTH-45",
+        "MTH-46",
+        "MTH-47",
+        "MTH-48",
+        "QAL-01",
+        "QAL-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-03.json",
+        "artifacts/bmad100/quality/qal-03/report.json",
+        "artifacts/bmad100/quality/qal-03/logs/**"
+      ],
+      "order": 103
+    },
+    "QAL-04": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Run complete Builder conformance",
+      "depends": [
+        "BLD-36",
+        "QAL-01",
+        "QAL-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-04.json",
+        "artifacts/bmad100/quality/qal-04/report.json",
+        "artifacts/bmad100/quality/qal-04/logs/**"
+      ],
+      "order": 141
+    },
+    "QAL-05": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Run the complete Rust runtime verification matrix",
+      "depends": [
+        "QAL-02",
+        "QAL-03",
+        "QAL-04",
+        "SEC-12"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-05.json",
+        "artifacts/bmad100/quality/qal-05/report.json",
+        "artifacts/bmad100/quality/qal-05/logs/**"
+      ],
+      "order": 143
+    },
+    "QAL-06": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Run the complete frontend verification matrix",
+      "depends": [
+        "UI-11",
+        "QAL-02"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-06.json",
+        "artifacts/bmad100/quality/qal-06/report.json",
+        "artifacts/bmad100/quality/qal-06/logs/**"
+      ],
+      "order": 144
+    },
+    "QAL-07": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Run the managed support-plane verification matrix",
+      "depends": [
+        "QAL-02",
+        "SEC-09",
+        "SEC-10"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-07.json",
+        "artifacts/bmad100/quality/qal-07/report.json",
+        "artifacts/bmad100/quality/qal-07/logs/**"
+      ],
+      "order": 130
+    },
+    "QAL-08": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Run real Windows desktop end-to-end journeys",
+      "depends": [
+        "QAL-05",
+        "QAL-06",
+        "QAL-07",
+        "SEC-12"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-08.json",
+        "artifacts/bmad100/quality/qal-08/report.json",
+        "artifacts/bmad100/quality/qal-08/logs/**"
+      ],
+      "order": 146
+    },
+    "QAL-09": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Run security and supply-chain qualification",
+      "depends": [
+        "SEC-11",
+        "QAL-05",
+        "QAL-07",
+        "QAL-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-09.json",
+        "artifacts/bmad100/quality/qal-09/report.json",
+        "artifacts/bmad100/quality/qal-09/logs/**"
+      ],
+      "order": 148
+    },
+    "QAL-10": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Measure and enforce performance, scale, and cost budgets",
+      "depends": [
+        "QAL-05",
+        "QAL-06",
+        "QAL-08"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-10.json",
+        "artifacts/bmad100/quality/qal-10/report.json",
+        "artifacts/bmad100/quality/qal-10/logs/**"
+      ],
+      "order": 149
+    },
+    "QAL-11": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Qualify persistence, schema, source, and catalog migrations",
+      "depends": [
+        "ENG-17",
+        "BLD-35",
+        "QAL-05"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-11.json",
+        "artifacts/bmad100/quality/qal-11/report.json",
+        "artifacts/bmad100/quality/qal-11/logs/**"
+      ],
+      "order": 145
+    },
+    "QAL-12": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Qualify signed installer, updater, repair, rollback, and uninstall",
+      "depends": [
+        "QAL-08",
+        "QAL-09",
+        "QAL-11"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-12.json",
+        "artifacts/bmad100/quality/qal-12/report.json",
+        "artifacts/bmad100/quality/qal-12/logs/**"
+      ],
+      "order": 150
+    },
+    "QAL-13": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Qualify the deployed private Azure managed path",
+      "depends": [
+        "QAL-07",
+        "QAL-09",
+        "QAL-10"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-13.json",
+        "artifacts/bmad100/quality/qal-13/report.json",
+        "artifacts/bmad100/quality/qal-13/logs/**"
+      ],
+      "order": 151
+    },
+    "QAL-14": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Complete user, developer, security, and operator documentation",
+      "depends": [
+        "QAL-03",
+        "QAL-04",
+        "QAL-09",
+        "QAL-12",
+        "QAL-13"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-14.json",
+        "artifacts/bmad100/quality/qal-14/report.json",
+        "artifacts/bmad100/quality/qal-14/logs/**"
+      ],
+      "order": 152
+    },
+    "QAL-15": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Run an instrumented internal pilot",
+      "depends": [
+        "QAL-08",
+        "QAL-12",
+        "QAL-13",
+        "QAL-14"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-15.json",
+        "artifacts/bmad100/quality/qal-15/report.json",
+        "artifacts/bmad100/quality/qal-15/logs/**"
+      ],
+      "order": 153
+    },
+    "QAL-16": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Generate end-to-end requirement-to-evidence traceability",
+      "depends": [
+        "QAL-01",
+        "QAL-02",
+        "QAL-03",
+        "QAL-04",
+        "QAL-05",
+        "QAL-06",
+        "QAL-07",
+        "QAL-08",
+        "QAL-09",
+        "QAL-10",
+        "QAL-11",
+        "QAL-12",
+        "QAL-13",
+        "QAL-14",
+        "QAL-15"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-16.json",
+        "artifacts/bmad100/quality/qal-16/report.json",
+        "artifacts/bmad100/quality/qal-16/logs/**"
+      ],
+      "order": 154
+    },
+    "QAL-17": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Implement and run the binary BMAD-100 final verifier",
+      "depends": [
+        "SRC-12",
+        "QAL-03",
+        "QAL-04",
+        "QAL-05",
+        "QAL-06",
+        "QAL-07",
+        "QAL-08",
+        "QAL-09",
+        "QAL-10",
+        "QAL-11",
+        "QAL-12",
+        "QAL-13",
+        "QAL-14",
+        "QAL-15",
+        "QAL-16",
+        "UI-12"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-17.json",
+        "artifacts/bmad100/quality/qal-17/report.json",
+        "artifacts/bmad100/quality/qal-17/logs/**"
+      ],
+      "order": 155
+    },
+    "QAL-18": {
+      "phase": 6,
+      "subsystem": "quality",
+      "priority": "P0",
+      "title": "Run independent adversarial completion review",
+      "depends": [
+        "QAL-17"
+      ],
+      "evidence": [
+        "artifacts/bmad100/tasks/QAL-18.json",
+        "artifacts/bmad100/quality/qal-18/report.json",
+        "artifacts/bmad100/quality/qal-18/logs/**"
+      ],
+      "order": 156
+    }
+  },
+  "run_state_path": ".bmad100/run-state.json",
+  "task_evidence_root": "artifacts/bmad100/tasks",
+  "final_command": "pnpm verify:bmad:100",
+  "final_scorecard": "artifacts/bmad100/final-scorecard.json",
+  "completion_rule": "QAL-17 and QAL-18 must pass freshly against the same commit and scorecard hash."
+}

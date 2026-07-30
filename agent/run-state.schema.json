@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sapphirus:bmad100:run-state:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "repository_commit",
+    "source_identities",
+    "current_task",
+    "status",
+    "completed",
+    "failed",
+    "blocked",
+    "skipped",
+    "active_leases",
+    "last_verified_task",
+    "final_scorecard"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository_commit": {
+      "type": "string",
+      "minLength": 7
+    },
+    "source_identities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "builder"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "builder": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "current_task": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "enum": [
+        "not_started",
+        "running",
+        "blocked",
+        "failed",
+        "verifying",
+        "complete"
+      ]
+    },
+    "completed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "failed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "blocked": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "skipped": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "maxItems": 0
+    },
+    "active_leases": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "last_verified_task": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "final_scorecard": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

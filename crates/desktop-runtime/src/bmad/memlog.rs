@@ -251,7 +251,7 @@ impl Memlog {
         let by = match by.map(collapse_whitespace) {
             None => None,
             Some(value) if value.is_empty() || value.len() > 64 => {
-                return Err(MemlogError::BoundsViolation)
+                return Err(MemlogError::BoundsViolation);
             }
             Some(value) => Some(value),
         };

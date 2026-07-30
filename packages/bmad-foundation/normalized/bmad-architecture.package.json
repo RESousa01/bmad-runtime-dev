@@ -12,20 +12,10 @@
     "sourceIdentityHash": "sha256:8b33c55a4d67d0b258fedbb75d1cb09dbc7f711bc9bdc794d8b052b31fce6d86",
     "sourceEntrypoint": {
       "path": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
-      "contentHash": "sha256:a56c7a0abc45e1dba719ae5e66b7169a1098b403e7fd69b30c19f16c12cddc6a",
+      "contentHash": "sha256:89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf",
       "treatment": "adapt"
     },
     "sourceResources": [
-      {
-        "path": "src/bmm-skills/3-solutioning/bmad-agent-architect/SKILL.md",
-        "contentHash": "sha256:82bbf22ff3a4571741c9339ae6b7c35676a6e26a3237ceca487abe85369e91a0",
-        "treatment": "adapt"
-      },
-      {
-        "path": "src/bmm-skills/3-solutioning/bmad-agent-architect/customize.toml",
-        "contentHash": "sha256:d9763009d7c20246119c24bcea5eacebd21ad60c22ab191b74c9a5fb6e5f57ad",
-        "treatment": "adapt"
-      },
       {
         "path": "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
         "contentHash": "sha256:ef4ff795624eb5439fae54a06edb389feb5a0cf79cb01ae007af51109335d198",
@@ -33,13 +23,13 @@
       },
       {
         "path": "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
-        "contentHash": "sha256:137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+        "contentHash": "sha256:a6bb60a3adf976031f2870203285b1fc7a56e71e21232cd23bba544b178b5f15",
         "treatment": "adapt"
       },
       {
         "path": "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
         "contentHash": "sha256:4db2708f335c94cb024b5eba022b1e3d88b1ec61c94c4716626d9b89684f5833",
-        "treatment": "defer"
+        "treatment": "adapt"
       },
       {
         "path": "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
@@ -49,16 +39,11 @@
       {
         "path": "src/bmm-skills/3-solutioning/bmad-architecture/scripts/lint_spine.py",
         "contentHash": "sha256:040e0f1c13d31e6a21c518df943d1d7de7b75d8d98a07603b0983f3f3fb500db",
-        "treatment": "reject"
-      },
-      {
-        "path": "src/bmm-skills/3-solutioning/bmad-create-architecture/SKILL.md",
-        "contentHash": "sha256:4b1673582dc8e0957b559cece14f048c0c995874b79ad255f033b36b2b789eb0",
         "treatment": "adapt"
       },
       {
-        "path": "src/bmm-skills/3-solutioning/bmad-create-architecture/customize.toml",
-        "contentHash": "sha256:618be49b0286f18dfb4b6bac3d96bf1cf062994fa5278cd327be9898e651b43c",
+        "path": "src/bmm-skills/3-solutioning/bmad-architecture/scripts/tests/test_lint_spine.py",
+        "contentHash": "sha256:e86bb9a62c5cca74ddc89c843386f2b992610fcc1792d40e03bc9cd445b77681",
         "treatment": "adapt"
       }
     ],
@@ -108,7 +93,7 @@
         "inputSchemaHash": "sha256:00584aeb615fd1e6ba32e4e781862cf77b6525b2a7c0dca095e6ba9adf084697"
       }
     ],
-    "projectionHash": "sha256:f9a321749e9958b4c88dffa161a8b6cc864aa515f60ec67c0a3953b7669818b8"
+    "projectionHash": "sha256:fc4baf320e3e3e16149680630f7efc28e757b0780d7b56b6ae935f87a43b6b46"
   },
-  "projectionEnvelopeHash": "sha256:5d0fb78e781ab4dbe90b7b3916277ef67034a5422e48179ac3d9151ec6f1468a"
+  "projectionEnvelopeHash": "sha256:e8b5694426b8525aa6cd4fea9b68631c43021501fd5b1ad214510108654bbb37"
 }

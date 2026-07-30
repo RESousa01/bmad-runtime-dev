@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { compareSemVer, createReleaseAttestationPredicate } from "./create-release-attestation-predicate.mjs";
@@ -8,6 +9,23 @@ const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const installerBytes = Buffer.from("installer");
 const applicationBytes = Buffer.from("application");
 const sbomBytes = Buffer.from("sbom");
+const installedPhase = {
+  installedVersion: "1.2.3",
+  installedExecutableSha256: digest(applicationBytes),
+  installedExecutableAuthenticodeStatus: "Valid",
+  installedExecutableSignerThumbprint: "AB".repeat(20),
+  installedExecutableTimestamperThumbprint: "CD".repeat(20),
+  launchSmoke: true,
+  uninstall: true,
+  installRootRemoved: true,
+  uninstallRegistrationRemoved: true,
+};
+const foundationPhase = {
+  exactFileCount: 10,
+  missing: 0,
+  unexpected: 0,
+  hashMismatches: 0,
+};
 const build = {
   schemaVersion: 2,
   sourceRevision: "ab".repeat(20),
@@ -28,15 +46,37 @@ const build = {
   application: { sha256: digest(applicationBytes), authenticodeStatus: "Valid", timestamperThumbprint: "CD".repeat(20) },
 };
 const lifecycle = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   generatedAtUtc: "2026-07-18T00:00:00.000Z",
   artifact: { fileName: "Forge_1.2.3_x64-setup.exe", byteLength: installerBytes.length, sha256: digest(installerBytes), expectedVersion: "1.2.3", authenticodeStatus: "Valid", signerThumbprint: "AB".repeat(20), timestamperThumbprint: "CD".repeat(20) },
   priorArtifact: { fileName: "Forge_1.2.2_x64-setup.exe", byteLength: 1, sha256: "33".repeat(32), expectedVersion: "1.2.2", authenticodeStatus: "Valid", signerThumbprint: "AB".repeat(20), timestamperThumbprint: "CD".repeat(20) },
-  lifecycle: { freshInstall: true, upgradedFromVersion: "1.2.2", installedVersion: "1.2.3", installedExecutableSha256: digest(applicationBytes), installedExecutableAuthenticodeStatus: "Valid", installedExecutableSignerThumbprint: "AB".repeat(20), installedExecutableTimestamperThumbprint: "CD".repeat(20), launchSmoke: true, uninstall: true, installRootRemoved: true, uninstallRegistrationRemoved: true, residueScope: "install-root-and-uninstall-registration" },
-  bundledFoundation: { exactFileCount: 10, missing: 0, unexpected: 0, hashMismatches: 0 },
+  lifecycle: {
+    freshInstall: { ...installedPhase },
+    upgrade: { fromVersion: "1.2.2", ...installedPhase },
+    residueScope: "install-root-and-uninstall-registration",
+  },
+  bundledFoundation: {
+    freshInstall: { ...foundationPhase },
+    upgrade: { ...foundationPhase },
+  },
 };
 const bytes = (value) => Buffer.from(JSON.stringify(value));
 const expected = { expectedRevision: "ab".repeat(20), expectedVersion: "1.2.3", expectedPriorVersion: "1.2.2" };
+
+test("installer qualification runs current fresh install before the prior-version upgrade", () => {
+  const source = readFileSync(new URL("./qualify-windows-installer.ps1", import.meta.url), "utf8");
+  const currentInstall = "Invoke-SilentInstaller -Path $installer -Destination $installDirectory";
+  const firstCurrent = source.indexOf(currentInstall);
+  const prior = source.indexOf(
+    "Invoke-SilentInstaller -Path $priorInstaller -Destination $installDirectory",
+    firstCurrent + currentInstall.length,
+  );
+  const secondCurrent = source.indexOf(currentInstall, prior + 1);
+  assert.ok(firstCurrent >= 0 && prior > firstCurrent && secondCurrent > prior);
+  assert.match(source, /schemaVersion = 2/u);
+  assert.match(source, /freshInstall = \$freshResult\.lifecycle/u);
+  assert.match(source, /upgrade = if \(\$null -ne \$upgradeResult\)/u);
+});
 
 test("predicate binds exact subjects, release identities, and qualification evidence", () => {
   const predicate = createReleaseAttestationPredicate({
@@ -62,21 +102,41 @@ for (const [label, mutation] of [
   });
 }
 
-for (const gate of ["freshInstall", "launchSmoke", "uninstall", "installRootRemoved", "uninstallRegistrationRemoved"]) {
-  test(`predicate rejects false lifecycle gate ${gate}`, () => {
-    const altered = structuredClone(lifecycle);
-    altered.lifecycle[gate] = false;
-    assert.throws(() => createReleaseAttestationPredicate({ buildEvidenceBytes: bytes(build), lifecycleEvidenceBytes: bytes(altered), installerBytes, applicationBytes, sbomBytes, ...expected }), /lifecycle gate/u);
-  });
+for (const phase of ["freshInstall", "upgrade"]) {
+  for (const gate of ["launchSmoke", "uninstall", "installRootRemoved", "uninstallRegistrationRemoved"]) {
+    test(`predicate rejects false ${phase} lifecycle gate ${gate}`, () => {
+      const altered = structuredClone(lifecycle);
+      altered.lifecycle[phase][gate] = false;
+      assert.throws(() => createReleaseAttestationPredicate({ buildEvidenceBytes: bytes(build), lifecycleEvidenceBytes: bytes(altered), installerBytes, applicationBytes, sbomBytes, ...expected }), /lifecycle.*gate/u);
+    });
+  }
 }
+
+test("predicate requires separate fresh-install and upgrade evidence", () => {
+  for (const target of ["lifecycle", "bundledFoundation"]) {
+    const altered = structuredClone(lifecycle);
+    altered[target].upgrade = null;
+    assert.throws(
+      () => createReleaseAttestationPredicate({
+        buildEvidenceBytes: bytes(build),
+        lifecycleEvidenceBytes: bytes(altered),
+        installerBytes,
+        applicationBytes,
+        sbomBytes,
+        ...expected,
+      }),
+      /separate fresh-install and upgrade phases/u,
+    );
+  }
+});
 
 test("predicate rejects source revision, lock, publisher, and foundation drift", () => {
   assert.throws(() => createReleaseAttestationPredicate({ buildEvidenceBytes: bytes(build), lifecycleEvidenceBytes: bytes(lifecycle), installerBytes, applicationBytes, sbomBytes, ...expected, expectedRevision: "cd".repeat(20) }), /source or product/u);
   const missingLock = structuredClone(build); delete missingLock.releaseMetadata.locks.pnpm;
   assert.throws(() => createReleaseAttestationPredicate({ buildEvidenceBytes: bytes(missingLock), lifecycleEvidenceBytes: bytes(lifecycle), installerBytes, applicationBytes, sbomBytes, ...expected }), /missing field/u);
-  const wrongPublisher = structuredClone(lifecycle); wrongPublisher.lifecycle.installedExecutableSignerThumbprint = "EF".repeat(20);
+  const wrongPublisher = structuredClone(lifecycle); wrongPublisher.lifecycle.upgrade.installedExecutableSignerThumbprint = "EF".repeat(20);
   assert.throws(() => createReleaseAttestationPredicate({ buildEvidenceBytes: bytes(build), lifecycleEvidenceBytes: bytes(wrongPublisher), installerBytes, applicationBytes, sbomBytes, ...expected }), /publisher/u);
-  const foundationMismatch = structuredClone(lifecycle); foundationMismatch.bundledFoundation.hashMismatches = 1;
+  const foundationMismatch = structuredClone(lifecycle); foundationMismatch.bundledFoundation.upgrade.hashMismatches = 1;
   assert.throws(() => createReleaseAttestationPredicate({ buildEvidenceBytes: bytes(build), lifecycleEvidenceBytes: bytes(foundationMismatch), installerBytes, applicationBytes, sbomBytes, ...expected }), /foundation/u);
 });
 
@@ -84,9 +144,9 @@ test("predicate rejects incomplete toolchain, lifecycle schema, version, signatu
   const cases = [];
   const missingToolchain = structuredClone(build); delete missingToolchain.toolchain.pnpm;
   cases.push([missingToolchain, lifecycle]);
-  const wrongSchema = structuredClone(lifecycle); wrongSchema.schemaVersion = 2;
+  const wrongSchema = structuredClone(lifecycle); wrongSchema.schemaVersion = 1;
   cases.push([build, wrongSchema]);
-  const wrongVersion = structuredClone(lifecycle); wrongVersion.lifecycle.installedVersion = "1.2.4";
+  const wrongVersion = structuredClone(lifecycle); wrongVersion.lifecycle.upgrade.installedVersion = "1.2.4";
   cases.push([build, wrongVersion]);
   const invalidSignature = structuredClone(lifecycle); invalidSignature.artifact.authenticodeStatus = "NotSigned";
   cases.push([build, invalidSignature]);

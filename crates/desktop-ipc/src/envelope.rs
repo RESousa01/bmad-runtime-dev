@@ -1019,7 +1019,8 @@ fn valid_hyphenated_identifier(
             first.is_ascii_lowercase() || first.is_ascii_digit()
         };
         if !first_is_valid
-            || !characters.all(|character| character.is_ascii_lowercase() || character.is_ascii_digit())
+            || !characters
+                .all(|character| character.is_ascii_lowercase() || character.is_ascii_digit())
         {
             return false;
         }

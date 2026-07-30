@@ -64,9 +64,12 @@ const METHOD_RUNTIME_PATHS: [&str; 31] = [
 ];
 /// ADR-0008 adopted upstream bodies live only here.
 const ADOPTED_SOURCE_ROOT: &str = "source/method/6.10.0/";
-const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
+const EXPECTED_RESOURCE_PATHS: [&str; 85] = [
     "NOTICE.md",
     "adoption-ledger.json",
+    "builder-source-ledger.json",
+    "capability-catalog.json",
+    "compatibility-aliases.json",
     "licenses/BMAD-BUILDER-MIT.txt",
     "licenses/BMAD-METHOD-MIT.txt",
     "normalized/bmad-analyst.package.json",
@@ -144,6 +147,9 @@ const EXPECTED_RESOURCE_PATHS: [&str; 79] = [
     "runtime/method/6.10.0/validate-doc.instructions.md",
     "runtime/method/6.10.0/write-document.instructions.md",
     "semantic-source-ledger.json",
+    "source-accounting.json",
+    "source-lock.json",
+    "source-manifest.json",
 ];
 
 /// Every sealed persona projection envelope, joined to the roster by
@@ -946,6 +952,10 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
     ) || matches!(
         (kind, path),
         (RuntimeContentKind::NormalizedContract, value) if value.starts_with("normalized/")
+            || matches!(
+                value,
+                "capability-catalog.json" | "compatibility-aliases.json"
+            )
     ) || matches!((kind, path), (RuntimeContentKind::LegalNotice, "NOTICE.md"))
         || matches!(
             (kind, path),
@@ -955,7 +965,12 @@ fn content_kind_matches_path(kind: RuntimeContentKind, path: &str) -> bool {
             (kind, path),
             (
                 RuntimeContentKind::ProvenanceLedger,
-                "adoption-ledger.json" | "semantic-source-ledger.json"
+                "adoption-ledger.json"
+                    | "builder-source-ledger.json"
+                    | "semantic-source-ledger.json"
+                    | "source-accounting.json"
+                    | "source-lock.json"
+                    | "source-manifest.json"
             )
         )
         || matches!(

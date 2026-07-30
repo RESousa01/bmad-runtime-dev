@@ -61,8 +61,8 @@ fn golden_manifest_input() -> LocalEgressManifestV2Input {
         request_mode: ModelRequestMode::StreamingChat,
         model_profile_id: "balanced-reasoning".to_owned(),
         requested_variant_id: None,
-        catalog_version: "7:sha256:0000000000000000000000000000000000000000000000000000000000000000"
-            .to_owned(),
+        catalog_version:
+            "7:sha256:0000000000000000000000000000000000000000000000000000000000000000".to_owned(),
         model_profile_hash: fixed(),
         model_capability_hash: fixed(),
         context_snapshot_id: id("snapshot_01J00000000000000000000000"),
@@ -113,7 +113,10 @@ fn every_manifest_member_changes_the_version_two_hash() {
             "registrationId",
             Box::new(|input| input.registration_id = id("dreg_BBBBBBBBBBBBBBBBBBBBBBBBBB")),
         ),
-        ("purpose", Box::new(|input| input.purpose = "chat".to_owned())),
+        (
+            "purpose",
+            Box::new(|input| input.purpose = "chat".to_owned()),
+        ),
         (
             "modelRole",
             Box::new(|input| input.model_role = "reviewer".to_owned()),
@@ -328,7 +331,9 @@ fn fixture_selection() -> ModelSelectionBindingV2 {
 fn a_transplanted_profile_catalog_or_variant_changes_every_wire_hash() {
     let manifest = fixture_manifest();
     let binding = fixture_binding(&manifest);
-    let baseline = fixture_selection().seal(&binding).expect("sealed selection");
+    let baseline = fixture_selection()
+        .seal(&binding)
+        .expect("sealed selection");
 
     let transplants: Vec<SelectionMutation> = vec![
         (
@@ -418,7 +423,9 @@ fn the_version_two_consumption_hash_binds_the_selection_it_was_spent_under() {
         })
         .expect("consumed decision");
 
-    let sealed = fixture_selection().seal(&binding).expect("sealed selection");
+    let sealed = fixture_selection()
+        .seal(&binding)
+        .expect("sealed selection");
     let baseline = sealed
         .consumption_hash_for(&consumption)
         .expect("version two consumption hash");

@@ -113,6 +113,7 @@ const referenceVaultAllowlist = new Set([
   "tools/check-boundaries.mjs",
   "tools/check-workflows.test.mjs",
   "tools/check-secrets.mjs",
+  "tools/bmad100/verify-workspace.mjs",
   "tools/verify-reference-vault.mjs",
 ]);
 const expectedProductionCsp = Object.freeze(new Map([
@@ -661,8 +662,12 @@ if (signedReleaseSource !== undefined) {
       "must bind lifecycle evidence to the exact signed installer",
     ],
     [
-      /buildEvidence\.application\.sha256 -ne \$lifecycleEvidence\.lifecycle\.installedExecutableSha256/u,
-      "must bind the installed executable to the exact signed application",
+      /buildEvidence\.application\.sha256 -ne \$lifecycleEvidence\.lifecycle\.freshInstall\.installedExecutableSha256/u,
+      "must bind the fresh-install executable to the exact signed application",
+    ],
+    [
+      /buildEvidence\.application\.sha256 -ne \$lifecycleEvidence\.lifecycle\.upgrade\.installedExecutableSha256/u,
+      "must bind the upgraded executable to the exact signed application",
     ],
     [
       /node tools\/resolve-release-metadata\.mjs --github-output/u,
@@ -773,10 +778,13 @@ if (installerQualificationSource !== undefined) {
     [/Assert-ExactFoundationPayload/u, "must verify the exact bundled BMAD foundation"],
     [/Assert-CleanQualificationAccount/u, "must refuse to overwrite an existing Forge or legacy installation"],
     [/RequireValidSignature/u, "must expose a fail-closed signed-release gate"],
+    [/foreach \(\$directory in @\('licenses', 'normalized', 'runtime', 'source'\)\)/u, "must qualify every bundled BMAD foundation directory"],
     [/Prior and current installers use different publishers/u, "must reject a prior installer from another publisher"],
     [/Compare-CanonicalSemVer[\s\S]*prior installer version must precede/u, "must reject same-version reinstall and downgrade qualification"],
     [/-not \[string\]::IsNullOrWhiteSpace\(\$PriorInstallerPath\)[\s\S]*Compare-CanonicalSemVer/u, "must preserve fresh-install qualification without prior-version comparison"],
-    [/Assert-CleanQualificationAccount\s*\n\s*\$lifecycleComplete/u, "must recheck uninstall registration after removal"],
+    [/Wait-ForPathState -Path \$Destination -Exists \$false\s*\n\s*Assert-CleanQualificationAccount/u, "must recheck uninstall registration after removal"],
+    [/Invoke-SilentInstaller -Path \$installer -Destination \$installDirectory[\s\S]*Invoke-SilentInstaller -Path \$priorInstaller -Destination \$installDirectory[\s\S]*Invoke-SilentInstaller -Path \$installer -Destination \$installDirectory/u, "must run a current fresh install before the prior-version upgrade"],
+    [/schemaVersion = 2[\s\S]*freshInstall = \$freshResult\.lifecycle[\s\S]*upgrade = if \(\$null -ne \$upgradeResult\)/u, "must record separate fresh-install and upgrade evidence"],
     [/Wait-ForPathState/u, "must verify install and uninstall lifecycle state"],
   ]) {
     if (!pattern.test(installerQualificationSource)) {
@@ -1081,6 +1089,11 @@ const rustFiles = await walk(join(root, "crates"), [".rs"]);
 for (const path of rustFiles) {
   const source = await requiredText(path);
   if (source === undefined) continue;
+  const executableSource = source
+    .replace(/b?r(?<hashes>#{0,8})"[\s\S]*?"\k<hashes>/gu, "")
+    .replace(/b?"(?:\\[\s\S]|[^"\\])*"/gu, "")
+    .replace(/\/\/.*$/gmu, "")
+    .replace(/\/\*[\s\S]*?\*\//gu, "");
   const displayPath = relative(root, path);
   const crate = displayPath.split(/[\\/]/)[1];
   if (crate === "desktop-app" && referenceVaultPattern.test(source)) {
@@ -1090,16 +1103,16 @@ for (const path of rustFiles) {
     violations.push(`${displayPath}: Tauri import outside the composition root`);
   }
   const processPatterns = [
-    // `abort` is a test-only no-unwind assertion helper, not a child-process
-    // capability. All other direct std::process access remains forbidden.
-    /\bstd::process(?!(?:::abort\b))/,
+    // `abort` is a test-only no-unwind assertion helper and `id` only reads
+    // the current process identifier; neither grants child-process authority.
+    /\bstd::process(?!(?:::(?:abort|id)\b))/,
     /\btokio::process\b/,
     /\bCommand\s*::\s*new\b/,
     /\bCreateProcess(?:A|W)?\b/,
     /\bShellExecute(?:Ex)?(?:A|W)?\b/,
   ];
   if (
-    processPatterns.some((pattern) => pattern.test(source))
+    processPatterns.some((pattern) => pattern.test(executableSource))
     && !boundedProcessAdapterPaths.has(normalizedRepositoryPath(path))
   ) {
     violations.push(`${displayPath}: product child-process primitive`);

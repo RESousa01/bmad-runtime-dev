@@ -35,7 +35,17 @@ issues, recommended next steps) and saves the completed report.
 
 ## Compatibility decision
 
-**adopt / exact.** No semantic divergence was found between the pinned
-source and the harness descriptor; the headless-mode fidelity gap above is
-a representational limit (catalog declares a mode the source text never
-describes), not a behavioral mismatch this adapter introduced.
+**adopt / exact for the sealed descriptor projection.** The adapter declares
+the complete nine-file source subtree with its pinned SHA-256 identities and
+does not introduce direct execution authority. The headless-mode fidelity gap
+above is a representational limit (the catalog declares a mode the source
+text never describes), not a behavioral mismatch this adapter introduced.
+
+## Runtime status
+
+The generic Method runtime owns durable ordered sessions, recovery, and
+authority verification, but this skill is not yet reachable through it: the
+current adapter contract exposes only a descriptor and has no sealed
+source-workflow preparation boundary that binds this skill's six steps to a
+`MethodExactBinding`, `MethodStepTable`, and `MethodSession`. It must not be
+presented as an executable readiness workflow until that shared bridge lands.

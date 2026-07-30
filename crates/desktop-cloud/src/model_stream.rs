@@ -494,7 +494,10 @@ impl ModelStreamDecoder {
                 self.resolved_profile_id = Some(started.resolved_profile_id.to_string());
                 self.resolved_variant_id = Some(started.resolved_variant_id.to_string());
                 Ok(SafeStreamEvent::Started {
-                    run_id: self.run_id.clone().ok_or(ModelStreamError::MalformedEvent)?,
+                    run_id: self
+                        .run_id
+                        .clone()
+                        .ok_or(ModelStreamError::MalformedEvent)?,
                     resolved_profile_id: started.resolved_profile_id.to_string(),
                     resolved_variant_id: started.resolved_variant_id.to_string(),
                 })
@@ -774,55 +777,35 @@ const fn variant_type(event: &canonical::ModelStreamEvent) -> &'static str {
 
 fn identity(event: &canonical::ModelStreamEvent) -> (&str, &str, u64) {
     match event {
-        canonical::ModelStreamEvent::ResponseStartedEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
-        canonical::ModelStreamEvent::OutputTextDeltaEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
-        canonical::ModelStreamEvent::ToolCallStartedEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
-        canonical::ModelStreamEvent::ToolCallArgumentsDeltaEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
-        canonical::ModelStreamEvent::ToolCallCompletedEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
-        canonical::ModelStreamEvent::UsageEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
-        canonical::ModelStreamEvent::CompletedEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
-        canonical::ModelStreamEvent::RefusedEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
-        canonical::ModelStreamEvent::FailedEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
-        canonical::ModelStreamEvent::CancelledEvent(value) => (
-            &value.request_id,
-            &value.run_id,
-            value.sequence.0.get(),
-        ),
+        canonical::ModelStreamEvent::ResponseStartedEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
+        canonical::ModelStreamEvent::OutputTextDeltaEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
+        canonical::ModelStreamEvent::ToolCallStartedEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
+        canonical::ModelStreamEvent::ToolCallArgumentsDeltaEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
+        canonical::ModelStreamEvent::ToolCallCompletedEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
+        canonical::ModelStreamEvent::UsageEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
+        canonical::ModelStreamEvent::CompletedEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
+        canonical::ModelStreamEvent::RefusedEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
+        canonical::ModelStreamEvent::FailedEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
+        canonical::ModelStreamEvent::CancelledEvent(value) => {
+            (&value.request_id, &value.run_id, value.sequence.0.get())
+        }
     }
 }

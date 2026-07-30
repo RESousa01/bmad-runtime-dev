@@ -13,7 +13,9 @@
   },
   "outputs": {
     "outputLocations": ["planning_artifacts"],
-    "artifact": "{doc_workspace}/DESIGN.md",
-    "artifactKind": "document"
+    "artifacts": [
+      { "path": "{doc_workspace}/DESIGN.md", "kind": "document" },
+      { "path": "{doc_workspace}/EXPERIENCE.md", "kind": "document" }
+    ]
   }
 }

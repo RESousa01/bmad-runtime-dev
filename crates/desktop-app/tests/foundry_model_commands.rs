@@ -88,7 +88,11 @@ fn ready_commands_carry_the_five_new_commands_in_reviewed_order() {
     let mut sorted = commands.clone();
     sorted.sort();
     sorted.dedup();
-    assert_eq!(sorted.len(), commands.len(), "READY_COMMANDS has duplicates");
+    assert_eq!(
+        sorted.len(),
+        commands.len(),
+        "READY_COMMANDS has duplicates"
+    );
 }
 
 /// The catalog and the recovery catalog are different lists for a reason. None
@@ -184,7 +188,13 @@ fn the_catalog_projection_reads_published_metadata_but_no_connection_authority()
         .map(|offset| start + offset)
         .expect("catalog_projection_input closes");
     let body = &source[start..end];
-    for expected in ["capabilities", "limits", "family", "availability", "variants"] {
+    for expected in [
+        "capabilities",
+        "limits",
+        "family",
+        "availability",
+        "variants",
+    ] {
         assert!(
             body.contains(expected),
             "catalog_projection_input no longer reads `{expected}` off the canonical profile"
@@ -327,7 +337,13 @@ fn the_recorded_ipc_evidence_matches_the_advertised_catalog() {
 #[test]
 fn the_constant_parser_actually_reads_the_source() {
     let commands = string_array_constant(&read("src/commands.rs"), "READY_COMMANDS");
-    assert_eq!(commands.first().map(String::as_str), Some("app.get_boot_state"));
-    assert_eq!(commands.last().map(String::as_str), Some("workspace.pick_folder"));
+    assert_eq!(
+        commands.first().map(String::as_str),
+        Some("app.get_boot_state")
+    );
+    assert_eq!(
+        commands.last().map(String::as_str),
+        Some("workspace.pick_folder")
+    );
     assert!(Path::new(&crate_root().join("src/commands.rs")).is_file());
 }

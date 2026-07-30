@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "sapphirus.bmad.method-golden.v1",
+  "canonicalId": "bmm:bmad-architecture",
+  "source": {
+    "entrypoint": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+    "entrypointSha256": "89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf",
+    "headlessReference": "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
+    "headlessReferenceSha256": "4db2708f335c94cb024b5eba022b1e3d88b1ec61c94c4716626d9b89684f5833"
+  },
+  "cases": [
+    {
+      "id": "interactive-create-finalize",
+      "mode": "interactive",
+      "intent": "create",
+      "requiredOutputs": ["{doc_workspace}/ARCHITECTURE-SPINE.md", "{doc_workspace}/.memlog.md"],
+      "coverage": "executable"
+    },
+    {
+      "id": "headless-create-equivalent",
+      "mode": "headless",
+      "intent": "create",
+      "requiredOutput": "{doc_workspace}/ARCHITECTURE-SPINE.md",
+      "coverage": "executable"
+    },
+    {
+      "id": "failure-cancel-retry-repair",
+      "mode": "interactive_or_headless",
+      "intent": "create",
+      "coverage": "generic_runtime_executable"
+    },
+    {
+      "id": "update-resume-after-restart",
+      "mode": "interactive_or_headless",
+      "intent": "update",
+      "coverage": "shared_interface_gap"
+    },
+    {
+      "id": "validate-report",
+      "mode": "interactive_or_headless",
+      "intent": "validate",
+      "coverage": "shared_interface_gap"
+    }
+  ]
+}

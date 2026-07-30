@@ -368,10 +368,21 @@ impl BmadCatalogBuilder {
         let mut catalog = Self::build_bound(package, sources, help_graph_hash)?;
         let mut observed = BTreeSet::new();
         for row in support {
+            let normalized_action = row.action.as_deref().or_else(|| {
+                package
+                    .skills
+                    .iter()
+                    .find(|skill| {
+                        skill.module_code == row.module_code
+                            && skill.skill_name == row.skill_name
+                            && skill.actions.len() == 1
+                    })
+                    .and_then(|skill| skill.actions.first().map(String::as_str))
+            });
             let identity = (
                 row.module_code.as_str(),
                 row.skill_name.as_str(),
-                row.action.as_deref(),
+                normalized_action,
             );
             if !observed.insert(identity) {
                 return Err(BmadKernelErrorCode::HelpCatalogInvalid.into());
@@ -382,7 +393,7 @@ impl BmadCatalogBuilder {
                 .find(|candidate| {
                     candidate.module_code == row.module_code
                         && candidate.skill_name == row.skill_name
-                        && candidate.action == row.action
+                        && candidate.action.as_deref() == normalized_action
                 })
                 .ok_or(BmadKernelErrorCode::HelpCatalogInvalid)?;
             candidate.availability = if row.runtime_available {

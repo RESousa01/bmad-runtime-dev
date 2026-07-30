@@ -10,5 +10,9 @@
     "outputLocations": ["planning_artifacts"],
     "artifact": "{planning_artifacts}/implementation-readiness-report-{date}.md",
     "artifactKind": "document"
+  },
+  "sourceDerivedContract": {
+    "sourceDeclared": false,
+    "expectedDisposition": "unsupported_by_pinned_source"
   }
 }

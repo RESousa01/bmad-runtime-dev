@@ -178,13 +178,28 @@ const LEGACY_MEMBERS: [&str; 13] = [
 /// Members that name a specific refusal, checked before the catch-all so a
 /// refusal always says which version two capability was reached for.
 const NAMED_REFUSALS: [(&str, LegacyRejectionReason); 11] = [
-    ("modelProfileId", LegacyRejectionReason::ModelSelectionAttempted),
+    (
+        "modelProfileId",
+        LegacyRejectionReason::ModelSelectionAttempted,
+    ),
     ("profileId", LegacyRejectionReason::ModelSelectionAttempted),
-    ("deploymentName", LegacyRejectionReason::ModelSelectionAttempted),
-    ("modelProfileHash", LegacyRejectionReason::ModelSelectionAttempted),
-    ("requestedVariantId", LegacyRejectionReason::VariantRequested),
+    (
+        "deploymentName",
+        LegacyRejectionReason::ModelSelectionAttempted,
+    ),
+    (
+        "modelProfileHash",
+        LegacyRejectionReason::ModelSelectionAttempted,
+    ),
+    (
+        "requestedVariantId",
+        LegacyRejectionReason::VariantRequested,
+    ),
     ("variantId", LegacyRejectionReason::VariantRequested),
-    ("catalogVersion", LegacyRejectionReason::CatalogVersionSupplied),
+    (
+        "catalogVersion",
+        LegacyRejectionReason::CatalogVersionSupplied,
+    ),
     ("tools", LegacyRejectionReason::ToolDefinitionSupplied),
     ("attachments", LegacyRejectionReason::AttachmentRequested),
     ("attachmentRefs", LegacyRejectionReason::AttachmentRequested),
@@ -255,7 +270,8 @@ pub fn adapt_legacy_request(
     if contract_epoch < MINIMUM_DESKTOP_CONTRACT_EPOCH {
         return Err(LegacyRejectionReason::ContractEpochTooLow);
     }
-    if document.get("schemaVersion").and_then(Value::as_str) != Some(LEGACY_REQUEST_SCHEMA_VERSION) {
+    if document.get("schemaVersion").and_then(Value::as_str) != Some(LEGACY_REQUEST_SCHEMA_VERSION)
+    {
         return Err(LegacyRejectionReason::UnknownMemberPresent);
     }
     if let Some(reason) = classify_refusal(document) {
@@ -403,7 +419,11 @@ mod tests {
         ] {
             let mut document = legacy_request();
             document[member] = value;
-            assert_eq!(adapt_legacy_request(&document, 1), Err(expected), "{member}");
+            assert_eq!(
+                adapt_legacy_request(&document, 1),
+                Err(expected),
+                "{member}"
+            );
         }
     }
 
@@ -429,11 +449,21 @@ mod tests {
 
     #[test]
     fn historical_receipts_stay_verifiable_and_both_request_versions_are_accepted() {
-        assert!(is_historical_receipt_verifiable(LEGACY_RECEIPT_SCHEMA_VERSION));
-        assert!(is_historical_receipt_verifiable(CURRENT_RECEIPT_SCHEMA_VERSION));
-        assert!(!is_historical_receipt_verifiable("sapphirus.model-access-receipt.v3"));
-        assert!(is_request_schema_version_accepted(CURRENT_REQUEST_SCHEMA_VERSION));
-        assert!(!is_request_schema_version_accepted("desktop-model-access-request.v3"));
+        assert!(is_historical_receipt_verifiable(
+            LEGACY_RECEIPT_SCHEMA_VERSION
+        ));
+        assert!(is_historical_receipt_verifiable(
+            CURRENT_RECEIPT_SCHEMA_VERSION
+        ));
+        assert!(!is_historical_receipt_verifiable(
+            "sapphirus.model-access-receipt.v3"
+        ));
+        assert!(is_request_schema_version_accepted(
+            CURRENT_REQUEST_SCHEMA_VERSION
+        ));
+        assert!(!is_request_schema_version_accepted(
+            "desktop-model-access-request.v3"
+        ));
     }
 
     #[test]
@@ -448,7 +478,10 @@ mod tests {
             LegacyRejectionReason::UnknownMemberPresent,
             LegacyRejectionReason::ContractEpochTooLow,
         ] {
-            assert_eq!(CloudError::from(reason), CloudError::CanonicalProjectionInvalid);
+            assert_eq!(
+                CloudError::from(reason),
+                CloudError::CanonicalProjectionInvalid
+            );
             assert!(!reason.as_wire_str().is_empty());
         }
     }

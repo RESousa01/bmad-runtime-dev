@@ -391,7 +391,7 @@ describe("BmadCapabilityPanel", () => {
       screen.getByText(/Projected from the upstream skill bmad-product-brief/u),
     ).toBeTruthy();
     expect(
-      screen.getByText(/No compatibility decision has been recorded/u),
+      screen.getByText(/records a compatibility decision/u),
     ).toBeTruthy();
   });
 

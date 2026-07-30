@@ -123,3 +123,84 @@ test("no release artifact compiles the development provider egress path", async 
     "check-boundaries must report a release build that compiles the direct path",
   );
 });
+
+test("installer qualification covers every bundled BMAD foundation directory", async () => {
+  const [configSource, qualification] = await Promise.all([
+    source("crates", "desktop-app", "tauri.conf.json"),
+    source("tools", "qualify-windows-installer.ps1"),
+  ]);
+  const config = JSON.parse(configSource);
+  const bundledDirectories = Object.keys(config.bundle.resources)
+    .filter((path) => path.startsWith("../../packages/bmad-foundation/"))
+    .map((path) => path.split("/").at(-1))
+    .filter((name) => name !== undefined && !name.includes("."));
+  const bundledFiles = Object.keys(config.bundle.resources)
+    .filter((path) => path.startsWith("../../packages/bmad-foundation/"))
+    .map((path) => path.split("/").at(-1))
+    .filter((name) => name?.includes("."));
+  const fileList = qualification.match(
+    /foreach \(\$file in @\((?<files>[^)]*)\)\)/u,
+  );
+  const directoryList = qualification.match(
+    /foreach \(\$directory in @\((?<directories>[^)]*)\)\)/u,
+  );
+  assert.ok(fileList?.groups, "qualification file list must exist");
+  assert.ok(directoryList?.groups, "qualification directory list must exist");
+  const qualifiedFiles = [
+    ...fileList.groups.files.matchAll(/'(?<name>[^']+)'/gu),
+  ].map((match) => match.groups.name);
+  const qualifiedDirectories = [
+    ...directoryList.groups.directories.matchAll(/'(?<name>[^']+)'/gu),
+  ].map((match) => match.groups.name);
+
+  assert.deepEqual(
+    [...qualifiedFiles].sort(),
+    [...bundledFiles].sort(),
+    "qualification must hash the same foundation files that Tauri bundles",
+  );
+  assert.deepEqual(
+    [...qualifiedDirectories].sort(),
+    [...bundledDirectories].sort(),
+    "qualification must hash the same foundation directories that Tauri bundles",
+  );
+});
+
+test("desktop startup accepts the complete managed foundation manifest inventory", async () => {
+  const [runtimeManifestSource, loaderSource] = await Promise.all([
+    source("packages", "bmad-foundation", "runtime-manifest.json"),
+    source("crates", "desktop-app", "src", "bmad_foundation.rs"),
+  ]);
+  const runtimeManifest = JSON.parse(runtimeManifestSource);
+  const allowlist = loaderSource.match(
+    /const EXPECTED_RESOURCE_PATHS:\s*\[&str;\s*\d+\]\s*=\s*\[(?<entries>[\s\S]*?)\];/u,
+  );
+  assert.ok(allowlist?.groups, "native foundation allowlist must exist");
+
+  const acceptedManagedPaths = [
+    ...allowlist.groups.entries.matchAll(/"(?<path>[^"]+)"/gu),
+  ].map((match) => match.groups.path);
+  const manifestedManagedPaths = runtimeManifest.resources
+    .map((resource) => resource.path)
+    .filter((path) => !path.startsWith("source/method/6.10.0/"));
+
+  assert.deepEqual(
+    acceptedManagedPaths,
+    manifestedManagedPaths,
+    "a packaged managed resource must not make the native app reject its own manifest at startup",
+  );
+
+  const kindPolicy = loaderSource.match(
+    /fn content_kind_matches_path\([\s\S]*?\n\}/u,
+  );
+  assert.ok(kindPolicy, "native foundation content-kind policy must exist");
+  for (const resource of runtimeManifest.resources.filter(
+    ({ path }) =>
+      !path.includes("/") &&
+      !["NOTICE.md", "adoption-ledger.json", "semantic-source-ledger.json"].includes(path),
+  )) {
+    assert.ok(
+      kindPolicy[0].includes(`"${resource.path}"`),
+      `${resource.path} must be explicitly admitted by the native content-kind policy`,
+    );
+  }
+});

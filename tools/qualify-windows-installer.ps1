@@ -201,12 +201,23 @@ function Get-FoundationHashes {
     param([Parameter(Mandatory = $true)][string] $Root)
 
     $hashes = @{}
-    foreach ($file in @('NOTICE.md', 'adoption-ledger.json', 'runtime-manifest.json', 'semantic-source-ledger.json')) {
+    foreach ($file in @(
+        'NOTICE.md',
+        'adoption-ledger.json',
+        'builder-source-ledger.json',
+        'capability-catalog.json',
+        'compatibility-aliases.json',
+        'runtime-manifest.json',
+        'semantic-source-ledger.json',
+        'source-accounting.json',
+        'source-lock.json',
+        'source-manifest.json'
+    )) {
         $path = Join-Path $Root $file
         $hashes[$file] = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
     }
 
-    foreach ($directory in @('licenses', 'normalized', 'runtime')) {
+    foreach ($directory in @('licenses', 'normalized', 'runtime', 'source')) {
         Get-ChildItem -LiteralPath (Join-Path $Root $directory) -Recurse -File -Force | ForEach-Object {
             if ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) {
                 throw "Foundation payload contains a reparse point."
@@ -251,6 +262,101 @@ function Assert-ExactFoundationPayload {
     }
 
     return $expected.Count
+}
+
+function Complete-CurrentInstallationQualification {
+    param(
+        [Parameter(Mandatory = $true)][string] $Destination,
+        [Parameter(Mandatory = $true)][string] $ExpectedFoundationRoot,
+        [Parameter(Mandatory = $true)][string] $Version,
+        [Parameter(Mandatory = $true)] $InstallerSignature,
+        [Parameter(Mandatory = $true)][bool] $RequireSignature,
+        [Parameter(Mandatory = $true)][bool] $SkipLaunch
+    )
+
+    $installedExecutable = Join-Path $Destination 'forge.exe'
+    $installedFoundation = Join-Path $Destination 'bmad-foundation'
+    $uninstaller = Join-Path $Destination 'uninstall.exe'
+    Wait-ForPathState -Path $installedExecutable -Exists $true
+
+    $installedItem = Get-Item -LiteralPath $installedExecutable -Force
+    if ($installedItem.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        throw 'Installed application executable is a reparse point.'
+    }
+    $installedVersion = $installedItem.VersionInfo.ProductVersion
+    if ($installedVersion -ne $Version) {
+        throw "Installed product version '$installedVersion' does not match '$Version'."
+    }
+
+    $foundationFileCount = Assert-ExactFoundationPayload `
+        -ExpectedRoot $ExpectedFoundationRoot `
+        -ActualRoot $installedFoundation
+    $installedHash = (Get-FileHash -LiteralPath $installedExecutable -Algorithm SHA256).Hash.ToLowerInvariant()
+    $installedSignature = Get-AuthenticodeSignature -LiteralPath $installedExecutable
+    if ($RequireSignature -and $installedSignature.Status -ne [Management.Automation.SignatureStatus]::Valid) {
+        throw "Installed application signature is not valid: $($installedSignature.Status)."
+    }
+    if ($RequireSignature -and $null -eq $installedSignature.TimeStamperCertificate) {
+        throw 'Installed application signature is valid but is not timestamped.'
+    }
+    if (
+        $RequireSignature -and
+        $null -ne $InstallerSignature.SignerCertificate -and
+        $null -ne $installedSignature.SignerCertificate -and
+        $InstallerSignature.SignerCertificate.Thumbprint -ne $installedSignature.SignerCertificate.Thumbprint
+    ) {
+        throw 'Installer and installed application signatures use different publishers.'
+    }
+
+    $launchSmokePassed = $false
+    $launchedProcess = $null
+    try {
+        if (-not $SkipLaunch) {
+            $launchedProcess = Start-Process -FilePath $installedExecutable -WindowStyle Hidden -PassThru
+            Start-Sleep -Seconds 5
+            if ($launchedProcess.HasExited) {
+                throw "Installed application exited during launch smoke with code $($launchedProcess.ExitCode)."
+            }
+            Stop-Process -Id $launchedProcess.Id -Force
+            $launchedProcess.WaitForExit()
+            $launchSmokePassed = $true
+        }
+    }
+    finally {
+        if ($null -ne $launchedProcess -and -not $launchedProcess.HasExited) {
+            Stop-Process -Id $launchedProcess.Id -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    if (-not (Test-Path -LiteralPath $uninstaller -PathType Leaf)) {
+        throw 'Installer did not create its uninstaller.'
+    }
+    $uninstallProcess = Start-Process -FilePath $uninstaller -ArgumentList '/S' -WindowStyle Hidden -Wait -PassThru
+    if ($uninstallProcess.ExitCode -ne 0) {
+        throw "Uninstaller exited with code $($uninstallProcess.ExitCode)."
+    }
+    Wait-ForPathState -Path $Destination -Exists $false
+    Assert-CleanQualificationAccount
+
+    return [pscustomobject][ordered]@{
+        lifecycle = [ordered]@{
+            installedVersion = $installedVersion
+            installedExecutableSha256 = $installedHash
+            installedExecutableAuthenticodeStatus = $installedSignature.Status.ToString()
+            installedExecutableSignerThumbprint = if ($null -ne $installedSignature.SignerCertificate) { $installedSignature.SignerCertificate.Thumbprint } else { $null }
+            installedExecutableTimestamperThumbprint = if ($null -ne $installedSignature.TimeStamperCertificate) { $installedSignature.TimeStamperCertificate.Thumbprint } else { $null }
+            launchSmoke = $launchSmokePassed
+            uninstall = $true
+            installRootRemoved = $true
+            uninstallRegistrationRemoved = $true
+        }
+        foundation = [ordered]@{
+            exactFileCount = $foundationFileCount
+            missing = 0
+            unexpected = 0
+            hashMismatches = 0
+        }
+    }
 }
 
 $installer = Resolve-ExistingFile -Path $InstallerPath
@@ -311,78 +417,59 @@ if (-not [string]::IsNullOrWhiteSpace($PriorInstallerPath)) {
         throw 'Prior and current installers use different publishers.'
     }
 }
-$installedExecutable = Join-Path $installDirectory 'forge.exe'
-$installedFoundation = Join-Path $installDirectory 'bmad-foundation'
 $uninstaller = Join-Path $installDirectory 'uninstall.exe'
-$launchedProcess = $null
-$lifecycleComplete = $false
+$qualificationComplete = $false
 
 try {
-    $priorVersion = $null
+    # Phase one is a real first install of the current artifact on a clean
+    # account. It is fully launched, uninstalled, and checked for residue before
+    # the upgrade phase begins.
+    Invoke-SilentInstaller -Path $installer -Destination $installDirectory
+    $freshResult = Complete-CurrentInstallationQualification `
+        -Destination $installDirectory `
+        -ExpectedFoundationRoot $foundation `
+        -Version $ExpectedVersion `
+        -InstallerSignature $signature `
+        -RequireSignature ([bool] $RequireValidSignature) `
+        -SkipLaunch ([bool] $SkipLaunchSmoke)
+
+    $upgradeResult = $null
     if ($null -ne $priorInstaller) {
+        # Phase two begins only after phase one proved complete cleanup. Install
+        # the prior artifact, observe its exact version, then upgrade in place
+        # with the current artifact and repeat every current-product check.
         Invoke-SilentInstaller -Path $priorInstaller -Destination $installDirectory
+        $installedExecutable = Join-Path $installDirectory 'forge.exe'
         Wait-ForPathState -Path $installedExecutable -Exists $true
         $priorVersion = (Get-Item -LiteralPath $installedExecutable).VersionInfo.ProductVersion
         if ($priorVersion -ne $ExpectedPriorVersion) {
             throw "Prior installer produced version '$priorVersion' instead of '$ExpectedPriorVersion'."
         }
-    }
-
-    Invoke-SilentInstaller -Path $installer -Destination $installDirectory
-    Wait-ForPathState -Path $installedExecutable -Exists $true
-
-    $installedItem = Get-Item -LiteralPath $installedExecutable -Force
-    if ($installedItem.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-        throw 'Installed application executable is a reparse point.'
-    }
-    $installedVersion = $installedItem.VersionInfo.ProductVersion
-    if ($installedVersion -ne $ExpectedVersion) {
-        throw "Installed product version '$installedVersion' does not match '$ExpectedVersion'."
-    }
-
-    $foundationFileCount = Assert-ExactFoundationPayload -ExpectedRoot $foundation -ActualRoot $installedFoundation
-    $installedHash = (Get-FileHash -LiteralPath $installedExecutable -Algorithm SHA256).Hash.ToLowerInvariant()
-    $installedSignature = Get-AuthenticodeSignature -LiteralPath $installedExecutable
-    if ($RequireValidSignature -and $installedSignature.Status -ne [Management.Automation.SignatureStatus]::Valid) {
-        throw "Installed application signature is not valid: $($installedSignature.Status)."
-    }
-    if ($RequireValidSignature -and $null -eq $installedSignature.TimeStamperCertificate) {
-        throw 'Installed application signature is valid but is not timestamped.'
-    }
-    if (
-        $RequireValidSignature -and
-        $null -ne $signature.SignerCertificate -and
-        $null -ne $installedSignature.SignerCertificate -and
-        $signature.SignerCertificate.Thumbprint -ne $installedSignature.SignerCertificate.Thumbprint
-    ) {
-        throw 'Installer and installed application signatures use different publishers.'
-    }
-
-    $launchSmokePassed = $false
-    if (-not $SkipLaunchSmoke) {
-        $launchedProcess = Start-Process -FilePath $installedExecutable -WindowStyle Hidden -PassThru
-        Start-Sleep -Seconds 5
-        if ($launchedProcess.HasExited) {
-            throw "Installed application exited during launch smoke with code $($launchedProcess.ExitCode)."
+        Invoke-SilentInstaller -Path $installer -Destination $installDirectory
+        $upgradeResult = Complete-CurrentInstallationQualification `
+            -Destination $installDirectory `
+            -ExpectedFoundationRoot $foundation `
+            -Version $ExpectedVersion `
+            -InstallerSignature $signature `
+            -RequireSignature ([bool] $RequireValidSignature) `
+            -SkipLaunch ([bool] $SkipLaunchSmoke)
+        $upgradeResult.lifecycle = [ordered]@{
+            fromVersion = $priorVersion
+            installedVersion = $upgradeResult.lifecycle.installedVersion
+            installedExecutableSha256 = $upgradeResult.lifecycle.installedExecutableSha256
+            installedExecutableAuthenticodeStatus = $upgradeResult.lifecycle.installedExecutableAuthenticodeStatus
+            installedExecutableSignerThumbprint = $upgradeResult.lifecycle.installedExecutableSignerThumbprint
+            installedExecutableTimestamperThumbprint = $upgradeResult.lifecycle.installedExecutableTimestamperThumbprint
+            launchSmoke = $upgradeResult.lifecycle.launchSmoke
+            uninstall = $upgradeResult.lifecycle.uninstall
+            installRootRemoved = $upgradeResult.lifecycle.installRootRemoved
+            uninstallRegistrationRemoved = $upgradeResult.lifecycle.uninstallRegistrationRemoved
         }
-        Stop-Process -Id $launchedProcess.Id -Force
-        $launchedProcess.WaitForExit()
-        $launchSmokePassed = $true
     }
-
-    if (-not (Test-Path -LiteralPath $uninstaller -PathType Leaf)) {
-        throw 'Installer did not create its uninstaller.'
-    }
-    $uninstallProcess = Start-Process -FilePath $uninstaller -ArgumentList '/S' -WindowStyle Hidden -Wait -PassThru
-    if ($uninstallProcess.ExitCode -ne 0) {
-        throw "Uninstaller exited with code $($uninstallProcess.ExitCode)."
-    }
-    Wait-ForPathState -Path $installDirectory -Exists $false
-    Assert-CleanQualificationAccount
-    $lifecycleComplete = $true
+    $qualificationComplete = $true
 
     $evidence = [ordered]@{
-        schemaVersion = 1
+        schemaVersion = 2
         generatedAtUtc = [DateTimeOffset]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
         artifact = [ordered]@{
             fileName = $installerItem.Name
@@ -407,24 +494,13 @@ try {
             $null
         }
         lifecycle = [ordered]@{
-            freshInstall = $true
-            upgradedFromVersion = $priorVersion
-            installedVersion = $installedVersion
-            installedExecutableSha256 = $installedHash
-            installedExecutableAuthenticodeStatus = $installedSignature.Status.ToString()
-            installedExecutableSignerThumbprint = if ($null -ne $installedSignature.SignerCertificate) { $installedSignature.SignerCertificate.Thumbprint } else { $null }
-            installedExecutableTimestamperThumbprint = if ($null -ne $installedSignature.TimeStamperCertificate) { $installedSignature.TimeStamperCertificate.Thumbprint } else { $null }
-            launchSmoke = $launchSmokePassed
-            uninstall = $true
-            installRootRemoved = $true
-            uninstallRegistrationRemoved = $true
+            freshInstall = $freshResult.lifecycle
+            upgrade = if ($null -ne $upgradeResult) { $upgradeResult.lifecycle } else { $null }
             residueScope = 'install-root-and-uninstall-registration'
         }
         bundledFoundation = [ordered]@{
-            exactFileCount = $foundationFileCount
-            missing = 0
-            unexpected = 0
-            hashMismatches = 0
+            freshInstall = $freshResult.foundation
+            upgrade = if ($null -ne $upgradeResult) { $upgradeResult.foundation } else { $null }
         }
     }
 
@@ -438,10 +514,7 @@ try {
     Write-Output ($evidence | ConvertTo-Json -Depth 6)
 }
 finally {
-    if ($null -ne $launchedProcess -and -not $launchedProcess.HasExited) {
-        Stop-Process -Id $launchedProcess.Id -Force -ErrorAction SilentlyContinue
-    }
-    if (-not $lifecycleComplete -and (Test-Path -LiteralPath $uninstaller -PathType Leaf)) {
+    if (-not $qualificationComplete -and (Test-Path -LiteralPath $uninstaller -PathType Leaf)) {
         $cleanup = Start-Process -FilePath $uninstaller -ArgumentList '/S' -WindowStyle Hidden -Wait -PassThru
         if ($cleanup.ExitCode -ne 0) {
             Write-Warning "Qualification cleanup uninstaller exited with code $($cleanup.ExitCode)."

@@ -902,8 +902,8 @@ impl ModelStreamPublisher {
             occurred_at: envelope.occurred_at,
             body,
         };
-        let encoded = serde_json::to_vec(&projection)
-            .map_err(|_| ModelStreamProjectionError::Unavailable)?;
+        let encoded =
+            serde_json::to_vec(&projection).map_err(|_| ModelStreamProjectionError::Unavailable)?;
         if encoded.len() > MAX_MODEL_STREAM_EVENT_PROJECTION_BYTES {
             return Err(ModelStreamProjectionError::Unavailable);
         }
@@ -1013,16 +1013,20 @@ fn project_terminal(
     // produced a receipt, is a host bug rather than something to render.
     let shape_is_consistent = match terminal {
         ModelStreamTerminalProjection::Completed => {
-            receipt.is_some() && cancellation_source.is_none() && reason_code.is_none() && !retryable
+            receipt.is_some()
+                && cancellation_source.is_none()
+                && reason_code.is_none()
+                && !retryable
         }
         ModelStreamTerminalProjection::Refused => {
             receipt.is_none() && cancellation_source.is_none() && !retryable
         }
-        ModelStreamTerminalProjection::Failed => {
-            receipt.is_none() && cancellation_source.is_none()
-        }
+        ModelStreamTerminalProjection::Failed => receipt.is_none() && cancellation_source.is_none(),
         ModelStreamTerminalProjection::Cancelled => {
-            receipt.is_none() && cancellation_source.is_some() && reason_code.is_none() && !retryable
+            receipt.is_none()
+                && cancellation_source.is_some()
+                && reason_code.is_none()
+                && !retryable
         }
     };
     if !shape_is_consistent {
@@ -1370,18 +1374,32 @@ fn check_utc_instant(value: &str) -> Result<(), ModelCatalogProjectionError> {
     let matches = bytes.len() == UTC_INSTANT_BYTES
         && (0..4).all(|index| digit(index).is_some())
         && bytes[4] == b'-'
-        && matches!(digit(5), Some(b'0'..=b'1')) && digit(6).is_some()
-        && matches!((bytes[5], bytes[6]), (b'0', b'1'..=b'9') | (b'1', b'0'..=b'2'))
+        && matches!(digit(5), Some(b'0'..=b'1'))
+        && digit(6).is_some()
+        && matches!(
+            (bytes[5], bytes[6]),
+            (b'0', b'1'..=b'9') | (b'1', b'0'..=b'2')
+        )
         && bytes[7] == b'-'
-        && digit(8).is_some() && digit(9).is_some()
-        && matches!((bytes[8], bytes[9]), (b'0'..=b'2', b'0'..=b'9') | (b'3', b'0'..=b'1'))
+        && digit(8).is_some()
+        && digit(9).is_some()
+        && matches!(
+            (bytes[8], bytes[9]),
+            (b'0'..=b'2', b'0'..=b'9') | (b'3', b'0'..=b'1')
+        )
         && bytes[10] == b'T'
-        && digit(11).is_some() && digit(12).is_some()
-        && matches!((bytes[11], bytes[12]), (b'0'..=b'1', b'0'..=b'9') | (b'2', b'0'..=b'3'))
+        && digit(11).is_some()
+        && digit(12).is_some()
+        && matches!(
+            (bytes[11], bytes[12]),
+            (b'0'..=b'1', b'0'..=b'9') | (b'2', b'0'..=b'3')
+        )
         && bytes[13] == b':'
-        && matches!(bytes[14], b'0'..=b'5') && digit(15).is_some()
+        && matches!(bytes[14], b'0'..=b'5')
+        && digit(15).is_some()
         && bytes[16] == b':'
-        && matches!(bytes[17], b'0'..=b'5') && digit(18).is_some()
+        && matches!(bytes[17], b'0'..=b'5')
+        && digit(18).is_some()
         && bytes[19] == b'.'
         && (20..23).all(|index| digit(index).is_some())
         && bytes[23] == b'Z';
@@ -1489,17 +1507,15 @@ mod tests {
     use desktop_runtime::{ContractId, UnixMillis};
 
     use super::{
-        project_model_catalog, project_model_selection, ModelCapabilitiesProjection,
-        ModelCatalogInput, ModelCatalogProjectionError, ModelCatalogStateProjection,
-        ModelLimitsProjection, ModelProfileInput, ModelReasoningEffortProjection,
-        ModelReceiptSummaryInput, ModelSelectableAvailabilityProjection,
-        ModelSelectionBlockedProjection, ModelSelectionInput,
-        ModelBlockedAvailabilityProjection, ModelRecoveryActionProjection,
-        ModelSelectionOutcomeInput, ModelSelectionSourceProjection,
-        ModelStreamCancellationSourceProjection,
-        ModelStreamEventEnvelope, ModelStreamEventInput, ModelStreamProjectionError,
-        ModelStreamPublisher, ModelStreamSubscription, ModelStreamTerminalProjection,
-        ModelUnavailableProfileInput, ModelVariantInput,
+        project_model_catalog, project_model_selection, ModelBlockedAvailabilityProjection,
+        ModelCapabilitiesProjection, ModelCatalogInput, ModelCatalogProjectionError,
+        ModelCatalogStateProjection, ModelLimitsProjection, ModelProfileInput,
+        ModelReasoningEffortProjection, ModelReceiptSummaryInput, ModelRecoveryActionProjection,
+        ModelSelectableAvailabilityProjection, ModelSelectionBlockedProjection,
+        ModelSelectionInput, ModelSelectionOutcomeInput, ModelSelectionSourceProjection,
+        ModelStreamCancellationSourceProjection, ModelStreamEventEnvelope, ModelStreamEventInput,
+        ModelStreamProjectionError, ModelStreamPublisher, ModelStreamSubscription,
+        ModelStreamTerminalProjection, ModelUnavailableProfileInput, ModelVariantInput,
     };
 
     fn id(value: &str) -> Result<ContractId, Box<dyn std::error::Error>> {
@@ -1615,14 +1631,20 @@ mod tests {
             serde_json::json!("sapphirus.model-catalog-projection.v1")
         );
         assert_eq!(encoded["profiles"][0]["profileId"], "balanced");
-        assert_eq!(encoded["profiles"][0]["variants"][0]["variantId"], "standard");
+        assert_eq!(
+            encoded["profiles"][0]["variants"][0]["variantId"],
+            "standard"
+        );
         assert_eq!(encoded["profiles"][0]["defaultVariantId"], "standard");
         assert_eq!(encoded["profiles"][0]["provider"], "microsoft_foundry");
         assert_eq!(encoded["profiles"][0]["availability"], "available");
         assert_eq!(encoded["profiles"][0]["capabilities"]["toolCalling"], true);
         // Nullable is load-bearing: the fixture publishes no limits, and that
         // must survive as null, never as 0.
-        assert_eq!(encoded["profiles"][0]["limits"]["contextTokens"], serde_json::Value::Null);
+        assert_eq!(
+            encoded["profiles"][0]["limits"]["contextTokens"],
+            serde_json::Value::Null
+        );
         assert_eq!(encoded["unavailableProfiles"][0]["profileId"], "vision");
         // A closed reason vocabulary, not the catalog's free text. "the
         // deployment is missing" is a reason; it is not a deployment name.
@@ -1639,7 +1661,13 @@ mod tests {
         // though capabilities and limits are now projected: none of these
         // strings should ever appear regardless of what the fixture carries.
         let text = serde_json::to_string(&encoded)?.to_ascii_lowercase();
-        for forbidden in ["endpoint", "apikey", "credential", "azure", "deploymentname"] {
+        for forbidden in [
+            "endpoint",
+            "apikey",
+            "credential",
+            "azure",
+            "deploymentname",
+        ] {
             assert!(
                 !text.contains(forbidden),
                 "catalog projection disclosed {forbidden}"
@@ -1692,13 +1720,15 @@ mod tests {
         input.profiles[0].qualified_at = None;
         let projection = project_model_catalog(input)?;
         let encoded = serde_json::to_value(&projection)?;
-        assert_eq!(encoded["profiles"][0]["qualifiedAt"], serde_json::Value::Null);
+        assert_eq!(
+            encoded["profiles"][0]["qualifiedAt"],
+            serde_json::Value::Null
+        );
         Ok(())
     }
 
     #[test]
-    fn a_profile_name_carrying_an_endpoint_is_refused(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn a_profile_name_carrying_an_endpoint_is_refused() -> Result<(), Box<dyn std::error::Error>> {
         let mut input = catalog_input()?;
         input.profiles[0].display_name = "Balanced https://contoso.openai.azure.com".to_owned();
         assert_eq!(
@@ -1745,8 +1775,8 @@ mod tests {
 
     /// The guard against silently switching a model under a user mid-draft.
     #[test]
-    fn requires_explicit_choice_never_names_a_replacement(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn requires_explicit_choice_never_names_a_replacement() -> Result<(), Box<dyn std::error::Error>>
+    {
         let projection = project_model_selection(ModelSelectionInput {
             workspace_id: id("workspace_1")?,
             workspace_grant_epoch: 3,
@@ -1841,8 +1871,8 @@ mod tests {
     }
 
     #[test]
-    fn a_stream_refuses_a_repeated_or_regressed_sequence(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn a_stream_refuses_a_repeated_or_regressed_sequence() -> Result<(), Box<dyn std::error::Error>>
+    {
         let mut publisher = ModelStreamPublisher::new(subscription()?);
         publisher.publish(&envelope(4, started())?)?;
         assert_eq!(
@@ -1859,8 +1889,7 @@ mod tests {
     }
 
     #[test]
-    fn a_stream_refuses_every_wrong_identity_field(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn a_stream_refuses_every_wrong_identity_field() -> Result<(), Box<dyn std::error::Error>> {
         let mut publisher = ModelStreamPublisher::new(subscription()?);
 
         let mut wrong_run = envelope(1, started())?;
@@ -2085,7 +2114,10 @@ mod tests {
             },
         )?)?;
         let encoded = serde_json::to_value(&projected)?;
-        assert_eq!(encoded["value"]["textDelta"], "See https://example.com for docs.");
+        assert_eq!(
+            encoded["value"]["textDelta"],
+            "See https://example.com for docs."
+        );
         Ok(())
     }
 }

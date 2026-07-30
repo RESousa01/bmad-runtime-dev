@@ -1,0 +1,21 @@
+# BMAD-100 Phase Checkpoint
+
+- Run ID:
+- Commit:
+- Method archive SHA-256:
+- Builder archive SHA-256:
+- Phase:
+- Completed task IDs:
+- Failed task IDs:
+- Blocked task IDs:
+- Fresh verification commands and results:
+- Stable interfaces produced:
+- Generated files changed:
+- Migrations required/completed:
+- Security/authority implications:
+- Compatibility decisions added/changed:
+- External prerequisites still missing:
+- Evidence root:
+- Next topologically ready tasks:
+- Diff review result:
+- Checkpoint status: complete | failed | blocked

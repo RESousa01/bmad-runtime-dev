@@ -38,12 +38,18 @@ use crate::generated_contracts::{
     BmadArtifactCompletionHookRunHook, BmadArtifactKind, BmadInvocationMode,
 };
 use crate::{
-    BmadMethodSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillSupportState,
-    Sha256Digest,
+    BmadMethodSkill, BmadResource, BmadSkillDescriptor, BmadSkillDescriptorInput,
+    BmadSkillSupportState, Sha256Digest,
 };
 
 /// Adapter for the pinned `bmad-architecture` Method skill (MTH-12).
 pub struct BmadArchitectureSkill;
+
+fn source_resource(path: &str, content_hash: [u8; 32]) -> BmadResource {
+    BmadResource::new(path, Sha256Digest::from_bytes(content_hash)).unwrap_or_else(|_| {
+        unreachable!("all pinned bmad-architecture resource paths are canonical")
+    })
+}
 
 impl BmadMethodSkill for BmadArchitectureSkill {
     fn descriptor(&self) -> BmadSkillDescriptor {
@@ -88,10 +94,72 @@ impl BmadMethodSkill for BmadArchitectureSkill {
             // progresses, and the spine itself is distilled and saved at
             // Finalize/Update/Close -- persisted, not merely proposed.
             completion_hooks: vec![BmadArtifactCompletionHookRunHook::PersistArtifacts],
-            // See module doc: resource closure is out of this adapter's
-            // scope for now (tracked as a reported gap, not invented data).
-            declared_resources: Vec::new(),
-            support_state: BmadSkillSupportState::Exact,
+            // The complete recursively owned source subtree is immutable
+            // package data. The generic resolver receives identities only;
+            // this descriptor never opens, executes, or grants authority to
+            // a pinned source member.
+            declared_resources: vec![
+                source_resource(
+                    "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
+                    [
+                        0x89, 0xa3, 0x16, 0xfd, 0x74, 0xd8, 0x49, 0x0d, 0x1c, 0xeb, 0x2e, 0xc7,
+                        0xc4, 0x0e, 0xa5, 0x03, 0x50, 0x4f, 0xd4, 0xc7, 0xa2, 0xc1, 0xe3, 0x10,
+                        0x89, 0xbf, 0xc6, 0x28, 0xc8, 0x6c, 0x45, 0xbf,
+                    ],
+                ),
+                source_resource(
+                    "src/bmm-skills/3-solutioning/bmad-architecture/assets/spine-template.md",
+                    [
+                        0xef, 0x4f, 0xf7, 0x95, 0x62, 0x4e, 0xb5, 0x43, 0x9f, 0xae, 0x54, 0xa0,
+                        0x6e, 0xdb, 0x38, 0x9f, 0xeb, 0x5a, 0x0c, 0xf7, 0x9c, 0xb0, 0x1a, 0xe0,
+                        0x07, 0xaf, 0x51, 0x10, 0x93, 0x35, 0xd1, 0x98,
+                    ],
+                ),
+                source_resource(
+                    "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
+                    [
+                        0xa6, 0xbb, 0x60, 0xa3, 0xad, 0xf9, 0x76, 0x03, 0x1f, 0x28, 0x70, 0x20,
+                        0x32, 0x85, 0xb1, 0xfc, 0x7a, 0x56, 0xe7, 0x1e, 0x21, 0x23, 0x2c, 0xd2,
+                        0x3b, 0xba, 0x54, 0x4b, 0x17, 0x8b, 0x5f, 0x15,
+                    ],
+                ),
+                source_resource(
+                    "src/bmm-skills/3-solutioning/bmad-architecture/references/headless.md",
+                    [
+                        0x4d, 0xb2, 0x70, 0x8f, 0x33, 0x5c, 0x94, 0xcb, 0x02, 0x4b, 0x5e, 0xba,
+                        0x02, 0x2b, 0x1e, 0x3d, 0x88, 0xb1, 0xec, 0x61, 0xc9, 0x4c, 0x47, 0x16,
+                        0x62, 0x6d, 0x9b, 0x89, 0x68, 0x4f, 0x58, 0x33,
+                    ],
+                ),
+                source_resource(
+                    "src/bmm-skills/3-solutioning/bmad-architecture/references/reviewer-gate.md",
+                    [
+                        0xd3, 0x2e, 0x32, 0xa3, 0xc1, 0xd5, 0x9b, 0x56, 0x12, 0xb9, 0x47, 0x00,
+                        0x4f, 0x3f, 0x6f, 0xef, 0x11, 0x17, 0xa1, 0x3c, 0xe9, 0xf1, 0xff, 0xa4,
+                        0x28, 0xd6, 0x16, 0xe0, 0xb5, 0xd4, 0xdb, 0x69,
+                    ],
+                ),
+                source_resource(
+                    "src/bmm-skills/3-solutioning/bmad-architecture/scripts/lint_spine.py",
+                    [
+                        0x04, 0x0e, 0x0f, 0x1c, 0x13, 0xd3, 0x1e, 0x6a, 0x21, 0xc5, 0x18, 0xdf,
+                        0x94, 0x3d, 0x1d, 0x7d, 0xe7, 0xb7, 0x5d, 0x8d, 0x98, 0xa0, 0x76, 0x03,
+                        0xb0, 0x98, 0x3f, 0x3f, 0x3f, 0xb5, 0x00, 0xdb,
+                    ],
+                ),
+                source_resource(
+                    "src/bmm-skills/3-solutioning/bmad-architecture/scripts/tests/test_lint_spine.py",
+                    [
+                        0xe8, 0x6b, 0xb9, 0xa6, 0x2c, 0x5c, 0xca, 0x74, 0xdd, 0xc8, 0x9c, 0x84,
+                        0x33, 0x86, 0xf2, 0xb9, 0x92, 0x61, 0x0f, 0xcc, 0x17, 0x92, 0xd4, 0x0e,
+                        0x03, 0xbc, 0x9c, 0xd4, 0x45, 0xb7, 0x76, 0x81,
+                    ],
+                ),
+            ],
+            // The source's create progression is governed here, but Update
+            // and Validate need shared intent/session/report contracts that
+            // this descriptor-only adapter deliberately cannot invent.
+            support_state: BmadSkillSupportState::Adapted,
         })
         .unwrap_or_else(|_| unreachable!("this adapter's fields satisfy the harness's own bounds"))
     }

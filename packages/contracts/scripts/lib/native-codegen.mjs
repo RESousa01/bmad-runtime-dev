@@ -133,12 +133,13 @@ const expectedRustArguments = Object.freeze(["typify", "{input}", "--output", "{
 // Reviewed supply-chain checkpoint. These digests are duplicated in
 // tools/contract-codegen/tool-lock.json on purpose: both must be edited
 // together, so a lock file cannot be re-blessed by touching data alone.
-// Current values reviewed in docs/reviews/supply-chain-review-2026-07-25.md
-// (forge-v2 cutover: +78 gitoxide crates, 0 removed, 0 new npm packages).
+// Current values reviewed in docs/reviews/supply-chain-review-2026-07-25.md.
+// The 2026-07-29 amendment pins fast-uri 3.1.4 over vulnerable 3.1.3
+// (GHSA-v2hh-gcrm-f6hx); no other resolved npm package version changed.
 const expectedBootstrapLocks = Object.freeze({
   pnpm: {
     file: "pnpm-lock.yaml",
-    sha256: "5d42ebb11cd644ca857d873e08442b384416a487df777b8933037f4d0e05211b",
+    sha256: "fbfa675b0fab819d51cee9b93361a0a61383610099d7b6ebf6a455e9bf093cf9",
     status: "reviewed",
   },
   cargo: {

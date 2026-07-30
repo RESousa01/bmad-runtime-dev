@@ -38,7 +38,30 @@ that writes `stories.yaml`.
   "Multiple skills may call to update the same spec over time" -- no single
   fixed upstream or downstream skill is named.
 
+## Source closure and governed execution
+
+The thin runtime adapter declares the complete five-member pinned subtree,
+with each member's SHA-256 identity: `SKILL.md`, `customize.toml`,
+`assets/headless-schemas.md`, `assets/spec-template.md`, and
+`assets/stories-schema.md`. This includes the template edge declared by
+`customize.toml`; the headless response and Story Breakdown schemas remain
+available to the generic runtime as immutable source data even though they
+are selected by workflow semantics rather than a source-path edge.
+
+The adapter only describes this immutable execution shape. The generic BMAD
+runtime owns resolved configuration and customization, canonical model
+context, artifact persistence, action plans and approvals, validation,
+cancellation, failure/retry/repair, restart/resume, and source-upgrade
+checks. Consequently neither source prose nor this adapter can read files,
+run a process, call a model/provider, schedule work, or write an artifact
+outside typed ports and Airlock policy. Both invocation modes bind the same
+`output_folder`, `SPEC.md` document kind, source identities, and persistence
+hook; their source-specific interaction differs only in presentation and the
+headless JSON response.
+
 ## Compatibility decision
 
 **adopt / exact.** No semantic divergence was found between the pinned
-source and the harness descriptor.
+source and the harness descriptor. The source account uses `adapt` for the
+native governed projection treatment; that is not a user-visible support
+state and does not alter the ledger's exact/adopt decision.
