@@ -186,7 +186,7 @@ pub use review::{
 pub use service::{MethodServiceError, MethodSessionService};
 pub use session::{BmadSessionIntent, BmadSessionTransitionError};
 pub use skills::{
-    BmadAdvancedElicitationSkill, BmadAgentAnalystSkill, BmadAgentArchitectSkill, BmadAgentPmSkill,
+    canonical_method_skill_adapter, BmadAdvancedElicitationSkill, BmadAgentAnalystSkill, BmadAgentArchitectSkill, BmadAgentPmSkill,
     BmadAgentTechWriterSkill, BmadAgentUxDesignerSkill, BmadArchitectureSkill,
     BmadBrainstormingSkill, BmadCheckImplementationReadinessSkill, BmadCreateEpicsAndStoriesSkill,
     BmadCustomizeSkill, BmadDeepReconSkill, BmadDocumentProjectSkill, BmadForgeIdeaSkill,

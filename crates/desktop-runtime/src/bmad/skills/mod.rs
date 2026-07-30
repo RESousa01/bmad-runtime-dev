@@ -10,7 +10,7 @@ mod execution;
 mod harness;
 
 pub use adapters::{
-    BmadAdvancedElicitationSkill, BmadAgentAnalystSkill, BmadAgentArchitectSkill, BmadAgentPmSkill,
+    canonical_method_skill_adapter, BmadAdvancedElicitationSkill, BmadAgentAnalystSkill, BmadAgentArchitectSkill, BmadAgentPmSkill,
     BmadAgentTechWriterSkill, BmadAgentUxDesignerSkill, BmadArchitectureSkill,
     BmadBrainstormingSkill, BmadCheckImplementationReadinessSkill, BmadCreateEpicsAndStoriesSkill,
     BmadCustomizeSkill, BmadDeepReconSkill, BmadDocumentProjectSkill, BmadForgeIdeaSkill,

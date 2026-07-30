@@ -310,6 +310,16 @@ impl BmadSkillExecutionContract {
         })
     }
 
+    #[must_use]
+    pub const fn workflow(&self) -> &BmadSkillExecutionWorkflow {
+        &self.workflow
+    }
+
+    #[must_use]
+    pub fn tool_intents(&self) -> &[BmadSkillToolIntent] {
+        &self.tool_intents
+    }
+
     /// Computes the sealed resource-set digest used in an exact Method binding.
     ///
     /// # Errors
@@ -542,7 +552,7 @@ impl BmadSkillExecutionCompiler {
         request: BmadSkillExecutionRequest,
     ) -> Result<BmadPreparedSkillExecution, BmadSkillExecutionError> {
         let descriptor = skill.descriptor();
-        let contract = skill.execution_contract()?;
+        let contract = skill.execution_contract_for_action(request.action.as_deref())?;
         contract.prepare(descriptor, request)
     }
 }

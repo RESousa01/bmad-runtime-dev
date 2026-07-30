@@ -30,7 +30,7 @@
     "preflight": "node -e \"const fs=require('node:fs');const p=require('./package.json');const a=process.env.npm_config_user_agent||'';if(process.version.slice(1)!==p.engines.node)throw new Error('Node toolchain drift');if(!a.includes('pnpm/'+p.engines.pnpm+' '))throw new Error('pnpm toolchain drift');for(const f of fs.readdirSync('./tests').filter(x=>x.endsWith('.test.mjs'))){const s=fs.readFileSync('./tests/'+f,'utf8');if(/(?:^|[^A-Za-z0-9_$])(?:test|it|describe)\\.(?:skip|todo|only)\\s*\\(/u.test(s))throw new Error('focused or skipped test: '+f)}\"",
     "check": "pnpm run preflight && node ./scripts/verify.mjs",
     "lint": "pnpm run preflight && node ./scripts/verify.mjs",
-    "test": "pnpm run preflight && node --test ./tests/*.test.mjs",
+    "test": "pnpm run preflight && node ./scripts/test.mjs",
     "verify": "pnpm run preflight && node ./scripts/verify.mjs && node --test ./tests/*.test.mjs"
   },
   "engines": {
