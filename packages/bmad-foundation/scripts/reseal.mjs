@@ -83,6 +83,17 @@ async function writeJson(relativePath, value) {
 async function resealManagedOutputs() {
   const path = "semantic-source-ledger.json";
   const ledger = await readJson(path);
+  const sourceManifest = await readJson("source-manifest.json");
+  const sourceHashes = new Map(
+    sourceManifest.members.map((member) => [
+      `${member.source_id}:${member.path}`,
+      member.sha256,
+    ]),
+  );
+  for (const member of ledger.sourceMembers ?? []) {
+    const currentHash = sourceHashes.get(`${member.sourceId}:${member.member}`);
+    if (currentHash !== undefined) member.sha256 = currentHash;
+  }
   for (const output of ledger.managedOutputs ?? []) {
     const bytes = await readFile(join(packageRoot, output.path));
     output.byteLength = bytes.byteLength;
@@ -96,6 +107,34 @@ async function resealManagedOutputs() {
 async function resealHelpDescriptor() {
   const path = "normalized/bmad-help.package.json";
   const descriptor = await readJson(path);
+  const methodSourceRoot = join(packageRoot, "source", "method", "6.10.0");
+  const sourceManifest = await readJson("source-manifest.json");
+  const methodPaths = sourceManifest.members
+    .filter((member) => member.source_id === "method")
+    .map((member) => member.path);
+  const resolveCurrentSource = async (source) => {
+    let bytes = await readFile(join(methodSourceRoot, source.path)).catch(() => null);
+    if (bytes !== null) return bytes;
+    const suffix = source.path.split("/").slice(-2).join("/");
+    const candidates = methodPaths.filter((candidate) => candidate.endsWith(`/${suffix}`));
+    if (candidates.length !== 1) return null;
+    source.path = candidates[0];
+    bytes = await readFile(join(methodSourceRoot, source.path)).catch(() => null);
+    return bytes;
+  };
+  const retainedResourceInventory = [];
+  for (const entry of descriptor.resourceInventory ?? []) {
+    if (entry.locationKind !== "source_tree") continue;
+    const bytes = await resolveCurrentSource(entry);
+    if (bytes === null) continue;
+    entry.contentHash = `sha256:${sha256(bytes)}`;
+    entry.byteLength = bytes.byteLength;
+    retainedResourceInventory.push(entry);
+  }
+  descriptor.resourceInventory = [
+    ...(descriptor.resourceInventory ?? []).filter((entry) => entry.locationKind !== "source_tree"),
+    ...retainedResourceInventory,
+  ];
   // The descriptor also carries a global inventory binding every managed
   // projection by content hash, which `verify.mjs` checks against the real
   // bytes. Refreshing only the projection envelopes left that inventory stale,
@@ -123,6 +162,19 @@ async function resealHelpDescriptor() {
     );
   }
   for (const projection of descriptor.instructionProjections ?? []) {
+    if (projection.sourceEntrypoint?.path !== undefined) {
+      const bytes = await resolveCurrentSource(projection.sourceEntrypoint);
+      if (bytes === null) throw new Error(`missing projection entrypoint ${projection.sourceEntrypoint.path}`);
+      projection.sourceEntrypoint.contentHash = `sha256:${sha256(bytes)}`;
+    }
+    const retainedSourceResources = [];
+    for (const source of projection.sourceResources ?? []) {
+      const bytes = await resolveCurrentSource(source);
+      if (bytes === null) continue;
+      source.contentHash = `sha256:${sha256(bytes)}`;
+      retainedSourceResources.push(source);
+    }
+    projection.sourceResources = retainedSourceResources;
     // The projection binds its managed instruction by content hash, and its
     // identifier is derived from that same hash. Both follow the bytes.
     const managed = projection.managedInstruction;

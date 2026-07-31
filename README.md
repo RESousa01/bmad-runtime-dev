@@ -1,147 +1,118 @@
 # Forge Desktop
 
-Forge is an internal Windows desktop workspace for governed AI-assisted development. Its
-locked architecture assigns local state, workspace access, approvals, checkpoints, file effects,
-rollback, and evidence to `desktop-app`, the sole Rust composition root. That host is intended to
-be Authenticode-signed for organization distribution; signing evidence remains deferred. The
-React/WebView2 renderer is a typed presentation client and never receives generic filesystem,
-process, token, database, or updater authority.
+Forge is an internal Windows desktop workspace for governed AI-assisted development. The native
+Rust host owns workspace access, credentials, approvals, durable state, file effects, checkpoints,
+rollback, and evidence. The React/WebView2 renderer is a typed client; it never receives generic
+filesystem, process, credential, database, or updater authority.
 
-Current team documentation starts at [`docs/README.md`](docs/README.md). Source, tests, and
-verification gates remain stronger evidence than documentation; accepted ADRs define decisions,
-and the tracked `bmad-runtime-lib` content is historical/reference material rather than current
-implementation authority.
+Start with the [team documentation hub](docs/README.md). For the shortest accurate overview, read
+[product state](docs/current/product-state.md),
+[architecture and authority](docs/current/architecture-and-authority.md), and
+[release readiness](docs/current/release-readiness.md).
 
-The current source slice covers D1 reads, deterministic local BMAD Help, and the governed D3
-edits vertical. Reads: typed
-native folder-selection IPC; opaque local-workspace listing, switching, and access revocation;
-bounded tree/read/search projections; BMAD inspection; and exact context review. Edits: explicit
-per-workspace `GovernedEdits` enablement at a fresh grant epoch; host-observed proposed changes;
-an exact review projection whose canonical hash the approval decision binds; durable single-use
-spec consumption; checkpointed, journaled, atomic UTF-8 patch application with postimage
-verification; governed `Undo changes` through a fresh reviewed rollback proposal; and boot-time
-journal reconciliation that fails closed to manual review. The deterministic Help adapter creates
-an inert local review and one-shot consent flow without contacting a provider. An explicit
-prototype mode can instead send that already-reviewed request directly from the Rust host to the
-OpenAI or Azure OpenAI Responses API. The API key is entered through the frontend provider form,
-submitted once over typed IPC, cleared from the form immediately, and retained only in zeroizing
-native memory until disconnect or process exit. Its receipt is marked development-only rather than production trust evidence.
-Production model brokerage remains fail-closed and unconfigured. The pinned Rust workspace is compiled and tested
-on Windows; the offline NSIS installer has local install, launch, prior-version upgrade, exact
-BMAD-resource, uninstall, and install-root removal evidence. Authenticode signing, timestamping, and an
-independent clean-machine release run remain outstanding. Governed proposals
-may originate from the renderer or from a verified model capability result;
-model origin grants no authority, and every proposed change re-enters the same
-host-owned D3 review, approval, apply, and rollback boundary.
+## Status at a glance
 
-Interrupted governed edits now have an explicit reviewed restart-recovery path.
-Boot never changes workspace files: it retains the authenticated journal as
-`recovery_required` and continues to block updates. After governed edits are
-re-enabled for the exact workspace, Review or Activity can open the same
-bounded recovery review and issue a fresh, short-lived, single-use restore
-decision. A successful restore verifies the exact checkpoint bytes and
-finalizes once; an interrupted restore becomes terminal `manual_review` and is
-not retried automatically. On Windows, recovery pins the root, ancestors, and
-targets with identity-preserving native handles through the mutation; other
-platforms fail closed for recovery mutation. Prepare requests are fingerprinted
-so identical replays cannot re-observe files or mint new authority. Exact-head
-and detached clean-worktree qualification plus an approved zero-finding
-independent re-review at `23d9add3` are recorded in
-`docs/implementation-packets/P2-d3-reviewed-recovery-2026-07-18.md`.
+| Area | Current evidence | Boundary |
+|---|---|---|
+| Local workspace | Folder grants, bounded tree/read/search, sensitive-path handling | Native host authority |
+| Governed edits | Exact review, single-use approval, checkpointed apply, verification, rollback, recovery | Effects remain fail-closed |
+| BMAD | Pinned Method/Builder catalog and deterministic local Help | Only independently qualified capabilities may execute |
+| Direct providers | Development-only OpenAI and Azure OpenAI Responses transport | In-memory API key; exact-context review still required |
+| Local Docker | Frontend and support-API configuration/liveness rehearsal | Not Azure, installer, signing, or pilot proof |
+| Distribution | Earlier offline NSIS lifecycle evidence exists | Exact-current signing and clean-machine release evidence remain outstanding |
 
-## Repository map
+Forge is useful as a local development prototype, but it is not release- or pilot-ready. Source
+checks, a local build, an installer, a signed artifact, deployed Azure evidence, and a pilot are
+separate acceptance gates.
 
-- `apps/desktop-ui` — the Forge workbench renderer (`@forge/desktop-ui`): entry point, components, and tests
-- `crates/desktop-*` — native authority and adapters
-- `packages/bmad-foundation` — the sealed BMAD Method source, ledgers, and runtime projections
-- `packages/contracts` — JSON Schema 2020-12 source, fixtures, and generated boundaries
-- `packages/ui` — accessible product design system
-- `helpers/windows-auth-broker` — frozen, non-integrated WAM broker scaffold (D2)
-- `services/desktop-support-api` — frozen, non-integrated Azure support-plane scaffold (D2)
+## Architecture invariants
 
-The tracked `bmad-runtime-lib` folder is a temporary compatibility boundary for the frozen legacy
-archive. It is not current team guidance, a workspace package, build input, CI dependency,
-application resource, or distribution artifact, and its imported third-party scripts are never
-executed by the product toolchain.
+- `desktop-app` is the sole native composition root.
+- Workspace content and model output are data, never authority.
+- Every model request requires reviewed context and a fresh, single-use decision.
+- Every proposed change re-enters the host-owned review, apply, evidence, and rollback boundary.
+- Direct API-key transport is prototype evidence, not production authentication.
+- Current development and intended deployment must work without Entra; the production credential
+  and attribution design is incomplete.
+- Imported reference sources are never executed by the product toolchain.
 
-## Prototype model providers
+See the [accepted ADR index](docs/architecture/adr-index.md) for the decisions behind these rules.
 
-Direct model access is opt-in and has no account or interactive authentication. Provider, model,
-API key, and optional Azure endpoint/region live in **Forge Settings > Providers**. Connecting
-submits the key once to the native host, clears the password field, and never writes it to frontend
-settings or disk. The Rust host keeps the credential in zeroizing process memory and removes the
-provider transport on disconnect.
+## Quick start
 
-Forge uses the Responses API with storage disabled. Connecting a key does not send workspace
-content: each call still requires exact-context review and one-shot approval, and credentials are
-never returned by IPC. This direct path is for prototype validation only; the managed Azure
-support-plane broker remains the production boundary.
+Use the pinned toolchain: Node.js `24.18.0`, pnpm `11.15.1`, Rust `1.97.0`, and .NET SDK
+`10.0.302`.
 
-## Local Docker prototype
+```powershell
+pnpm toolchain:check
+pnpm install --frozen-lockfile
+pnpm docs:verify
+```
 
-Compose builds the active Forge V2 frontend and the existing desktop-support API test seam. The
-support API uses its Development adapters and placeholder cloud identifiers; the production Azure
-SQL, Key Vault, App Configuration, managed-identity, private-network, and Azure OpenAI architecture
-under `infra/desktop-support` is unchanged. The Tauri/Rust authority host still runs natively on
-Windows so workspace access, WebView2, DPAPI, and typed IPC behave like the desktop product.
-Model credentials are entered only in the native app's provider form and are never passed to
-Compose.
+Run deterministic local mode:
+
+```powershell
+pnpm desktop:dev:deterministic
+```
+
+Run the development-only direct-provider mode:
+
+```powershell
+pnpm desktop:dev
+```
+
+Run the local support seam alongside the native host:
 
 ```powershell
 pnpm desktop:local
+pnpm local:down
 ```
 
-Then choose **OpenAI** or **Azure OpenAI**, enter the model and API key in
-**Settings > Providers**, and connect. Stop the stack with
-`pnpm local:down` after testing. See `infra/local/README.md` for service boundaries and direct
-Compose commands.
+Provider credentials are entered in **Forge Settings > Providers**. The frontend submits the key
+once over typed IPC and clears the field; the Rust host keeps it only in zeroizing process memory
+until disconnect or process exit. Connecting does not itself send workspace content.
 
-The support API also has an optional
-`production-configuration-contract` Compose profile. It starts the same
-support image with Production option validation, no network, and a liveness
-check. This proves only Production boot/configuration shape; it does not
-emulate or call Azure SQL, Key Vault, App Configuration, Entra, managed
-identity, private networking, or Azure OpenAI. See
-`infra/desktop-support/local/README.md` for the exact command and fidelity
-boundary.
+For prerequisites and PATH troubleshooting, use the [local setup guide](docs/development/local-setup.md).
 
-## Local verification
+## Verification
 
-Tauri does not need a global installation. The exact CLI is a root development dependency and is
-invoked by the root `pnpm` scripts; installing the pinned Rust toolchain is sufficient for Cargo.
+| Command | What it proves |
+|---|---|
+| `pnpm docs:verify` | Maintained docs, metadata, generated indexes, claims, references, and archive hashes |
+| `pnpm verify:source` | Broad first-party source, contract, BMAD, frontend, and build checks |
+| `pnpm verify:deferred-full` | Cross-language and broader native Rust verification |
+| `pnpm desktop:build` | A local deterministic native build |
+| `pnpm verify:bmad:100` | Strict BMAD campaign completion against canonical receipts |
 
-```powershell
-pnpm install --frozen-lockfile
-pnpm exec tauri --version
-pnpm verify:source
-```
+Run the narrowest relevant check first, then the required broader gate. A green documentation gate
+does not prove product source, and a green source gate does not prove installer, Azure, signing,
+clean-machine, or pilot readiness.
 
-`verify:source` (and the default `verify`) covers the self-contained BMAD foundation gate,
-deterministic TypeScript 7.0.2 contract generation and conformance, sealed BMAD fixtures,
-renderer/UI typechecks and tests, the first-party secret scan, Node-based boundary inspection, and
-the Vite web-asset build. It does not read or execute imported reference-source content. Historical
-vault integrity is checked separately by `pnpm docs:check:legacy-archive`; current documentation is
-validated by `pnpm docs:verify`. The contract generator-qualification job is an unconditional
-Windows CI gate with pinned Rust and .NET tools. The native desktop lane runs unless
-the organization sets `SAPPHIRUS_NATIVE_LANE_FROZEN` to `true`; the signed-release workflow is the
-opt-in one, requiring `SAPPHIRUS_NATIVE_LANE_ENABLED`.
-The P1 signed-installer qualification job is additionally guarded by
-`SAPPHIRUS_SIGNING_LANE_ENABLED`, a protected `windows-signing` environment, and an
-organization-managed signing runner. A separate qualification runner executes the required prior
-installer and records exact-source signed-build plus install/upgrade/launch/uninstall evidence; it
-does not publish a release. The same release metadata authority supplies versions, artifact names,
-pinned toolchains, and dependency-lock hashes. The signed candidate carries a deterministic
-CycloneDX 1.6 complete build-lock inventory; after lifecycle qualification, GitHub binds build,
-SBOM, and release-qualification attestations to the exact application and installer hashes. The
-release predicate fail-closes on source, toolchain, lock, publisher, timestamp, lifecycle, or
-bundled-foundation evidence drift.
+## Repository map
 
-Signed release builds set `SAPPHIRUS_UPDATE_ENDPOINT` to the HTTPS Tauri update feed and
-`SAPPHIRUS_UPDATE_PUBLIC_KEY` to its public verification key. The desktop updater is disabled
-when either build-time value is absent; private signing keys are never embedded in the app.
+- `apps/desktop-ui` — Forge workbench renderer and UI tests.
+- `crates/desktop-app` — native composition root and Tauri application.
+- `crates/desktop-runtime` — governed runtime and BMAD capability adapters.
+- `crates/desktop-*` — native authority services and platform adapters.
+- `packages/bmad-foundation` — sealed BMAD source, ledgers, catalog, and runtime projections.
+- `packages/contracts` — schema source, fixtures, generators, and cross-language boundaries.
+- `services/desktop-support-api` — support-plane scaffold and local contract seam.
+- `infra` — local rehearsal and deployment infrastructure.
+- `docs` — current guidance, ADRs, runbooks, evidence, references, and archives.
 
-The planned internal deployment is single-tenant and must work without Entra. Its production
-credential, attribution, rotation, and revocation design remains incomplete and must not be
-represented by placeholder identity values. Organization policy and signed packages remain part
-of the intended deployment. No Docker, local server, local model, or GPU is required on employee
-workstations.
+`bmad-runtime-lib` is a compatibility pointer and retained reference-source boundary. It is not
+current guidance, a workspace package, a build input, a runtime dependency, or a distribution
+artifact.
+
+## Documentation and contribution
+
+- [Documentation hub](docs/README.md)
+- [Onboarding](docs/development/onboarding.md)
+- [Contribution guide](docs/development/contribution-guide.md)
+- [Testing and verification](docs/development/testing-and-verification.md)
+- [Roadmap and known gaps](docs/current/roadmap-and-known-gaps.md)
+
+Source, tests, and named gates outrank documentation. Accepted ADRs outrank current summaries;
+plans, reviews, source analyses, and archives cannot prove implementation. Existing
+`sapphirus.*`, `@sapphirus/*`, and `SAPPHIRUS_*` names are legacy compatibility identifiers, not
+the human-facing product name.

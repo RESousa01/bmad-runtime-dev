@@ -808,6 +808,12 @@ test("the runtime manifest binds every bundled byte and excludes development-onl
   }
 });
 
+test("the focused runner accepts plan verification selectors", async () => {
+  const runner = await readFile(path.join(packageRoot, "scripts", "test.mjs"), "utf8");
+  assert.match(runner, /\["script-inventory",\s*"\(\?:script inventory\|classification\|inventory\)"\]/u);
+  assert.match(runner, /\["builder-source-closure",\s*"\(\?:Builder.*closure\|builder source closure\|archive members\)"\]/u);
+});
+
 test("the semantic ledger locks source identity, licenses, and managed bytes", async () => {
   const ledger = await readJson("semantic-source-ledger.json");
   assert.equal(ledger.schemaVersion, "sapphirus.bmad.semantic-source-ledger/v1");

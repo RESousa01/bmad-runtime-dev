@@ -1,5 +1,12 @@
 # Desktop support plane infrastructure
 
+> **Status: undeployed historical scaffold.** This Bicep stack documents an earlier support-plane
+> composition and has not been qualified against a real current environment. Parts of the stack
+> still depend on Entra-era assumptions that are superseded as product direction by
+> [ADR-0012](../../docs/adr/ADR-0012-no-entra-authentication-and-model-access.md). Do not deploy it
+> as the current Forge production architecture; use it only as implementation evidence while the
+> no-Entra production design, credentials, attribution, networking, and operator gates are closed.
+
 This resource-group-scoped Bicep stack describes the D2 Azure support plane. It creates a
 VNet-integrated Azure Container Apps environment, user-assigned managed identities, private
 Azure Container Registry, Key Vault ES256 signing key, App Configuration, Azure SQL metadata

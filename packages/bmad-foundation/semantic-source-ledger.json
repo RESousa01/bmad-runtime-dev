@@ -207,7 +207,7 @@
       "id": "method-007",
       "sourceId": "method",
       "member": "src/bmm-skills/1-analysis/bmad-agent-analyst/customize.toml",
-      "sha256": "7191f4a60ada7dbabe083699b2461f35778af7688924dc6ce05911cf1ffc9054",
+      "sha256": "aecf5cc9f91545c743550fda94571d4508eedf1aff507ac5a7bef03e4cda9eac",
       "treatments": [
         {
           "decision": "adapt",
@@ -451,7 +451,7 @@
       "id": "method-021",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-agent-dev/customize.toml",
-      "sha256": "01a45ac2420f920cfc934de7b1a884b04017c85641085c93d9aada45d2dccf17",
+      "sha256": "939e97c290ffb9b65d7ff4c4454aebf2ed29f27261792c89a7693d19896f017e",
       "treatments": [
         {
           "decision": "adapt",
@@ -471,7 +471,7 @@
       "id": "method-022",
       "sourceId": "method",
       "member": "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
-      "sha256": "a56c7a0abc45e1dba719ae5e66b7169a1098b403e7fd69b30c19f16c12cddc6a",
+      "sha256": "89a316fd74d8490d1ceb2ec7c40ea503504fd4c7a2c1e31089bfc628c86c45bf",
       "treatments": [
         {
           "decision": "adapt",
@@ -487,7 +487,7 @@
       "id": "method-023",
       "sourceId": "method",
       "member": "src/bmm-skills/3-solutioning/bmad-architecture/customize.toml",
-      "sha256": "137b418e1bb940411a6e77460a7c74af66a6ad732edcc7c7363746995b89e65d",
+      "sha256": "a6bb60a3adf976031f2870203285b1fc7a56e71e21232cd23bba544b178b5f15",
       "treatments": [
         {
           "decision": "adopt",
@@ -615,7 +615,7 @@
       "id": "method-030",
       "sourceId": "method",
       "member": "src/core-skills/bmad-brainstorming/SKILL.md",
-      "sha256": "399ddc752fc786b501ba07fb4b4b038b3d2bb076d36496b6384ef85cf922dd59",
+      "sha256": "e9cb07fe86aa254f9fb7217720d77fd693bf66a0c01af8114ecdf7148159fdd1",
       "treatments": [
         {
           "decision": "adopt",
@@ -743,7 +743,7 @@
       "id": "method-038",
       "sourceId": "method",
       "member": "src/bmm-skills/1-analysis/bmad-product-brief/SKILL.md",
-      "sha256": "0d569d109cd61a8056374d1f3f3980188407983772544ab81f4ff6b18e798508",
+      "sha256": "4c15a8ec688c998eeb71957f208b5953b1ac7a5641b008b3509f1f4fcdc8e6cd",
       "treatments": [
         {
           "decision": "adopt",
@@ -759,7 +759,7 @@
       "id": "method-039",
       "sourceId": "method",
       "member": "src/bmm-skills/1-analysis/bmad-product-brief/customize.toml",
-      "sha256": "cdd7b417de5b280ab5bd3af65f69654b05980b5efb48077563827c16391f42d6",
+      "sha256": "50abc46f7c2e7cc7b02e2edc4aa6a237a46ea49dcc6781da5b42bd8968de39ab",
       "treatments": [
         {
           "decision": "adopt",
@@ -919,7 +919,7 @@
       "id": "method-049",
       "sourceId": "method",
       "member": "src/bmm-skills/2-plan-workflows/bmad-ux/customize.toml",
-      "sha256": "c6f94676004a24eed7ff1d546d5b7e7b3889b84d9bab6bbb56bc297d6eabaeb8",
+      "sha256": "61f8bfbb020beb159b8da570ed416b02ec4a9ba3709aa0d08b417648d85328d8",
       "treatments": [
         {
           "decision": "adopt",
@@ -951,7 +951,7 @@
       "id": "method-051",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-dev-story/customize.toml",
-      "sha256": "592fa7948c4614609a59b152518f518d35e0178d6aa7c22e169d78157fd9f5aa",
+      "sha256": "baba9f07f653063aa94981f1413d5dd4f604931077fbfb04d9c2e397f8d33237",
       "treatments": [
         {
           "decision": "adopt",
@@ -983,7 +983,7 @@
       "id": "method-053",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-quick-dev/customize.toml",
-      "sha256": "ae6e5249ef9ef97009a8e65e76a20677fc99a2a5e9f6b775794e0d4942ddb0f8",
+      "sha256": "a00ebab464266bee6747674d674ec1ef02ddea94efa1518d3378672ee9214d70",
       "treatments": [
         {
           "decision": "adopt",
@@ -1047,7 +1047,7 @@
       "id": "method-057",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-code-review/customize.toml",
-      "sha256": "0289d4e42524eafcd465d4adfc86fb5bcf28903e6b42d41bdafc5e31b163afa3",
+      "sha256": "3616a62c24992da4eea3657397e025f160cb558a700213c80339f66f8caf04da",
       "treatments": [
         {
           "decision": "adopt",
@@ -1191,7 +1191,7 @@
       "id": "method-066",
       "sourceId": "method",
       "member": "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
-      "sha256": "85f0a3ea5fee06fcaef5ff34d6b194b265fe0d31ffd7610a9c9a0134bf0b21ce",
+      "sha256": "5d7b4719a1fa9e4f7d4cbeeb4a412c79e141bc77e8e25ba442b85e1c5c587f3f",
       "treatments": [
         {
           "decision": "adopt",
@@ -1207,7 +1207,7 @@
       "id": "method-067",
       "sourceId": "method",
       "member": "src/bmm-skills/2-plan-workflows/bmad-prd/customize.toml",
-      "sha256": "5da1c87df2022c3e31f2c8e343dbead23356fbc5f5e9169eccd3102577ba295f",
+      "sha256": "7f9a3a3503a3f758003ce2f1de59c31cc53658223e355fc76055f3140ef34e90",
       "treatments": [
         {
           "decision": "adopt",
@@ -2495,7 +2495,7 @@
       "id": "method-174",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-dev-auto/customize.toml",
-      "sha256": "238947560659b373d2e3b3d5a852e42f091534bff49acc9a06323bcd5d9b4253",
+      "sha256": "7afe53646a6a160ef52d42356ddb433e798a5c3951e5ec90f350022bc707713c",
       "treatments": [
         {
           "decision": "adopt",
@@ -2507,7 +2507,7 @@
       "id": "method-175",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-dev-auto/spec-template.md",
-      "sha256": "58be8da102ff80007f7de27165d93d32e1d795f2ea91b7c903d6745d83f492f1",
+      "sha256": "6a7cce1006794485258ce2e6ed494a209071c56be650961013489858947f1bc3",
       "treatments": [
         {
           "decision": "adopt",
@@ -2519,7 +2519,7 @@
       "id": "method-176",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-01-clarify-and-route.md",
-      "sha256": "d28892a47f7221c1b041d8fafebd39cd369d76978cb505d0dafe16074ff6cd62",
+      "sha256": "cfbf58ac4ba39b3d6a00dd122606a535341e60c77fd841b7aa5e1dad2fada887",
       "treatments": [
         {
           "decision": "adopt",
@@ -2531,7 +2531,7 @@
       "id": "method-177",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-02-plan.md",
-      "sha256": "c23fac6eb74de90b28ceb4f63bcd949b5b138323bf12956cb0491a4eb162bc5c",
+      "sha256": "f97d8a9f27c819db783e8a3869fb8badcc17cd52686fea6b5b253063e2a8e633",
       "treatments": [
         {
           "decision": "adopt",
@@ -2543,7 +2543,7 @@
       "id": "method-178",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-03-implement.md",
-      "sha256": "da7212ad5f8edd96ef55b5c9df626e2ccdec05d3c7ab16c31c9c99f89ab7e641",
+      "sha256": "5ecd54fbb9ba892ba3a5e85e6fcba0c4fd26ef3b80e1cf10c3a0565c64cace3f",
       "treatments": [
         {
           "decision": "adopt",
@@ -2555,7 +2555,7 @@
       "id": "method-179",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-dev-auto/step-04-review.md",
-      "sha256": "26b44c6798d264269992cc0a2150758c607ec9464d793a23e616d0fcf384a9c5",
+      "sha256": "dcd7f28c9f026c0e183e06e4ba6c36101e343abeeea342bb12a927f10fa8b39a",
       "treatments": [
         {
           "decision": "adopt",
@@ -2603,7 +2603,7 @@
       "id": "method-183",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-quick-dev/render.py",
-      "sha256": "82e20aff63477b385f58b76e902d800586edb5778c46fb54fe5cb33917c90459",
+      "sha256": "a906773660eee06999e18b561cbeb1f8c523c5827a55392438fa1e4d87a071db",
       "treatments": [
         {
           "decision": "reject",
@@ -2627,7 +2627,7 @@
       "id": "method-185",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-01-clarify-and-route.md",
-      "sha256": "bf6e7552c83d453352e00f49e9427f95bb4c6d7ea43e34083697bb2a6405eece",
+      "sha256": "ae7e90b8286971d1e54500892be2e39d1e6160e9948591c72f7b7b379b1c6bef",
       "treatments": [
         {
           "decision": "adopt",
@@ -2639,7 +2639,7 @@
       "id": "method-186",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-02-plan.md",
-      "sha256": "0ccfcf9db56c266185c52e56460adbd7c713f33507675bdb5eb56eefc3310287",
+      "sha256": "d501c6c3b566a05203305f9b2b8ce3546ccc1cafc196643809e4c4b7a1a891d5",
       "treatments": [
         {
           "decision": "adopt",
@@ -2651,7 +2651,7 @@
       "id": "method-187",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-03-implement.md",
-      "sha256": "238c49279769cfe32d8ecf051d60d0b3817d2ee6a916b36ba3bde5511a063553",
+      "sha256": "e3aefe96301cf14d91a831f1cc315269f796dbd5c9c1d69353f399358c78e574",
       "treatments": [
         {
           "decision": "adopt",
@@ -2663,7 +2663,7 @@
       "id": "method-188",
       "sourceId": "method",
       "member": "src/bmm-skills/4-implementation/bmad-quick-dev/step-04-review.md",
-      "sha256": "940b5a691add9e6b81f6d01fc725bab7f2e579e5397ee6e94da42efdc9d8758e",
+      "sha256": "1d93e499b6c394bcdfa5c3cf924d084adcd29a00a23b4389b83095c79ba2079c",
       "treatments": [
         {
           "decision": "adopt",
@@ -2771,7 +2771,7 @@
       "id": "method-197",
       "sourceId": "method",
       "member": "src/core-skills/bmad-advanced-elicitation/SKILL.md",
-      "sha256": "705cc827cab892855d07dcc926f5c9f749c3abab33e915d6ac1574aec174896b",
+      "sha256": "23a1f2903f6a19255e3ceae798afe48f6394694769b3b034502d174d683612b2",
       "treatments": [
         {
           "decision": "adopt",
@@ -2831,7 +2831,7 @@
       "id": "method-202",
       "sourceId": "method",
       "member": "src/core-skills/bmad-brainstorming/assets/brain-methods.csv",
-      "sha256": "150536f3f3d56e08262b27a2abd6b36f266538e2c929ef4aaf183491da33f0eb",
+      "sha256": "fff112eabca1a9cb8b190f8314bc47678becc5782a2372e11c83daa0e33b6dfd",
       "treatments": [
         {
           "decision": "adopt",
@@ -2843,7 +2843,7 @@
       "id": "method-203",
       "sourceId": "method",
       "member": "src/core-skills/bmad-brainstorming/assets/brain-selector.html",
-      "sha256": "798f27c743b853424aa00d4e41af5c3b515b7a329d6806b5d0a5ebe15e0fbf4e",
+      "sha256": "c110919a3366bd96061f050f98503e3586185e3d1df5ff8b62a5a046c571a436",
       "treatments": [
         {
           "decision": "reject",
@@ -2903,7 +2903,7 @@
       "id": "method-208",
       "sourceId": "method",
       "member": "src/core-skills/bmad-brainstorming/references/mode-autonomous.md",
-      "sha256": "79fba5391ef293cebdbbdc765c7edeb3ccf60c04317fef964a4ea64d6b13f260",
+      "sha256": "d815d2c7f0f8cc0cdfa7c619eaf61f59fd78142f13c69365eda257da38b97bdf",
       "treatments": [
         {
           "decision": "adopt",
@@ -2951,7 +2951,7 @@
       "id": "method-212",
       "sourceId": "method",
       "member": "src/core-skills/bmad-brainstorming/scripts/brain.py",
-      "sha256": "b84770d5d55fa17bd99a2ab9076130874dfb7f8cd9b4283cd6413df097bc72b6",
+      "sha256": "1c75c667fc70a85055dd19d77fb21478e190874e4a61d070c3b0971dd1bd25cc",
       "treatments": [
         {
           "decision": "reject",
@@ -2963,7 +2963,7 @@
       "id": "method-213",
       "sourceId": "method",
       "member": "src/core-skills/bmad-brainstorming/scripts/tests/test_brain.py",
-      "sha256": "5f150395d5aa95526eb1ded5b7a8bd624a577dd25ff060ac082db3cbb5cc0f77",
+      "sha256": "021c0b9fae8db859725312d50d8b304fff00ee7acc310699c35523e86bffbdd8",
       "treatments": [
         {
           "decision": "reject",
@@ -2975,7 +2975,7 @@
       "id": "method-214",
       "sourceId": "method",
       "member": "src/core-skills/bmad-customize/SKILL.md",
-      "sha256": "6461073f9322f5f2ec64477d6ae5e79c601e36e3160e492fef4bc2d928d4a9a8",
+      "sha256": "a42086f90024013e2611503eb0224ac0e90b2aecac44a886ae0e38cfdda69511",
       "treatments": [
         {
           "decision": "adopt",
@@ -3035,7 +3035,7 @@
       "id": "method-219",
       "sourceId": "method",
       "member": "src/core-skills/bmad-forge-idea/SKILL.md",
-      "sha256": "c62ac3a30a4c7a32e3ffd28881d0e9128fc22de1570884d6572c8bfbb7d7db0e",
+      "sha256": "ed3777d2b30857c612ca3260101d0c6723306356a1a4c23e6a2f2a5883eb1e54",
       "treatments": [
         {
           "decision": "adopt",
@@ -3059,7 +3059,7 @@
       "id": "method-221",
       "sourceId": "method",
       "member": "src/core-skills/bmad-forge-idea/scripts/resolve_personas.py",
-      "sha256": "3da694c23e5fb29fe25963e2ea0509e1dd6d8c9f70ac54b00d98044052fd1c6e",
+      "sha256": "ec732bf4f64a78071a92884c64424680bb08f1a4d461f5a5f32e3ea29dd980b8",
       "treatments": [
         {
           "decision": "reject",
@@ -3095,7 +3095,7 @@
       "id": "method-224",
       "sourceId": "method",
       "member": "src/core-skills/bmad-party-mode/SKILL.md",
-      "sha256": "783fef00cf5a889c80d7bb4ca78ca2a6e4c4390cde290d2e253855cf723cb10a",
+      "sha256": "de035b4e081fdd626a20114178f706ac222f519171d82b02139a7cec561a3487",
       "treatments": [
         {
           "decision": "adopt",
@@ -3179,7 +3179,7 @@
       "id": "method-231",
       "sourceId": "method",
       "member": "src/core-skills/bmad-party-mode/scripts/resolve_party.py",
-      "sha256": "663a1ffa8406564c2a08f210f144b08d323596b105b755ae795ca725384e32ac",
+      "sha256": "f8e69aa130b60b8d935250c3fa0a0947fb141b78d6c3375906f5f933781b3711",
       "treatments": [
         {
           "decision": "reject",
@@ -4176,8 +4176,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "byteLength": 119126,
-      "sha256": "53259a233d5afa072356eb976757614e7d24a2643b2ab78376e77c40c64150be"
+      "byteLength": 120065,
+      "sha256": "c3bec317a6d2b7350ebf1b7bfae2b7ece55f159ca425c23a880455ffbf7fac44"
     },
     {
       "path": "licenses/BMAD-BUILDER-MIT.txt",

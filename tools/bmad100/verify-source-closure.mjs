@@ -1145,9 +1145,13 @@ function verifyNormalizedPackages(args, sourceLock) {
     "semantic source ledger",
   );
   const semanticIds = new Set(semanticLedger.sourceMembers.map((member) => member.id));
-  const semanticBySourcePath = new Map(
-    semanticLedger.sourceMembers.map((member) => [
-      `${member.sourceId}:${member.member}`,
+  const sourceManifest = readJson(
+    resolve(args.foundationRoot, "source-manifest.json"),
+    "source manifest",
+  );
+  const sourceBySourcePath = new Map(
+    sourceManifest.members.map((member) => [
+      `${member.source_id}:${member.path}`,
       member.sha256,
     ]),
   );
@@ -1190,7 +1194,7 @@ function verifyNormalizedPackages(args, sourceLock) {
         /^(?:src|skills)\//u.test(node.path)
       ) {
         sourcePathReferences += 1;
-        const expectedHash = semanticBySourcePath.get(`${sourceId}:${node.path}`);
+        const expectedHash = sourceBySourcePath.get(`${sourceId}:${node.path}`);
         if (!expectedHash || node.contentHash !== `sha256:${expectedHash}`) {
           fail(`normalized package source resource drift ${path}:${node.path}`);
         }

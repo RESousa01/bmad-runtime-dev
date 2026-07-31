@@ -45,6 +45,39 @@ test("represents every manifest task exactly once and sorts next-ready determini
   assert.throws(() => validateState(missing, manifest), /exactly once/u);
 });
 
+test("reopens legacy completed tasks whose receipts do not satisfy the pass contract", () => {
+  const state = normalizeState({
+    schema_version: "1.0",
+    run_id: "legacy-incomplete-receipt",
+    repository_commit: HASH_A,
+    branch: "fixture",
+    worktree_tree: HASH_B,
+    dirty: true,
+    completed: ["P1-FIRST"],
+    failed: [],
+    blocked: [],
+    current_task: null,
+    source_identities: {},
+    updated_at: NOW,
+  }, manifest, {
+    "P1-FIRST": {
+      recorded_at: NOW,
+      artifact: {
+        source_hashes: {
+          baseline_task_source_tree: HASH_A,
+          final_task_source_tree: HASH_B,
+        },
+        commands: [{
+          command: "verify",
+          exit_code: 0,
+        }],
+      },
+    },
+  });
+
+  assert.equal(state.tasks.find((task) => task.id === "P1-FIRST").status, "verification_failed");
+});
+
 test("forbids dependency advancement and aliases governing state vocabulary", () => {
   const state = validateState(baseline(), manifest);
   assert.throws(() => transitionTask(state, manifest, "CHILD", "active"), /unmet dependencies/u);

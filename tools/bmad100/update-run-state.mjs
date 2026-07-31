@@ -55,9 +55,30 @@ function artifactTree(artifact, kind) {
   return names.map((name) => hashes[name]).find((value) => SHA_PATTERN.test(value ?? "")) ?? null;
 }
 
+function legacyReceiptPasses(evidence) {
+  const artifact = evidence?.artifact;
+  const baselineTree = artifactTree(artifact, "baseline");
+  const finalTree = artifactTree(artifact, "final");
+  const commands = artifact?.commands;
+  const hashes = artifact?.evidence_hashes;
+  return SHA_PATTERN.test(baselineTree ?? "")
+    && SHA_PATTERN.test(finalTree ?? "")
+    && Array.isArray(commands)
+    && commands.length > 0
+    && commands.every((command) =>
+      command.exit_code === 0
+      && (command.source_tree ?? finalTree) === finalTree)
+    && hashes
+    && typeof hashes === "object"
+    && !Array.isArray(hashes)
+    && Object.keys(hashes).length > 0
+    && Object.values(hashes).every((hash) => SHA_PATTERN.test(hash));
+}
+
 function taskFromManifest(id, entry, legacy, evidence) {
-  const legacyStatus = legacy.completed?.includes(id)
-    ? "passed"
+  const claimedComplete = legacy.completed?.includes(id);
+  const legacyStatus = claimedComplete
+    ? legacyReceiptPasses(evidence) ? "passed" : "verification_failed"
     : legacy.blocked?.includes(id)
       ? "blocked_external"
       : legacy.failed?.includes(id)
@@ -110,6 +131,17 @@ export function normalizeState(state, manifest, legacyEvidence = {}) {
   const tasks = Object.entries(manifest.task_index)
     .map(([id, entry]) => taskFromManifest(id, entry, state, legacyEvidence[id]))
     .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id));
+  const taskById = new Map(tasks.map((task) => [task.id, task]));
+  for (const task of tasks) {
+    if (task.status === "passed"
+      && task.dependencies.some((id) => taskById.get(id)?.status !== "passed")) {
+      task.status = "verification_failed";
+    }
+    if (["ready", "in_progress"].includes(task.status)
+      && task.dependencies.some((id) => taskById.get(id)?.status !== "passed")) {
+      task.status = "pending";
+    }
+  }
   const recordedTree = state.active_leases?.find((lease) => lease.task_id === state.current_task)?.baseline_tree
     ?? [...tasks].reverse().find((task) => task.final_tree)?.final_tree
     ?? commit;
@@ -124,7 +156,9 @@ export function normalizeState(state, manifest, legacyEvidence = {}) {
     },
     source_hashes: structuredClone(state.source_identities ?? {}),
     tasks,
-    current_task: state.current_task ?? null,
+    current_task: tasks.some((task) => task.id === state.current_task && task.status === "in_progress")
+      ? state.current_task
+      : null,
     next_ready: [],
     checkpoints: [],
     updated_at: state.updated_at ?? new Date().toISOString(),

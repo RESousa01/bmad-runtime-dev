@@ -1,5 +1,11 @@
 # Desktop Support API
 
+> **Status: undeployed compatibility scaffold.** This code still models an earlier Entra-bound D2
+> composition and is not called by the current deterministic or direct-provider desktop paths.
+> Accepted [ADR-0012](../../docs/adr/ADR-0012-no-entra-authentication-and-model-access.md) requires
+> the intended production design to work without Entra. Do not deploy this scaffold or treat its
+> current configuration contract as production direction.
+
 This directory is an undeployed D2 support-plane implementation seam. No service is called by the
 current deterministic/offline desktop path. When production composition is added, the API is intended to
 authenticate and license `windows_local` clients, broker transient no-store model calls, and return

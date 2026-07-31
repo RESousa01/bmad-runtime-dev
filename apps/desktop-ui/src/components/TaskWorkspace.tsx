@@ -417,6 +417,10 @@ export function TaskWorkspace({
   const checkingRetainedGuidance = methodGuidanceState.kind === "creating"
     && methodGuidanceState.activity === "recovering";
   const failedSubmission = submittedTask !== null && methodGuidanceState.kind === "unavailable";
+  const showStarterEmptyState = submittedTask === null
+    && chatLane.messages.length === 0
+    && chatLane.pending === null
+    && chatLane.error === null;
   /*
    * Everything that withholds the composer from outside it.
    *
@@ -755,7 +759,7 @@ export function TaskWorkspace({
               <article className="message message--agent message--compact" role="status">
                 <div><span className="message__label">Created · Unbound</span><p>A retained local BMAD Help run is available in Skills and agents. No model request was made.</p></div>
               </article>
-            ) : submittedTask ? null : (
+            ) : showStarterEmptyState ? (
               <section className="empty-session" aria-labelledby="empty-session-title">
                 <h2 id="empty-session-title">What do you want to build?</h2>
                 <p>
@@ -779,9 +783,9 @@ export function TaskWorkspace({
                   </ul>
                 )}
               </section>
-            )}
+            ) : null}
           </>
-        ) : (
+        ) : showStarterEmptyState ? (
           <section className="empty-session" aria-labelledby="empty-session-title">
             <h2 id="empty-session-title">What do you want to build?</h2>
             <p>
@@ -805,7 +809,7 @@ export function TaskWorkspace({
                 </Button>
               ) : null}
           </section>
-        )}
+        ) : null}
       </div>
 
       <form aria-label="Task composer" className="composer" onSubmit={submitTask}>

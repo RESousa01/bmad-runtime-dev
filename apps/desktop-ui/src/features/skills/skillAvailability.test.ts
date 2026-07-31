@@ -205,10 +205,10 @@ describe("skillVerdict — what the coverage matrix adds", () => {
     expect(verdict.coverage).toEqual({
       kind: "recorded",
       runtimeState: "active_projection",
-      snapshotState: "identical",
-      decision: "adopt",
+      snapshotState: "modified",
+      decision: "adapt",
       summary: expect.stringContaining("active in the closure ledger"),
-      sourceNote: "This build's copy of the source matches the pinned upstream.",
+      sourceNote: "This build's copy of the source differs from the pinned upstream.",
     });
   });
 

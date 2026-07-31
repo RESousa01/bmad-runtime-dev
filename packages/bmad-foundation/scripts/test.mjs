@@ -15,6 +15,8 @@ const focusedPatterns = new Map([
     "(?:implementation readiness|implementation_readiness|bmad-check-implementation-readiness)",
   ],
   ["bmad-deep-recon", "(?:Deep Recon|deep_recon|bmad-deep-recon)"],
+  ["script-inventory", "(?:script inventory|classification|inventory)"],
+  ["builder-source-closure", "(?:Builder.*closure|builder source closure|archive members)"],
 ]);
 if (args.length > 1 || (skill !== null && !focusedPatterns.has(skill))) {
   process.stderr.write(

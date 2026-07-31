@@ -771,7 +771,7 @@ describe("BmadLibraryPanel", () => {
     const core = screen.getByRole("region", { name: "Core skills" });
     expect(within(core).getByText("Runs here")).toBeTruthy();
     expect(
-      within(core).getByText(/Recorded compatibility decision: adopt/u),
+      within(core).getByText(/Recorded compatibility decision: adapt/u),
     ).toBeTruthy();
   });
 

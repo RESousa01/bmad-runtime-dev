@@ -6,7 +6,7 @@
     "sourceMemberCount": 294,
     "managedOutputCount": 40,
     "adoptedSourceCount": 228,
-    "contentHash": "sha256:f5599c0ccbd727472101aab6e27c269a0902c9a78d4e3b28c15ae110d7afae71"
+    "contentHash": "sha256:942fa1e17722afdbdb8f7bd394d80099bc7801a7630f1914a6e56065063cc631"
   },
   "closureLedger": {
     "schemaVersion": "sapphirus.bmad-capability-closure.v1",
@@ -42,11 +42,7 @@
       "builder:workflow.build_edit",
       "bmm:bmad-spec",
       "bmm:bmad-advanced-elicitation",
-      "bmm:bmad-review-adversarial-general",
-      "bmm:bmad-review-edge-case-hunter",
-      "bmm:bmad-review-verification-gap",
-      "bmm:bmad-editorial-review-prose",
-      "bmm:bmad-editorial-review-structure",
+      "core:bmad-review",
       "bmm:bmad-shard-doc",
       "bmm:bmad-index-docs"
     ],

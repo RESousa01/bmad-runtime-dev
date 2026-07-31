@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad-foundation-runtime-manifest.v1",
   "foundationVersion": "0.1.0-beta.1",
-  "semanticLedgerHash": "sha256:9e4ad81607765a46e03722abf6aa2112aca95b986a1247933755b6ed2f7a167f",
+  "semanticLedgerHash": "sha256:942fa1e17722afdbdb8f7bd394d80099bc7801a7630f1914a6e56065063cc631",
   "resources": [
     {
       "path": "NOTICE.md",
@@ -11,8 +11,8 @@
     },
     {
       "path": "adoption-ledger.json",
-      "contentHash": "sha256:53259a233d5afa072356eb976757614e7d24a2643b2ab78376e77c40c64150be",
-      "byteLength": 119126,
+      "contentHash": "sha256:c3bec317a6d2b7350ebf1b7bfae2b7ece55f159ca425c23a880455ffbf7fac44",
+      "byteLength": 120065,
       "contentKind": "provenance_ledger"
     },
     {
@@ -23,13 +23,13 @@
     },
     {
       "path": "capability-catalog.json",
-      "contentHash": "sha256:827092afa5909dd4f17bf0363fbd55c3a558519b55c7d0eb9fcddc7b64dd4301",
-      "byteLength": 68035,
+      "contentHash": "sha256:02ed1d13ccb2e9780b64624b04f1086c74b8fb10fb8aac1d7a858a586dc196bb",
+      "byteLength": 73386,
       "contentKind": "normalized_contract"
     },
     {
       "path": "compatibility-aliases.json",
-      "contentHash": "sha256:61c003eeb122724cbb95d74d17834dfd6d03ac0e028dd269403fd172915a822f",
+      "contentHash": "sha256:00312b97fa0f111d49a2b943996503e3f50bd494d0d0271431ffd7cdaa885766",
       "byteLength": 6715,
       "contentKind": "normalized_contract"
     },
@@ -59,8 +59,8 @@
     },
     {
       "path": "normalized/bmad-architecture.package.json",
-      "contentHash": "sha256:3e91280ee9bc7fdfe3bc9a9067fefa207d4ea1260d805435f9fb7e72486d1881",
-      "byteLength": 4713,
+      "contentHash": "sha256:e99c87dde20d19d8c9c98e456c26358342559c34ac89ed8a38babedff9bfafc9",
+      "byteLength": 4043,
       "contentKind": "normalized_contract"
     },
     {
@@ -71,8 +71,8 @@
     },
     {
       "path": "normalized/bmad-check-implementation-readiness.package.json",
-      "contentHash": "sha256:61006f72c9de1de2189056ab1fd2abb13d47495fd6c80485d7fa44988f72215e",
-      "byteLength": 2043,
+      "contentHash": "sha256:e05a6784b006803cb0b124f7d36a6ed1085a549a42d971dd57e3f228b3dde5ca",
+      "byteLength": 4353,
       "contentKind": "normalized_contract"
     },
     {
@@ -125,20 +125,20 @@
     },
     {
       "path": "normalized/bmad-help-action-graph.json",
-      "contentHash": "sha256:fa5f77e78ae862b4f35dde71f6fe4f2af21a2407e11eb5bd7c7786a58f4bc8f2",
+      "contentHash": "sha256:c08027a3617b0ec27cd48d6ac8c86f043d65c25a28bb07ca125895506ea7fb8e",
       "byteLength": 1538,
       "contentKind": "normalized_contract"
     },
     {
       "path": "normalized/bmad-help-capability-graph.json",
-      "contentHash": "sha256:02ee1e53f87f650a66698b0a9f7e04c176cbe1dbaf87b62d9f7d7fe9eb18d2e1",
-      "byteLength": 25510,
+      "contentHash": "sha256:1382fef4499199fcdbfc808c1c09b3f6c4afab02d4594c3ea5e6a8798074c3f7",
+      "byteLength": 25731,
       "contentKind": "normalized_contract"
     },
     {
       "path": "normalized/bmad-help.package.json",
-      "contentHash": "sha256:09c5a9c48a728ea7e7010459cd229d8a6ec23d6b4125567309b83e44a5cefab7",
-      "byteLength": 87595,
+      "contentHash": "sha256:f5455b17d6659bfeeb5fbba369c5d4c16d8a7d522408b1aabd9eb91ef3132a84",
+      "byteLength": 86808,
       "contentKind": "normalized_contract"
     },
     {
@@ -245,8 +245,8 @@
     },
     {
       "path": "normalized/bmad-ux.package.json",
-      "contentHash": "sha256:b70f4479da6c760edce93423ab1ceca2888e0235cbaa0e30fbb309afd3a53f25",
-      "byteLength": 1950,
+      "contentHash": "sha256:344d5ef53e155819aa2e3e07c6db69bd10bf069628fd12dea3b44b53f22bb737",
+      "byteLength": 6560,
       "contentKind": "normalized_contract"
     },
     {
@@ -503,14 +503,14 @@
     },
     {
       "path": "semantic-source-ledger.json",
-      "contentHash": "sha256:9e4ad81607765a46e03722abf6aa2112aca95b986a1247933755b6ed2f7a167f",
-      "byteLength": 237190,
+      "contentHash": "sha256:942fa1e17722afdbdb8f7bd394d80099bc7801a7630f1914a6e56065063cc631",
+      "byteLength": 237191,
       "contentKind": "provenance_ledger"
     },
     {
       "path": "source-accounting.json",
-      "contentHash": "sha256:168f72d54426bc4dd5564270d128e0f3569e8dba5c69b6a9bb1618e7029f121e",
-      "byteLength": 756771,
+      "contentHash": "sha256:a65f5d4b2861a9d3d18faa28dee148227abef71c0f6d437b1e9574ede312ad44",
+      "byteLength": 756774,
       "contentKind": "provenance_ledger"
     },
     {
@@ -526,5 +526,5 @@
       "contentKind": "provenance_ledger"
     }
   ],
-  "manifestHash": "sha256:e3a213237ac36308ffc86617150c413558528037536f9b3eddc95c3f7fb1a2ac"
+  "manifestHash": "sha256:e49d5728dc42e6c1f78177d013c0d67b3d80592d3ffdb29c16d089ba160f45a8"
 }

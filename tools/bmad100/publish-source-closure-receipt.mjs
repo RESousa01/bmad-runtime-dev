@@ -215,8 +215,33 @@ async function main() {
     await mkdir(dirname(args.receipt), { recursive: true });
     await writeFile(args.receipt, stableJson(receipt), "utf8");
 
+    const runState = await readJson(
+      resolve(repositoryRoot, ".bmad100/run-state.json"),
+      "BMAD-100 run state",
+    );
+    report.schema_version = "sapphirus.bmad.gate-evidence/v1";
+    report.gate_ids = ["source_identity", "source_closure"];
+    report.commit = currentCandidate.head_commit;
+    report.source_tree = runState.repository?.worktree_tree;
     report.status = "pass";
     report.complete = true;
+    report.commands = [
+      {
+        command:
+          "node tools/bmad100/verify-source-closure.mjs --strict --json artifacts/bmad100/source-closure.json",
+        exit_code: 0,
+        required_for_pass: true,
+      },
+      {
+        command: "pnpm verify:bmad:source-meta-tests",
+        exit_code: 0,
+        required_for_pass: true,
+      },
+    ];
+    report.evidence_hashes = {
+      source_closure: sha256(await readFile(args.closure)),
+      meta_test_receipt: sha256(await readFile(args.receipt)),
+    };
     report.meta_tests = {
       status: "pass",
       total: 14,

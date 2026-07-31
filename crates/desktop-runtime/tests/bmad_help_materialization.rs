@@ -165,6 +165,10 @@ fn loaded_method() -> BmadLoadedMethodPackage {
             BmadLocationClass::ManagedProjection,
         ),
         source_entry(
+            "runtime/method/6.10.0/spec.instructions.md",
+            BmadLocationClass::ManagedProjection,
+        ),
+        source_entry(
             "runtime/method/6.10.0/validate-doc.instructions.md",
             BmadLocationClass::ManagedProjection,
         ),

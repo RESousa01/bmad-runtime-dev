@@ -746,6 +746,23 @@ describe("TaskWorkspace transcript delivery", () => {
     expect(transcript.getAttribute("aria-relevant")).toBe("additions");
   });
 
+  it("hides the starter empty state once the conversation has messages", () => {
+    render(
+      <TaskWorkspace
+        {...createProps({
+          chatLane: lane([
+            { role: "user", text: "Hello world" },
+            { role: "assistant", text: "Hello!" },
+          ]),
+        })}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("heading", { name: "What do you want to build?" }),
+    ).toBeNull();
+  });
+
   it("scrolls to the newest turn when a reply arrives", () => {
     const { container, rerender } = render(
       <TaskWorkspace

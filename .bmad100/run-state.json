@@ -1,180 +1,4750 @@
 {
   "schema_version": "1.0",
   "run_id": "dc30d654-3c81-492a-b854-ac745a6cb46c",
-  "repository_commit": "2521f082aeab491157dc4222ecef76b3b5c2e5ac",
-  "source_identities": {
+  "repository": {
+    "commit": "5836aea13453acd4ccadce00ad8d992201bd0e3f",
+    "branch": "main",
+    "worktree_tree": "3e2aabe0f2b183cf59b3e17af758bf8f52396901",
+    "dirty": true
+  },
+  "source_hashes": {
     "method": "2993a38a36a9586d16a62a4eacb3400db25dd1ea594bbfe4682789d7f95ac02b",
     "builder": "d3c70744a9875623b01856cc907cf558324bacc920f0d860c36ad2788a4d2852"
   },
-  "current_task": "MTH-08",
-  "status": "running",
-  "completed": [
-    "SRC-01",
-    "SRC-02",
-    "SRC-03",
-    "SRC-04",
-    "SRC-05",
-    "SRC-06",
-    "SRC-07",
-    "SRC-08",
-    "SRC-09",
-    "SRC-11",
-    "SRC-10",
-    "SRC-12",
-    "SEC-01",
-    "BLD-01",
-    "ENG-01",
-    "QAL-01",
-    "ENG-03",
-    "ENG-02",
-    "ENG-04",
-    "ENG-05",
-    "ENG-06",
-    "ENG-07",
-    "ENG-08",
-    "ENG-10",
-    "ENG-12",
-    "ENG-13",
-    "ENG-14",
-    "ENG-15",
-    "ENG-09",
-    "ENG-18",
-    "ENG-11",
-    "ENG-16",
-    "BLD-02"
-  ],
-  "failed": [],
-  "blocked": [
+  "tasks": [
     {
-      "task_id": "ENG-18",
-      "blocker_id": "ENV-01",
-      "scope": "non_blocking_environment"
+      "id": "SRC-01",
+      "phase": 0,
+      "priority": "P0",
+      "order": 1,
+      "dependencies": [],
+      "status": "passed",
+      "baseline_tree": "d4388f3ea94eeb1ffcf16aba4bbcbc80741d98b9",
+      "final_tree": "020c303938328e0f50e4a7ae05f3a633e764ede8",
+      "changed_files": [
+        "package.json",
+        ".github/workflows/bmad-100.yml",
+        "tools/bmad100/verify-workspace.mjs",
+        "tools/bmad100/workspace-root.test.mjs"
+      ],
+      "commands": [
+        {
+          "command": "node --test tools/bmad100/workspace-root.test.mjs",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "started_at": "2026-07-28T19:18:00Z",
+          "exit_code": 0,
+          "source_tree": "020c303938328e0f50e4a7ae05f3a633e764ede8",
+          "evidence_recorded_at": "2026-07-28T19:20:07.554Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm install --frozen-lockfile",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "started_at": "2026-07-28T19:18:04Z",
+          "exit_code": 0,
+          "source_tree": "020c303938328e0f50e4a7ae05f3a633e764ede8",
+          "evidence_recorded_at": "2026-07-28T19:20:07.554Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm verify:workspace",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "started_at": "2026-07-28T19:18:05Z",
+          "exit_code": 0,
+          "source_tree": "020c303938328e0f50e4a7ae05f3a633e764ede8",
+          "evidence_recorded_at": "2026-07-28T19:20:07.554Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "cargo metadata --locked --no-deps --format-version 1",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "started_at": "2026-07-28T19:18:06Z",
+          "exit_code": 0,
+          "source_tree": "020c303938328e0f50e4a7ae05f3a633e764ede8",
+          "evidence_recorded_at": "2026-07-28T19:20:07.554Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "dotnet restore Sapphirus.slnx --locked-mode",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "started_at": "2026-07-28T19:18:07Z",
+          "exit_code": 0,
+          "source_tree": "020c303938328e0f50e4a7ae05f3a633e764ede8",
+          "evidence_recorded_at": "2026-07-28T19:20:07.554Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm ci:policy:test && pnpm ci:reachable",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "started_at": "2026-07-28T19:18:09Z",
+          "exit_code": 0,
+          "source_tree": "020c303938328e0f50e4a7ae05f3a633e764ede8",
+          "evidence_recorded_at": "2026-07-28T19:20:07.554Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {},
+      "evidence_hashes": {
+        "final_task_source_tree": "020c303938328e0f50e4a7ae05f3a633e764ede8"
+      },
+      "blocker": null,
+      "replacement_task_id": null
     },
     {
-      "task_id": "BLD-02",
-      "blocker_id": "ENV-02",
-      "scope": "non_blocking_environment"
-    },
-    {
-      "task_id": "BLD-02",
-      "blocker_id": "ENV-03",
-      "scope": "non_blocking_environment"
-    },
-    {
-      "task_id": "MTH-09",
-      "blocker_id": "INT-MTH08-BRIDGE",
-      "scope": "blocked_internal"
-    },
-    {
-      "task_id": "MTH-10",
-      "blocker_id": "INT-MTH08-BRIDGE",
-      "scope": "blocked_internal"
-    },
-    {
-      "task_id": "MTH-12",
-      "blocker_id": "INT-MTH08-BRIDGE",
-      "scope": "blocked_internal"
-    },
-    {
-      "task_id": "MTH-13",
-      "blocker_id": "INT-MTH08-BRIDGE",
-      "scope": "blocked_internal"
-    }
-  ],
-  "skipped": [],
-  "active_leases": [
-    {
-      "task_id": "MTH-08",
-      "baseline_tree": "15645c295c223bc9b509adf0dc53bbe937f43c7c",
-      "files": [
-        "packages/bmad-foundation/normalized/bmad-prd.package.json",
-        "packages/bmad-foundation/ledger-fragments/method__bmad-prd.json",
-        "packages/bmad-foundation/source-accounting.json",
-        "packages/bmad-foundation/compatibility-ledger.json",
-        "packages/bmad-foundation/compatibility-aliases.json",
-        "packages/bmad-foundation/capability-catalog.json",
-        "packages/bmad-foundation/scripts/source-accounting.mjs",
-        "packages/bmad-foundation/scripts/verify-dependency-graph.mjs",
-        "packages/bmad-foundation/scripts/verify.mjs",
-        "packages/bmad-foundation/scripts/generate-catalog.mjs",
-        "packages/bmad-foundation/scripts/generate-builder-catalog.mjs",
-        "packages/bmad-foundation/tests/foundation.test.mjs",
-        "packages/bmad-foundation/tests/source-accounting.test.mjs",
-        "packages/bmad-foundation/tests/bmad-capability-catalog.test.mjs",
-        "packages/bmad-foundation/tests/compatibility-ledger.test.mjs",
-        "packages/bmad-foundation/tests/help-catalog.test.mjs",
-        "packages/bmad-foundation/tests/builder-catalog.test.mjs",
-        "packages/bmad-foundation/normalized/bmad-help-capability-graph.json",
-        "packages/bmad-foundation/normalized/builder-alias-registry.json",
-        "packages/bmad-foundation/normalized/builder-capability-catalog.json",
-        "packages/bmad-foundation/runtime-manifest.json",
+      "id": "SRC-02",
+      "phase": 0,
+      "priority": "P0",
+      "order": 2,
+      "dependencies": [
+        "SRC-01"
+      ],
+      "status": "passed",
+      "baseline_tree": "020c303938328e0f50e4a7ae05f3a633e764ede8",
+      "final_tree": "cf070837c612f3b20227d03c650e9ca2001a9511",
+      "changed_files": [
+        "packages/bmad-foundation/source-lock.json",
+        "packages/bmad-foundation/semantic-source-ledger.json",
+        "packages/bmad-foundation/NOTICE.md",
+        "docs/bmad/source-provenance.md",
+        "packages/bmad-foundation/scripts/verify-source-identities.mjs",
+        "packages/bmad-foundation/tests/source-identities.test.mjs",
         "packages/bmad-foundation/package.json",
-        "crates/desktop-runtime/src/bmad/skills/adapters/bmad_prd.rs",
-        "crates/desktop-runtime/src/bmad/skills/adapters/mod.rs",
-        "crates/desktop-runtime/src/bmad/skills/harness.rs",
-        "crates/desktop-runtime/src/bmad/skills/execution.rs",
-        "crates/desktop-runtime/src/bmad/skills/mod.rs",
+        "packages/bmad-foundation/scripts/verify.mjs",
+        "packages/bmad-foundation/tests/foundation.test.mjs",
+        "packages/bmad-foundation/runtime-manifest.json",
+        "packages/bmad-foundation/normalized/bmad-help.package.json"
+      ],
+      "commands": [
+        {
+          "command": "node packages/bmad-foundation/scripts/verify-source-identities.mjs --check",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "started_at": "2026-07-28T19:29:49Z",
+          "exit_code": 0,
+          "source_tree": "cf070837c612f3b20227d03c650e9ca2001a9511",
+          "evidence_recorded_at": "2026-07-28T19:31:02.051Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @sapphirus/bmad-foundation verify",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "started_at": "2026-07-28T19:29:50Z",
+          "exit_code": 0,
+          "source_tree": "cf070837c612f3b20227d03c650e9ca2001a9511",
+          "evidence_recorded_at": "2026-07-28T19:31:02.051Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "node packages/bmad-foundation/scripts/reseal.mjs --check",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "started_at": "2026-07-28T19:30:02Z",
+          "exit_code": 0,
+          "source_tree": "cf070837c612f3b20227d03c650e9ca2001a9511",
+          "evidence_recorded_at": "2026-07-28T19:31:02.051Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {},
+      "evidence_hashes": {
+        "final_task_source_tree": "cf070837c612f3b20227d03c650e9ca2001a9511",
+        "runtime_manifest_hash": "156623ea61b1885b10501aa31bc3070d9773a6bd06cf5d903814672e891bceec"
+      },
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SRC-05",
+      "phase": 0,
+      "priority": "P0",
+      "order": 3,
+      "dependencies": [
+        "SRC-01"
+      ],
+      "status": "passed",
+      "baseline_tree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+      "final_tree": "da4578a24aab60ffb902f6c4a36556e0227bbaad",
+      "changed_files": [
+        "packages/bmad-fixtures/fixtures/current/fixture-migration-map.json",
+        "packages/bmad-fixtures/fixtures/current/normalized-packages.json",
+        "packages/bmad-fixtures/fixtures/current/runtime-outcomes.json",
+        "packages/bmad-fixtures/fixtures/current/source-and-catalog.json",
+        "packages/bmad-fixtures/scripts/fixture-policy.mjs",
+        "packages/bmad-fixtures/tests/current-behavior.test.mjs",
+        "crates/desktop-runtime/tests/bmad_current_characterization.rs",
+        "apps/desktop-ui/src/features/bmad/__tests__/current-characterization.test.tsx"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @sapphirus/bmad-fixtures test",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "da4578a24aab60ffb902f6c4a36556e0227bbaad",
+          "evidence_recorded_at": "2026-07-28T20:07:22.968Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "cargo test -p desktop-runtime bmad_current_characterization",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "da4578a24aab60ffb902f6c4a36556e0227bbaad",
+          "evidence_recorded_at": "2026-07-28T20:07:22.968Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @forge/desktop-ui test -- bmad",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "da4578a24aab60ffb902f6c4a36556e0227bbaad",
+          "evidence_recorded_at": "2026-07-28T20:07:22.968Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "git diff --check -- <SRC-05 leased paths>",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "da4578a24aab60ffb902f6c4a36556e0227bbaad",
+          "evidence_recorded_at": "2026-07-28T20:07:22.968Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "rustfmt --edition 2021 --check crates/desktop-runtime/tests/bmad_current_characterization.rs",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "da4578a24aab60ffb902f6c4a36556e0227bbaad",
+          "evidence_recorded_at": "2026-07-28T20:07:22.968Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {},
+      "evidence_hashes": {
+        "final_task_source_tree": "da4578a24aab60ffb902f6c4a36556e0227bbaad",
+        "fixture_migration_map_sha256": "eae8842121bf320bf34d2b61f276a20c573517e56aa0e04ff7bd6e1551a527d7",
+        "runtime_outcomes_sha256": "ee77a7a509766aa6b25e77f9f21845f7bb4d1adcc77d10ce5827e0c07c5c140f"
+      },
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SRC-06",
+      "phase": 0,
+      "priority": "P0",
+      "order": 4,
+      "dependencies": [
+        "SRC-01"
+      ],
+      "status": "passed",
+      "baseline_tree": "b630ae350c9e1164450ec191829ef2ee974c989e",
+      "final_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+      "changed_files": [
+        "packages/bmad-foundation/package.json",
+        "packages/bmad-foundation/scripts/verify.mjs",
+        "packages/bmad-fixtures/package.json",
+        "docs/development/toolchains.md",
+        "tools/bmad100/verify-workspace.mjs",
+        "tools/bmad100/workspace-root.test.mjs"
+      ],
+      "commands": [
+        {
+          "command": "node --test ./tests/*.test.mjs",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev\\packages\\bmad-foundation",
+          "exit_code": 0,
+          "source_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+          "evidence_recorded_at": "2026-07-28T20:10:24.515Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "node --test ./tests/*.test.mjs",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev\\packages\\bmad-fixtures",
+          "exit_code": 0,
+          "source_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+          "evidence_recorded_at": "2026-07-28T20:10:24.515Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @sapphirus/bmad-foundation verify",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+          "evidence_recorded_at": "2026-07-28T20:10:24.515Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @sapphirus/bmad-fixtures verify",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+          "evidence_recorded_at": "2026-07-28T20:10:24.515Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm verify:workspace",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+          "evidence_recorded_at": "2026-07-28T20:10:24.515Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "node --test tools/bmad100/workspace-root.test.mjs",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+          "evidence_recorded_at": "2026-07-28T20:10:24.515Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "package compatibility negative smoke",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+          "evidence_recorded_at": "2026-07-28T20:10:24.515Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {},
+      "evidence_hashes": {
+        "final_task_source_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+        "foundation_package_sha256": "69df3587b6b7e3729623621c6565497a8da0d479b2e228ad90f0099d251f5deb",
+        "fixtures_package_sha256": "5b423f610ca4aaaef5c97beca7411a4acb336f6c9bf7d6fc2762f74efe6489c2"
+      },
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SRC-03",
+      "phase": 0,
+      "priority": "P0",
+      "order": 5,
+      "dependencies": [
+        "SRC-02"
+      ],
+      "status": "passed",
+      "baseline_tree": "cf070837c612f3b20227d03c650e9ca2001a9511",
+      "final_tree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+      "changed_files": [
+        ".gitattributes",
+        "packages/bmad-foundation/source/method/6.10.0/**",
+        "packages/bmad-foundation/source/builder/2.1.0/**",
+        "packages/bmad-foundation/scripts/import-source.mjs",
+        "packages/bmad-foundation/tests/import-source.test.mjs",
+        "packages/bmad-foundation/source-manifest.json",
+        "packages/bmad-foundation/package.json",
+        "packages/bmad-foundation/scripts/verify.mjs",
+        "packages/bmad-foundation/tests/foundation.test.mjs",
+        "packages/bmad-foundation/tests/method-fidelity.test.mjs",
+        "packages/bmad-foundation/runtime-manifest.json"
+      ],
+      "commands": [
+        {
+          "command": "node --test packages/bmad-foundation/tests/import-source.test.mjs",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+          "evidence_recorded_at": "2026-07-28T19:45:01.039Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @sapphirus/bmad-foundation verify",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+          "evidence_recorded_at": "2026-07-28T19:45:01.039Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "node packages/bmad-foundation/scripts/import-source.mjs --check",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+          "evidence_recorded_at": "2026-07-28T19:45:01.039Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "node packages/bmad-foundation/scripts/verify.mjs",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+          "evidence_recorded_at": "2026-07-28T19:45:01.039Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "synthetic-index staged-object SHA-256 comparison against source-manifest.json",
+          "cwd": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+          "exit_code": 0,
+          "source_tree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+          "evidence_recorded_at": "2026-07-28T19:45:01.039Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {},
+      "evidence_hashes": {
+        "final_task_source_tree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+        "source_manifest_sha256": "d44cb6522748c4eb3addcd07d758a72cf4b883ce286cf483f37812d5a4ab98e7",
+        "runtime_manifest_sha256": "366089e154fd1402c84afe85c9443be78d6a9a47ea1eb5f431f6a03d1d320424"
+      },
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SRC-04",
+      "phase": 0,
+      "priority": "P0",
+      "order": 6,
+      "dependencies": [
+        "SRC-03"
+      ],
+      "status": "passed",
+      "baseline_tree": "c0af6450ef0e8b3cd9e67043e0c753e1956528fe",
+      "final_tree": "db42ceacd0cbd4da816674331cd028c8be4b4873",
+      "changed_files": [
+        "packages/bmad-foundation/source-accounting.json",
+        "packages/bmad-foundation/scripts/source-accounting.mjs",
+        "packages/bmad-foundation/tests/source-accounting.test.mjs"
+      ],
+      "commands": [
+        {
+          "command": "node packages/bmad-foundation/scripts/source-accounting.mjs --check",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "db42ceacd0cbd4da816674331cd028c8be4b4873",
+          "evidence_recorded_at": "2026-07-31T04:15:37.916Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "members": 896,
+        "primary_method": 48,
+        "primary_builder": 5,
+        "actions": 10
+      },
+      "evidence_hashes": {
+        "source_accounting": "a65f5d4b2861a9d3d18faa28dee148227abef71c0f6d437b1e9574ede312ad44",
+        "runtime_manifest": "99eb40527aacea8b3b8279ec1e40a4ac4b9d5a844a5fc068ad4b55310957f080"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T04:15:37.916Z"
+    },
+    {
+      "id": "SRC-10",
+      "phase": 0,
+      "priority": "P1",
+      "order": 7,
+      "dependencies": [
+        "SRC-03"
+      ],
+      "status": "passed",
+      "baseline_tree": "31786b3f1b493b12bd92c36c06ec7c0be4410b42",
+      "final_tree": "1ca9491e97b611d769a9a4615d331474812b6d61",
+      "changed_files": [
+        "docs/bmad/builder-source-notes.md",
+        "packages/bmad-foundation/source/builder/2.1.0/source-notes.json",
+        "packages/bmad-foundation/source/builder/2.1.0/distribution-decision.json",
+        "packages/bmad-foundation/scripts/verify-source-notes.mjs",
+        "packages/bmad-foundation/tests/source-notes.test.mjs",
+        "packages/bmad-foundation/scripts/verify.mjs",
+        "packages/bmad-foundation/scripts/import-source.mjs"
+      ],
+      "commands": [
+        {
+          "command": "node packages/bmad-foundation/scripts/verify-source-notes.mjs",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "1ca9491e97b611d769a9a4615d331474812b6d61",
+          "evidence_recorded_at": "2026-07-28T20:41:31.844Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "node --test packages/bmad-foundation/tests/source-notes.test.mjs",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "1ca9491e97b611d769a9a4615d331474812b6d61",
+          "evidence_recorded_at": "2026-07-28T20:41:31.844Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "node packages/bmad-foundation/scripts/verify-source-identities.mjs --check --method-archive C:\\Users\\rodri\\Downloads\\BMAD-METHOD-main.zip --builder-archive C:\\Users\\rodri\\Downloads\\bmad-builder-main.zip",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "1ca9491e97b611d769a9a4615d331474812b6d61",
+          "evidence_recorded_at": "2026-07-28T20:41:31.844Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @sapphirus/bmad-foundation verify",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "1ca9491e97b611d769a9a4615d331474812b6d61",
+          "evidence_recorded_at": "2026-07-28T20:41:31.844Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {},
+      "evidence_hashes": {
+        "source_notes_sha256": "cfd96d12de52ae66eef7c77e384be393ffa43202fc86b3f46cff6f02bdaa02f1",
+        "distribution_decision_sha256": "b95f92a1dd50e542cd4a7775802087a76dc1e7cf060e0cf42ab1a4ae95509a29"
+      },
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SRC-07",
+      "phase": 0,
+      "priority": "P0",
+      "order": 8,
+      "dependencies": [
+        "SRC-04"
+      ],
+      "status": "passed",
+      "baseline_tree": "3580868b2a2f5d482c2bd489677cc372119afe25",
+      "final_tree": "dfa22bf69cc46aea6e606037726f9accb46df746",
+      "changed_files": [
+        "packages/contracts/schemas/bmad-source-identity.schema.json",
+        "packages/contracts/schemas/bmad-source-accounting.schema.json",
+        "packages/contracts/schemas/bmad-capability-catalog.schema.json",
+        "packages/contracts/schemas/bmad-skill-package.schema.json",
+        "packages/contracts/schemas/bmad-session.schema.json",
+        "packages/contracts/schemas/bmad-artifact.schema.json",
+        "packages/contracts/schemas/bmad-builder-authoring.schema.json",
+        "packages/contracts/schemas/bmad-builder-promotion.schema.json",
+        "packages/contracts/schemas/bmad-eval.schema.json",
+        "packages/contracts/schemas/bmad-module.schema.json",
+        "packages/contracts/schemas/bmad-script-plan.schema.json",
+        "packages/contracts/schemas/bmad-config.schema.json",
+        "packages/contracts/schemas/bmad-memory.schema.json",
+        "packages/contracts/schemas/bmad-upgrade.schema.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @sapphirus/contracts verify",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "dfa22bf69cc46aea6e606037726f9accb46df746",
+          "evidence_recorded_at": "2026-07-31T04:16:45.361Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @sapphirus/contracts test",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "dfa22bf69cc46aea6e606037726f9accb46df746",
+          "evidence_recorded_at": "2026-07-31T04:16:45.361Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "schemas": 58,
+        "closed_objects": 325,
+        "tests": 107,
+        "passed": 106,
+        "skipped": 1
+      },
+      "evidence_hashes": {
+        "bmad_source_identity_schema": "cf8f201f4ab21dc54a42b0f0711a1863fac99271e16fefba570b8e013a6cb00c"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T04:16:45.361Z"
+    },
+    {
+      "id": "SEC-01",
+      "phase": 5,
+      "priority": "P0",
+      "order": 9,
+      "dependencies": [
+        "SRC-03",
+        "SRC-04"
+      ],
+      "status": "passed",
+      "baseline_tree": "31786b3f1b493b12bd92c36c06ec7c0be4410b42",
+      "final_tree": "b4589797c4d5a1b6ff35eb6e0b6e98aae25d76a6",
+      "changed_files": [
+        "packages/bmad-foundation/script-inventory.json",
+        "packages/bmad-foundation/scripts/classify-scripts.mjs",
+        "docs/security/bmad-script-policy.md",
+        "packages/bmad-foundation/tests/script-inventory.test.mjs",
+        "packages/bmad-foundation/scripts/test.mjs",
+        "packages/bmad-foundation/tests/foundation.test.mjs"
+      ],
+      "commands": [
+        {
+          "command": "node packages/bmad-foundation/scripts/classify-scripts.mjs --strict --check",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "b4589797c4d5a1b6ff35eb6e0b6e98aae25d76a6",
+          "evidence_recorded_at": "2026-07-31T04:18:13.731Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @sapphirus/bmad-foundation test -- script-inventory",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "b4589797c4d5a1b6ff35eb6e0b6e98aae25d76a6",
+          "evidence_recorded_at": "2026-07-31T04:18:13.731Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "reviewed_treatments": 162,
+        "tests": 19
+      },
+      "evidence_hashes": {
+        "script_inventory": "bbb88a2718d261c4315ad6b99256e23044d824175b44806d86fd7558dc6c6601"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T04:18:13.731Z"
+    },
+    {
+      "id": "BLD-01",
+      "phase": 3,
+      "priority": "P0",
+      "order": 10,
+      "dependencies": [
+        "SRC-03",
+        "SRC-04",
+        "SRC-10"
+      ],
+      "status": "passed",
+      "baseline_tree": "1ca9491e97b611d769a9a4615d331474812b6d61",
+      "final_tree": "2a03e999c17638dc6163f829bf082bd4de6a7f02",
+      "changed_files": [
+        "packages/bmad-foundation/source/builder/2.1.0",
+        "packages/bmad-foundation/scripts/builder-resource-closure.mjs",
+        "packages/bmad-foundation/builder-source-ledger.json",
+        "packages/bmad-foundation/tests/builder-source-closure.test.mjs",
+        "docs/bmad/builder/source-accounting.md",
+        "packages/bmad-foundation/scripts/test.mjs",
+        "packages/bmad-foundation/tests/foundation.test.mjs"
+      ],
+      "commands": [
+        {
+          "command": "node packages/bmad-foundation/scripts/builder-resource-closure.mjs --builder 2.1.0 --strict",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "2a03e999c17638dc6163f829bf082bd4de6a7f02",
+          "evidence_recorded_at": "2026-07-31T04:19:02.916Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @sapphirus/bmad-foundation test -- builder-source-closure",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "2a03e999c17638dc6163f829bf082bd4de6a7f02",
+          "evidence_recorded_at": "2026-07-31T04:19:02.916Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "archive_members": 299,
+        "governance_sidecars": 2,
+        "production_skills": 5,
+        "tests": 19
+      },
+      "evidence_hashes": {
+        "builder_source_ledger": "73061c75b34b1844495f94ed9f80635cee7b175679fa789a96aaa9aff7b948df"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T04:19:02.916Z"
+    },
+    {
+      "id": "SRC-08",
+      "phase": 0,
+      "priority": "P0",
+      "order": 11,
+      "dependencies": [
+        "SRC-07"
+      ],
+      "status": "passed",
+      "baseline_tree": "0db115b58212eb92a79c4748b394121ddefc91cb",
+      "final_tree": "62148d422700d5b7783f68542e4786c4fc5b7c0e",
+      "changed_files": [
+        "packages/contracts/generated/typescript",
+        "packages/contracts/generated/rust",
+        "packages/contracts/generated/csharp",
+        "packages/contracts/fixtures/bmad",
+        "packages/contracts/scripts/generate-bmad.mjs",
+        "packages/contracts/schema-lock.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @sapphirus/contracts generate:bmad --check",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "62148d422700d5b7783f68542e4786c4fc5b7c0e",
+          "evidence_recorded_at": "2026-07-31T04:24:56.692Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @sapphirus/contracts verify:cross-language",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "62148d422700d5b7783f68542e4786c4fc5b7c0e",
+          "evidence_recorded_at": "2026-07-31T04:24:56.692Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "generated_files": 5279,
+        "schemas": 58,
+        "tests": 126,
+        "passed": 125,
+        "skipped": 1
+      },
+      "evidence_hashes": {
+        "schema_lock": "f093a685850bd864917cff0f2ded62bc828ce46b1b0f290c15a1060c7ab93e30"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T04:24:56.692Z"
+    },
+    {
+      "id": "QAL-01",
+      "phase": 6,
+      "priority": "P0",
+      "order": 12,
+      "dependencies": [
+        "SRC-04",
+        "BLD-01"
+      ],
+      "status": "passed",
+      "baseline_tree": "0db115b58212eb92a79c4748b394121ddefc91cb",
+      "final_tree": "16809db17c61399794c3d954c7501ba32a9fa535",
+      "changed_files": [
+        "tools/bmad100/verify-source-closure.mjs",
+        "tools/bmad100/run-source-closure-meta.mjs",
+        "tools/bmad100/manifests/method-6.10.0.json",
+        "tools/bmad100/manifests/builder-2.1.0.json",
+        "artifacts/bmad100/source-closure.json",
+        "packages/bmad-fixtures/fixtures/current/source-and-catalog.json",
+        "packages/bmad-foundation/scripts/reseal.mjs",
+        "packages/bmad-foundation/normalized/bmad-help.package.json",
+        "packages/bmad-foundation/semantic-source-ledger.json",
+        "packages/bmad-foundation/runtime-manifest.json"
+      ],
+      "commands": [
+        {
+          "command": "node tools/bmad100/verify-source-closure.mjs --strict --json artifacts/bmad100/source-closure.json",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "16809db17c61399794c3d954c7501ba32a9fa535",
+          "evidence_recorded_at": "2026-07-31T04:33:00.268Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm verify:bmad:source-meta-tests",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "16809db17c61399794c3d954c7501ba32a9fa535",
+          "evidence_recorded_at": "2026-07-31T04:33:00.268Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "members": 896,
+        "method_skills": 48,
+        "builder_skills": 5,
+        "builder_actions": 10,
+        "meta_tests": 14
+      },
+      "evidence_hashes": {
+        "source_closure": "c189d31dbd51f0104c664a918c70c9a10d24095c6bac6069a78e8850b16db49f",
+        "qal_report": "08d98133e27f51d681ae8b7a0858c39b0faf0e1d7d1c52b488240a4ac8d40bd3"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T04:33:00.268Z"
+    },
+    {
+      "id": "SRC-09",
+      "phase": 0,
+      "priority": "P0",
+      "order": 13,
+      "dependencies": [
+        "SRC-04",
+        "SRC-08"
+      ],
+      "status": "passed",
+      "baseline_tree": "0db115b58212eb92a79c4748b394121ddefc91cb",
+      "final_tree": "1758dea9eb87920de5ad8c8646610e72d8c1400b",
+      "changed_files": [
+        "crates/desktop-app/build.rs",
+        "crates/desktop-app/tests/bmad_capability_catalog.rs",
+        "packages/bmad-foundation/capability-catalog.json",
+        "packages/bmad-foundation/compatibility-aliases.json",
+        "crates/desktop-app/src/generated/bmad_capabilities.rs",
+        "apps/desktop-ui/src/generated/bmadCapabilities.ts"
+      ],
+      "commands": [
+        {
+          "command": "node packages/bmad-foundation/scripts/generate-catalog.mjs --check",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "1758dea9eb87920de5ad8c8646610e72d8c1400b",
+          "evidence_recorded_at": "2026-07-31T08:31:57.126Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "cargo test -p desktop-app bmad_capability_catalog --locked",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "1758dea9eb87920de5ad8c8646610e72d8c1400b",
+          "evidence_recorded_at": "2026-07-31T08:31:57.126Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @forge/desktop-ui test -- bmad-capability-catalog",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "1758dea9eb87920de5ad8c8646610e72d8c1400b",
+          "evidence_recorded_at": "2026-07-31T08:31:57.126Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "catalog_rows": 58,
+        "method_rows": 48,
+        "builder_actions": 10,
+        "rust_tests": 2,
+        "ui_tests": 3
+      },
+      "evidence_hashes": {
+        "capability_catalog": "02ed1d13ccb2e9780b64624b04f1086c74b8fb10fb8aac1d7a858a586dc196bb"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:31:57.126Z"
+    },
+    {
+      "id": "SRC-11",
+      "phase": 0,
+      "priority": "P0",
+      "order": 14,
+      "dependencies": [
+        "SRC-08"
+      ],
+      "status": "passed",
+      "baseline_tree": "b2c7fe9d169f38cd7a680c7874030cec67c9d4f3",
+      "final_tree": "e1f18308b5857569cf64cf91b256d83db8f6d22b",
+      "changed_files": [
+        ".bmad100/run-state.json",
+        "tools/bmad100/update-run-state.mjs",
+        "tools/bmad100/tests/update-run-state.test.mjs"
+      ],
+      "commands": [
+        {
+          "command": "node tools/bmad100/update-run-state.mjs --self-test",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "e1f18308b5857569cf64cf91b256d83db8f6d22b",
+          "evidence_recorded_at": "2026-07-31T04:33:28.861Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "node --test tools/bmad100/tests/update-run-state.test.mjs",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "e1f18308b5857569cf64cf91b256d83db8f6d22b",
+          "evidence_recorded_at": "2026-07-31T04:33:28.861Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "manifest_tasks": 156,
+        "tests": 6
+      },
+      "evidence_hashes": {
+        "update_run_state": "1ad7cbc21164ace2ddb646c1b338d9864ed78cad2933542593e1c47007872a8f"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T04:33:28.861Z"
+    },
+    {
+      "id": "ENG-01",
+      "phase": 1,
+      "priority": "P0",
+      "order": 15,
+      "dependencies": [
+        "SRC-08",
+        "SRC-09"
+      ],
+      "status": "passed",
+      "baseline_tree": "0db115b58212eb92a79c4748b394121ddefc91cb",
+      "final_tree": "3452616cbb41544d8016b384fc9521c9dc7d7898",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/artifacts.rs",
+        "crates/desktop-runtime/src/bmad/catalog.rs",
+        "crates/desktop-runtime/src/bmad/completion.rs",
+        "crates/desktop-runtime/src/bmad/config.rs",
+        "crates/desktop-runtime/src/bmad/mod.rs",
+        "crates/desktop-runtime/src/bmad/resources.rs",
+        "crates/desktop-runtime/src/bmad/session.rs",
+        "crates/desktop-runtime/src/bmad/source.rs",
+        "crates/desktop-runtime/src/lib.rs",
+        "crates/desktop-runtime/tests/bmad_architecture.rs"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_architecture",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "3452616cbb41544d8016b384fc9521c9dc7d7898",
+          "evidence_recorded_at": "2026-07-31T08:33:18.123Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "architecture_tests": 2
+      },
+      "evidence_hashes": {
+        "architecture_test": "ee4836f5a2ac488addb01713fae279cefda5e96bb286a684e78e6b33fa1dd863"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:33:18.123Z"
+    },
+    {
+      "id": "SRC-12",
+      "phase": 0,
+      "priority": "P0",
+      "order": 16,
+      "dependencies": [
+        "SRC-04",
+        "SRC-09",
+        "SRC-11"
+      ],
+      "status": "verification_failed",
+      "baseline_tree": "0db115b58212eb92a79c4748b394121ddefc91cb",
+      "final_tree": "a6983ea9569b0f21f46ee1293a78fa4762aefcea",
+      "changed_files": [
+        "tools/verify-bmad-100.mjs",
+        "tools/bmad100/tests/verify-bmad-100.test.mjs",
+        "packages/bmad-foundation/bmad-100-scorecard.json",
+        "docs/bmad/definition-of-done.md",
+        "packages/bmad-foundation/package.json",
+        "packages/bmad-foundation/scripts/verify.mjs",
+        "packages/bmad-foundation/tests/foundation.test.mjs"
+      ],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {
+        "final_task_source_tree": "a6983ea9569b0f21f46ee1293a78fa4762aefcea",
+        "verifier_sha256": "a937c5d81747103cf5defe353f76bcf45d696070985ffda099a3c75bbdbcd224",
+        "tests_sha256": "c7cee12ddf526a4c8b4901ac11cf0aa3c98a363816bd222c1b14ceb48c18d3b0",
+        "scorecard_contract_sha256": "4d361dabf0e38f667c14574011f490f95fe0e6b0bab07695c2a1bfc57c3e8bc4",
+        "definition_of_done_sha256": "8a2dddd9076f41faa2e428b215442984ae06090a3eb0db8057148207e779bb0c"
+      },
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "ENG-02",
+      "phase": 1,
+      "priority": "P0",
+      "order": 17,
+      "dependencies": [
+        "ENG-01",
+        "SRC-03"
+      ],
+      "status": "passed",
+      "baseline_tree": "9d442db73d85435d5e0548f04ad214fa0031422c",
+      "final_tree": "e635bbb816be5c4c2d9dd83581981ea4ab93669b",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/resources.rs",
         "crates/desktop-runtime/src/bmad/mod.rs",
         "crates/desktop-runtime/src/lib.rs",
-        "crates/desktop-app/src/bmad_foundation.rs",
-        "crates/desktop-app/src/bmad_capability_host.rs",
-        "crates/desktop-app/src/commands.rs",
-        "crates/desktop-app/src/generated/bmad_capabilities.rs",
-        "crates/desktop-runtime/src/bmad/help_binding.rs",
-        "crates/desktop-runtime/src/bmad/catalog.rs",
-        "apps/desktop-ui/src/generated/bmadCapabilities.ts",
-        "apps/desktop-ui/src/components/BmadLibraryPanel.tsx",
-        "apps/desktop-ui/src/components/BmadLibraryPanel.test.tsx",
-        "apps/desktop-ui/src/features/skills/bmadCoverage.ts",
-        "apps/desktop-ui/src/features/skills/bmadCoverage.test.ts",
-        "apps/desktop-ui/src/features/skills/skillAvailability.ts",
-        "apps/desktop-ui/src/features/skills/skillAvailability.test.ts",
-        "crates/desktop-runtime/tests/bmad_bmad_prd.rs",
-        "crates/desktop-runtime/tests/bmad_skill_execution.rs",
-        "packages/bmad-foundation/normalized/bmad-help-action-graph.json",
-        "packages/bmad-foundation/tests/fixtures/method__src__bmm-skills__2-plan-workflows__bmad-prd__SKILL.md",
-        "docs/bmad/skills/bmad-prd.md",
-        "artifacts/bmad100/method/bmad-prd"
-      ]
+        "crates/desktop-runtime/tests/bmad_resource_resolution.rs",
+        "packages/bmad-foundation/scripts/resource-closure.mjs",
+        "packages/bmad-foundation/scripts/verify.mjs",
+        "packages/bmad-foundation/tests/foundation.test.mjs",
+        "packages/bmad-foundation/tests/resource-closure.test.mjs"
+      ],
+      "commands": [
+        {
+          "command": "node packages/bmad-foundation/scripts/resource-closure.mjs --check",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "e635bbb816be5c4c2d9dd83581981ea4ab93669b",
+          "evidence_recorded_at": "2026-07-31T08:33:51.785Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "cargo test -p desktop-runtime bmad_resource_resolution",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "e635bbb816be5c4c2d9dd83581981ea4ab93669b",
+          "evidence_recorded_at": "2026-07-31T08:33:51.785Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "resource_resolution_tests": 12
+      },
+      "evidence_hashes": {
+        "resource_closure_checker": "9c9ae942e3e23c31113571c82d6242896fba75df31d745984ef0fec0fad345f4"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:33:51.785Z"
+    },
+    {
+      "id": "ENG-03",
+      "phase": 1,
+      "priority": "P0",
+      "order": 18,
+      "dependencies": [
+        "ENG-01",
+        "SRC-07"
+      ],
+      "status": "passed",
+      "baseline_tree": "9d442db73d85435d5e0548f04ad214fa0031422c",
+      "final_tree": "9f54b8373209eea0aef622cb37e657b4619b3069",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/config.rs",
+        "crates/desktop-runtime/tests/bmad_config.rs",
+        "crates/desktop-store/src/bmad_config.rs",
+        "crates/desktop-store/src/lib.rs",
+        "crates/desktop-store/tests/bmad_config.rs",
+        "packages/contracts/schemas/bmad-config.schema.json",
+        "packages/contracts/schema-lock.json",
+        "packages/contracts/generated/dotnet/SapphirusContractsCatalog.BmadConfig*.cs",
+        "packages/contracts/generated/rust/bmad.rs",
+        "packages/contracts/generated/rust/contracts.rs",
+        "packages/contracts/generated/typescript/bmad.ts",
+        "packages/contracts/generated/typescript/schema/bmad-config.ts",
+        "packages/contracts/fixtures/bmad/valid/config.json",
+        "packages/contracts/fixtures/bmad/rejected/bmad-config-unknown-property.json",
+        "packages/contracts/tests/fixtures/bmad/contract-family-v1.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_config",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "9f54b8373209eea0aef622cb37e657b4619b3069",
+          "evidence_recorded_at": "2026-07-31T08:34:07.383Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "config_tests": 4
+      },
+      "evidence_hashes": {
+        "config_test": "ccf3154c57920cbf5cc91aef8cd0575cc009e0a89942359b3309be788cc0b094"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:34:07.383Z"
+    },
+    {
+      "id": "ENG-04",
+      "phase": 1,
+      "priority": "P0",
+      "order": 19,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03"
+      ],
+      "status": "passed",
+      "baseline_tree": "8767cf4848cb6400448e1ebeb1e45de4a897544f",
+      "final_tree": "e9aff0ea28a9a6bc6f07c0ea5a5b9d96716841a3",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/customization.rs",
+        "crates/desktop-runtime/src/bmad/mod.rs",
+        "crates/desktop-runtime/src/lib.rs",
+        "crates/desktop-runtime/tests/bmad_customization.rs",
+        "packages/contracts/schemas/bmad-customization.schema.json",
+        "packages/contracts/schema-lock.json",
+        "packages/contracts/scripts/generate.mjs",
+        "packages/contracts/scripts/lib/bmad-cross-language.mjs",
+        "packages/contracts/scripts/lib/native-codegen.mjs",
+        "packages/contracts/tests/bmad-contract-family.test.mjs",
+        "packages/contracts/tests/bmad-cross-language.test.mjs",
+        "packages/contracts/tests/fixtures/bmad/contract-family-v1.json",
+        "packages/contracts/fixtures/bmad/valid/customization.json",
+        "packages/contracts/fixtures/bmad/rejected/bmad-customization-unknown-property.json",
+        "packages/contracts/generated/rust/bmad.rs",
+        "packages/contracts/generated/rust/contracts.rs",
+        "packages/contracts/generated/typescript/bmad.ts",
+        "packages/contracts/generated/typescript/schema/bmad-customization.ts",
+        "packages/contracts/generated/csharp/BmadContracts.cs",
+        "packages/contracts/generated/dotnet/SapphirusContractsCatalog.BmadCustomization*.cs",
+        "tools/contract-codegen/tool-lock.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_customization",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "e9aff0ea28a9a6bc6f07c0ea5a5b9d96716841a3",
+          "evidence_recorded_at": "2026-07-31T08:34:35.082Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "customization_tests": 4
+      },
+      "evidence_hashes": {
+        "customization_test": "a9870bea2e643b0408bb8c6204be7569bf14de1db43d1cbb52f8395f3d557d31"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:34:35.082Z"
+    },
+    {
+      "id": "ENG-05",
+      "phase": 1,
+      "priority": "P0",
+      "order": 20,
+      "dependencies": [
+        "ENG-01",
+        "ENG-02",
+        "ENG-03",
+        "ENG-04"
+      ],
+      "status": "passed",
+      "baseline_tree": "0d1cf43ae1e7ae1202720a42d62bea9ff55ab7d7",
+      "final_tree": "6a01d077c2e33b456cb1d443644ddac3964df104",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/state_machine.rs",
+        "crates/desktop-runtime/src/bmad/mod.rs",
+        "crates/desktop-runtime/src/bmad/session.rs",
+        "crates/desktop-runtime/src/bmad/completion.rs",
+        "crates/desktop-runtime/src/lib.rs",
+        "crates/desktop-runtime/tests/bmad_session_state_machine.rs",
+        "crates/desktop-runtime/tests/bmad_architecture.rs",
+        "crates/desktop-store/src/bmad_sessions.rs",
+        "crates/desktop-store/src/migrations.rs",
+        "crates/desktop-store/src/lib.rs",
+        "crates/desktop-store/tests/bmad_sessions.rs",
+        "crates/desktop-store/tests/bmad_builder_store.rs",
+        "crates/desktop-store/tests/bmad_help_run_store.rs",
+        "crates/desktop-store/tests/bmad_memlog_store.rs",
+        "crates/desktop-store/tests/bmad_method_store.rs",
+        "crates/desktop-store/tests/model_catalog_store.rs",
+        "packages/contracts/schemas/bmad-session.schema.json",
+        "packages/contracts/schema-lock.json",
+        "packages/contracts/fixtures/bmad/valid/session.json",
+        "packages/contracts/fixtures/bmad/rejected/bmad-session-unknown-property.json",
+        "packages/contracts/tests/fixtures/bmad/contract-family-v1.json",
+        "packages/contracts/generated/**"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_session_state_machine",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "6a01d077c2e33b456cb1d443644ddac3964df104",
+          "evidence_recorded_at": "2026-07-31T08:35:39.149Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "cargo test -p desktop-store bmad_sessions",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "6a01d077c2e33b456cb1d443644ddac3964df104",
+          "evidence_recorded_at": "2026-07-31T08:35:39.149Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "runtime_state_tests": 6,
+        "store_session_tests": 5
+      },
+      "evidence_hashes": {
+        "state_machine_test": "e2444b8cc8f84521a00ef29513f6d6b90d9d3641b1c0ba2e5f1081c8ca8f6a54"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:35:39.149Z"
+    },
+    {
+      "id": "ENG-06",
+      "phase": 1,
+      "priority": "P0",
+      "order": 21,
+      "dependencies": [
+        "ENG-05"
+      ],
+      "status": "passed",
+      "baseline_tree": "c055413d52514e6ca13b99a1d43c7a72d18f5d45",
+      "final_tree": "dbce9410f363bdc64019ea8eeef6762425dbefc0",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/invocation.rs",
+        "crates/desktop-runtime/tests/bmad_invocation_modes.rs",
+        "crates/desktop-runtime/src/bmad/mod.rs",
+        "crates/desktop-runtime/src/lib.rs",
+        "crates/desktop-runtime/tests/bmad_architecture.rs",
+        "packages/contracts/schemas/bmad-invocation.schema.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_invocation_modes",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "dbce9410f363bdc64019ea8eeef6762425dbefc0",
+          "evidence_recorded_at": "2026-07-31T08:36:12.765Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "invocation_mode_tests": 5
+      },
+      "evidence_hashes": {
+        "invocation_test": "4be2d6e0f987e2902489797b3bfa05a0aad55385bdff426e6b52090b5b331087"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:36:12.765Z"
+    },
+    {
+      "id": "ENG-07",
+      "phase": 1,
+      "priority": "P0",
+      "order": 22,
+      "dependencies": [
+        "ENG-05"
+      ],
+      "status": "passed",
+      "baseline_tree": "6a01d077c2e33b456cb1d443644ddac3964df104",
+      "final_tree": "c210cc0411d5ff7c60b0ab0cbc2786206573ef44",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/artifacts.rs",
+        "crates/desktop-runtime/src/bmad/completion.rs",
+        "crates/desktop-runtime/tests/bmad_artifacts.rs",
+        "crates/desktop-store/src/bmad_artifacts.rs",
+        "crates/desktop-store/src/migrations.rs",
+        "crates/desktop-store/src/lib.rs",
+        "crates/desktop-store/tests/bmad_artifacts.rs",
+        "packages/contracts/schemas/bmad-artifact.schema.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_artifacts",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "c210cc0411d5ff7c60b0ab0cbc2786206573ef44",
+          "evidence_recorded_at": "2026-07-31T08:36:47.710Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "cargo test -p desktop-store bmad_artifacts",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "c210cc0411d5ff7c60b0ab0cbc2786206573ef44",
+          "evidence_recorded_at": "2026-07-31T08:36:47.710Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "store_artifact_tests": 3
+      },
+      "evidence_hashes": {
+        "artifact_test": "84457c9004375ffc3aee03b43a34718954ec5189f9858a4e304ee674b752c0d6"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:36:47.710Z"
+    },
+    {
+      "id": "ENG-08",
+      "phase": 1,
+      "priority": "P0",
+      "order": 23,
+      "dependencies": [
+        "ENG-05",
+        "ENG-07"
+      ],
+      "status": "passed",
+      "baseline_tree": "c210cc0411d5ff7c60b0ab0cbc2786206573ef44",
+      "final_tree": "7bba60cbe1e698295882d83bc84680cd62082b3d",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/action_plan.rs",
+        "crates/desktop-runtime/src/bmad/model_port.rs",
+        "crates/desktop-runtime/src/bmad/orchestrator.rs",
+        "crates/desktop-runtime/tests/bmad_orchestrator.rs",
+        "packages/contracts/schemas/bmad-action-plan.schema.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_orchestrator",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "7bba60cbe1e698295882d83bc84680cd62082b3d",
+          "evidence_recorded_at": "2026-07-31T08:37:05.551Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "orchestrator_tests": 10
+      },
+      "evidence_hashes": {
+        "orchestrator_test": "50f642bde737505ce60022ffa17b2cbd1cab2ecf7ee939a55aef1d0160c9d82c"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:37:05.551Z"
+    },
+    {
+      "id": "ENG-10",
+      "phase": 1,
+      "priority": "P0",
+      "order": 24,
+      "dependencies": [
+        "ENG-05",
+        "ENG-07"
+      ],
+      "status": "passed",
+      "baseline_tree": "6a01d077c2e33b456cb1d443644ddac3964df104",
+      "final_tree": "2e8b7da876b8cd73346785243a570a18f99b80b2",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/memory.rs",
+        "crates/desktop-runtime/tests/bmad_memory.rs",
+        "crates/desktop-store/src/bmad_memory.rs",
+        "crates/desktop-store/tests/bmad_memory.rs",
+        "crates/desktop-store/src/migrations.rs",
+        "crates/desktop-store/src/lib.rs",
+        "packages/contracts/schemas/bmad-memory.schema.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_memory",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "2e8b7da876b8cd73346785243a570a18f99b80b2",
+          "evidence_recorded_at": "2026-07-31T13:00:00.854Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "cargo test -p desktop-store bmad_memory",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "2e8b7da876b8cd73346785243a570a18f99b80b2",
+          "evidence_recorded_at": "2026-07-31T13:00:00.854Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "verification_commands": 2
+      },
+      "evidence_hashes": {
+        "verification_subject": "7a92509facefea9cd83a70bd1473aa3c8deba08bcc493577545bd75d6d5928f1"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T13:00:00.854Z"
+    },
+    {
+      "id": "ENG-15",
+      "phase": 1,
+      "priority": "P0",
+      "order": 25,
+      "dependencies": [
+        "SRC-07",
+        "ENG-05",
+        "ENG-07"
+      ],
+      "status": "passed",
+      "baseline_tree": "dfa22bf69cc46aea6e606037726f9accb46df746",
+      "final_tree": "2bf64edb94abbe8b4bc9d8dd24e4bb6e78c5a7d0",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/builder.rs",
+        "crates/desktop-runtime/src/bmad/builder/model.rs",
+        "crates/desktop-runtime/src/bmad/builder/ports.rs",
+        "crates/desktop-runtime/src/bmad/builder/service.rs",
+        "crates/desktop-runtime/src/bmad/builder_ports.rs",
+        "crates/desktop-store/src/bmad_builder.rs",
+        "crates/desktop-store/src/migrations.rs",
+        "crates/desktop-store/tests/bmad_builder_store.rs"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_builder",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "2bf64edb94abbe8b4bc9d8dd24e4bb6e78c5a7d0",
+          "evidence_recorded_at": "2026-07-31T13:00:03.531Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "cargo test -p desktop-store bmad_builder",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "2bf64edb94abbe8b4bc9d8dd24e4bb6e78c5a7d0",
+          "evidence_recorded_at": "2026-07-31T13:00:03.531Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "verification_commands": 2
+      },
+      "evidence_hashes": {
+        "verification_subject": "80564748087b45649c6a0d3958dcef1ade39c8e9ef8d9c1ecad151918eecd9df"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T13:00:03.531Z"
+    },
+    {
+      "id": "ENG-09",
+      "phase": 1,
+      "priority": "P0",
+      "order": 26,
+      "dependencies": [
+        "ENG-02",
+        "ENG-08",
+        "SRC-09"
+      ],
+      "status": "passed",
+      "baseline_tree": "7bba60cbe1e698295882d83bc84680cd62082b3d",
+      "final_tree": "43f1a27030a69bc9e42d355a9ab1db2083a42ca3",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/dependencies.rs",
+        "crates/desktop-runtime/tests/bmad_dependencies.rs",
+        "packages/bmad-foundation/dependency-graph.json",
+        "packages/bmad-foundation/scripts/verify-dependency-graph.mjs"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_dependencies",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "43f1a27030a69bc9e42d355a9ab1db2083a42ca3",
+          "evidence_recorded_at": "2026-07-31T08:37:26.177Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "node packages/bmad-foundation/scripts/verify-dependency-graph.mjs",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "43f1a27030a69bc9e42d355a9ab1db2083a42ca3",
+          "evidence_recorded_at": "2026-07-31T08:37:26.177Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "dependency_tests": 8,
+        "graph_nodes": 5,
+        "graph_edges": 4
+      },
+      "evidence_hashes": {
+        "dependency_graph": "e4478edd1bade7cc9a2701df62f0d62b4d90747769aded1041acbe9d8a3313f3"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T08:37:26.177Z"
+    },
+    {
+      "id": "ENG-12",
+      "phase": 1,
+      "priority": "P0",
+      "order": 27,
+      "dependencies": [
+        "ENG-07",
+        "ENG-08"
+      ],
+      "status": "passed",
+      "baseline_tree": "c210cc0411d5ff7c60b0ab0cbc2786206573ef44",
+      "final_tree": "4e617545a778af6a775f53f3fd03e04be5c3430c",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/review.rs",
+        "crates/desktop-runtime/tests/bmad_review.rs",
+        "packages/contracts/schemas/bmad-review-result.schema.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_review",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "4e617545a778af6a775f53f3fd03e04be5c3430c",
+          "evidence_recorded_at": "2026-07-31T13:00:04.786Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "verification_commands": 1
+      },
+      "evidence_hashes": {
+        "verification_subject": "3f67425ed912841a002a85843f10d00520fc270cdbeedc8b84ccd6a07968bf26"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T13:00:04.786Z"
+    },
+    {
+      "id": "ENG-13",
+      "phase": 1,
+      "priority": "P0",
+      "order": 28,
+      "dependencies": [
+        "ENG-05",
+        "ENG-08"
+      ],
+      "status": "passed",
+      "baseline_tree": "6a01d077c2e33b456cb1d443644ddac3964df104",
+      "final_tree": "280c4100ae1f8a31d38639321c9df6d8bdf8c7ec",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/failure.rs",
+        "crates/desktop-runtime/tests/bmad_failures.rs",
+        "packages/contracts/schemas/bmad-problem.schema.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_failures",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "280c4100ae1f8a31d38639321c9df6d8bdf8c7ec",
+          "evidence_recorded_at": "2026-07-31T13:00:06.177Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "verification_commands": 1
+      },
+      "evidence_hashes": {
+        "verification_subject": "1c20658049509062427e45b88dee062273b317374130fa5005f17de7a358bfe6"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T13:00:06.177Z"
+    },
+    {
+      "id": "ENG-18",
+      "phase": 1,
+      "priority": "P0",
+      "order": 29,
+      "dependencies": [
+        "ENG-08",
+        "SRC-09"
+      ],
+      "status": "passed",
+      "baseline_tree": "7bba60cbe1e698295882d83bc84680cd62082b3d",
+      "final_tree": "6cc87eb1beb983917ff3eb4800577378ca3c1ead",
+      "changed_files": [
+        "crates/desktop-runtime/tests/chat_bmad_capability_separation.rs",
+        "apps/desktop-ui/src/app/capability-separation.test.ts"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime chat_bmad_capability_separation",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "6cc87eb1beb983917ff3eb4800577378ca3c1ead",
+          "evidence_recorded_at": "2026-07-31T13:00:28.597Z",
+          "required_for_pass": true
+        },
+        {
+          "command": "pnpm --filter @forge/desktop-ui test -- capability-separation",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "6cc87eb1beb983917ff3eb4800577378ca3c1ead",
+          "evidence_recorded_at": "2026-07-31T13:00:28.597Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "verification_commands": 2
+      },
+      "evidence_hashes": {
+        "verification_subject": "b6ca6fda2cd1d0386a97bdf0f626284203e2c3b9d6996fd214c135340c79fbba"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T13:00:28.597Z"
+    },
+    {
+      "id": "ENG-14",
+      "phase": 1,
+      "priority": "P0",
+      "order": 30,
+      "dependencies": [
+        "ENG-08",
+        "ENG-10"
+      ],
+      "status": "passed",
+      "baseline_tree": "7bba60cbe1e698295882d83bc84680cd62082b3d",
+      "final_tree": "32765aca92ebb536d4aefb4845735f7b71a00489",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/context_projection.rs",
+        "crates/desktop-runtime/tests/bmad_context_projection.rs",
+        "packages/contracts/schemas/bmad-context-contribution.schema.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_context_projection",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "32765aca92ebb536d4aefb4845735f7b71a00489",
+          "evidence_recorded_at": "2026-07-31T13:02:38.023Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "verification_commands": 1
+      },
+      "evidence_hashes": {
+        "verification_subject": "59ed1fbf4b6c3e08b9eb62689c95d8596c249ecdae50c6bd59fb6a184df478c8"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T13:02:38.023Z"
+    },
+    {
+      "id": "ENG-11",
+      "phase": 1,
+      "priority": "P0",
+      "order": 31,
+      "dependencies": [
+        "SRC-09",
+        "ENG-09"
+      ],
+      "status": "verification_failed",
+      "baseline_tree": null,
+      "final_tree": "a75339f80d7be634efc19ed32daecd08045118c3",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/help.rs",
+        "crates/desktop-runtime/tests/bmad_help.rs",
+        "crates/desktop-runtime/src/bmad/mod.rs",
+        "crates/desktop-runtime/src/lib.rs",
+        "packages/bmad-foundation/normalized/bmad-help-capability-graph.json",
+        "packages/bmad-foundation/tests/help-catalog.test.mjs"
+      ],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "ENG-16",
+      "phase": 1,
+      "priority": "P0",
+      "order": 32,
+      "dependencies": [
+        "ENG-09",
+        "ENG-15"
+      ],
+      "status": "passed",
+      "baseline_tree": "43f1a27030a69bc9e42d355a9ab1db2083a42ca3",
+      "final_tree": "3e2aabe0f2b183cf59b3e17af758bf8f52396901",
+      "changed_files": [
+        "crates/desktop-runtime/src/bmad/installation.rs",
+        "crates/desktop-runtime/tests/bmad_installation.rs",
+        "crates/desktop-store/src/bmad_installations.rs",
+        "crates/desktop-store/tests/bmad_installations.rs",
+        "crates/desktop-store/src/migrations.rs",
+        "crates/desktop-store/src/lib.rs",
+        "packages/contracts/schemas/bmad-installation.schema.json"
+      ],
+      "commands": [
+        {
+          "command": "cargo test -p desktop-runtime bmad_installation",
+          "cwd": ".",
+          "exit_code": 0,
+          "source_tree": "3e2aabe0f2b183cf59b3e17af758bf8f52396901",
+          "evidence_recorded_at": "2026-07-31T13:05:33.953Z",
+          "required_for_pass": true
+        }
+      ],
+      "counts": {
+        "verification_commands": 1
+      },
+      "evidence_hashes": {
+        "verification_subject": "8e73efa10f7751efb972db9157aa6481311463bcb8cebb06f4603d2dffe51c58"
+      },
+      "blocker": null,
+      "replacement_task_id": null,
+      "updated_at": "2026-07-31T13:05:33.953Z"
+    },
+    {
+      "id": "BLD-02",
+      "phase": 3,
+      "priority": "P0",
+      "order": 33,
+      "dependencies": [
+        "BLD-01",
+        "SRC-09",
+        "ENG-09"
+      ],
+      "status": "verification_failed",
+      "baseline_tree": null,
+      "final_tree": "a75339f80d7be634efc19ed32daecd08045118c3",
+      "changed_files": [
+        "packages/bmad-foundation/normalized/builder-capability-catalog.json",
+        "packages/bmad-foundation/normalized/builder-alias-registry.json",
+        "packages/bmad-foundation/scripts/generate-builder-catalog.mjs",
+        "packages/bmad-foundation/tests/builder-catalog.test.mjs",
+        "packages/contracts/tests/builder-capability.test.mjs",
+        "packages/contracts/schemas/builder-capability.schema.json"
+      ],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-02",
+      "phase": 5,
+      "priority": "P0",
+      "order": 34,
+      "dependencies": [
+        "SEC-01",
+        "ENG-08",
+        "ENG-13"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-01",
+      "phase": 2,
+      "priority": "P2",
+      "order": 35,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-02",
+      "phase": 2,
+      "priority": "P2",
+      "order": 36,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-03",
+      "phase": 2,
+      "priority": "P1",
+      "order": 37,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-04",
+      "phase": 2,
+      "priority": "P1",
+      "order": 38,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-05",
+      "phase": 2,
+      "priority": "P1",
+      "order": 39,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-06",
+      "phase": 2,
+      "priority": "P2",
+      "order": 40,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-07",
+      "phase": 2,
+      "priority": "P2",
+      "order": 41,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-08",
+      "phase": 2,
+      "priority": "P0",
+      "order": 42,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": "15645c295c223bc9b509adf0dc53bbe937f43c7c",
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-09",
+      "phase": 2,
+      "priority": "P0",
+      "order": 43,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-10",
+      "phase": 2,
+      "priority": "P0",
+      "order": 44,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-11",
+      "phase": 2,
+      "priority": "P2",
+      "order": 45,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-12",
+      "phase": 2,
+      "priority": "P1",
+      "order": 46,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-13",
+      "phase": 2,
+      "priority": "P1",
+      "order": 47,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-14",
+      "phase": 2,
+      "priority": "P1",
+      "order": 48,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-15",
+      "phase": 2,
+      "priority": "P2",
+      "order": 49,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-16",
+      "phase": 2,
+      "priority": "P2",
+      "order": 50,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-17",
+      "phase": 2,
+      "priority": "P1",
+      "order": 51,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-18",
+      "phase": 2,
+      "priority": "P1",
+      "order": 52,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-19",
+      "phase": 2,
+      "priority": "P1",
+      "order": 53,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-20",
+      "phase": 2,
+      "priority": "P1",
+      "order": 54,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-21",
+      "phase": 2,
+      "priority": "P1",
+      "order": 55,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-22",
+      "phase": 2,
+      "priority": "P1",
+      "order": 56,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-23",
+      "phase": 2,
+      "priority": "P1",
+      "order": 57,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-24",
+      "phase": 2,
+      "priority": "P1",
+      "order": 58,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-25",
+      "phase": 2,
+      "priority": "P1",
+      "order": 59,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-26",
+      "phase": 2,
+      "priority": "P1",
+      "order": 60,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-27",
+      "phase": 2,
+      "priority": "P1",
+      "order": 61,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-35",
+      "phase": 2,
+      "priority": "P1",
+      "order": 62,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-36",
+      "phase": 2,
+      "priority": "P1",
+      "order": 63,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-37",
+      "phase": 2,
+      "priority": "P1",
+      "order": 64,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-38",
+      "phase": 2,
+      "priority": "P0",
+      "order": 65,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-39",
+      "phase": 2,
+      "priority": "P2",
+      "order": 66,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-40",
+      "phase": 2,
+      "priority": "P0",
+      "order": 67,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-41",
+      "phase": 2,
+      "priority": "P2",
+      "order": 68,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-42",
+      "phase": 2,
+      "priority": "P0",
+      "order": 69,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "ENG-17",
+      "phase": 1,
+      "priority": "P1",
+      "order": 70,
+      "dependencies": [
+        "SRC-02",
+        "ENG-16"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-03",
+      "phase": 3,
+      "priority": "P0",
+      "order": 71,
+      "dependencies": [
+        "SRC-07",
+        "SRC-08",
+        "ENG-15",
+        "BLD-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-23",
+      "phase": 3,
+      "priority": "P0",
+      "order": 72,
+      "dependencies": [
+        "BLD-01",
+        "BLD-02",
+        "ENG-12"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-01",
+      "phase": 4,
+      "priority": "P0",
+      "order": 73,
+      "dependencies": [
+        "SRC-09",
+        "ENG-11",
+        "BLD-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-03",
+      "phase": 5,
+      "priority": "P0",
+      "order": 74,
+      "dependencies": [
+        "SEC-01",
+        "SEC-02",
+        "ENG-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-04",
+      "phase": 5,
+      "priority": "P0",
+      "order": 75,
+      "dependencies": [
+        "SRC-08",
+        "ENG-08",
+        "SEC-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-29",
+      "phase": 2,
+      "priority": "P1",
+      "order": 76,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-31",
+      "phase": 2,
+      "priority": "P1",
+      "order": 77,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-34",
+      "phase": 2,
+      "priority": "P1",
+      "order": 78,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-28",
+      "phase": 2,
+      "priority": "P1",
+      "order": 79,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-12"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-30",
+      "phase": 2,
+      "priority": "P1",
+      "order": 80,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-38"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-32",
+      "phase": 2,
+      "priority": "P1",
+      "order": 81,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-38"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-33",
+      "phase": 2,
+      "priority": "P1",
+      "order": 82,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-38"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-43",
+      "phase": 2,
+      "priority": "P2",
+      "order": 83,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-44",
+      "phase": 2,
+      "priority": "P1",
+      "order": 84,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-45",
+      "phase": 2,
+      "priority": "P1",
+      "order": 85,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-46",
+      "phase": 2,
+      "priority": "P1",
+      "order": 86,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-47",
+      "phase": 2,
+      "priority": "P1",
+      "order": 87,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "MTH-48",
+      "phase": 2,
+      "priority": "P1",
+      "order": 88,
+      "dependencies": [
+        "ENG-02",
+        "ENG-03",
+        "ENG-04",
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-08",
+        "ENG-09",
+        "ENG-11",
+        "ENG-12",
+        "ENG-13",
+        "ENG-14",
+        "MTH-42"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-04",
+      "phase": 3,
+      "priority": "P0",
+      "order": 89,
+      "dependencies": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-03",
+        "ENG-06"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-06",
+      "phase": 3,
+      "priority": "P0",
+      "order": 90,
+      "dependencies": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-05",
+        "ENG-06",
+        "ENG-08",
+        "ENG-10"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-14",
+      "phase": 3,
+      "priority": "P0",
+      "order": 91,
+      "dependencies": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-05",
+        "ENG-06",
+        "ENG-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-20",
+      "phase": 3,
+      "priority": "P0",
+      "order": 92,
+      "dependencies": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-05",
+        "ENG-06",
+        "ENG-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-25",
+      "phase": 3,
+      "priority": "P0",
+      "order": 93,
+      "dependencies": [
+        "BLD-01",
+        "BLD-02",
+        "BLD-03",
+        "ENG-05",
+        "ENG-07"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-02",
+      "phase": 6,
+      "priority": "P0",
+      "order": 94,
+      "dependencies": [
+        "SRC-08",
+        "BLD-03"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-02",
+      "phase": 4,
+      "priority": "P0",
+      "order": 95,
+      "dependencies": [
+        "ENG-05",
+        "ENG-06",
+        "ENG-07",
+        "ENG-13",
+        "UI-01"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-06",
+      "phase": 5,
+      "priority": "P0",
+      "order": 96,
+      "dependencies": [
+        "ENG-10",
+        "SEC-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-05",
+      "phase": 3,
+      "priority": "P0",
+      "order": 97,
+      "dependencies": [
+        "BLD-04",
+        "ENG-16",
+        "SEC-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-07",
+      "phase": 3,
+      "priority": "P0",
+      "order": 98,
+      "dependencies": [
+        "BLD-06",
+        "ENG-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-15",
+      "phase": 3,
+      "priority": "P0",
+      "order": 99,
+      "dependencies": [
+        "BLD-14",
+        "ENG-04",
+        "ENG-07"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-22",
+      "phase": 3,
+      "priority": "P0",
+      "order": 100,
+      "dependencies": [
+        "BLD-20",
+        "BLD-23",
+        "SEC-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-26",
+      "phase": 3,
+      "priority": "P0",
+      "order": 101,
+      "dependencies": [
+        "BLD-25",
+        "SEC-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-28",
+      "phase": 3,
+      "priority": "P0",
+      "order": 102,
+      "dependencies": [
+        "BLD-25",
+        "SRC-09",
+        "ENG-11"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-03",
+      "phase": 6,
+      "priority": "P0",
+      "order": 103,
+      "dependencies": [
+        "MTH-01",
+        "MTH-02",
+        "MTH-03",
+        "MTH-04",
+        "MTH-05",
+        "MTH-06",
+        "MTH-07",
+        "MTH-08",
+        "MTH-09",
+        "MTH-10",
+        "MTH-11",
+        "MTH-12",
+        "MTH-13",
+        "MTH-14",
+        "MTH-15",
+        "MTH-16",
+        "MTH-17",
+        "MTH-18",
+        "MTH-19",
+        "MTH-20",
+        "MTH-21",
+        "MTH-22",
+        "MTH-23",
+        "MTH-24",
+        "MTH-25",
+        "MTH-26",
+        "MTH-27",
+        "MTH-28",
+        "MTH-29",
+        "MTH-30",
+        "MTH-31",
+        "MTH-32",
+        "MTH-33",
+        "MTH-34",
+        "MTH-35",
+        "MTH-36",
+        "MTH-37",
+        "MTH-38",
+        "MTH-39",
+        "MTH-40",
+        "MTH-41",
+        "MTH-42",
+        "MTH-43",
+        "MTH-44",
+        "MTH-45",
+        "MTH-46",
+        "MTH-47",
+        "MTH-48",
+        "QAL-01",
+        "QAL-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-03",
+      "phase": 4,
+      "priority": "P0",
+      "order": 104,
+      "dependencies": [
+        "ENG-14",
+        "UI-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-04",
+      "phase": 4,
+      "priority": "P0",
+      "order": 105,
+      "dependencies": [
+        "BLD-03",
+        "BLD-06",
+        "BLD-14",
+        "BLD-20",
+        "BLD-25",
+        "UI-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-08",
+      "phase": 3,
+      "priority": "P0",
+      "order": 106,
+      "dependencies": [
+        "BLD-06",
+        "ENG-10",
+        "SEC-06"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-07",
+      "phase": 5,
+      "priority": "P0",
+      "order": 107,
+      "dependencies": [
+        "ENG-14",
+        "SEC-04",
+        "SEC-06"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-12",
+      "phase": 5,
+      "priority": "P0",
+      "order": 108,
+      "dependencies": [
+        "ENG-13",
+        "SEC-04",
+        "SEC-06"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-24",
+      "phase": 3,
+      "priority": "P0",
+      "order": 109,
+      "dependencies": [
+        "BLD-05",
+        "BLD-20",
+        "BLD-23"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-16",
+      "phase": 3,
+      "priority": "P0",
+      "order": 110,
+      "dependencies": [
+        "BLD-14",
+        "BLD-15"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-17",
+      "phase": 3,
+      "priority": "P0",
+      "order": 111,
+      "dependencies": [
+        "BLD-14",
+        "BLD-15",
+        "ENG-12"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-32",
+      "phase": 3,
+      "priority": "P0",
+      "order": 112,
+      "dependencies": [
+        "BLD-01",
+        "BLD-07",
+        "BLD-15",
+        "BLD-23",
+        "BLD-25"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-08",
+      "phase": 5,
+      "priority": "P0",
+      "order": 113,
+      "dependencies": [
+        "ENG-08",
+        "ENG-18",
+        "SEC-07"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-09",
+      "phase": 3,
+      "priority": "P0",
+      "order": 114,
+      "dependencies": [
+        "BLD-08",
+        "SEC-06",
+        "SEC-12"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-21",
+      "phase": 3,
+      "priority": "P0",
+      "order": 115,
+      "dependencies": [
+        "BLD-20",
+        "BLD-23",
+        "BLD-24",
+        "SEC-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-18",
+      "phase": 3,
+      "priority": "P0",
+      "order": 116,
+      "dependencies": [
+        "BLD-14",
+        "BLD-15",
+        "BLD-17",
+        "SEC-03"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-19",
+      "phase": 3,
+      "priority": "P0",
+      "order": 117,
+      "dependencies": [
+        "BLD-01",
+        "BLD-15",
+        "BLD-17",
+        "SEC-01",
+        "SEC-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-27",
+      "phase": 3,
+      "priority": "P0",
+      "order": 118,
+      "dependencies": [
+        "BLD-25",
+        "BLD-26",
+        "ENG-12",
+        "SEC-07",
+        "SEC-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-09",
+      "phase": 5,
+      "priority": "P0",
+      "order": 119,
+      "dependencies": [
+        "SEC-07",
+        "SEC-08",
+        "SRC-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-10",
+      "phase": 3,
+      "priority": "P0",
+      "order": 120,
+      "dependencies": [
+        "BLD-06",
+        "BLD-07",
+        "BLD-08",
+        "BLD-09"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-11",
+      "phase": 3,
+      "priority": "P0",
+      "order": 121,
+      "dependencies": [
+        "BLD-06",
+        "BLD-07",
+        "BLD-08",
+        "BLD-09",
+        "ENG-12"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-07",
+      "phase": 4,
+      "priority": "P0",
+      "order": 122,
+      "dependencies": [
+        "BLD-04",
+        "BLD-05",
+        "BLD-20",
+        "BLD-21",
+        "BLD-22",
+        "BLD-23",
+        "BLD-24",
+        "UI-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-06",
+      "phase": 4,
+      "priority": "P0",
+      "order": 123,
+      "dependencies": [
+        "BLD-14",
+        "BLD-15",
+        "BLD-16",
+        "BLD-17",
+        "BLD-18",
+        "BLD-19",
+        "UI-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-29",
+      "phase": 3,
+      "priority": "P0",
+      "order": 124,
+      "dependencies": [
+        "BLD-25",
+        "BLD-26",
+        "BLD-27",
+        "BLD-28",
+        "SEC-01",
+        "SEC-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-10",
+      "phase": 5,
+      "priority": "P0",
+      "order": 125,
+      "dependencies": [
+        "ENG-07",
+        "SEC-07",
+        "SEC-09"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-12",
+      "phase": 3,
+      "priority": "P0",
+      "order": 126,
+      "dependencies": [
+        "BLD-11",
+        "ENG-14",
+        "SEC-07",
+        "SEC-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-13",
+      "phase": 3,
+      "priority": "P0",
+      "order": 127,
+      "dependencies": [
+        "BLD-01",
+        "BLD-07",
+        "BLD-08",
+        "BLD-11",
+        "SEC-01",
+        "SEC-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-30",
+      "phase": 3,
+      "priority": "P0",
+      "order": 128,
+      "dependencies": [
+        "BLD-26",
+        "BLD-27",
+        "BLD-28",
+        "BLD-29"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-11",
+      "phase": 5,
+      "priority": "P0",
+      "order": 129,
+      "dependencies": [
+        "SEC-01",
+        "SEC-03",
+        "SEC-04",
+        "SEC-06",
+        "SEC-08",
+        "SEC-09",
+        "SEC-10"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-07",
+      "phase": 6,
+      "priority": "P0",
+      "order": 130,
+      "dependencies": [
+        "QAL-02",
+        "SEC-09",
+        "SEC-10"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-05",
+      "phase": 4,
+      "priority": "P0",
+      "order": 131,
+      "dependencies": [
+        "BLD-07",
+        "BLD-08",
+        "BLD-09",
+        "BLD-10",
+        "BLD-11",
+        "BLD-12",
+        "BLD-13",
+        "UI-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-31",
+      "phase": 3,
+      "priority": "P0",
+      "order": 132,
+      "dependencies": [
+        "BLD-11",
+        "BLD-17",
+        "BLD-30",
+        "ENG-13"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-33",
+      "phase": 3,
+      "priority": "P0",
+      "order": 133,
+      "dependencies": [
+        "BLD-03",
+        "BLD-11",
+        "BLD-17",
+        "BLD-23",
+        "BLD-30",
+        "SEC-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-08",
+      "phase": 4,
+      "priority": "P0",
+      "order": 134,
+      "dependencies": [
+        "BLD-25",
+        "BLD-26",
+        "BLD-27",
+        "BLD-28",
+        "BLD-29",
+        "BLD-30",
+        "BLD-31",
+        "UI-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "SEC-05",
+      "phase": 5,
+      "priority": "P0",
+      "order": 135,
+      "dependencies": [
+        "SEC-04",
+        "ENG-16",
+        "BLD-33"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-34",
+      "phase": 3,
+      "priority": "P0",
+      "order": 136,
+      "dependencies": [
+        "BLD-33",
+        "ENG-16",
+        "SEC-05"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-35",
+      "phase": 3,
+      "priority": "P0",
+      "order": 137,
+      "dependencies": [
+        "BLD-01",
+        "BLD-34",
+        "ENG-17"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-10",
+      "phase": 4,
+      "priority": "P0",
+      "order": 138,
+      "dependencies": [
+        "BLD-34",
+        "SEC-05",
+        "UI-01",
+        "UI-04"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "BLD-36",
+      "phase": 3,
+      "priority": "P0",
+      "order": 139,
+      "dependencies": [
+        "BLD-02",
+        "BLD-05",
+        "BLD-13",
+        "BLD-18",
+        "BLD-24",
+        "BLD-32",
+        "BLD-34",
+        "BLD-35",
+        "QAL-01",
+        "QAL-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-09",
+      "phase": 4,
+      "priority": "P0",
+      "order": 140,
+      "dependencies": [
+        "ENG-17",
+        "BLD-35",
+        "MTH-48",
+        "UI-01"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-04",
+      "phase": 6,
+      "priority": "P0",
+      "order": 141,
+      "dependencies": [
+        "BLD-36",
+        "QAL-01",
+        "QAL-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-11",
+      "phase": 4,
+      "priority": "P0",
+      "order": 142,
+      "dependencies": [
+        "UI-01",
+        "UI-02",
+        "UI-03",
+        "UI-04",
+        "UI-05",
+        "UI-06",
+        "UI-07",
+        "UI-08",
+        "UI-09",
+        "UI-10"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-05",
+      "phase": 6,
+      "priority": "P0",
+      "order": 143,
+      "dependencies": [
+        "QAL-02",
+        "QAL-03",
+        "QAL-04",
+        "SEC-12"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-06",
+      "phase": 6,
+      "priority": "P0",
+      "order": 144,
+      "dependencies": [
+        "UI-11",
+        "QAL-02"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-11",
+      "phase": 6,
+      "priority": "P0",
+      "order": 145,
+      "dependencies": [
+        "ENG-17",
+        "BLD-35",
+        "QAL-05"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-08",
+      "phase": 6,
+      "priority": "P0",
+      "order": 146,
+      "dependencies": [
+        "QAL-05",
+        "QAL-06",
+        "QAL-07",
+        "SEC-12"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "UI-12",
+      "phase": 4,
+      "priority": "P0",
+      "order": 147,
+      "dependencies": [
+        "UI-11",
+        "QAL-06",
+        "QAL-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-09",
+      "phase": 6,
+      "priority": "P0",
+      "order": 148,
+      "dependencies": [
+        "SEC-11",
+        "QAL-05",
+        "QAL-07",
+        "QAL-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-10",
+      "phase": 6,
+      "priority": "P0",
+      "order": 149,
+      "dependencies": [
+        "QAL-05",
+        "QAL-06",
+        "QAL-08"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-12",
+      "phase": 6,
+      "priority": "P0",
+      "order": 150,
+      "dependencies": [
+        "QAL-08",
+        "QAL-09",
+        "QAL-11"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-13",
+      "phase": 6,
+      "priority": "P0",
+      "order": 151,
+      "dependencies": [
+        "QAL-07",
+        "QAL-09",
+        "QAL-10"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-14",
+      "phase": 6,
+      "priority": "P0",
+      "order": 152,
+      "dependencies": [
+        "QAL-03",
+        "QAL-04",
+        "QAL-09",
+        "QAL-12",
+        "QAL-13"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-15",
+      "phase": 6,
+      "priority": "P0",
+      "order": 153,
+      "dependencies": [
+        "QAL-08",
+        "QAL-12",
+        "QAL-13",
+        "QAL-14"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-16",
+      "phase": 6,
+      "priority": "P0",
+      "order": 154,
+      "dependencies": [
+        "QAL-01",
+        "QAL-02",
+        "QAL-03",
+        "QAL-04",
+        "QAL-05",
+        "QAL-06",
+        "QAL-07",
+        "QAL-08",
+        "QAL-09",
+        "QAL-10",
+        "QAL-11",
+        "QAL-12",
+        "QAL-13",
+        "QAL-14",
+        "QAL-15"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-17",
+      "phase": 6,
+      "priority": "P0",
+      "order": 155,
+      "dependencies": [
+        "SRC-12",
+        "QAL-03",
+        "QAL-04",
+        "QAL-05",
+        "QAL-06",
+        "QAL-07",
+        "QAL-08",
+        "QAL-09",
+        "QAL-10",
+        "QAL-11",
+        "QAL-12",
+        "QAL-13",
+        "QAL-14",
+        "QAL-15",
+        "QAL-16",
+        "UI-12"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
+    },
+    {
+      "id": "QAL-18",
+      "phase": 6,
+      "priority": "P0",
+      "order": 156,
+      "dependencies": [
+        "QAL-17"
+      ],
+      "status": "pending",
+      "baseline_tree": null,
+      "final_tree": null,
+      "changed_files": [],
+      "commands": [],
+      "counts": {},
+      "evidence_hashes": {},
+      "blocker": null,
+      "replacement_task_id": null
     }
   ],
-  "conflicts": [
-    {
-      "task_id": "SRC-05",
-      "type": "stale_repository_path",
-      "governing_path": "desktop-ui/src/features/bmad/__tests__/current-characterization.test.tsx",
-      "resolved_path": "apps/desktop-ui/src/features/bmad/__tests__/current-characterization.test.tsx",
-      "resolution": "The backlog verification targets @forge/desktop-ui, whose authoritative package root is apps/desktop-ui; preserve the required test identity under that package."
-    },
-    {
-      "task_id": "SRC-05",
-      "type": "stale_behavior_assumption",
-      "governing_claim": "Capture ordinary-chat/BMAD capability coupling as a target-state failing case.",
-      "observed_baseline": "HEAD and the SRC-05 baseline tree already gate ordinary chat only on chat.send, workspace grant, and model readiness.",
-      "resolution": "Retain the historical coupling defect as migration provenance with status already_repaired, and bind the replacement ID to a passing production-code regression instead of fabricating an expected failure."
-    },
-    {
-      "task_id": "MTH-01..MTH-23",
-      "type": "invalidated_completion_evidence",
-      "governing_claim": "A Method task is complete only after its exact task identity, seven acceptance criteria, per-skill verification commands, evidence paths, and final tree binding pass freshly.",
-      "observed_baseline": "All 23 saved Method artifacts contain only three acceptance checks and omit the required per-skill source-closure, conformance, authority, and golden evidence roots. Artifacts MTH-16 through MTH-23 additionally carry the row identities belonging to MTH-35 through MTH-42.",
-      "resolution": "Reopened all Phase 2 tasks. Preserve the existing adapters, ledger fragments, fixtures, and docs as candidate implementation; regenerate fresh task-bound evidence before restoring any completed identity."
-    },
-    {
-      "task_id": "MTH-08",
-      "type": "shared_runtime_scope_expansion",
-      "governing_claim": "Each Method skill must be reachable through a governed generic runtime with source-bound modes, resources, durable state, typed plans, model/artifact evidence, and recovery behavior.",
-      "observed_baseline": "BmadMethodSkill exposes descriptor() only and no production caller consumes descriptors; BmadRuntimePort accepts only prebuilt generic session/artifact intents, so the candidate PRD adapter is unreachable and cannot prove acceptance criteria 2 through 5.",
-      "resolution": "MTH-08 owns the minimal descriptor-to-existing-MethodSession engine bridge in the shared runtime files under an exclusive coordinator lease. Reuse MethodSession, MethodExactBinding, MethodStepTable, MethodSessionService, action plans, and host ports; do not introduce a parallel lifecycle or authority path."
-    },
-    {
-      "task_id": "MTH-08",
-      "type": "stale_parallel_help_projection",
-      "governing_claim": "Help, runtime closure, compatibility ledger, catalog, and UI must derive from one authoritative capability source; parallel or handwritten catalogs are prohibited.",
-      "observed_baseline": "normalized/bmad-help-capability-graph.json is hand-authored, omitted from the sealed foundation topology, and stale. Its sourceCatalogSha256 does not match capability-catalog.json, and its sourceAliasCatalogSha256 equals the current catalog hash rather than compatibility-aliases.json.",
-      "resolution": "Do not allowlist the stale graph. Replace it with a deterministic generated projection from the canonical catalog and aliases, then seal/register it or retire the redundant projection if the governing Help architecture does not consume it."
-    }
+  "current_task": null,
+  "next_ready": [
+    "SEC-02",
+    "ENG-17"
   ],
-  "last_verified_task": "BLD-02",
-  "final_scorecard": null
+  "checkpoints": [],
+  "updated_at": "2026-07-31T13:05:33.953Z"
 }

@@ -22,5 +22,5 @@ fn bmad_capability_catalog_accounts_for_pinned_sources_and_safe_ui_projection() 
     assert!(generated::UI_ADVERTISED_CAPABILITIES
         .iter()
         .all(|capability| capability.visibility == "public"
-            && capability.support_state == "runtime_available"));
+            && capability.ui_state == "runtime_available"));
 }
