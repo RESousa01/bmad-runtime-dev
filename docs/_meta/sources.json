@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "forge.knowledge.v2",
+  "sources": [
+    {
+      "id": "SRC-REPO-BASELINE",
+      "kind": "repository",
+      "locator": "docs/provenance/knowledge-migration-baseline.json",
+      "status": "current",
+      "commit": "7f8182fa3ba3461ca6c2d387aedc91663399e2f7",
+      "reviewedAt": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "id": "SRC-ADR-0011",
+      "kind": "adr",
+      "locator": "docs/adr/ADR-0011-documentation-authority-and-reference-boundary.md",
+      "status": "current",
+      "reviewedAt": "2026-07-31",
+      "reviewDue": "2026-10-31"
+    },
+    {
+      "id": "SRC-ADR-0012",
+      "kind": "adr",
+      "locator": "docs/adr/ADR-0012-no-entra-authentication-and-model-access.md",
+      "status": "current",
+      "reviewedAt": "2026-07-31",
+      "reviewDue": "2026-09-30"
+    },
+    {
+      "id": "SRC-ADR-0013",
+      "kind": "adr",
+      "locator": "docs/adr/ADR-0013-forge-name-and-legacy-identifier-compatibility.md",
+      "status": "current",
+      "reviewedAt": "2026-07-31",
+      "reviewDue": "2026-10-31"
+    },
+    {
+      "id": "SRC-GATE-CATALOG",
+      "kind": "gate",
+      "locator": "node packages/bmad-foundation/scripts/generate-catalog.mjs --check",
+      "status": "current",
+      "reviewedAt": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    }
+  ]
+}

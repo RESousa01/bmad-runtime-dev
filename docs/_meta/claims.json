@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "forge.knowledge.v2",
+  "claims": [
+    {
+      "id": "FORGE-ARCH-001",
+      "subject": "architecture.desktop-authority",
+      "class": "implemented",
+      "statement": "The native desktop host is the local authority and the renderer is a typed presentation client.",
+      "status": "current",
+      "ownerRole": "architecture-owner",
+      "verifiedAt": "2026-07-31",
+      "reviewDue": "2026-08-14",
+      "evidence": [
+        {
+          "kind": "repository",
+          "path": "crates/desktop-app/src",
+          "commit": "7f8182fa3ba3461ca6c2d387aedc91663399e2f7"
+        },
+        {
+          "kind": "gate",
+          "command": "node tools/check-boundaries.mjs",
+          "expectedExit": 0
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "FORGE-BMAD-001",
+      "subject": "capability.bmm-bmad-prd",
+      "class": "implemented",
+      "statement": "The canonical PRD capability is the sole qualified runtime-available primary BMAD capability.",
+      "status": "current",
+      "ownerRole": "bmad-owner",
+      "verifiedAt": "2026-07-31",
+      "reviewDue": "2026-08-14",
+      "evidence": [
+        {
+          "kind": "repository",
+          "path": "packages/bmad-foundation/capability-catalog.json",
+          "commit": "7f8182fa3ba3461ca6c2d387aedc91663399e2f7"
+        },
+        {
+          "kind": "repository",
+          "path": "docs/bmad/BMAD-100-IMPLEMENTATION-STATUS-2026-07-30.md",
+          "commit": "7f8182fa3ba3461ca6c2d387aedc91663399e2f7"
+        },
+        {
+          "kind": "gate",
+          "command": "node packages/bmad-foundation/scripts/generate-catalog.mjs --check",
+          "expectedExit": 0
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "FORGE-DOC-001",
+      "subject": "documentation.authority",
+      "class": "decision",
+      "statement": "docs/README.md is the single current team documentation entrypoint.",
+      "status": "current",
+      "ownerRole": "forge-maintainers",
+      "verifiedAt": "2026-07-31",
+      "reviewDue": "2026-08-14",
+      "evidence": [
+        {
+          "kind": "adr",
+          "path": "docs/adr/ADR-0011-documentation-authority-and-reference-boundary.md"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "FORGE-AUTH-001",
+      "subject": "authentication.no-entra-direction",
+      "class": "decision",
+      "statement": "Current Forge development and intended deployment must work without Entra.",
+      "status": "current",
+      "ownerRole": "security-operations-owner",
+      "verifiedAt": "2026-07-31",
+      "reviewDue": "2026-08-14",
+      "evidence": [
+        {
+          "kind": "adr",
+          "path": "docs/adr/ADR-0012-no-entra-authentication-and-model-access.md"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "FORGE-AUTH-002",
+      "subject": "authentication.production-composition",
+      "class": "blocked",
+      "statement": "The no-Entra production credential and support-plane composition is not yet qualified end to end.",
+      "status": "current",
+      "ownerRole": "security-operations-owner",
+      "verifiedAt": "2026-07-31",
+      "reviewDue": "2026-08-14",
+      "evidence": [
+        {
+          "kind": "repository",
+          "path": "docs/operations/foundry-prerequisites.md",
+          "commit": "7f8182fa3ba3461ca6c2d387aedc91663399e2f7"
+        },
+        {
+          "kind": "adr",
+          "path": "docs/adr/ADR-0012-no-entra-authentication-and-model-access.md"
+        }
+      ],
+      "supersedes": []
+    }
+  ]
+}

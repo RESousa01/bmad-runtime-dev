@@ -315,7 +315,6 @@ fn readiness_dispatch_prepares_and_persists_both_modes_through_method_service() 
                 BmadActionPlanKind::Read,
                 BmadActionPlanKind::WriteProposal,
                 BmadActionPlanKind::CommandProposal,
-                BmadActionPlanKind::ArtifactPlan,
             ]
         );
         let resumed = service

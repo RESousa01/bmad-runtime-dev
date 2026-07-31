@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge.knowledge.v2/claims",
+  "title": "Forge knowledge claims",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "claims"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "forge.knowledge.v2"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "subject",
+          "class",
+          "statement",
+          "status",
+          "ownerRole",
+          "verifiedAt",
+          "reviewDue",
+          "evidence",
+          "supersedes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^FORGE-[A-Z0-9-]+$"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "class": {
+            "enum": [
+              "implemented",
+              "decision",
+              "external_fact",
+              "planned",
+              "blocked",
+              "unknown"
+            ]
+          },
+          "statement": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "current",
+              "superseded"
+            ]
+          },
+          "ownerRole": {
+            "type": "string"
+          },
+          "verifiedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "reviewDue": {
+            "type": "string",
+            "format": "date"
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object"
+            }
+          },
+          "supersedes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

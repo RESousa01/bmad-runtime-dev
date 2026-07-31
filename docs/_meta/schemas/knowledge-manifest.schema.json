@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge.knowledge.v2/knowledge-manifest",
+  "title": "Forge knowledge manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "entrypoint",
+    "productState",
+    "ownerRoles",
+    "documents",
+    "generatedFiles",
+    "allowedGates"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "forge.knowledge.v2"
+    },
+    "entrypoint": {
+      "type": "string"
+    },
+    "productState": {
+      "type": "string"
+    },
+    "ownerRoles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "generatedFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "allowedGates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "sourceLockRequired": {
+      "type": "boolean"
+    },
+    "externalBlockers": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

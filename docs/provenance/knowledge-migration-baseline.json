@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "forge.knowledge-migration-baseline.v1",
+  "capturedAt": "2026-07-31T00:00:00+02:00",
+  "implementationWorktree": {
+    "path": "C:\\tmp\\bmad100-main-merge",
+    "branch": "main",
+    "currentHead": "7f8182fa3ba3461ca6c2d387aedc91663399e2f7",
+    "statusShort": [],
+    "isClean": true
+  },
+  "livePrimaryWorktree": {
+    "path": "C:\\Users\\rodri\\source\\bmad-runtime-dev",
+    "branch": "codex/bmad-100-completion-resume",
+    "head": "7f8182fa3ba3461ca6c2d387aedc91663399e2f7",
+    "statusShort": [
+      "?? .tmp/"
+    ],
+    "note": "The untracked .tmp directory is pre-existing and was not inspected, modified, or treated as product evidence."
+  },
+  "postAuditStabilization": {
+    "commit": "7f8182fa3ba3461ca6c2d387aedc91663399e2f7",
+    "subject": "feat: stabilize BMAD truth and Forge local PoC",
+    "filesChanged": 34,
+    "insertions": 1037,
+    "deletions": 244,
+    "accounting": "This committed slice is the current repository representation of the post-snapshot stabilization work. The earlier review described a 14-file pass; the live commit contains 34 paths, so this baseline records the actual commit rather than repeating the older count."
+  },
+  "toolchain": {
+    "required": {
+      "node": "24.18.0",
+      "pnpm": "11.15.1",
+      "rust": "1.97.0",
+      "dotnet": "10.0.302",
+      "python": "3.10.0"
+    },
+    "observed": {
+      "nodePinnedBinary": {
+        "path": "C:\\Users\\rodri\\AppData\\Local\\pnpm\\bin\\node.EXE",
+        "version": "24.18.0"
+      },
+      "nodeDefaultPath": {
+        "path": "C:\\Program Files\\nodejs\\node.exe",
+        "version": "24.11.1",
+        "status": "path_drift"
+      },
+      "pnpm": "11.15.1",
+      "rustc": "1.97.0",
+      "cargo": "1.97.0",
+      "dotnet": "10.0.302",
+      "python": "3.10.0"
+    }
+  },
+  "bmad": {
+    "capabilityCatalog": {
+      "path": "packages/bmad-foundation/capability-catalog.json",
+      "sha256": "02ed1d13ccb2e9780b64624b04f1086c74b8fb10fb8aac1d7a858a586dc196bb"
+    },
+    "runState": {
+      "path": ".bmad100/run-state.json",
+      "sha256": "fdb5baffce9a57802a86f2834e407deff18044d76f7b288615af0cc8e0f6e15d",
+      "recordedRepositoryCommit": "2521f082aeab491157dc4222ecef76b3b5c2e5ac",
+      "status": "running",
+      "currentTask": "MTH-08",
+      "completedTaskCount": 33,
+      "limitation": "The durable run-state is not anchored to currentHead and still records an active MTH-08 lease. It is evidence of campaign state, not proof that the entire BMAD plan is current or complete."
+    },
+    "statusDocument": {
+      "path": "docs/bmad/BMAD-100-IMPLEMENTATION-STATUS-2026-07-30.md",
+      "sha256": "50907bb3e4c528d97ddabbac90b7bccba87d827ac104d78ce4c9d71c0bde33f9"
+    }
+  },
+  "library": {
+    "path": "bmad-runtime-lib",
+    "fileCount": 21032,
+    "bytes": 306080908,
+    "rootMarkdownCount": 105,
+    "rootMarkdownBytes": 2614251,
+    "rootManifest": {
+      "path": "bmad-runtime-lib/manifest.json",
+      "sha256": "5a37443db5fd922eba8d6a3499eb58a1f8b2291419bde318e6cce3b4aba80010"
+    },
+    "livingManifest": {
+      "path": "bmad-runtime-lib/knowledge-base/manifest.json",
+      "sha256": "04da293a97fad7a246a25f231e3bf60cbba78c385aa1bc3c74069e037dbb290d"
+    },
+    "sourceSnapshots": [
+      {
+        "path": "bmad-runtime-lib/_source_review/BMAD-METHOD-main",
+        "fileCount": 584,
+        "bytes": 10989027
+      },
+      {
+        "path": "bmad-runtime-lib/_source_review/bmad-builder-main",
+        "fileCount": 299,
+        "bytes": 2862506
+      },
+      {
+        "path": "bmad-runtime-lib/_source_review/openclaw-main",
+        "fileCount": 12807,
+        "bytes": 147272042
+      },
+      {
+        "path": "bmad-runtime-lib/_source_review/hermes-agent-main",
+        "fileCount": 5873,
+        "bytes": 105911815
+      },
+      {
+        "path": "bmad-runtime-lib/_source_review/odysseus-dev",
+        "fileCount": 1300,
+        "bytes": 28486907
+      },
+      {
+        "path": "bmad-runtime-lib/_full",
+        "fileCount": 30,
+        "bytes": 7683961
+      }
+    ]
+  },
+  "archives": {
+    "historicalJuly16Archive": {
+      "expectedName": "bmad-runtime-lib(1).zip",
+      "status": "unavailable",
+      "sha256": null,
+      "limitation": "The audit package identifies /mnt/data/bmad-runtime-lib(1).zip, but that archive is not present in the current Windows workspace or Downloads folder. Gate A cannot claim its hash until the original archive is supplied."
+    },
+    "modernizationReviewPackage": {
+      "path": "C:\\Users\\rodri\\Downloads\\forge-library-review-and-modernization.zip",
+      "sha256": "9e568d76c5327441fd97649338aa617578f63c460647f21f9f68c54c51663be4"
+    }
+  },
+  "checks": [
+    {
+      "command": "node packages/bmad-foundation/scripts/generate-catalog.mjs --check",
+      "nodeBinary": "C:\\Users\\rodri\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "exitCode": 0,
+      "durationMs": 143,
+      "result": "BMAD capability catalog and projections are current."
+    },
+    {
+      "command": "node --test packages/bmad-foundation/tests/bmad-capability-catalog.test.mjs",
+      "nodeBinary": "C:\\Users\\rodri\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "exitCode": 0,
+      "durationMs": 432,
+      "result": "9 tests passed; 0 failed."
+    },
+    {
+      "command": "node tools/check-workflows.mjs",
+      "nodeBinary": "C:\\Users\\rodri\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "exitCode": 0,
+      "durationMs": 233,
+      "result": "11 workflows passed path and script resolution."
+    },
+    {
+      "command": "node tools/check-boundaries.mjs",
+      "nodeBinary": "C:\\Users\\rodri\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "exitCode": 0,
+      "durationMs": 62281,
+      "result": "Architecture boundaries verified."
+    },
+    {
+      "command": "node tools/verify-reference-vault.mjs",
+      "nodeBinary": "C:\\Users\\rodri\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "exitCode": 0,
+      "durationMs": 1260,
+      "result": "Frozen receipt integrity passed for 105 root Markdown files.",
+      "limitation": "This proves frozen archive/receipt integrity, not current semantic accuracy."
+    },
+    {
+      "command": "py -3 bmad-runtime-lib/_source_review/validate_library.py",
+      "exitCode": 1,
+      "durationMs": 1409,
+      "result": "Root manifest verified; live semantic validation failed.",
+      "errors": [
+        "pins.json: pin pnpm mismatch: expected 'pnpm@11.12.0', observed 'pnpm@11.15.1'",
+        "pins.json: pin vite mismatch: expected '8.1.4', observed '8.1.5'"
+      ]
+    }
+  ],
+  "gateA": {
+    "status": "partial",
+    "satisfied": [
+      "Actual main commit and clean dirty-state capture",
+      "Post-audit stabilization commit accounted for",
+      "Product, archive, and live documentation checks recorded separately"
+    ],
+    "blocked": [
+      "Historical July 16 archive hash is unavailable"
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "forge.knowledge.v2",
+  "generatedBy": "tools/knowledge/generate-pins.mjs",
+  "pins": [
+    {
+      "id": "node",
+      "observed": "24.18.0",
+      "sourcePaths": [
+        ".node-version"
+      ]
+    },
+    {
+      "id": "pnpm",
+      "observed": "11.15.1",
+      "sourcePaths": [
+        "package.json#/packageManager"
+      ]
+    },
+    {
+      "id": "rust",
+      "observed": "1.97.0",
+      "sourcePaths": [
+        "rust-toolchain.toml#/toolchain/channel"
+      ]
+    },
+    {
+      "id": "dotnet",
+      "observed": "10.0.302",
+      "sourcePaths": [
+        "global.json#/sdk/version"
+      ]
+    },
+    {
+      "id": "vite",
+      "observed": "8.1.5",
+      "sourcePaths": [
+        "apps/desktop-ui/package.json#/devDependencies/vite"
+      ]
+    },
+    {
+      "id": "typescript",
+      "observed": "7.0.2",
+      "sourcePaths": [
+        "apps/desktop-ui/package.json#/devDependencies/typescript"
+      ]
+    },
+    {
+      "id": "react",
+      "observed": "19.2.7",
+      "sourcePaths": [
+        "apps/desktop-ui/package.json#/dependencies/react"
+      ]
+    },
+    {
+      "id": "workspace",
+      "observed": "0.1.0",
+      "sourcePaths": [
+        "Cargo.toml#/workspace.package/version"
+      ]
+    },
+    {
+      "id": "desktop",
+      "observed": "0.1.0",
+      "sourcePaths": [
+        "crates/desktop-app/tauri.conf.json#/version"
+      ]
+    }
+  ]
+}

@@ -12,11 +12,12 @@ use crate::generated_contracts::{
 };
 use crate::{
     BmadMethodSkill, BmadResource, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
-    BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillRecoverySemantics,
-    BmadSkillSupportState, BmadSkillToolIntent, ContractId, MethodArtifactExpectation,
-    MethodEvidenceClass, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
-    MethodResourcePolicy, MethodRuntimeRequirement, Sha256Digest,
+    BmadSkillExecutionBranch, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
+    BmadSkillExecutionError, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
+    MethodArtifactExpectation, MethodEvidenceClass, MethodExecutionProfile,
+    MethodExecutionProfileData, MethodInvocationModes, MethodResourcePolicy,
+    MethodRuntimeRequirement, Sha256Digest,
 };
 
 const ROOT: &str = "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness";
@@ -91,6 +92,8 @@ impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
     fn execution_contract(&self) -> Result<BmadSkillExecutionContract, BmadSkillExecutionError> {
         let descriptor = self.descriptor();
         let execution_profile = execution_profile(&descriptor)?;
+        let workflow = workflow()?;
+        let artifact_expectations = vec![artifact_expectation()?];
 
         BmadSkillExecutionContract::new(BmadSkillExecutionContractInput {
             descriptor,
@@ -120,15 +123,22 @@ impl BmadMethodSkill for BmadCheckImplementationReadinessSkill {
             method_schema_hash: digest(
                 "sha256:dda02f453dcf4edbb3fc66e0ad3a7c59d7087f5b44b526e40c435456c8c248c2",
             )?,
-            workflow: workflow()?,
-            action_branches: Vec::new(),
+            branches: [BmadInvocationMode::Interactive, BmadInvocationMode::Headless]
+                .into_iter()
+                .map(|mode| BmadSkillExecutionBranch {
+                    action: String::new(),
+                    mode,
+                    workflow: workflow.clone(),
+                    artifact_expectations: artifact_expectations.clone(),
+                    required_status_fields: Vec::new(),
+                })
+                .collect(),
             tool_intents: vec![
                 BmadSkillToolIntent::FileRead,
                 BmadSkillToolIntent::FileWrite,
                 BmadSkillToolIntent::Process,
                 BmadSkillToolIntent::ExternalHandoff,
             ],
-            artifact_expectations: vec![artifact_expectation()?],
             recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
         })
     }

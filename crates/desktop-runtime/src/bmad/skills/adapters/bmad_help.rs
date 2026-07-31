@@ -15,11 +15,11 @@
 use crate::generated_contracts::BmadInvocationMode;
 use crate::{
     BmadMethodSkill, BmadResource, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
-    BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillRecoverySemantics,
-    BmadSkillSupportState, BmadSkillToolIntent, ContractId, MethodExecutionProfile,
-    MethodExecutionProfileData, MethodInvocationModes, MethodResourcePolicy,
-    MethodRuntimeRequirement, Sha256Digest,
+    BmadSkillExecutionBranch, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
+    BmadSkillExecutionError, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
+    MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
+    MethodResourcePolicy, MethodRuntimeRequirement, Sha256Digest,
 };
 
 /// Adapter for pinned Method task MTH-40.
@@ -95,6 +95,15 @@ impl BmadMethodSkill for BmadHelpSkill {
     fn execution_contract(&self) -> Result<BmadSkillExecutionContract, BmadSkillExecutionError> {
         let descriptor = self.descriptor();
         let source_hash = descriptor.source_sha256();
+        let workflow = BmadSkillExecutionWorkflow {
+            initial_step_key: "recommend".to_owned(),
+            steps: vec![BmadSkillExecutionStep {
+                step_key: "recommend".to_owned(),
+                next_step_key: None,
+                source_resource_path: "src/core-skills/bmad-help/SKILL.md".to_owned(),
+                source_resource_hash: source_hash,
+            }],
+        };
         BmadSkillExecutionContract::new(BmadSkillExecutionContractInput {
             descriptor,
             package_name: "bmad-method".to_owned(),
@@ -123,22 +132,22 @@ impl BmadMethodSkill for BmadHelpSkill {
             method_schema_hash: digest(
                 "sha256:600432affbca9baec428903211df9c4c2a1fc6ba595959013236e1a0f16bc746",
             )?,
-            workflow: BmadSkillExecutionWorkflow {
-                initial_step_key: "recommend".to_owned(),
-                steps: vec![BmadSkillExecutionStep {
-                    step_key: "recommend".to_owned(),
-                    next_step_key: None,
-                    source_resource_path: "src/core-skills/bmad-help/SKILL.md".to_owned(),
-                    source_resource_hash: source_hash,
-                }],
-            },
+            branches: [BmadInvocationMode::Interactive, BmadInvocationMode::Headless]
+                .into_iter()
+                .map(|mode| BmadSkillExecutionBranch {
+                    action: String::new(),
+                    mode,
+                    workflow: workflow.clone(),
+                    artifact_expectations: Vec::new(),
+                    required_status_fields: Vec::new(),
+                })
+                .collect(),
             tool_intents: vec![
                 BmadSkillToolIntent::FileRead,
                 BmadSkillToolIntent::Process,
                 BmadSkillToolIntent::Web,
                 BmadSkillToolIntent::Subagent,
             ],
-            artifact_expectations: Vec::new(),
             recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
         })
     }

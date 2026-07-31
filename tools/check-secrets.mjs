@@ -79,6 +79,8 @@ const textFileNames = new Set([
 ]);
 const pinnedEscFixture =
   "packages/bmad-foundation/source/method/6.10.0/test/test-installer-channels.js";
+const pinnedLegacyHandoff =
+  "docs/archive/handoffs/session-handoff-2026-07-28.md";
 const detectors = [
   ["private key", /-----BEGIN (?:[A-Z0-9]+ )?PRIVATE KEY-----/g],
   ["AWS access key", /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g],
@@ -189,8 +191,15 @@ for (const path of [...paths].sort()) {
     continue;
   }
   const displayPath = relative(root, path).replaceAll("\\", "/");
-  const controlScanSource =
-    displayPath === pinnedEscFixture ? source.replaceAll("\u001b", " ") : source;
+  let controlScanSource = source;
+  if (displayPath === pinnedEscFixture) {
+    controlScanSource = controlScanSource.replaceAll("\u001b", " ");
+  }
+  if (displayPath === pinnedLegacyHandoff) {
+    // This backspace byte is covered by the legacy-v1 archive manifest. Do not
+    // broaden the exception or rewrite the byte-preserved historical file.
+    controlScanSource = controlScanSource.replaceAll("\u0008", " ");
+  }
   const prohibitedControlOffset = controlScanSource.search(
     /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/u,
   );

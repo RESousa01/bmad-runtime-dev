@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "forge.archive-manifest.v1",
+  "generatedAt": "2026-07-31T00:00:00+02:00",
+  "purpose": "Preserve v1 current/evidence/tooling and the superseded root handoff before authority cutover.",
+  "fileCount": 24,
+  "files": [
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/manifest.json",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/manifest.json",
+      "sha256": "04da293a97fad7a246a25f231e3bf60cbba78c385aa1bc3c74069e037dbb290d"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/current/00-current-product-state.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/current/00-current-product-state.md",
+      "sha256": "38a7b9f1ee07ab0d4c46bf62c1b18496c735ce845765233dac6f03d557f273d5"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/current/01-architecture-and-ownership.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/current/01-architecture-and-ownership.md",
+      "sha256": "400514dcf8669d42687a496b520be3270d5fa936544246fdbf9c318affc2328a"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/current/02-capability-matrix.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/current/02-capability-matrix.md",
+      "sha256": "a462b55c3490a5a6af8937fd054a4260100925e99a76d09c8e882ec8ad4afb74"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/current/03-security-and-trust.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/current/03-security-and-trust.md",
+      "sha256": "7b6ff6dffdfa9200f27df1f99888f77cb73842182952f1edfd2de5f6f0774274"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/current/04-contracts-and-persistence.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/current/04-contracts-and-persistence.md",
+      "sha256": "cab1fc3ba9352845a99c3dd974e18fdde15588572b1342ac9fa51ee27e6f0219"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/current/05-toolchain-and-dependencies.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/current/05-toolchain-and-dependencies.md",
+      "sha256": "2d162024a0d456180f8ea3eaa65061414b0c982a8e063cd1d470391ea239dde2"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/current/06-verification-and-release-readiness.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/current/06-verification-and-release-readiness.md",
+      "sha256": "4da217a88b0e203312ba343f7e2ea22d855c4713c69cbc74fefc567c346d8507"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/current/07-risks-roadmap-and-open-decisions.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/current/07-risks-roadmap-and-open-decisions.md",
+      "sha256": "8e9aec20563de86307f89e0efb541d77a3a5299e4da9fac2afb198ac03b08428"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/evidence/claims.json",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/evidence/claims.json",
+      "sha256": "3d476b919ae2516d61f512c0e838d54a58781a21c6d278643258aef13efdb7a7"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/evidence/note-catalog.json",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/evidence/note-catalog.json",
+      "sha256": "0b7c56434f19318e9255c94141b734ff06ea30a3ad26e2afd9ae6067b1b62071"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/evidence/pins.json",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/evidence/pins.json",
+      "sha256": "8060708faa0335eea9e47d87aafe350dfc66cbeb7981e67826d10245bcc9d737"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/evidence/sources.json",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/evidence/sources.json",
+      "sha256": "6c4565358d1edb9d3dd56f08ce5018c4239ff649ba1de6c210a46e498828e64d"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/plans/2026-07-16-living-knowledge-base-implementation.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/plans/2026-07-16-living-knowledge-base-implementation.md",
+      "sha256": "8416dd9afbb913c35c218c0ae0588bdb997ee27152903803b0c98b2ae1f9aa9a"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/knowledge-base/specs/2026-07-16-living-knowledge-base-design.md",
+      "archivePath": "docs/archive/legacy-v1-knowledge/knowledge-base/specs/2026-07-16-living-knowledge-base-design.md",
+      "sha256": "ee3ca34d6c000536a3130a10aa6d5313b93758e6d708734633730dbb28fae88d"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/_source_review/generate_note_catalog.py",
+      "archivePath": "docs/archive/legacy-v1-knowledge/tooling/python/generate_note_catalog.py",
+      "sha256": "3bd281fae19313118e917c12eabdb07e39f3a23961285c9fd708ab8ef0c55ce5"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/_source_review/living_knowledge.py",
+      "archivePath": "docs/archive/legacy-v1-knowledge/tooling/python/living_knowledge.py",
+      "sha256": "a76acd31a7b024d505c4f7583d9b97500d7110e2f74519d47cb8140e8a7d648f"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/_source_review/regenerate_manifest.py",
+      "archivePath": "docs/archive/legacy-v1-knowledge/tooling/python/regenerate_manifest.py",
+      "sha256": "2f90c12798839dd7339f56a44961384900daad06774542aa2e974020d8dfd237"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/_source_review/validate_library.py",
+      "archivePath": "docs/archive/legacy-v1-knowledge/tooling/python/validate_library.py",
+      "sha256": "505ce51e2f3860fae06a145400b1013f01e46d1cf8bada5bb2ddc5a2268201ae"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/_source_review/verify_zip_snapshot.py",
+      "archivePath": "docs/archive/legacy-v1-knowledge/tooling/python/verify_zip_snapshot.py",
+      "sha256": "c6478ee4c50072ab00eaa81bc1406501456b546396526337f58bdfb5d445b09f"
+    },
+    {
+      "originalPath": "bmad-runtime-lib/_source_review/tests/test_living_knowledge.py",
+      "archivePath": "docs/archive/legacy-v1-knowledge/tooling/python-tests/test_living_knowledge.py",
+      "sha256": "923709a40c324d8b23491b44f78e55283531b3b7a6040dd060b48d98517db6f8"
+    },
+    {
+      "originalPath": "tools/verify-reference-vault.mjs",
+      "archivePath": "docs/archive/legacy-v1-knowledge/tooling/node/verify-reference-vault.mjs",
+      "sha256": "01d135a0d90a0c8d8941ba919cb260fabc42d16fe36658a63a68800f1d7afe46"
+    },
+    {
+      "originalPath": "tools/tests/closed-manifest.test.mjs",
+      "archivePath": "docs/archive/legacy-v1-knowledge/tooling/node/closed-manifest.test.mjs",
+      "sha256": "54d5a25ecfd4ba110b0224e31dbf4f273a8c83c61bc24cd170d64bef528e6abb"
+    },
+    {
+      "originalPath": "HANDOFF.md",
+      "archivePath": "docs/archive/handoffs/session-handoff-2026-07-28.md",
+      "sha256": "865b4d22387da169dad670b4c325a808980c4eb722fc502b1cdc96f50d94b732"
+    }
+  ]
+}

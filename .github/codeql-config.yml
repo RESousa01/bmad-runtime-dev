@@ -1,10 +1,16 @@
-name: Sapphirus shipped-source boundary
+name: Forge shipped-source boundary
 
 paths-ignore:
-  # Read-only upstream provenance snapshots are not part of the shipped or
-  # maintained source boundary. Their manifests and integrity checks remain
-  # analyzed because those controls live outside this directory.
-  - bmad-runtime-lib/**
+  # Temporary imported vendor snapshots remain non-executable and outside the
+  # maintained source boundary until approved external storage permits removal.
+  # First-party knowledge tools, metadata, compatibility manifests, and current
+  # docs are intentionally not excluded.
+  - bmad-runtime-lib/_source_review/BMAD-METHOD-main/**
+  - bmad-runtime-lib/_source_review/bmad-builder-main/**
+  - bmad-runtime-lib/_source_review/openclaw-main/**
+  - bmad-runtime-lib/_source_review/hermes-agent-main/**
+  - bmad-runtime-lib/_source_review/odysseus-dev/**
+  - bmad-runtime-lib/_full/**
 
   # Mechanically generated bindings remain covered by regeneration, drift,
   # compilation, and cross-language qualification gates.

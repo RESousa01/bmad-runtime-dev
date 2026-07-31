@@ -39,11 +39,11 @@ use crate::generated_contracts::{
 };
 use crate::{
     BmadMethodSkill, BmadResource, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
-    BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillRecoverySemantics,
-    BmadSkillSupportState, BmadSkillToolIntent, ContractId, MethodArtifactExpectation,
-    MethodEvidenceClass, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
-    MethodResourcePolicy, Sha256Digest,
+    BmadSkillExecutionBranch, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
+    BmadSkillExecutionError, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
+    MethodArtifactExpectation, MethodEvidenceClass, MethodExecutionProfile,
+    MethodExecutionProfileData, MethodInvocationModes, MethodResourcePolicy, Sha256Digest,
 };
 
 /// Adapter for the pinned `bmad-architecture` Method skill (MTH-12).
@@ -135,6 +135,37 @@ impl BmadMethodSkill for BmadArchitectureSkill {
         let descriptor = self.descriptor();
         let execution_profile = execution_profile(&descriptor)?;
         let source_hash = descriptor.source_sha256();
+        let workflow = BmadSkillExecutionWorkflow {
+            initial_step_key: "facilitate_architecture".to_owned(),
+            steps: vec![BmadSkillExecutionStep {
+                step_key: "facilitate_architecture".to_owned(),
+                next_step_key: None,
+                source_resource_path: "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md"
+                    .to_owned(),
+                source_resource_hash: source_hash,
+            }],
+        };
+        let artifact_expectations = vec![MethodArtifactExpectation::from_source(
+            MethodArtifactExpectation {
+                expectation_kind: "method_artifact".to_owned(),
+                expectation_id: contract_id("expectation_01J00000000000000000000012")?,
+                artifact_kind: "document".to_owned(),
+                required: true,
+                storage_scope: "app_local".to_owned(),
+                expected_media_type: "text/markdown".to_owned(),
+                expected_content_schema_hash: None,
+                source_output_hint: Some(
+                    "{doc_workspace}/ARCHITECTURE-SPINE.md or \
+                     {doc_workspace}/validation-report.{md,html}"
+                        .to_owned(),
+                ),
+                completion_evidence_class: MethodEvidenceClass::Authoritative,
+                expectation_hash: digest(
+                    "sha256:2c980deefda7f459d7adaa2c0f63288041ad2fb92b2094fa6e803096d52fc4a3",
+                )?,
+            },
+        )
+        .map_err(|_| BmadSkillExecutionError::ContractInvalid)?];
 
         BmadSkillExecutionContract::new(BmadSkillExecutionContractInput {
             descriptor,
@@ -164,16 +195,16 @@ impl BmadMethodSkill for BmadArchitectureSkill {
             method_schema_hash: digest(
                 "sha256:dda02f453dcf4edbb3fc66e0ad3a7c59d7087f5b44b526e40c435456c8c248c2",
             )?,
-            workflow: BmadSkillExecutionWorkflow {
-                initial_step_key: "facilitate_architecture".to_owned(),
-                steps: vec![BmadSkillExecutionStep {
-                    step_key: "facilitate_architecture".to_owned(),
-                    next_step_key: None,
-                    source_resource_path: "src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md"
-                        .to_owned(),
-                    source_resource_hash: source_hash,
-                }],
-            },
+            branches: [BmadInvocationMode::Interactive, BmadInvocationMode::Headless]
+                .into_iter()
+                .map(|mode| BmadSkillExecutionBranch {
+                    action: String::new(),
+                    mode,
+                    workflow: workflow.clone(),
+                    artifact_expectations: artifact_expectations.clone(),
+                    required_status_fields: Vec::new(),
+                })
+                .collect(),
             tool_intents: vec![
                 BmadSkillToolIntent::FileRead,
                 BmadSkillToolIntent::FileWrite,
@@ -182,27 +213,6 @@ impl BmadMethodSkill for BmadArchitectureSkill {
                 BmadSkillToolIntent::Subagent,
                 BmadSkillToolIntent::ExternalHandoff,
             ],
-            artifact_expectations: vec![MethodArtifactExpectation::from_source(
-                MethodArtifactExpectation {
-                    expectation_kind: "method_artifact".to_owned(),
-                    expectation_id: contract_id("expectation_01J00000000000000000000012")?,
-                    artifact_kind: "document".to_owned(),
-                    required: true,
-                    storage_scope: "app_local".to_owned(),
-                    expected_media_type: "text/markdown".to_owned(),
-                    expected_content_schema_hash: None,
-                    source_output_hint: Some(
-                        "{doc_workspace}/ARCHITECTURE-SPINE.md or \
-                         {doc_workspace}/validation-report.{md,html}"
-                            .to_owned(),
-                    ),
-                    completion_evidence_class: MethodEvidenceClass::Authoritative,
-                    expectation_hash: digest(
-                        "sha256:2c980deefda7f459d7adaa2c0f63288041ad2fb92b2094fa6e803096d52fc4a3",
-                    )?,
-                },
-            )
-            .map_err(|_| BmadSkillExecutionError::ContractInvalid)?],
             recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
         })
     }

@@ -178,18 +178,30 @@ test("desktop support CI builds and smokes the exact frontend image", () => {
   assert.match(source, /trap cleanup EXIT/u);
 });
 
-test("automated review excludes the read-only upstream source vault", () => {
+test("automated review excludes only temporary imported vendor snapshots", () => {
   const codeqlWorkflow = workflows.find(({ name }) => name === "codeql.yml")?.source;
   assert.ok(codeqlWorkflow, "codeql.yml must exist");
   assert.match(codeqlWorkflow, /config-file:\s+\.\/\.github\/codeql-config\.yml/u);
   assert.match(codeqlWorkflow, /language:\s+csharp[\s\S]*?build-mode:\s+none/u);
   assert.doesNotMatch(codeqlWorkflow, /Build reviewed C# targets/u);
-  assert.match(codeqlConfig, /^\s+- bmad-runtime-lib\/\*\*\s*$/mu);
-  assert.match(codeRabbitConfig, /^\s+- "!bmad-runtime-lib\/\*\*"\s*$/mu);
+  assert.doesNotMatch(codeqlConfig, /^\s+- bmad-runtime-lib\/\*\*\s*$/mu);
+  assert.doesNotMatch(codeRabbitConfig, /^\s+- "!bmad-runtime-lib\/\*\*"\s*$/mu);
+  for (const path of [
+    "_source_review/BMAD-METHOD-main",
+    "_source_review/bmad-builder-main",
+    "_source_review/openclaw-main",
+    "_source_review/hermes-agent-main",
+    "_source_review/odysseus-dev",
+    "_full",
+  ]) {
+    const escaped = path.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+    assert.match(codeqlConfig, new RegExp(`^\\s+- bmad-runtime-lib/${escaped}/\\*\\*\\s*$`, "mu"));
+    assert.match(codeRabbitConfig, new RegExp(`^\\s+- "!bmad-runtime-lib/${escaped}/\\*\\*"\\s*$`, "mu"));
+  }
   assert.match(
-    readFileSync(new URL("verify-reference-vault.mjs", import.meta.url), "utf8"),
-    /bmad-runtime-lib/u,
-    "reference-vault integrity verification must remain enabled",
+    readFileSync(new URL("knowledge/verify-archive-manifest.mjs", import.meta.url), "utf8"),
+    /archive-manifest/u,
+    "archive integrity verification must remain enabled",
   );
 });
 

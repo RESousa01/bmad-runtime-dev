@@ -2,10 +2,15 @@
 
 reviews:
   path_filters:
-    # This is a read-only provenance/reference vault containing upstream
-    # OpenClaw, Hermes, BMAD, and Odysseus source snapshots. Our code review
-    # boundary is the manifests, adapters, and conformance checks outside it.
-    - "!bmad-runtime-lib/**"
+    # Exclude only the temporary imported vendor snapshots. First-party
+    # knowledge tools, docs/current, schemas, compatibility manifests, and
+    # future source locks remain inside normal review.
+    - "!bmad-runtime-lib/_source_review/BMAD-METHOD-main/**"
+    - "!bmad-runtime-lib/_source_review/bmad-builder-main/**"
+    - "!bmad-runtime-lib/_source_review/openclaw-main/**"
+    - "!bmad-runtime-lib/_source_review/hermes-agent-main/**"
+    - "!bmad-runtime-lib/_source_review/odysseus-dev/**"
+    - "!bmad-runtime-lib/_full/**"
 
     # These bindings are reproducibly generated and are covered by the
     # generator qualification and source-drift gates. Review their inputs,

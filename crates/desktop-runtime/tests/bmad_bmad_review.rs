@@ -270,7 +270,7 @@ fn bmad_review_contract_preserves_source_branches_and_distinct_authority_intents
             BmadSkillToolIntent::FileRead,
             BmadSkillToolIntent::FileWrite,
             BmadSkillToolIntent::Process,
-            BmadSkillToolIntent::Network,
+            BmadSkillToolIntent::Web,
             BmadSkillToolIntent::Browser,
             BmadSkillToolIntent::Subagent,
             BmadSkillToolIntent::ExternalHandoff,
@@ -282,10 +282,7 @@ fn bmad_review_contract_preserves_source_branches_and_distinct_authority_intents
             BmadActionPlanKind::Read,
             BmadActionPlanKind::WriteProposal,
             BmadActionPlanKind::CommandProposal,
-            BmadActionPlanKind::Read,
-            BmadActionPlanKind::Read,
             BmadActionPlanKind::ModelCall,
-            BmadActionPlanKind::ArtifactPlan,
         ]
     );
     assert_eq!(

@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "forge.knowledge.v2",
+  "entrypoint": "docs/README.md",
+  "productState": "docs/current/product-state.md",
+  "ownerRoles": [
+    "forge-maintainers",
+    "architecture-owner",
+    "bmad-owner",
+    "security-operations-owner",
+    "devex-owner"
+  ],
+  "documents": [
+    "docs/README.md",
+    "docs/current/product-state.md",
+    "docs/current/product-scope-and-modes.md",
+    "docs/current/capability-status.md",
+    "docs/current/architecture-and-authority.md",
+    "docs/current/authentication-and-model-access.md",
+    "docs/current/security-and-trust.md",
+    "docs/current/toolchain-and-verification.md",
+    "docs/current/release-readiness.md",
+    "docs/current/roadmap-and-known-gaps.md",
+    "docs/development/onboarding.md",
+    "docs/development/local-setup.md",
+    "docs/development/contribution-guide.md",
+    "docs/development/documentation-policy.md",
+    "docs/development/documentation-validation.md",
+    "docs/development/agent-development-workflow.md",
+    "docs/development/testing-and-verification.md",
+    "docs/architecture/adr-index.md",
+    "docs/architecture/system-map.md",
+    "docs/architecture/runtime-boundaries.md",
+    "docs/architecture/workspace-and-execution.md",
+    "docs/architecture/state-evidence-and-recovery.md",
+    "docs/architecture/model-connectivity.md",
+    "docs/architecture/bmad-method-and-builder.md",
+    "docs/adr/ADR-0011-documentation-authority-and-reference-boundary.md",
+    "docs/adr/ADR-0012-no-entra-authentication-and-model-access.md",
+    "docs/adr/ADR-0013-forge-name-and-legacy-identifier-compatibility.md",
+    "docs/reference/README.md",
+    "docs/reference/source-intake-policy.md",
+    "docs/reference/source-analysis/README.md",
+    "docs/reference/source-analysis/bmad-method-builder.md",
+    "docs/reference/source-analysis/opencode.md",
+    "docs/reference/source-analysis/hermes.md",
+    "docs/reference/source-analysis/odysseus.md",
+    "docs/reference/source-analysis/historical-openclaw.md",
+    "docs/archive/README.md",
+    "docs/provenance/reference-vault.md",
+    "docs/reviews/forge-knowledge-baseline-2026-07-31.md",
+    "docs/reviews/team-takeover-validation.md"
+  ],
+  "generatedFiles": [
+    "docs/_meta/pins.generated.json",
+    "docs/_meta/note-index.generated.json"
+  ],
+  "allowedGates": [
+    "node packages/bmad-foundation/scripts/generate-catalog.mjs --check",
+    "node --test packages/bmad-foundation/tests/bmad-capability-catalog.test.mjs",
+    "node tools/check-workflows.mjs",
+    "node tools/check-boundaries.mjs",
+    "pnpm docs:verify",
+    "pnpm verify:source",
+    "pnpm verify:bmad:100"
+  ],
+  "sourceLockRequired": false,
+  "externalBlockers": [
+    {
+      "id": "KNOWLEDGE-ARCHIVE-001",
+      "status": "blocked",
+      "reason": "The historical bmad-runtime-lib(1).zip archive is unavailable, so its SHA-256 cannot be recorded."
+    },
+    {
+      "id": "KNOWLEDGE-OWNERS-001",
+      "status": "blocked",
+      "reason": "Logical owner roles have not been mapped to resolvable repository user or team handles."
+    },
+    {
+      "id": "KNOWLEDGE-STORAGE-001",
+      "status": "blocked",
+      "reason": "Approved immutable storage locators for imported source archives have not been supplied."
+    },
+    {
+      "id": "KNOWLEDGE-REVIEW-001",
+      "status": "blocked",
+      "reason": "Final takeover validation requires an independent developer who did not author the migration."
+    }
+  ]
+}

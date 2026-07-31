@@ -191,6 +191,7 @@ fn help_request(mode: BmadInvocationMode) -> BmadSkillExecutionRequest {
                 skill_name: "bmad-help".to_owned(),
                 normalized_action: None,
             },
+            invocation_mode: mode,
             package_descriptor_hash: digest(
                 "sha256:2ec79c3da90bfc30030f15d902d776202c7ac91ed7cf7dc8fa8adbf85cb9cf6a",
             ),
@@ -320,7 +321,6 @@ fn bmad_help_prepares_both_modes_and_persists_the_established_method_lifecycle()
             [
                 BmadActionPlanKind::Read,
                 BmadActionPlanKind::CommandProposal,
-                BmadActionPlanKind::Read,
                 BmadActionPlanKind::ModelCall,
             ]
         );

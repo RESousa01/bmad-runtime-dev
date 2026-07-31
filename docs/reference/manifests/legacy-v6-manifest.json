@@ -1,0 +1,954 @@
+{
+  "schemaVersion": "forge.legacy-v6-manifest.v1",
+  "generatedAt": "2026-07-31T00:00:00+02:00",
+  "sourceRoot": "bmad-runtime-lib",
+  "sourceManifestSha256": "5a37443db5fd922eba8d6a3499eb58a1f8b2291419bde318e6cce3b4aba80010",
+  "fileCount": 105,
+  "files": [
+    {
+      "originalPath": "00 - Common Rules and Product Shape.md",
+      "archivePath": "docs/archive/legacy-v6/00 - Common Rules and Product Shape.md",
+      "sha256": "09dfe571031b723047213223bfe568e19e88d9c56c164a81cf4e80d709fe9424",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/00 - Common Rules and Product Shape.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "01 - First Build - Executable Vertical Slice.md",
+      "archivePath": "docs/archive/legacy-v6/01 - First Build - Executable Vertical Slice.md",
+      "sha256": "da956c1f6cad0454a258d0060f12d0a40b77cdf8d516b40997eef8880f2d5f66",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/01 - First Build - Executable Vertical Slice.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "02 - Locked Architecture Decisions.md",
+      "archivePath": "docs/archive/legacy-v6/02 - Locked Architecture Decisions.md",
+      "sha256": "125e328daf014d168ceaf179214c0ed65c1fc8ff07351646a589ca861bf8cd2b",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/02 - Locked Architecture Decisions.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "03 - Repository and Vault Usage.md",
+      "archivePath": "docs/archive/legacy-v6/03 - Repository and Vault Usage.md",
+      "sha256": "9806945714ba6ab33a2b8f00538c132a9957992d16621591fa11db3cfc0a039a",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/03 - Repository and Vault Usage.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "04 - Review Findings and Changelog.md",
+      "archivePath": "docs/archive/legacy-v6/04 - Review Findings and Changelog.md",
+      "sha256": "a41625b95594d51d4be5c8c9d17d2fd8d89dbbb9db9aeb10ce9b6a942ff1b5a6",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/04 - Review Findings and Changelog.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "05 - Preserved Source Context.md",
+      "archivePath": "docs/archive/preserved/05 - Preserved Source Context.md",
+      "sha256": "0bcffe53eabd00630e25e974b25fdc812d8cbb5f29e979f9e1a9f0cecbea2b5e",
+      "authorityClass": "preserved_verbatim",
+      "disposition": "archive_verbatim",
+      "replacement": "docs/archive/preserved/05 - Preserved Source Context.md",
+      "rationale": "Preserve byte identity and provenance; never present as current guidance."
+    },
+    {
+      "originalPath": "06 - Preserved Critical Review.md",
+      "archivePath": "docs/archive/preserved/06 - Preserved Critical Review.md",
+      "sha256": "8151102c01b786b332518f8ddf3b1f48e246db216c3ac140b492e0b6e91d819c",
+      "authorityClass": "preserved_verbatim",
+      "disposition": "archive_verbatim",
+      "replacement": "docs/archive/preserved/06 - Preserved Critical Review.md",
+      "rationale": "Preserve byte identity and provenance; never present as current guidance."
+    },
+    {
+      "originalPath": "07 - Source Coverage Matrix.md",
+      "archivePath": "docs/archive/legacy-v6/07 - Source Coverage Matrix.md",
+      "sha256": "b5d1b1cb4a21c13b1f127a7116c293c2c1450b6f1f8c93d297fbb7f774d1e851",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/07 - Source Coverage Matrix.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "08 - Phased Roadmap and Build Order.md",
+      "archivePath": "docs/archive/legacy-v6/08 - Phased Roadmap and Build Order.md",
+      "sha256": "867fe5573d6bf9cf192ff785596ef2494a5935104f1569b16c083b56d62808c1",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/08 - Phased Roadmap and Build Order.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "09 - Glossary and Naming.md",
+      "archivePath": "docs/archive/legacy-v6/09 - Glossary and Naming.md",
+      "sha256": "04af95baa3640870bec6e05dde1cd7c0c0710b2c7550a372f4369c155e671f92",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/09 - Glossary and Naming.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "10 - Chat Workbench.md",
+      "archivePath": "docs/archive/legacy-v6/10 - Chat Workbench.md",
+      "sha256": "02d82c8e6b2026e01457f897a7b148628f33dc56f6cc0bf1f6bbd81158786ece",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/10 - Chat Workbench.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "100 - BMAD Method and Builder Deep Comprehension Audit.md",
+      "archivePath": "docs/archive/legacy-v6/100 - BMAD Method and Builder Deep Comprehension Audit.md",
+      "sha256": "a8aa917923ff609ffb18a5a9052ba729b1dc72fc383e03e5fd8f4f9954f769e9",
+      "authorityClass": "source_evidence",
+      "disposition": "refresh_and_keep",
+      "replacement": "docs/reference/source-analysis/bmad/method-builder-audit.md",
+      "rationale": "Retain as source analysis after validating exact snapshot identities and paths."
+    },
+    {
+      "originalPath": "11 - Runtime API Control Plane.md",
+      "archivePath": "docs/archive/legacy-v6/11 - Runtime API Control Plane.md",
+      "sha256": "599667048464caffa73748d34c767e3fea018580ef56392905c3dc3a2a65f805",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/11 - Runtime API Control Plane.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "12 - Run Orchestrator and Agent Kernel.md",
+      "archivePath": "docs/archive/legacy-v6/12 - Run Orchestrator and Agent Kernel.md",
+      "sha256": "0447614172c8d82a4091ae0bc59f0223917113952782674cfcac715d8d1e60f1",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/12 - Run Orchestrator and Agent Kernel.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+      "archivePath": "docs/archive/legacy-v6/13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+      "sha256": "b4e37d442f7f9423853c489bfc5c93ad82bb602d57d70911ff056d1f337db172",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "14 - Builder Studio and SkillOps.md",
+      "archivePath": "docs/archive/legacy-v6/14 - Builder Studio and SkillOps.md",
+      "sha256": "82a689940d2aa880986420c45b572ad948d994ea29a09ad42fb5401401ba0005",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/14 - Builder Studio and SkillOps.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "15 - Artifact Creator and Presentation Adapter.md",
+      "archivePath": "docs/archive/legacy-v6/15 - Artifact Creator and Presentation Adapter.md",
+      "sha256": "d35b8a739de8b8e8980ed644358d98803ffaea3c516fa3286774507e8d0c75b3",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/15 - Artifact Creator and Presentation Adapter.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "16 - Workspace Service.md",
+      "archivePath": "docs/archive/legacy-v6/16 - Workspace Service.md",
+      "sha256": "5f61c1e13500ab4318caec3e7c5d4773b75352300c1d12955c10782047865fef",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/16 - Workspace Service.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "17 - Workspace Intelligence and Context Packs.md",
+      "archivePath": "docs/archive/legacy-v6/17 - Workspace Intelligence and Context Packs.md",
+      "sha256": "64921f986d6c0eeaf259d6810a022e425e01a1973f220ee757383e1e09fed184",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/17 - Workspace Intelligence and Context Packs.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "18 - Model Gateway and Microsoft Foundry.md",
+      "archivePath": "docs/archive/legacy-v6/18 - Model Gateway and Microsoft Foundry.md",
+      "sha256": "cfd9764976a80dde6be65f92d078417087dcb0652feec935a5ee95b9dffb00d0",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/18 - Model Gateway and Microsoft Foundry.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "19 - Airlock Policy and Approvals.md",
+      "archivePath": "docs/archive/legacy-v6/19 - Airlock Policy and Approvals.md",
+      "sha256": "6270719cf832ede1aa3e487ca0a65f9925b98b2f8b253d2b1a6d675a11b35c55",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/19 - Airlock Policy and Approvals.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "20 - Execution Lanes and Container App Jobs.md",
+      "archivePath": "docs/archive/legacy-v6/20 - Execution Lanes and Container App Jobs.md",
+      "sha256": "6fd8a67d946c68c39fd7ecc0f4276fd46750d6cc99b94be296dd15216c768cd4",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/20 - Execution Lanes and Container App Jobs.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "21 - Trace, Evidence, and Observability.md",
+      "archivePath": "docs/archive/legacy-v6/21 - Trace, Evidence, and Observability.md",
+      "sha256": "c720b1e764993b72b44304e5570d91502f1001f626f5cfc4e411ead8c4049f36",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/21 - Trace, Evidence, and Observability.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "22 - Data Model - SQL and Blob.md",
+      "archivePath": "docs/archive/legacy-v6/22 - Data Model - SQL and Blob.md",
+      "sha256": "1504d5651c24631773ebcc002d9d37e96e8c0543d9988f45f30470330451f722",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/22 - Data Model - SQL and Blob.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "23 - Security, Identity, and Secrets.md",
+      "archivePath": "docs/archive/legacy-v6/23 - Security, Identity, and Secrets.md",
+      "sha256": "facb9020064684b1cd984c90c724061815c4f4a65993ec34786b8cdf64789cd0",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/23 - Security, Identity, and Secrets.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "24 - Operator Console and Operations.md",
+      "archivePath": "docs/archive/legacy-v6/24 - Operator Console and Operations.md",
+      "sha256": "50928de39569f06e3bea28f6fd6c35eb3a8bae2e6dcad4a7a2aa6ffefcd04e80",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/24 - Operator Console and Operations.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "25 - OpenAPI, Schemas, and Generated Clients.md",
+      "archivePath": "docs/archive/legacy-v6/25 - OpenAPI, Schemas, and Generated Clients.md",
+      "sha256": "3e14965250fd61e4a7e3133a8ccbffa599e8ec065f3866d75921929e0b6d5460",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/25 - OpenAPI, Schemas, and Generated Clients.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "26 - Frontend Design System.md",
+      "archivePath": "docs/archive/legacy-v6/26 - Frontend Design System.md",
+      "sha256": "78acb7d559a9838fd49145abe5200a3e5de50ae45536f6dbe1de5715d612f6f4",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/26 - Frontend Design System.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "27 - Testing, Validation, and Replay.md",
+      "archivePath": "docs/archive/legacy-v6/27 - Testing, Validation, and Replay.md",
+      "sha256": "d1b0bcfc4a06a74869c5560b380ada4cb9d3f4d7e843293a4ce3e6b244061883",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/27 - Testing, Validation, and Replay.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "28 - Supply Chain, Deployment, and IaC.md",
+      "archivePath": "docs/archive/legacy-v6/28 - Supply Chain, Deployment, and IaC.md",
+      "sha256": "fb28714dd2f6bd884525ea95f29d7812b2805e48eda6337418116c1de0481f9d",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/28 - Supply Chain, Deployment, and IaC.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "29 - Concurrency, Transactions, and Failures.md",
+      "archivePath": "docs/archive/legacy-v6/29 - Concurrency, Transactions, and Failures.md",
+      "sha256": "c96fc5b760fe645ab5dc3766fb45538122f7bc5913b425d829c89e8b593ed85a",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/29 - Concurrency, Transactions, and Failures.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "30 - Implementation Epics and Backlog.md",
+      "archivePath": "docs/archive/legacy-v6/30 - Implementation Epics and Backlog.md",
+      "sha256": "b6740905247c32c8fb46efa412068006bbfe26112283b59c6a85f4ca848da6d2",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/30 - Implementation Epics and Backlog.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "31 - Architecture Decision Records.md",
+      "archivePath": "docs/archive/legacy-v6/31 - Architecture Decision Records.md",
+      "sha256": "8b139006b7b186e0699ab054a21df99a65b17b6a97069efd10259eaa84301a8f",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/31 - Architecture Decision Records.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "32 - Integration Contract Map.md",
+      "archivePath": "docs/archive/legacy-v6/32 - Integration Contract Map.md",
+      "sha256": "f602ae372891f0f367c6467f4c06ff1236fa758abdb8efa4d3ba149b285d3729",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/32 - Integration Contract Map.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "33 - Release Gates and Acceptance Matrix.md",
+      "archivePath": "docs/archive/legacy-v6/33 - Release Gates and Acceptance Matrix.md",
+      "sha256": "395722a5c80df730b4bdffe88fa7ce80c7ada379f58361b0bfc9e9c1f0d2a9e0",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/33 - Release Gates and Acceptance Matrix.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "34 - Canonical Object Model.md",
+      "archivePath": "docs/archive/legacy-v6/34 - Canonical Object Model.md",
+      "sha256": "58e80563feca3f5385a36503d049a62483bb27e62d93c4f6df853c91396fb6fa",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/34 - Canonical Object Model.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "35 - Source Alignment Notes.md",
+      "archivePath": "docs/archive/legacy-v6/35 - Source Alignment Notes.md",
+      "sha256": "a8767c94e6b644f0958b705ca7b993294a03ea61856a7cbdb7d9dfb90a732be2",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/35 - Source Alignment Notes.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "36 - Local Development and DevEx.md",
+      "archivePath": "docs/archive/legacy-v6/36 - Local Development and DevEx.md",
+      "sha256": "20752339f781ed74db96b627241b4602402cb5c39bbadeea0d03d2141f38f7ed",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/36 - Local Development and DevEx.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "37 - Azure Environments and Deployment Runbooks.md",
+      "archivePath": "docs/archive/legacy-v6/37 - Azure Environments and Deployment Runbooks.md",
+      "sha256": "c2104023a2b585cc27d14ac21977f84fff34e9b56aa6bc5bea9eaeb875d49a5a",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/37 - Azure Environments and Deployment Runbooks.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "38 - Worker Images and Command DSL.md",
+      "archivePath": "docs/archive/legacy-v6/38 - Worker Images and Command DSL.md",
+      "sha256": "6679d2aabc035bef1fb9f6f9f4019ad995f0b170a74fa4a6e4c418874802e4ee",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/38 - Worker Images and Command DSL.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "39 - BMAD Package Format.md",
+      "archivePath": "docs/archive/legacy-v6/39 - BMAD Package Format.md",
+      "sha256": "cef61b77f30eb8cbd90fe4606d161721d360b6da8c4830fbfc6c8bb55e486dbe",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/39 - BMAD Package Format.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "40 - Threat Model and Security Tests.md",
+      "archivePath": "docs/archive/legacy-v6/40 - Threat Model and Security Tests.md",
+      "sha256": "7d40aee67805f80896e813273d2af5150b74a884c658650cf13987e98e6a45f3",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/40 - Threat Model and Security Tests.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "41 - Observability Dashboards and Alerts.md",
+      "archivePath": "docs/archive/legacy-v6/41 - Observability Dashboards and Alerts.md",
+      "sha256": "0d593d9442584bbf2bd9418df480c852675d508c13e6f1694ddb439bf3066867",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/41 - Observability Dashboards and Alerts.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "42 - Migrations, Retention, and Cleanup.md",
+      "archivePath": "docs/archive/legacy-v6/42 - Migrations, Retention, and Cleanup.md",
+      "sha256": "587185b9e9f7ae83d232dd93d7f05e633c74c08a9c0a3da39521feac147f005a",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/42 - Migrations, Retention, and Cleanup.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "43 - Product UX Flows and Wireframe Notes.md",
+      "archivePath": "docs/archive/legacy-v6/43 - Product UX Flows and Wireframe Notes.md",
+      "sha256": "1daa9f2e20c6a22dd4907bbd93dee86620f030104ac97a220111b43a3996bbe3",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/43 - Product UX Flows and Wireframe Notes.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "44 - AI Coding Agent Handoff Prompts.md",
+      "archivePath": "docs/archive/legacy-v6/44 - AI Coding Agent Handoff Prompts.md",
+      "sha256": "1d24eb1c79e1071e02055265a749fa261677697a8c6dfdca775281ded9f3aad2",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/44 - AI Coding Agent Handoff Prompts.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "45 - Trace Bundle Schema.md",
+      "archivePath": "docs/archive/legacy-v6/45 - Trace Bundle Schema.md",
+      "sha256": "f9065ef0f6d871ab61563a67860cffba35e5ff21f6dbbe02c812f2d75c922e59",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/45 - Trace Bundle Schema.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "46 - API Route Catalog.md",
+      "archivePath": "docs/archive/legacy-v6/46 - API Route Catalog.md",
+      "sha256": "85b1cc1b520b61cbc48d307a5939c6238576442c16ef692516e93a4d429492a7",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/46 - API Route Catalog.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "47 - Database DDL Starter.md",
+      "archivePath": "docs/archive/legacy-v6/47 - Database DDL Starter.md",
+      "sha256": "12740beb3e755ee6c88dd616883e95c9b3f10b1f7ff09f05cad0830de6be939c",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/47 - Database DDL Starter.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "48 - Blob Storage Layout.md",
+      "archivePath": "docs/archive/legacy-v6/48 - Blob Storage Layout.md",
+      "sha256": "9fe481b81e5e71d7e25bbb9a6524675ce0f4106e94896d7a7ac9e0bed0ded95e",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/48 - Blob Storage Layout.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "49 - Detailed Component Build Checklists.md",
+      "archivePath": "docs/archive/legacy-v6/49 - Detailed Component Build Checklists.md",
+      "sha256": "8d7333139563f6cb52968f93671650e818f8bfb2e31b6876f7806ee391263895",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/49 - Detailed Component Build Checklists.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "50 - V4 Full Library Audit.md",
+      "archivePath": "docs/archive/legacy-v6/50 - V4 Full Library Audit.md",
+      "sha256": "43e135c8be6f5871b75cca455e1bc4a299793094e2d6a1edd038ce05a608827d",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/50 - V4 Full Library Audit.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "51 - Master Implementation Sequence.md",
+      "archivePath": "docs/archive/legacy-v6/51 - Master Implementation Sequence.md",
+      "sha256": "f9a021769d04850d7f86ab3737254d97fd4664b25770ca31ed6a7fa9d170ce13",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/51 - Master Implementation Sequence.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "52 - API, Event, Table, and Blob Ownership.md",
+      "archivePath": "docs/archive/legacy-v6/52 - API, Event, Table, and Blob Ownership.md",
+      "sha256": "ec690c91a981af31e3a81935ce91360e1844c28e615c3340bffe047bf58deb22",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/52 - API, Event, Table, and Blob Ownership.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "53 - Event Taxonomy and Stream Protocol.md",
+      "archivePath": "docs/archive/legacy-v6/53 - Event Taxonomy and Stream Protocol.md",
+      "sha256": "bb9e4d947bcf3072e5be39f766c1115243e627e3bca0d77892b3f861505a1a8e",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/53 - Event Taxonomy and Stream Protocol.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "54 - State Machine Reference.md",
+      "archivePath": "docs/archive/legacy-v6/54 - State Machine Reference.md",
+      "sha256": "3dae9c23fdf282305282db4f9604cf2a66cf35491bf3d956a9941ed0f27d54bc",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/54 - State Machine Reference.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "55 - Airlock Policy Rulebook.md",
+      "archivePath": "docs/archive/legacy-v6/55 - Airlock Policy Rulebook.md",
+      "sha256": "f7d926f8465a82ea80ca4a8b36a19970e08397dba246d7baea25f356865c1d72",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/55 - Airlock Policy Rulebook.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "56 - Worker Manifest Protocol.md",
+      "archivePath": "docs/archive/legacy-v6/56 - Worker Manifest Protocol.md",
+      "sha256": "7b60c8483d6a8f9c0981e3453ce55e63575b27892b2ce0acd5a082867f64f5f2",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/56 - Worker Manifest Protocol.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "57 - Replay Fixture Library Plan.md",
+      "archivePath": "docs/archive/legacy-v6/57 - Replay Fixture Library Plan.md",
+      "sha256": "494731f44653ef2fb1cf1b74abc9af7b5c57f4bc08b12a044eae5358228d492f",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/57 - Replay Fixture Library Plan.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "58 - Risk Register and Mitigation Plan.md",
+      "archivePath": "docs/archive/legacy-v6/58 - Risk Register and Mitigation Plan.md",
+      "sha256": "e65db19f6072d104aa1e735571d77a8968b35fd304b0addd8c371fd36945c9b0",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/58 - Risk Register and Mitigation Plan.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "59 - Definition of Done by Component.md",
+      "archivePath": "docs/archive/legacy-v6/59 - Definition of Done by Component.md",
+      "sha256": "63a279a693e5ac15b13ac2ceeb87283b58a7029a0e2f157e8e9ebeb3378896e0",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/59 - Definition of Done by Component.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "60 - External Platform References and Verification Sources.md",
+      "archivePath": "docs/archive/legacy-v6/60 - External Platform References and Verification Sources.md",
+      "sha256": "884c235a5a2daa0ddfd895539bfc778f5a2285de235ee68f0f1e2200c2a4137d",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/60 - External Platform References and Verification Sources.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "61 - First Vertical Slice User Stories.md",
+      "archivePath": "docs/archive/legacy-v6/61 - First Vertical Slice User Stories.md",
+      "sha256": "46bc0435e30a1b5155702aafb3f7846027efef8e98fa73cf9827d298e572c8e9",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/61 - First Vertical Slice User Stories.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "62 - Component Interview Prompts.md",
+      "archivePath": "docs/archive/legacy-v6/62 - Component Interview Prompts.md",
+      "sha256": "3614bae78a91eefdff4ddb296bdb020fb42c5d8ff799e806604ac8db73bcb943",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/62 - Component Interview Prompts.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "63 - Backend Port Interfaces.md",
+      "archivePath": "docs/archive/legacy-v6/63 - Backend Port Interfaces.md",
+      "sha256": "2f680d1a18284b0c4370f32d7086b121dbe471816f1593772b1730db77626ff1",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/63 - Backend Port Interfaces.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "64 - JSON Schema Contract Examples.md",
+      "archivePath": "docs/archive/legacy-v6/64 - JSON Schema Contract Examples.md",
+      "sha256": "158a53f0f771062f10505e70502912f4a867fda02a0a9b596045aa9ccd2a9d8e",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/64 - JSON Schema Contract Examples.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "65 - SQL Migration and Index Plan.md",
+      "archivePath": "docs/archive/legacy-v6/65 - SQL Migration and Index Plan.md",
+      "sha256": "93ae8a2a16b507a653e95d17e200a98b5c193dff7e6244ca6cf3ab0e97bae0b3",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/65 - SQL Migration and Index Plan.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "66 - Frontend Component Specification.md",
+      "archivePath": "docs/archive/legacy-v6/66 - Frontend Component Specification.md",
+      "sha256": "8eb95b78e592da80d3d2194dd94dedb8b8fecc29b64e6be9cc0ae63f270316f4",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/66 - Frontend Component Specification.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "67 - Azure IaC Module Specification.md",
+      "archivePath": "docs/archive/legacy-v6/67 - Azure IaC Module Specification.md",
+      "sha256": "f5b05202e3aacd61b8a1baba44eb52daf11737d06df9e456acfdd185516efd5a",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/67 - Azure IaC Module Specification.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "68 - Security Test Case Catalog.md",
+      "archivePath": "docs/archive/legacy-v6/68 - Security Test Case Catalog.md",
+      "sha256": "f9250248a7b01e09d5a2ae5ddc88ba4bcbb37c7da4016388c5f6f25ec6742ffb",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/68 - Security Test Case Catalog.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "69 - BMAD Validation Rules.md",
+      "archivePath": "docs/archive/legacy-v6/69 - BMAD Validation Rules.md",
+      "sha256": "17ddf3779fbcf09544a5e8888d775157f911eb73a8d210369696ff2fcf88d131",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/69 - BMAD Validation Rules.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "70 - Presentation Adapter Mapping Workbook.md",
+      "archivePath": "docs/archive/legacy-v6/70 - Presentation Adapter Mapping Workbook.md",
+      "sha256": "c66d44ba80a7ebc93c3ebfbdd9301565ad4847c38b84d8bb46fd9c37fc774926",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/70 - Presentation Adapter Mapping Workbook.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "71 - Backlog Story Template and Ready Rules.md",
+      "archivePath": "docs/archive/legacy-v6/71 - Backlog Story Template and Ready Rules.md",
+      "sha256": "99e0b705c1561959dfd75efbc381b292179ceb7b659b33fd2d4e08d069d35c7f",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/71 - Backlog Story Template and Ready Rules.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "72 - Week-by-Week Build Plan.md",
+      "archivePath": "docs/archive/legacy-v6/72 - Week-by-Week Build Plan.md",
+      "sha256": "8f1db473fce773fc58f8dd20a7b4c889c84d2762e33454c7eb32a0bb29d0608f",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/72 - Week-by-Week Build Plan.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "73 - Verification Register.md",
+      "archivePath": "docs/archive/legacy-v6/73 - Verification Register.md",
+      "sha256": "443b78c22a1dc06bf7d27ae1cd391e11ee985dd1df5a1480f5c564d4454d257f",
+      "authorityClass": "supporting_reference",
+      "disposition": "extract_then_archive",
+      "replacement": "docs/current/verification-and-release-readiness.md",
+      "rationale": "Rebuild from executable gates and current evidence."
+    },
+    {
+      "originalPath": "74 - Targeted Corrections.md",
+      "archivePath": "docs/archive/legacy-v6/74 - Targeted Corrections.md",
+      "sha256": "359bd2c4b19fee97c9a7eb03a7c3097ff7e5180d6b8a2cfc3b45dfa0f87e4a78",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/74 - Targeted Corrections.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "75 - Library Validation Protocol.md",
+      "archivePath": "docs/archive/legacy-v6/75 - Library Validation Protocol.md",
+      "sha256": "1b03856d9bd41dffcca0ca70ed2a4d8f54309a4af4c5eb3ade570770890df281",
+      "authorityClass": "supporting_reference",
+      "disposition": "rewrite",
+      "replacement": "docs/development/documentation-validation.md",
+      "rationale": "Move first-party validation guidance beside the active validator."
+    },
+    {
+      "originalPath": "76 - Current Stack Baseline.md",
+      "archivePath": "docs/archive/legacy-v6/76 - Current Stack Baseline.md",
+      "sha256": "4e7167856466327ef1f1d15d2dcee43e40de770c5e4d3f55afa44994c12f0c1e",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/76 - Current Stack Baseline.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "77 - Platform Revalidation Register.md",
+      "archivePath": "docs/archive/legacy-v6/77 - Platform Revalidation Register.md",
+      "sha256": "297440f1a53e3a1a995b196191b879a79c751bdc9ff5832ba987ec67c941e7b8",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/77 - Platform Revalidation Register.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "78 - Deprecation and Preview Watchlist.md",
+      "archivePath": "docs/archive/legacy-v6/78 - Deprecation and Preview Watchlist.md",
+      "sha256": "e61a2352db40d3dfd1b006e7de0d3fe242ea5ac027dabd88b5f79592f58dbad9",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/78 - Deprecation and Preview Watchlist.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "79 - Corrections Applied.md",
+      "archivePath": "docs/archive/legacy-v6/79 - Corrections Applied.md",
+      "sha256": "25c1d62a0912a6db744be659a1cba9623cc173ce887a57ae2f8e0626769e51e0",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/79 - Corrections Applied.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "80 - Modern Engineering Methods.md",
+      "archivePath": "docs/archive/legacy-v6/80 - Modern Engineering Methods.md",
+      "sha256": "3bed3827ff70984a9cba0dfcdd3fad453acc205e3df3fcb899489ec8a6e6ddbc",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/80 - Modern Engineering Methods.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "81 - Modernization Spike Backlog.md",
+      "archivePath": "docs/archive/legacy-v6/81 - Modernization Spike Backlog.md",
+      "sha256": "ee05985828e5e677dbc94199daa89b76df5dc61759c577028476bc4497c83529",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/81 - Modernization Spike Backlog.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "82 - Current Technology Decision Summary.md",
+      "archivePath": "docs/archive/legacy-v6/82 - Current Technology Decision Summary.md",
+      "sha256": "9c743207bc137526e88631987c9df257aec501846d4edeebc5121853888b7808",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/82 - Current Technology Decision Summary.md",
+      "rationale": "Preserve historical planning evidence; remove from current navigation and authority."
+    },
+    {
+      "originalPath": "83 - BMAD Source Code Review - Method and Builder.md",
+      "archivePath": "docs/archive/legacy-v6/83 - BMAD Source Code Review - Method and Builder.md",
+      "sha256": "1343d7a911a24df55b9af9966351ebfc06658077b222860c9110a7d1cb2e6b9b",
+      "authorityClass": "source_evidence",
+      "disposition": "merge",
+      "replacement": "docs/reference/source-analysis/bmad/method-builder-audit.md",
+      "rationale": "Merge non-duplicative evidence into one BMAD source-analysis authority."
+    },
+    {
+      "originalPath": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+      "archivePath": "docs/archive/legacy-v6/84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+      "sha256": "f8e55ef3ed3ab902d24e855ac18e16820234839e1efae355b84f8c423c6e3ee7",
+      "authorityClass": "source_evidence",
+      "disposition": "archive",
+      "replacement": "docs/reference/source-analysis/archive/openclaw-review.md",
+      "rationale": "OpenClaw is not the current OpenCode reference and cited full paths are missing."
+    },
+    {
+      "originalPath": "85 - OpenClaw Structured Code Review.md",
+      "archivePath": "docs/archive/legacy-v6/85 - OpenClaw Structured Code Review.md",
+      "sha256": "095430edf61d8bc8434055645bf402c8970bc1f41ad370ee189a7280ad5f3488",
+      "authorityClass": "source_evidence",
+      "disposition": "merge_then_archive",
+      "replacement": "docs/reference/source-analysis/archive/openclaw-review.md",
+      "rationale": "Consolidate with note 84; mark historical."
+    },
+    {
+      "originalPath": "86 - Hermes Source Code Review - Agent Runtime and Learning Loop.md",
+      "archivePath": "docs/archive/legacy-v6/86 - Hermes Source Code Review - Agent Runtime and Learning Loop.md",
+      "sha256": "00083e8010611e41aaa07cd78020dcecc812027e7f9f4f9b91656a3d75879426",
+      "authorityClass": "source_evidence",
+      "disposition": "merge",
+      "replacement": "docs/reference/source-analysis/hermes.md",
+      "rationale": "Keep verified patterns only; repair snapshot completeness claims."
+    },
+    {
+      "originalPath": "87 - Hermes Deep Review - Extension Runtime and Operational Contracts.md",
+      "archivePath": "docs/archive/legacy-v6/87 - Hermes Deep Review - Extension Runtime and Operational Contracts.md",
+      "sha256": "bd16431fa71008e401ad72e50557d8cadc92b1a3ce6b3772c0a0f04485e02743",
+      "authorityClass": "source_evidence",
+      "disposition": "merge",
+      "replacement": "docs/reference/source-analysis/hermes.md",
+      "rationale": "Consolidate with note 86."
+    },
+    {
+      "originalPath": "88 - Odysseus Source Code Review - Self-Hosted AI Workspace.md",
+      "archivePath": "docs/archive/legacy-v6/88 - Odysseus Source Code Review - Self-Hosted AI Workspace.md",
+      "sha256": "002f7a0425321153fa05f5bd8a549f2077f3f5af05dfda029b8fe738a7e2dca7",
+      "authorityClass": "source_evidence",
+      "disposition": "refresh_and_keep",
+      "replacement": "docs/reference/source-analysis/odysseus.md",
+      "rationale": "Retain clean-room requirements and explicit AGPL boundary."
+    },
+    {
+      "originalPath": "89 - Consolidated AI Workspace Source Review and Architecture Improvements.md",
+      "archivePath": "docs/archive/legacy-v6/89 - Consolidated AI Workspace Source Review and Architecture Improvements.md",
+      "sha256": "efc8422c1c133e893b620f55ca23b444967c04d03a33ee17781595295b2eee17",
+      "authorityClass": "source_evidence",
+      "disposition": "extract_then_archive",
+      "replacement": "docs/reference/source-analysis/comparison.md",
+      "rationale": "Rewrite around current OpenCode/BMAD inputs; archive stale architecture recommendations."
+    },
+    {
+      "originalPath": "90 - LLM-Tailored Development Plan and Agent Workflow.md",
+      "archivePath": "docs/archive/legacy-v6/90 - LLM-Tailored Development Plan and Agent Workflow.md",
+      "sha256": "989913abccec860700fab1ad0c869c00e8d5be43b20f7fae3890f3bc239df1bb",
+      "authorityClass": "source_evidence",
+      "disposition": "extract_then_archive",
+      "replacement": "docs/development/agent-development-workflow.md",
+      "rationale": "Retain useful work-packet/review discipline; discard stale cloud-first sequence."
+    },
+    {
+      "originalPath": "91 - Technology, Language, Method, and LLM Implementation Review.md",
+      "archivePath": "docs/archive/legacy-v6/91 - Technology, Language, Method, and LLM Implementation Review.md",
+      "sha256": "cefef613bb5a32b63937a82f2cf08b937e1800b756382f4bf510326e92e8d86c",
+      "authorityClass": "source_evidence",
+      "disposition": "extract_then_archive",
+      "replacement": "docs/archive/decisions/2026-07-technology-review.md",
+      "rationale": "Accepted decisions belong in ADRs/current docs; historical rationale remains archived."
+    },
+    {
+      "originalPath": "92 - Source Snapshot Verification and Adoption Ledger.md",
+      "archivePath": "docs/archive/legacy-v6/92 - Source Snapshot Verification and Adoption Ledger.md",
+      "sha256": "432b44d1e3012b343a46e09fbfa5e9609edbf7298c6e4ca67010448be00234b9",
+      "authorityClass": "source_evidence",
+      "disposition": "replace",
+      "replacement": "reference-sources.lock.json",
+      "rationale": "Replace prose-only source identity with a machine-readable lock plus license decisions."
+    },
+    {
+      "originalPath": "93 - Split Web and Windows Desktop Architecture Plans.md",
+      "archivePath": "docs/archive/legacy-v6/93 - Split Web and Windows Desktop Architecture Plans.md",
+      "sha256": "eb082269d16a3df487344c69647013e1c20173d5fbc1933ebddb73a3637aad7a",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/93-split-delivery.md",
+      "rationale": "Web-managed dual-delivery is not current Forge authority."
+    },
+    {
+      "originalPath": "94 - Windows Desktop Native Host and IPC.md",
+      "archivePath": "docs/archive/legacy-v6/94 - Windows Desktop Native Host and IPC.md",
+      "sha256": "eec8908da025219964e684e3068d68120bac7a795ffba1d1bd8e9a9385b8b595",
+      "authorityClass": "historical",
+      "disposition": "extract_then_archive",
+      "replacement": "docs/architecture/runtime-boundaries.md",
+      "rationale": "Reconcile useful local-host boundaries with current source and ADRs."
+    },
+    {
+      "originalPath": "95 - Windows Local Workspace and Execution.md",
+      "archivePath": "docs/archive/legacy-v6/95 - Windows Local Workspace and Execution.md",
+      "sha256": "6a0ed83556783734b2256aee1e3fc1eb2c22cf26afb7a469f39af6b45ad12935",
+      "authorityClass": "historical",
+      "disposition": "extract_then_archive",
+      "replacement": "docs/architecture/workspace-and-execution.md",
+      "rationale": "Reconcile with ADR-0009/0010 and current governed-tool implementation."
+    },
+    {
+      "originalPath": "96 - Windows Local State, Evidence, Checkpoint, and Rollback.md",
+      "archivePath": "docs/archive/legacy-v6/96 - Windows Local State, Evidence, Checkpoint, and Rollback.md",
+      "sha256": "5607c941657fdabdb61da23238cb7e73e05a7ad24fbb231bfb37c0a0d4d98a7f",
+      "authorityClass": "historical",
+      "disposition": "extract_then_archive",
+      "replacement": "docs/architecture/state-evidence-and-recovery.md",
+      "rationale": "Reconcile with current D3/recovery implementation."
+    },
+    {
+      "originalPath": "97 - Windows Desktop Security and Trust Model.md",
+      "archivePath": "docs/archive/legacy-v6/97 - Windows Desktop Security and Trust Model.md",
+      "sha256": "9bc9398a98da9065cc41703a44860db701ce8dad8103620dca9407ba5798ac47",
+      "authorityClass": "historical",
+      "disposition": "extract_then_archive",
+      "replacement": "docs/current/security-and-trust.md",
+      "rationale": "Rewrite for current Forge/no-Entra/direct-provider/agent-execution boundaries."
+    },
+    {
+      "originalPath": "98 - Azure Support Plane for Windows Desktop.md",
+      "archivePath": "docs/archive/legacy-v6/98 - Azure Support Plane for Windows Desktop.md",
+      "sha256": "c562b07e61a4ed0156afaa27e56aae420fe1e8f714a6763561802ae62f9ecd9e",
+      "authorityClass": "historical",
+      "disposition": "extract_then_archive",
+      "replacement": "docs/architecture/model-connectivity.md",
+      "rationale": "Rewrite for current no-Entra direction and separate prototype vs production modes."
+    },
+    {
+      "originalPath": "99 - Dual-Delivery Contract and Conformance Specification.md",
+      "archivePath": "docs/archive/legacy-v6/99 - Dual-Delivery Contract and Conformance Specification.md",
+      "sha256": "d01356868f635d93f1e4cbccaeb82e974575694e0eb3c75be761fe41c4065144",
+      "authorityClass": "historical",
+      "disposition": "archive",
+      "replacement": "docs/archive/legacy-v6/99-dual-delivery-contract.md",
+      "rationale": "Not current product architecture; preserve for provenance."
+    },
+    {
+      "originalPath": "Library Quality Report.md",
+      "archivePath": "docs/archive/legacy-v6/Library Quality Report.md",
+      "sha256": "76702bfbb911fd694338109340a60bd4618f57c747e1a9c386fadd3b96d22e7b",
+      "authorityClass": "supporting_reference",
+      "disposition": "archive",
+      "replacement": "docs/archive/library-audits/2026-07-library-quality-report.md",
+      "rationale": "Keep as dated audit evidence only."
+    },
+    {
+      "originalPath": "Start Here.md",
+      "archivePath": "docs/archive/legacy-v6/Start Here.md",
+      "sha256": "4e2eee7334d5ba271a9d43c0e7218a4646c9df52c55026d3369d248a2a79e852",
+      "authorityClass": "supporting_reference",
+      "disposition": "replace_then_archive",
+      "replacement": "docs/README.md",
+      "rationale": "Replace with the single team entrypoint."
+    },
+    {
+      "originalPath": "Technology Baseline Fact Check.md",
+      "archivePath": "docs/archive/legacy-v6/Technology Baseline Fact Check.md",
+      "sha256": "a801c7dbdcdd61a46aca9e9f2cee34f427bddea96a998874715dfd35d0bdd1f1",
+      "authorityClass": "historical",
+      "disposition": "rewrite",
+      "replacement": "docs/current/toolchain-and-platform.md",
+      "rationale": "Generate repository pins; retain only verified external facts with review dates."
+    },
+    {
+      "originalPath": "Vault Map.md",
+      "archivePath": "docs/archive/legacy-v6/Vault Map.md",
+      "sha256": "f4c49b9a51139e1dd99d756645661f2552dbb5da57cde9b0bc0781497c976428",
+      "authorityClass": "supporting_reference",
+      "disposition": "replace_then_archive",
+      "replacement": "docs/generated/index.md",
+      "rationale": "Generate navigation from metadata; do not hand-maintain a second authority map."
+    }
+  ]
+}

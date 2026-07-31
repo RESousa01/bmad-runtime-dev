@@ -1,0 +1,107 @@
+[
+  {
+    "file": "92 - Source Snapshot Verification and Adoption Ledger.md",
+    "line": 38,
+    "path": "_full/o/openclaw-main"
+  },
+  {
+    "file": "88 - Odysseus Source Code Review - Self-Hosted AI Workspace.md",
+    "line": 147,
+    "path": "_source_review/odysseus-dev/src/constants.py:5"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 42,
+    "path": "_full/o/openclaw-main"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 92,
+    "path": "_full/o/openclaw-main/package.json"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 93,
+    "path": "_full/o/openclaw-main/AGENTS.md"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 94,
+    "path": "_full/o/openclaw-main/VISION.md"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 95,
+    "path": "_full/o/openclaw-main/docs/gateway/sandboxing.md"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 96,
+    "path": "_full/o/openclaw-main/docs/tools/exec-approvals.md"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 97,
+    "path": "_full/o/openclaw-main/src/infra/system-run-approval-binding.ts"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 98,
+    "path": "_full/o/openclaw-main/docs/gateway/security/secure-file-operations.md"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 99,
+    "path": "_full/o/openclaw-main/src/plugins/"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 100,
+    "path": "_full/o/openclaw-main/src/tasks/"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 101,
+    "path": "_full/o/openclaw-main/src/audit/"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 102,
+    "path": "_full/o/openclaw-main/src/context-engine/"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 103,
+    "path": "_full/o/openclaw-main/qa/scenarios/index.yaml"
+  },
+  {
+    "file": "84 - OpenClaw Source Review - Comparable Runtime Patterns.md",
+    "line": 104,
+    "path": "_full/o/openclaw-main/packages/gateway-protocol/src/schema/"
+  },
+  {
+    "file": "89 - Consolidated AI Workspace Source Review and Architecture Improvements.md",
+    "line": 68,
+    "path": "_full/o/openclaw-main"
+  },
+  {
+    "file": "89 - Consolidated AI Workspace Source Review and Architecture Improvements.md",
+    "line": 248,
+    "path": "_full/o/openclaw-main"
+  },
+  {
+    "file": "33 - Release Gates and Acceptance Matrix.md",
+    "line": 469,
+    "path": "_full/o/openclaw-main"
+  },
+  {
+    "file": "85 - OpenClaw Structured Code Review.md",
+    "line": 29,
+    "path": "_full/o/openclaw-main"
+  },
+  {
+    "file": "23 - Security, Identity, and Secrets.md",
+    "line": 687,
+    "path": "_full/o/openclaw-main/"
+  }
+]

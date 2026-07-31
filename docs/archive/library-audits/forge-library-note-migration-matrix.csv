@@ -1,0 +1,106 @@
+existing_path,current_authority_class,recommended_action,target_or_replacement,rationale
+00 - Common Rules and Product Shape.md,historical,archive,docs/archive/legacy-v6/00 - Common Rules and Product Shape.md,Preserve historical planning evidence; remove from current navigation and authority.
+01 - First Build - Executable Vertical Slice.md,historical,archive,docs/archive/legacy-v6/01 - First Build - Executable Vertical Slice.md,Preserve historical planning evidence; remove from current navigation and authority.
+02 - Locked Architecture Decisions.md,historical,archive,docs/archive/legacy-v6/02 - Locked Architecture Decisions.md,Preserve historical planning evidence; remove from current navigation and authority.
+03 - Repository and Vault Usage.md,historical,archive,docs/archive/legacy-v6/03 - Repository and Vault Usage.md,Preserve historical planning evidence; remove from current navigation and authority.
+04 - Review Findings and Changelog.md,historical,archive,docs/archive/legacy-v6/04 - Review Findings and Changelog.md,Preserve historical planning evidence; remove from current navigation and authority.
+05 - Preserved Source Context.md,preserved_verbatim,archive_verbatim,docs/archive/preserved/05 - Preserved Source Context.md,Preserve byte identity and provenance; never present as current guidance.
+06 - Preserved Critical Review.md,preserved_verbatim,archive_verbatim,docs/archive/preserved/06 - Preserved Critical Review.md,Preserve byte identity and provenance; never present as current guidance.
+07 - Source Coverage Matrix.md,historical,archive,docs/archive/legacy-v6/07 - Source Coverage Matrix.md,Preserve historical planning evidence; remove from current navigation and authority.
+08 - Phased Roadmap and Build Order.md,historical,archive,docs/archive/legacy-v6/08 - Phased Roadmap and Build Order.md,Preserve historical planning evidence; remove from current navigation and authority.
+09 - Glossary and Naming.md,historical,archive,docs/archive/legacy-v6/09 - Glossary and Naming.md,Preserve historical planning evidence; remove from current navigation and authority.
+10 - Chat Workbench.md,historical,archive,docs/archive/legacy-v6/10 - Chat Workbench.md,Preserve historical planning evidence; remove from current navigation and authority.
+100 - BMAD Method and Builder Deep Comprehension Audit.md,source_evidence,refresh_and_keep,docs/reference/source-analysis/bmad/method-builder-audit.md,Retain as source analysis after validating exact snapshot identities and paths.
+11 - Runtime API Control Plane.md,historical,archive,docs/archive/legacy-v6/11 - Runtime API Control Plane.md,Preserve historical planning evidence; remove from current navigation and authority.
+12 - Run Orchestrator and Agent Kernel.md,historical,archive,docs/archive/legacy-v6/12 - Run Orchestrator and Agent Kernel.md,Preserve historical planning evidence; remove from current navigation and authority.
+"13 - BMAD Kernel, Package Loader, and Help Advisor.md",historical,archive,"docs/archive/legacy-v6/13 - BMAD Kernel, Package Loader, and Help Advisor.md",Preserve historical planning evidence; remove from current navigation and authority.
+14 - Builder Studio and SkillOps.md,historical,archive,docs/archive/legacy-v6/14 - Builder Studio and SkillOps.md,Preserve historical planning evidence; remove from current navigation and authority.
+15 - Artifact Creator and Presentation Adapter.md,historical,archive,docs/archive/legacy-v6/15 - Artifact Creator and Presentation Adapter.md,Preserve historical planning evidence; remove from current navigation and authority.
+16 - Workspace Service.md,historical,archive,docs/archive/legacy-v6/16 - Workspace Service.md,Preserve historical planning evidence; remove from current navigation and authority.
+17 - Workspace Intelligence and Context Packs.md,historical,archive,docs/archive/legacy-v6/17 - Workspace Intelligence and Context Packs.md,Preserve historical planning evidence; remove from current navigation and authority.
+18 - Model Gateway and Microsoft Foundry.md,historical,archive,docs/archive/legacy-v6/18 - Model Gateway and Microsoft Foundry.md,Preserve historical planning evidence; remove from current navigation and authority.
+19 - Airlock Policy and Approvals.md,historical,archive,docs/archive/legacy-v6/19 - Airlock Policy and Approvals.md,Preserve historical planning evidence; remove from current navigation and authority.
+20 - Execution Lanes and Container App Jobs.md,historical,archive,docs/archive/legacy-v6/20 - Execution Lanes and Container App Jobs.md,Preserve historical planning evidence; remove from current navigation and authority.
+"21 - Trace, Evidence, and Observability.md",historical,archive,"docs/archive/legacy-v6/21 - Trace, Evidence, and Observability.md",Preserve historical planning evidence; remove from current navigation and authority.
+22 - Data Model - SQL and Blob.md,historical,archive,docs/archive/legacy-v6/22 - Data Model - SQL and Blob.md,Preserve historical planning evidence; remove from current navigation and authority.
+"23 - Security, Identity, and Secrets.md",historical,archive,"docs/archive/legacy-v6/23 - Security, Identity, and Secrets.md",Preserve historical planning evidence; remove from current navigation and authority.
+24 - Operator Console and Operations.md,historical,archive,docs/archive/legacy-v6/24 - Operator Console and Operations.md,Preserve historical planning evidence; remove from current navigation and authority.
+"25 - OpenAPI, Schemas, and Generated Clients.md",historical,archive,"docs/archive/legacy-v6/25 - OpenAPI, Schemas, and Generated Clients.md",Preserve historical planning evidence; remove from current navigation and authority.
+26 - Frontend Design System.md,historical,archive,docs/archive/legacy-v6/26 - Frontend Design System.md,Preserve historical planning evidence; remove from current navigation and authority.
+"27 - Testing, Validation, and Replay.md",historical,archive,"docs/archive/legacy-v6/27 - Testing, Validation, and Replay.md",Preserve historical planning evidence; remove from current navigation and authority.
+"28 - Supply Chain, Deployment, and IaC.md",historical,archive,"docs/archive/legacy-v6/28 - Supply Chain, Deployment, and IaC.md",Preserve historical planning evidence; remove from current navigation and authority.
+"29 - Concurrency, Transactions, and Failures.md",historical,archive,"docs/archive/legacy-v6/29 - Concurrency, Transactions, and Failures.md",Preserve historical planning evidence; remove from current navigation and authority.
+30 - Implementation Epics and Backlog.md,historical,archive,docs/archive/legacy-v6/30 - Implementation Epics and Backlog.md,Preserve historical planning evidence; remove from current navigation and authority.
+31 - Architecture Decision Records.md,historical,archive,docs/archive/legacy-v6/31 - Architecture Decision Records.md,Preserve historical planning evidence; remove from current navigation and authority.
+32 - Integration Contract Map.md,historical,archive,docs/archive/legacy-v6/32 - Integration Contract Map.md,Preserve historical planning evidence; remove from current navigation and authority.
+33 - Release Gates and Acceptance Matrix.md,historical,archive,docs/archive/legacy-v6/33 - Release Gates and Acceptance Matrix.md,Preserve historical planning evidence; remove from current navigation and authority.
+34 - Canonical Object Model.md,historical,archive,docs/archive/legacy-v6/34 - Canonical Object Model.md,Preserve historical planning evidence; remove from current navigation and authority.
+35 - Source Alignment Notes.md,historical,archive,docs/archive/legacy-v6/35 - Source Alignment Notes.md,Preserve historical planning evidence; remove from current navigation and authority.
+36 - Local Development and DevEx.md,historical,archive,docs/archive/legacy-v6/36 - Local Development and DevEx.md,Preserve historical planning evidence; remove from current navigation and authority.
+37 - Azure Environments and Deployment Runbooks.md,historical,archive,docs/archive/legacy-v6/37 - Azure Environments and Deployment Runbooks.md,Preserve historical planning evidence; remove from current navigation and authority.
+38 - Worker Images and Command DSL.md,historical,archive,docs/archive/legacy-v6/38 - Worker Images and Command DSL.md,Preserve historical planning evidence; remove from current navigation and authority.
+39 - BMAD Package Format.md,historical,archive,docs/archive/legacy-v6/39 - BMAD Package Format.md,Preserve historical planning evidence; remove from current navigation and authority.
+40 - Threat Model and Security Tests.md,historical,archive,docs/archive/legacy-v6/40 - Threat Model and Security Tests.md,Preserve historical planning evidence; remove from current navigation and authority.
+41 - Observability Dashboards and Alerts.md,historical,archive,docs/archive/legacy-v6/41 - Observability Dashboards and Alerts.md,Preserve historical planning evidence; remove from current navigation and authority.
+"42 - Migrations, Retention, and Cleanup.md",historical,archive,"docs/archive/legacy-v6/42 - Migrations, Retention, and Cleanup.md",Preserve historical planning evidence; remove from current navigation and authority.
+43 - Product UX Flows and Wireframe Notes.md,historical,archive,docs/archive/legacy-v6/43 - Product UX Flows and Wireframe Notes.md,Preserve historical planning evidence; remove from current navigation and authority.
+44 - AI Coding Agent Handoff Prompts.md,historical,archive,docs/archive/legacy-v6/44 - AI Coding Agent Handoff Prompts.md,Preserve historical planning evidence; remove from current navigation and authority.
+45 - Trace Bundle Schema.md,historical,archive,docs/archive/legacy-v6/45 - Trace Bundle Schema.md,Preserve historical planning evidence; remove from current navigation and authority.
+46 - API Route Catalog.md,historical,archive,docs/archive/legacy-v6/46 - API Route Catalog.md,Preserve historical planning evidence; remove from current navigation and authority.
+47 - Database DDL Starter.md,historical,archive,docs/archive/legacy-v6/47 - Database DDL Starter.md,Preserve historical planning evidence; remove from current navigation and authority.
+48 - Blob Storage Layout.md,historical,archive,docs/archive/legacy-v6/48 - Blob Storage Layout.md,Preserve historical planning evidence; remove from current navigation and authority.
+49 - Detailed Component Build Checklists.md,historical,archive,docs/archive/legacy-v6/49 - Detailed Component Build Checklists.md,Preserve historical planning evidence; remove from current navigation and authority.
+50 - V4 Full Library Audit.md,historical,archive,docs/archive/legacy-v6/50 - V4 Full Library Audit.md,Preserve historical planning evidence; remove from current navigation and authority.
+51 - Master Implementation Sequence.md,historical,archive,docs/archive/legacy-v6/51 - Master Implementation Sequence.md,Preserve historical planning evidence; remove from current navigation and authority.
+"52 - API, Event, Table, and Blob Ownership.md",historical,archive,"docs/archive/legacy-v6/52 - API, Event, Table, and Blob Ownership.md",Preserve historical planning evidence; remove from current navigation and authority.
+53 - Event Taxonomy and Stream Protocol.md,historical,archive,docs/archive/legacy-v6/53 - Event Taxonomy and Stream Protocol.md,Preserve historical planning evidence; remove from current navigation and authority.
+54 - State Machine Reference.md,historical,archive,docs/archive/legacy-v6/54 - State Machine Reference.md,Preserve historical planning evidence; remove from current navigation and authority.
+55 - Airlock Policy Rulebook.md,historical,archive,docs/archive/legacy-v6/55 - Airlock Policy Rulebook.md,Preserve historical planning evidence; remove from current navigation and authority.
+56 - Worker Manifest Protocol.md,historical,archive,docs/archive/legacy-v6/56 - Worker Manifest Protocol.md,Preserve historical planning evidence; remove from current navigation and authority.
+57 - Replay Fixture Library Plan.md,historical,archive,docs/archive/legacy-v6/57 - Replay Fixture Library Plan.md,Preserve historical planning evidence; remove from current navigation and authority.
+58 - Risk Register and Mitigation Plan.md,historical,archive,docs/archive/legacy-v6/58 - Risk Register and Mitigation Plan.md,Preserve historical planning evidence; remove from current navigation and authority.
+59 - Definition of Done by Component.md,historical,archive,docs/archive/legacy-v6/59 - Definition of Done by Component.md,Preserve historical planning evidence; remove from current navigation and authority.
+60 - External Platform References and Verification Sources.md,historical,archive,docs/archive/legacy-v6/60 - External Platform References and Verification Sources.md,Preserve historical planning evidence; remove from current navigation and authority.
+61 - First Vertical Slice User Stories.md,historical,archive,docs/archive/legacy-v6/61 - First Vertical Slice User Stories.md,Preserve historical planning evidence; remove from current navigation and authority.
+62 - Component Interview Prompts.md,historical,archive,docs/archive/legacy-v6/62 - Component Interview Prompts.md,Preserve historical planning evidence; remove from current navigation and authority.
+63 - Backend Port Interfaces.md,historical,archive,docs/archive/legacy-v6/63 - Backend Port Interfaces.md,Preserve historical planning evidence; remove from current navigation and authority.
+64 - JSON Schema Contract Examples.md,historical,archive,docs/archive/legacy-v6/64 - JSON Schema Contract Examples.md,Preserve historical planning evidence; remove from current navigation and authority.
+65 - SQL Migration and Index Plan.md,historical,archive,docs/archive/legacy-v6/65 - SQL Migration and Index Plan.md,Preserve historical planning evidence; remove from current navigation and authority.
+66 - Frontend Component Specification.md,historical,archive,docs/archive/legacy-v6/66 - Frontend Component Specification.md,Preserve historical planning evidence; remove from current navigation and authority.
+67 - Azure IaC Module Specification.md,historical,archive,docs/archive/legacy-v6/67 - Azure IaC Module Specification.md,Preserve historical planning evidence; remove from current navigation and authority.
+68 - Security Test Case Catalog.md,historical,archive,docs/archive/legacy-v6/68 - Security Test Case Catalog.md,Preserve historical planning evidence; remove from current navigation and authority.
+69 - BMAD Validation Rules.md,historical,archive,docs/archive/legacy-v6/69 - BMAD Validation Rules.md,Preserve historical planning evidence; remove from current navigation and authority.
+70 - Presentation Adapter Mapping Workbook.md,historical,archive,docs/archive/legacy-v6/70 - Presentation Adapter Mapping Workbook.md,Preserve historical planning evidence; remove from current navigation and authority.
+71 - Backlog Story Template and Ready Rules.md,historical,archive,docs/archive/legacy-v6/71 - Backlog Story Template and Ready Rules.md,Preserve historical planning evidence; remove from current navigation and authority.
+72 - Week-by-Week Build Plan.md,historical,archive,docs/archive/legacy-v6/72 - Week-by-Week Build Plan.md,Preserve historical planning evidence; remove from current navigation and authority.
+73 - Verification Register.md,supporting_reference,extract_then_archive,docs/current/verification-and-release-readiness.md,Rebuild from executable gates and current evidence.
+74 - Targeted Corrections.md,historical,archive,docs/archive/legacy-v6/74 - Targeted Corrections.md,Preserve historical planning evidence; remove from current navigation and authority.
+75 - Library Validation Protocol.md,supporting_reference,rewrite,docs/development/documentation-validation.md,Move first-party validation guidance beside the active validator.
+76 - Current Stack Baseline.md,historical,archive,docs/archive/legacy-v6/76 - Current Stack Baseline.md,Preserve historical planning evidence; remove from current navigation and authority.
+77 - Platform Revalidation Register.md,historical,archive,docs/archive/legacy-v6/77 - Platform Revalidation Register.md,Preserve historical planning evidence; remove from current navigation and authority.
+78 - Deprecation and Preview Watchlist.md,historical,archive,docs/archive/legacy-v6/78 - Deprecation and Preview Watchlist.md,Preserve historical planning evidence; remove from current navigation and authority.
+79 - Corrections Applied.md,historical,archive,docs/archive/legacy-v6/79 - Corrections Applied.md,Preserve historical planning evidence; remove from current navigation and authority.
+80 - Modern Engineering Methods.md,historical,archive,docs/archive/legacy-v6/80 - Modern Engineering Methods.md,Preserve historical planning evidence; remove from current navigation and authority.
+81 - Modernization Spike Backlog.md,historical,archive,docs/archive/legacy-v6/81 - Modernization Spike Backlog.md,Preserve historical planning evidence; remove from current navigation and authority.
+82 - Current Technology Decision Summary.md,historical,archive,docs/archive/legacy-v6/82 - Current Technology Decision Summary.md,Preserve historical planning evidence; remove from current navigation and authority.
+83 - BMAD Source Code Review - Method and Builder.md,source_evidence,merge,docs/reference/source-analysis/bmad/method-builder-audit.md,Merge non-duplicative evidence into one BMAD source-analysis authority.
+84 - OpenClaw Source Review - Comparable Runtime Patterns.md,source_evidence,archive,docs/reference/source-analysis/archive/openclaw-review.md,OpenClaw is not the current OpenCode reference and cited full paths are missing.
+85 - OpenClaw Structured Code Review.md,source_evidence,merge_then_archive,docs/reference/source-analysis/archive/openclaw-review.md,Consolidate with note 84; mark historical.
+86 - Hermes Source Code Review - Agent Runtime and Learning Loop.md,source_evidence,merge,docs/reference/source-analysis/hermes.md,Keep verified patterns only; repair snapshot completeness claims.
+87 - Hermes Deep Review - Extension Runtime and Operational Contracts.md,source_evidence,merge,docs/reference/source-analysis/hermes.md,Consolidate with note 86.
+88 - Odysseus Source Code Review - Self-Hosted AI Workspace.md,source_evidence,refresh_and_keep,docs/reference/source-analysis/odysseus.md,Retain clean-room requirements and explicit AGPL boundary.
+89 - Consolidated AI Workspace Source Review and Architecture Improvements.md,source_evidence,extract_then_archive,docs/reference/source-analysis/comparison.md,Rewrite around current OpenCode/BMAD inputs; archive stale architecture recommendations.
+90 - LLM-Tailored Development Plan and Agent Workflow.md,source_evidence,extract_then_archive,docs/development/agent-development-workflow.md,Retain useful work-packet/review discipline; discard stale cloud-first sequence.
+"91 - Technology, Language, Method, and LLM Implementation Review.md",source_evidence,extract_then_archive,docs/archive/decisions/2026-07-technology-review.md,Accepted decisions belong in ADRs/current docs; historical rationale remains archived.
+92 - Source Snapshot Verification and Adoption Ledger.md,source_evidence,replace,reference-sources.lock.json,Replace prose-only source identity with a machine-readable lock plus license decisions.
+93 - Split Web and Windows Desktop Architecture Plans.md,historical,archive,docs/archive/legacy-v6/93-split-delivery.md,Web-managed dual-delivery is not current Forge authority.
+94 - Windows Desktop Native Host and IPC.md,historical,extract_then_archive,docs/architecture/runtime-boundaries.md,Reconcile useful local-host boundaries with current source and ADRs.
+95 - Windows Local Workspace and Execution.md,historical,extract_then_archive,docs/architecture/workspace-and-execution.md,Reconcile with ADR-0009/0010 and current governed-tool implementation.
+"96 - Windows Local State, Evidence, Checkpoint, and Rollback.md",historical,extract_then_archive,docs/architecture/state-evidence-and-recovery.md,Reconcile with current D3/recovery implementation.
+97 - Windows Desktop Security and Trust Model.md,historical,extract_then_archive,docs/current/security-and-trust.md,Rewrite for current Forge/no-Entra/direct-provider/agent-execution boundaries.
+98 - Azure Support Plane for Windows Desktop.md,historical,extract_then_archive,docs/architecture/model-connectivity.md,Rewrite for current no-Entra direction and separate prototype vs production modes.
+99 - Dual-Delivery Contract and Conformance Specification.md,historical,archive,docs/archive/legacy-v6/99-dual-delivery-contract.md,Not current product architecture; preserve for provenance.
+Library Quality Report.md,supporting_reference,archive,docs/archive/library-audits/2026-07-library-quality-report.md,Keep as dated audit evidence only.
+Start Here.md,supporting_reference,replace_then_archive,docs/README.md,Replace with the single team entrypoint.
+Technology Baseline Fact Check.md,historical,rewrite,docs/current/toolchain-and-platform.md,Generate repository pins; retain only verified external facts with review dates.
+Vault Map.md,supporting_reference,replace_then_archive,docs/generated/index.md,Generate navigation from metadata; do not hand-maintain a second authority map.

@@ -18,11 +18,12 @@ pub use adapters::{
     BmadPrfaqSkill, BmadProductBriefSkill, BmadReviewSkill, BmadSpecSkill, BmadUxSkill,
 };
 pub use execution::{
-    BmadPreparedSkillExecution, BmadSkillAuthorityRequirement, BmadSkillExecutionBindingInput,
-    BmadSkillExecutionBranch, BmadSkillExecutionCompiler, BmadSkillExecutionContract,
-    BmadSkillExecutionContractInput, BmadSkillExecutionError, BmadSkillExecutionPreparedPlan,
-    BmadSkillExecutionRequest, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
-    BmadSkillRecoverySemantics, BmadSkillToolIntent,
+    BmadPreparedSkillExecution, BmadSkillAuthorityRequirement, BmadSkillAuthorityRoute,
+    BmadSkillExecutionBindingInput, BmadSkillExecutionBranch, BmadSkillExecutionCompiler,
+    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
+    BmadSkillExecutionPreparedPlan, BmadSkillExecutionRequest, BmadSkillExecutionStep,
+    BmadSkillExecutionWorkflow, BmadSkillHostBindingInput, BmadSkillRecoverySemantics,
+    BmadSkillToolIntent,
 };
 pub use harness::{
     BmadMethodSkill, BmadSkillDescriptor, BmadSkillDescriptorInput, BmadSkillHarnessError,

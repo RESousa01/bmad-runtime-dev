@@ -38,3 +38,6 @@ tests/conformance/dotnet/obj/
 .claude/
 # Pinned upstream source checkout used by the Forge renderer migration.
 /library/opencode/
+# Locally materialized immutable reference archives are verified from
+# reference-sources.lock.json and must never enter the product source tree.
+.reference-materialized/

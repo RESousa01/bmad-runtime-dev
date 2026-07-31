@@ -168,6 +168,34 @@ test("scanner permits only the pinned upstream ESC fixture control byte", async 
   }
 });
 
+test("scanner permits only the hash-preserved legacy handoff backspace byte", async () => {
+  const root = await createFixtureRoot();
+  try {
+    const pinned = join(
+      root,
+      "docs",
+      "archive",
+      "handoffs",
+      "session-handoff-2026-07-28.md",
+    );
+    await mkdir(dirname(pinned), { recursive: true });
+    await writeFile(pinned, Buffer.from("# Historical\n\npreserved\x08byte\n", "latin1"));
+    const result = runScanner(root);
+    assert.equal(result.status, 0, result.stderr);
+
+    await writeFile(
+      join(root, "docs", "other-control.md"),
+      Buffer.from("# Current\n\nrejected\x08byte\n", "latin1"),
+    );
+    const rejected = runScanner(root);
+    assert.equal(rejected.status, 1);
+    assert.match(rejected.stderr, /C0 control byte in text source/);
+    assert.match(rejected.stderr, /other-control\.md:3/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("scanner covers first-party C sharp sources", async () => {
   const root = await createFixtureRoot();
   try {

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge.knowledge.v2/sources",
+  "title": "Forge knowledge sources",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sources"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "forge.knowledge.v2"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "locator",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "repository",
+              "adr",
+              "gate",
+              "official_external"
+            ]
+          },
+          "locator": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "current",
+              "needs_reverification",
+              "blocked"
+            ]
+          },
+          "commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "reviewDue": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  }
+}

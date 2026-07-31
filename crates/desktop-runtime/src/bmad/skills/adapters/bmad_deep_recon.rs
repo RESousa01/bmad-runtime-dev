@@ -11,11 +11,12 @@ use crate::generated_contracts::{
 };
 use crate::{
     BmadMethodSkill, BmadResource, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
-    BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillRecoverySemantics,
-    BmadSkillSupportState, BmadSkillToolIntent, ContractId, MethodArtifactExpectation,
-    MethodEvidenceClass, MethodExecutionProfile, MethodExecutionProfileData, MethodInvocationModes,
-    MethodResourcePolicy, MethodRuntimeRequirement, Sha256Digest,
+    BmadSkillExecutionBranch, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
+    BmadSkillExecutionError, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
+    MethodArtifactExpectation, MethodEvidenceClass, MethodExecutionProfile,
+    MethodExecutionProfileData, MethodInvocationModes, MethodResourcePolicy,
+    MethodRuntimeRequirement, Sha256Digest,
 };
 
 /// Adapter for the pinned `bmad-deep-recon` Method skill.
@@ -74,6 +75,40 @@ fn contract(
     selected_action: &str,
 ) -> Result<BmadSkillExecutionContract, BmadSkillExecutionError> {
     let execution_profile = execution_profile(&descriptor)?;
+    let artifact_expectations = vec![
+        expectation(
+            "expectation_01J00000000000000000000038",
+            "document",
+            "research_output_path/research.md",
+            "sha256:55e8fbcf413e2e64c95f1c2252d14dcbbeea4f1b991d67e35a328cc4bc92c68f",
+        )?,
+        expectation(
+            "expectation_01J00000000000000000000039",
+            "file_set",
+            "research_output_path/{brief.md,imports/,digests/,.memlog.md}",
+            "sha256:16f8e2c0414d5f6e3251466be124a493d88e856cae2b1847d0708bead2844ae5",
+        )?,
+    ];
+    let mut branches = Vec::new();
+    for action in std::iter::once(selected_action).chain(
+        ["draft", "process", "run", "refresh", "deepen"]
+            .into_iter()
+            .filter(|action| *action != selected_action),
+    ) {
+        let workflow = workflow(action)?;
+        for mode in [
+            BmadInvocationMode::Interactive,
+            BmadInvocationMode::Headless,
+        ] {
+            branches.push(BmadSkillExecutionBranch {
+                action: action.to_owned(),
+                mode,
+                workflow: workflow.clone(),
+                artifact_expectations: artifact_expectations.clone(),
+                required_status_fields: Vec::new(),
+            });
+        }
+    }
     BmadSkillExecutionContract::new(BmadSkillExecutionContractInput {
         descriptor,
         package_name: "bmad-method".to_owned(),
@@ -102,7 +137,7 @@ fn contract(
         method_schema_hash: digest(
             "sha256:dda02f453dcf4edbb3fc66e0ad3a7c59d7087f5b44b526e40c435456c8c248c2",
         )?,
-        workflow: workflow(selected_action)?,
+        branches,
         tool_intents: vec![
             BmadSkillToolIntent::FileRead,
             BmadSkillToolIntent::FileWrite,
@@ -111,20 +146,6 @@ fn contract(
             BmadSkillToolIntent::Subagent,
             BmadSkillToolIntent::Browser,
             BmadSkillToolIntent::ExternalHandoff,
-        ],
-        artifact_expectations: vec![
-            expectation(
-                "expectation_01J00000000000000000000038",
-                "document",
-                "research_output_path/research.md",
-                "sha256:55e8fbcf413e2e64c95f1c2252d14dcbbeea4f1b991d67e35a328cc4bc92c68f",
-            )?,
-            expectation(
-                "expectation_01J00000000000000000000039",
-                "file_set",
-                "research_output_path/{brief.md,imports/,digests/,.memlog.md}",
-                "sha256:16f8e2c0414d5f6e3251466be124a493d88e856cae2b1847d0708bead2844ae5",
-            )?,
         ],
         recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
     })

@@ -1,4 +1,4 @@
-# Project-scoped Codex defaults for Sapphirus Desktop.
+# Project-scoped Codex defaults for Forge.
 # Loaded only when this repository is trusted. Model selection, reasoning effort,
 # personality, and other personal preferences intentionally inherit from the
 # user-level Codex config.
@@ -16,16 +16,18 @@ background_terminal_max_timeout = 600000
 project_doc_max_bytes = 65536
 
 developer_instructions = '''
-Develop Sapphirus Desktop with correctness, evidence, and fail-closed behavior as the priorities.
+Develop Forge with correctness, evidence, and fail-closed behavior as the priorities.
 
 Context and authority:
-- Before meaningful work, inspect the current branch/worktree and dirty state, then read README.md, package.json, the relevant implementation packet or plan under docs/, and the Sapphirus project note in BigBrain.
+- Before meaningful work, inspect the current branch/worktree and dirty state, then read README.md, docs/README.md, package.json, the relevant accepted ADR or active plan under docs/, and the Forge project note in BigBrain.
+- Authority precedence is source/tests/gates, accepted ADRs, docs/current, runbooks, active plans, dated reviews, source analysis, then archives. A plan or audit is never implementation proof.
 - Treat current repository source, tests, and pinned manifests as primary evidence. BigBrain is durable context, but verify drift-prone claims against the live checkout and record material differences.
 - When work spans product areas, prioritize finishing the BMAD lane and report progress using the repository's named BMAD/D1/D2/D3/P* checkpoints rather than generic percentages.
 
 Architecture and scope:
 - Preserve desktop-app as the sole Rust composition root and authority for state, workspace access, approvals, checkpoints, file effects, rollback, and evidence. Keep the React/WebView2 renderer a typed presentation client without generic filesystem, process, token, database, or updater authority.
-- Treat bmad-runtime-lib as read-only reference context: do not edit it, make it a build/runtime dependency, or execute imported third-party scripts unless the user explicitly requests reference-library maintenance.
+- Current Forge development and intended deployment must work without Entra. Keep prototype API-key transport distinct from the incomplete governed production path; never use fake identity values as completion evidence.
+- Treat bmad-runtime-lib as archive/reference context: do not make it current authority, a build/runtime dependency, or execute imported third-party scripts. Edit it only for explicitly requested archive/reference maintenance.
 - Preserve unrelated user changes. Never clean, reset, stash, regenerate, or rewrite dirty files outside the requested blast radius.
 
 Toolchain and execution:

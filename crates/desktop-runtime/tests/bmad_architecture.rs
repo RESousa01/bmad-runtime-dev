@@ -281,7 +281,12 @@ fn bmad_architecture_enforces_explicit_domain_dependency_edges() {
     assert_eq!(std::mem::size_of::<BmadDomainRuntime>(), 0);
     assert_eq!(
         declared_type_names(&facade),
-        ["BmadDomainRuntime", "BmadRuntimePort"]
+        [
+            "BmadDispatchedSkillExecution",
+            "BmadDomainRuntime",
+            "BmadRuntimePort",
+            "BmadSkillDispatchError",
+        ]
             .into_iter()
             .map(str::to_owned)
             .collect(),

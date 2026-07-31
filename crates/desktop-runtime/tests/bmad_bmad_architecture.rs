@@ -135,6 +135,7 @@ fn architecture_request(mode: BmadInvocationMode) -> BmadSkillExecutionRequest {
             skill_name: "bmad-architecture".to_owned(),
             normalized_action: None,
         },
+        invocation_mode: mode,
         package_descriptor_hash: digest(
             "sha256:036d3e0fdef725b894c2a5a95c4560d3250dd54b14640fecb26aa88c459c0c31",
         ),
@@ -389,9 +390,7 @@ fn architecture_prepares_both_modes_with_typed_plans_and_durable_recovery() {
                 BmadActionPlanKind::Read,
                 BmadActionPlanKind::WriteProposal,
                 BmadActionPlanKind::CommandProposal,
-                BmadActionPlanKind::Read,
                 BmadActionPlanKind::ModelCall,
-                BmadActionPlanKind::ArtifactPlan,
             ]
         );
         assert_eq!(
@@ -433,7 +432,7 @@ fn architecture_dispatch_enters_the_existing_durable_method_lifecycle() {
     );
     assert_eq!(
         dispatched.session().state(),
-        MethodState::ContextReviewRequired
+        MethodState::CapabilityBound
     );
     assert_eq!(
         dispatched.session().current_binding(),
@@ -449,10 +448,7 @@ fn architecture_dispatch_enters_the_existing_durable_method_lifecycle() {
     );
     assert_eq!(
         repository.events.lock().expect("event lock").as_slice(),
-        [
-            MethodPersistenceEvent::CapabilityBound,
-            MethodPersistenceEvent::ContextReviewRequested,
-        ]
+        [MethodPersistenceEvent::CapabilityBound]
     );
 
     let scope = dispatched.session().scope().clone();
@@ -488,7 +484,6 @@ fn architecture_dispatch_enters_the_existing_durable_method_lifecycle() {
         repository.events.lock().expect("event lock").as_slice(),
         [
             MethodPersistenceEvent::CapabilityBound,
-            MethodPersistenceEvent::ContextReviewRequested,
             MethodPersistenceEvent::CapabilityRebound,
             MethodPersistenceEvent::ContextReviewRequested,
             MethodPersistenceEvent::Cancelled,

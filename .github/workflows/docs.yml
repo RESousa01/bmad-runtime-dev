@@ -1,0 +1,111 @@
+name: Documentation verification
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "AGENTS.md"
+      - "reference-sources.lock.json"
+      - "tools/knowledge/**"
+      - "package.json"
+      - ".node-version"
+      - ".nvmrc"
+      - "Cargo.toml"
+      - "rust-toolchain.toml"
+      - "global.json"
+      - "apps/desktop-ui/package.json"
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "AGENTS.md"
+      - "reference-sources.lock.json"
+      - "tools/knowledge/**"
+      - "package.json"
+      - ".node-version"
+      - ".nvmrc"
+      - "Cargo.toml"
+      - "rust-toolchain.toml"
+      - "global.json"
+      - "apps/desktop-ui/package.json"
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    if: github.event_name != 'schedule'
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: 11.15.1
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm docs:verify
+      - run: git diff --check
+
+  external-freshness:
+    if: github.event_name == 'schedule'
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: 11.15.1
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - id: freshness
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          pnpm docs:verify
+          node -e "const m=require('./docs/_meta/knowledge-manifest.json'); const b=m.externalBlockers?.filter(x=>x.status==='blocked')??[]; if(b.length){console.error(b.map(x=>x.id+': '+x.reason).join('\n')); process.exit(1)}"
+      - if: steps.freshness.outcome == 'failure'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          $title = "Forge documentation freshness requires attention"
+          $body = "The scheduled documentation/source freshness check failed. Review the current claim dates, external blockers, and source availability. Run: $env:RUN_URL"
+          $number = gh issue list --state open --search "`"$title`" in:title" --json number --jq ".[0].number"
+          if ($number) {
+            gh issue comment $number --body $body
+          } else {
+            gh issue create --title $title --body $body
+          }
+      - if: steps.freshness.outcome == 'failure'
+        run: exit 1
+

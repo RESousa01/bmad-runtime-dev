@@ -88,6 +88,47 @@ pub enum BmadSkillAuthorityRequirement {
     ExternalHandoff,
 }
 
+/// Compatibility projection for callers that inspect the host lane directly.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum BmadSkillAuthorityRoute {
+    WorkspaceRead,
+    WorkspaceWrite,
+    Process,
+    Network,
+    Subagent,
+    Browser,
+    ExternalHandoff,
+}
+
+impl BmadSkillToolIntent {
+    /// Returns the legacy coarse action-plan projection without changing the
+    /// distinct authority requirement used by runtime preparation.
+    #[must_use]
+    pub const fn required_plan_kind(self) -> BmadActionPlanKind {
+        match self {
+            Self::FileRead | Self::Web | Self::Browser => BmadActionPlanKind::Read,
+            Self::FileWrite => BmadActionPlanKind::WriteProposal,
+            Self::Process => BmadActionPlanKind::CommandProposal,
+            Self::Subagent => BmadActionPlanKind::ModelCall,
+            Self::ExternalHandoff => BmadActionPlanKind::ArtifactPlan,
+        }
+    }
+
+    /// Returns the distinct host authority lane for this source intent.
+    #[must_use]
+    pub const fn authority_route(self) -> BmadSkillAuthorityRoute {
+        match self {
+            Self::FileRead => BmadSkillAuthorityRoute::WorkspaceRead,
+            Self::FileWrite => BmadSkillAuthorityRoute::WorkspaceWrite,
+            Self::Process => BmadSkillAuthorityRoute::Process,
+            Self::Web => BmadSkillAuthorityRoute::Network,
+            Self::Subagent => BmadSkillAuthorityRoute::Subagent,
+            Self::Browser => BmadSkillAuthorityRoute::Browser,
+            Self::ExternalHandoff => BmadSkillAuthorityRoute::ExternalHandoff,
+        }
+    }
+}
+
 /// Recovery declaration consumed by the existing Method session lifecycle.
 ///
 /// It intentionally contains no state or transition method: checkpoints and
@@ -310,9 +351,26 @@ impl BmadSkillExecutionContract {
         })
     }
 
+    /// Compatibility entrypoint for source adapters and tests that still use
+    /// the pre-branch binding shape.
+    pub fn bind_host_request(
+        &self,
+        input: BmadSkillHostBindingInput,
+    ) -> Result<BmadSkillExecutionRequest, BmadSkillExecutionError> {
+        self.execution_request(BmadSkillExecutionBindingInput {
+            mode: input.mode,
+            action: input.action.unwrap_or_default(),
+            model_binding: input.model_binding,
+            resolved_config_graph_hash: input.resolved_config_graph_hash,
+            resolved_config_hash: input.resolved_config_hash,
+            resolved_customization_hash: input.resolved_customization_hash,
+            egress_profile_hash: input.egress_profile_hash,
+        })
+    }
+
     #[must_use]
-    pub const fn workflow(&self) -> &BmadSkillExecutionWorkflow {
-        &self.workflow
+    pub fn workflow(&self) -> &BmadSkillExecutionWorkflow {
+        &self.branches[0].workflow
     }
 
     #[must_use]
@@ -401,6 +459,19 @@ impl BmadSkillExecutionContract {
 pub struct BmadSkillExecutionBindingInput {
     pub mode: BmadInvocationMode,
     pub action: String,
+    pub model_binding: MethodModelBinding,
+    pub resolved_config_graph_hash: Sha256Digest,
+    pub resolved_config_hash: Sha256Digest,
+    pub resolved_customization_hash: Sha256Digest,
+    pub egress_profile_hash: Sha256Digest,
+}
+
+/// Compatibility name and optional-action shape retained for existing Method
+/// adapters while callers migrate to [`BmadSkillExecutionBindingInput`].
+#[derive(Clone, Debug)]
+pub struct BmadSkillHostBindingInput {
+    pub mode: BmadInvocationMode,
+    pub action: Option<String>,
     pub model_binding: MethodModelBinding,
     pub resolved_config_graph_hash: Sha256Digest,
     pub resolved_config_hash: Sha256Digest,

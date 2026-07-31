@@ -1,0 +1,1288 @@
+{
+  "generated_at": "2026-07-31T01:56:58.558577Z",
+  "review_target": "/mnt/data/forge_lib_review_2026-07-31/source/bmad-runtime-dev-main/bmad-runtime-lib",
+  "historical_baseline": "/mnt/data/bmad-runtime-lib(1).zip",
+  "library_inventory": {
+    "total_files": 21035,
+    "total_bytes": 306143548,
+    "by_top": {
+      "(root)": {
+        "files": 108,
+        "bytes": 2721409
+      },
+      ".obsidian": {
+        "files": 6,
+        "bytes": 9692
+      },
+      "_full": {
+        "files": 30,
+        "bytes": 7683961
+      },
+      "_source_review": {
+        "files": 20873,
+        "bytes": 295646777
+      },
+      "knowledge-base": {
+        "files": 15,
+        "bytes": 81709
+      },
+      "start": {
+        "files": 2,
+        "bytes": 0
+      },
+      "tools": {
+        "files": 1,
+        "bytes": 0
+      }
+    },
+    "root_markdown_files": 105,
+    "root_markdown_lines": 45710,
+    "root_markdown_bytes": 2614251,
+    "knowledge_markdown_files": 10
+  },
+  "root_frontmatter_counts": {
+    "project": {
+      "Sapphirus BMAD Runtime": 103
+    },
+    "status": {
+      "v6-modernized-validated-implementation-guide": 31,
+      "historical-preserved": 1,
+      "current": 1,
+      "v6-modernized-implementation-guide": 24,
+      "source-evidence": 8,
+      "reviewed": 1,
+      "implementation-guide": 13,
+      "legacy-reference": 16,
+      "planning-guide": 1,
+      "supporting-reference": 4,
+      "complete": 1,
+      "active": 1,
+      "v6.16-cloud-first-reviewed": 1,
+      "v6.16-reviewed": 2
+    },
+    "vault_role": {
+      "readable-note": 84,
+      "current-source-authority": 1,
+      "source-review": 5,
+      "delivery-model-authority": 1,
+      "desktop-native-host-authority": 1,
+      "desktop-workspace-execution-authority": 1,
+      "desktop-local-state-authority": 1,
+      "desktop-security-authority": 1,
+      "desktop-azure-support-plane-authority": 1,
+      "dual-delivery-contract-authority": 1,
+      "home": 1,
+      "research-summary": 1,
+      "map-of-content": 1
+    },
+    "generated_on": {
+      "2026-07-09": 48,
+      "2026-07-16": 1
+    },
+    "section": {
+      "Foundation": 6,
+      "Source and Research": 14,
+      "Delivery Plan": 7,
+      "Core Runtime": 20,
+      "Architecture Contracts": 6,
+      "Build References": 14,
+      "Audit and Validation": 11,
+      "Implementation Assets": 17,
+      "Review and Decisions": 2,
+      "Windows Desktop Runtime": 5,
+      "Vault Operations": 1,
+      "Vault Home": 2
+    },
+    "updated_on": {
+      "2026-07-10": 8,
+      "2026-07-16": 1
+    }
+  },
+  "name_counts_root_and_knowledge": {
+    "Sapphirus": {
+      "occurrences": 455,
+      "files": 108
+    },
+    "Forge": {
+      "occurrences": 4,
+      "files": 3
+    },
+    "Entra": {
+      "occurrences": 191,
+      "files": 47
+    },
+    "Cortex": {
+      "occurrences": 86,
+      "files": 47
+    },
+    "web_managed": {
+      "occurrences": 180,
+      "files": 71
+    },
+    "windows_local": {
+      "occurrences": 187,
+      "files": 67
+    },
+    "OpenCode": {
+      "occurrences": 0,
+      "files": 0
+    }
+  },
+  "broken_standard_links": [
+    {
+      "file": "Start Here.md",
+      "label": "Evidence and Claim Policy",
+      "target": "knowledge-base/current/01-evidence-and-claim-policy.md"
+    },
+    {
+      "file": "Start Here.md",
+      "label": "Decisions, Risks, and Open Questions",
+      "target": "knowledge-base/current/07-decisions-risks-and-open-questions.md"
+    }
+  ],
+  "broken_wikilinks": [],
+  "repeated_substantial_blocks_top100": [
+    {
+      "file_count": 43,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "34 - Canonical Object Model.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 967,
+      "preview": "| Failure | Detection | Required behavior | User/operator visibility | |---|---|---|---| | Invalid schema | contract validation | reject before persistence or dispatch | show actionable error with correlation ID | | Stal"
+    },
+    {
+      "file_count": 43,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "34 - Canonical Object Model.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 697,
+      "preview": "| Layer | What to test | Required before merge | |---|---|---| | Unit | object validation, state transitions, parsing, policy predicates | yes | | Contract | OpenAPI/JSON Schema compatibility, generated clients, worker m"
+    },
+    {
+      "file_count": 43,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "34 - Canonical Object Model.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 656,
+      "preview": "- [ ] Update `32 - Integration Contract Map.md` with any new caller/callee relationship. - [ ] Update `25 - OpenAPI, Schemas, and Generated Clients.md` for public route or schema changes. - [ ] Update `22 - Data Model - "
+    },
+    {
+      "file_count": 43,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "34 - Canonical Object Model.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 565,
+      "preview": "- Treat workspace files, package files, generated artifacts, model outputs, and logs as untrusted input. - Never let untrusted content override system instructions, Airlock policy, command allowlists, network policy, or "
+    },
+    {
+      "file_count": 43,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "34 - Canonical Object Model.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 279,
+      "preview": "- `correlation.id` - `project.id` - `run.id` when available - `component.name` - `operation.name` - `operation.outcome` - `policy.version` when applicable - `spec.id` when applicable - `job.id` when applicable - `artifac"
+    },
+    {
+      "file_count": 43,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "34 - Canonical Object Model.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 254,
+      "preview": "The implementation must be narrow enough to fit the corrected first vertical slice, but designed so BMAD package execution, the existing presentation adapter, Builder Studio, SkillOps, replay, and operator controls can p"
+    },
+    {
+      "file_count": 42,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 760,
+      "preview": "- In `web_managed`, SQL stores lifecycle state, compact indexes, ownership metadata, and references. In `windows_local`, SQLite stores the corresponding local authority records. - In `web_managed`, Blob stores large immu"
+    },
+    {
+      "file_count": 42,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 699,
+      "preview": "```mermaid stateDiagram-v2 [*] --> Draft Draft --> Validated: schema/contract valid Validated --> AwaitingApproval: side effect required Validated --> Executable: policy-approved safe action AwaitingApproval --> Executab"
+    },
+    {
+      "file_count": 41,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 1509,
+      "preview": "1. **The first executable slice comes before breadth.** The first demonstrable product must prove authenticated chat, workspace context, typed plan output, proposal creation, Airlock validation, approval, isolated execut"
+    },
+    {
+      "file_count": 41,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 780,
+      "preview": "- [ ] The component has a clear owner package and does not leak responsibilities into unrelated modules. - [ ] Public routes/payloads are represented in OpenAPI/JSON Schema where applicable. - [ ] Side-effect paths canno"
+    },
+    {
+      "file_count": 41,
+      "files": [
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 720,
+      "preview": "- Every boundary uses typed, schema-versioned values. C# uses `Runtime.Contracts` / `Runtime.Domain`, Rust uses generated contract types plus `desktop-domain`, and TypeScript uses generated web or desktop facade types; n"
+    },
+    {
+      "file_count": 28,
+      "files": [
+        "00 - Common Rules and Product Shape.md",
+        "01 - First Build - Executable Vertical Slice.md",
+        "02 - Locked Architecture Decisions.md",
+        "03 - Repository and Vault Usage.md",
+        "04 - Review Findings and Changelog.md",
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "34 - Canonical Object Model.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 555,
+      "preview": "| Related guide | What to cross-check | |---|---| | `01 - First Build - Executable Vertical Slice.md` | Does this file support or distract from the first slice? | | `29 - Concurrency, Transactions, and Failures.md` | Are"
+    },
+    {
+      "file_count": 28,
+      "files": [
+        "00 - Common Rules and Product Shape.md",
+        "01 - First Build - Executable Vertical Slice.md",
+        "02 - Locked Architecture Decisions.md",
+        "03 - Repository and Vault Usage.md",
+        "04 - Review Findings and Changelog.md",
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "34 - Canonical Object Model.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 490,
+      "preview": "1. Read this file before changing the related implementation area. 2. Cross-check it against `07 - Source Coverage Matrix.md` and `50 - V4 Full Library Audit.md`. 3. When implementing a task, copy the relevant checklist "
+    },
+    {
+      "file_count": 28,
+      "files": [
+        "00 - Common Rules and Product Shape.md",
+        "01 - First Build - Executable Vertical Slice.md",
+        "02 - Locked Architecture Decisions.md",
+        "03 - Repository and Vault Usage.md",
+        "04 - Review Findings and Changelog.md",
+        "07 - Source Coverage Matrix.md",
+        "08 - Phased Roadmap and Build Order.md",
+        "09 - Glossary and Naming.md",
+        "30 - Implementation Epics and Backlog.md",
+        "31 - Architecture Decision Records.md",
+        "32 - Integration Contract Map.md",
+        "33 - Release Gates and Acceptance Matrix.md",
+        "34 - Canonical Object Model.md",
+        "35 - Source Alignment Notes.md",
+        "36 - Local Development and DevEx.md",
+        "37 - Azure Environments and Deployment Runbooks.md",
+        "38 - Worker Images and Command DSL.md",
+        "39 - BMAD Package Format.md",
+        "40 - Threat Model and Security Tests.md",
+        "41 - Observability Dashboards and Alerts.md",
+        "42 - Migrations, Retention, and Cleanup.md",
+        "43 - Product UX Flows and Wireframe Notes.md",
+        "44 - AI Coding Agent Handoff Prompts.md",
+        "45 - Trace Bundle Schema.md",
+        "46 - API Route Catalog.md",
+        "47 - Database DDL Starter.md",
+        "48 - Blob Storage Layout.md",
+        "49 - Detailed Component Build Checklists.md"
+      ],
+      "chars": 453,
+      "preview": "- It must not contradict locked architecture decisions. - It must not reintroduce a broad v1 scope that competes with the executable vertical slice. - It must preserve BMAD source contracts and the existing presentation "
+    },
+    {
+      "file_count": 20,
+      "files": [
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md"
+      ],
+      "chars": 893,
+      "preview": "| Edge case | Expected behavior | |---|---| | Duplicate API request with same idempotency key | Returns original result; no duplicate state transition or worker dispatch. | | Stale proposal after newer checkpoint | Propo"
+    },
+    {
+      "file_count": 20,
+      "files": [
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md"
+      ],
+      "chars": 532,
+      "preview": "- Unit tests cover all domain transitions owned by this component. - Contract tests cover all listed API touchpoints or port methods. - Integration tests prove SQL/Blob responsibility boundaries. - Security tests cover u"
+    },
+    {
+      "file_count": 20,
+      "files": [
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md"
+      ],
+      "chars": 422,
+      "preview": "## Historical Revision Notes (V3 -> V4 Hardening Pass) ### V4 audit finding applied to this file The v3 library was detailed, but several files still behaved like expanded planning notes rather than implementation handbo"
+    },
+    {
+      "file_count": 20,
+      "files": [
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md"
+      ],
+      "chars": 317,
+      "preview": "- Tables listed here are owned by their module or exposed through its port; other modules must not perform direct ad-hoc writes. - Mutable lifecycle tables need optimistic concurrency tokens. - All records need `project_"
+    },
+    {
+      "file_count": 18,
+      "files": [
+        "10 - Chat Workbench.md",
+        "11 - Runtime API Control Plane.md",
+        "12 - Run Orchestrator and Agent Kernel.md",
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "14 - Builder Studio and SkillOps.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "27 - Testing, Validation, and Replay.md",
+        "28 - Supply Chain, Deployment, and IaC.md"
+      ],
+      "chars": 316,
+      "preview": "- Do not bypass Airlock. - Do not mutate authoritative state outside the Runtime API state transition path. - Do not hide policy decisions inside UI-only code. - Do not let model text become executable behavior without t"
+    },
+    {
+      "file_count": 15,
+      "files": [
+        "13 - BMAD Kernel, Package Loader, and Help Advisor.md",
+        "15 - Artifact Creator and Presentation Adapter.md",
+        "16 - Workspace Service.md",
+        "17 - Workspace Intelligence and Context Packs.md",
+        "18 - Model Gateway and Microsoft Foundry.md",
+        "19 - Airlock Policy and Approvals.md",
+        "20 - Execution Lanes and Container App Jobs.md",
+        "21 - Trace, Evidence, and Observability.md",
+        "22 - Data Model - SQL and Blob.md",
+        "23 - Security, Identity, and Secrets.md",
+        "24 - Operator Console and Operations.md",
+        "25 - OpenAPI, Schemas, and Generated Clients.md",
+        "26 - Frontend Design System.md",
+        "28 - Supply Chain, Deployment, and IaC.md",
+        "29 - Concurrency, Transactions, and Failures.md"
+      ],
+      "chars": 1339,
+      "preview": "1. The first delivered slice remains: **authenticated chat → workspace context → implementation plan → proposal → Airlock → approval → isolated job → validation → checkpoint → evidence**. 2. No worker image receives Azur"
+    }
+  ],
+  "current_notes": [
+    {
+      "name": "00-current-product-state.md",
+      "frontmatter": {
+        "title": "Current Product State",
+        "authority": "current",
+        "repository_commit": "f18ef124a6e61754391b793a1b37a8a0f67491ab",
+        "research_cutoff": "2026-07-16",
+        "claim_ids": [
+          "KB-SCOPE-001",
+          "KB-VAULT-001",
+          "KB-CAP-001",
+          "KB-CAP-002",
+          "KB-CAP-003",
+          "KB-CLOUD-001",
+          "KB-RELEASE-001"
+        ]
+      },
+      "lines": 22,
+      "bytes": 994
+    },
+    {
+      "name": "01-architecture-and-ownership.md",
+      "frontmatter": {
+        "title": "Architecture and Ownership",
+        "authority": "current",
+        "repository_commit": "f18ef124a6e61754391b793a1b37a8a0f67491ab",
+        "research_cutoff": "2026-07-16",
+        "claim_ids": [
+          "KB-ARCH-001",
+          "KB-ARCH-002",
+          "KB-VAULT-001",
+          "KB-ROADMAP-001"
+        ]
+      },
+      "lines": 18,
+      "bytes": 740
+    },
+    {
+      "name": "02-capability-matrix.md",
+      "frontmatter": {
+        "title": "Capability Matrix",
+        "authority": "current",
+        "repository_commit": "f18ef124a6e61754391b793a1b37a8a0f67491ab",
+        "research_cutoff": "2026-07-16",
+        "claim_ids": [
+          "KB-CAP-001",
+          "KB-CAP-002",
+          "KB-CAP-003",
+          "KB-CLOUD-001",
+          "KB-RELEASE-001"
+        ]
+      },
+      "lines": 40,
+      "bytes": 1667
+    },
+    {
+      "name": "03-security-and-trust.md",
+      "frontmatter": {
+        "title": "Security and Trust Boundaries",
+        "authority": "current",
+        "repository_commit": "f18ef124a6e61754391b793a1b37a8a0f67491ab",
+        "research_cutoff": "2026-07-16",
+        "claim_ids": [
+          "KB-ARCH-001",
+          "KB-ARCH-002",
+          "KB-CLOUD-001",
+          "KB-DATA-001",
+          "KB-RELEASE-001"
+        ]
+      },
+      "lines": 19,
+      "bytes": 812
+    },
+    {
+      "name": "04-contracts-and-persistence.md",
+      "frontmatter": {
+        "title": "Contracts and Persistence",
+        "authority": "current",
+        "repository_commit": "f18ef124a6e61754391b793a1b37a8a0f67491ab",
+        "research_cutoff": "2026-07-16",
+        "claim_ids": [
+          "KB-CONTRACT-001",
+          "KB-DATA-001",
+          "KB-CAP-002",
+          "KB-CAP-003"
+        ]
+      },
+      "lines": 17,
+      "bytes": 682
+    },
+    {
+      "name": "05-toolchain-and-dependencies.md",
+      "frontmatter": {
+        "title": "Toolchain and Dependencies",
+        "authority": "current",
+        "repository_commit": "f18ef124a6e61754391b793a1b37a8a0f67491ab",
+        "research_cutoff": "2026-07-16",
+        "claim_ids": [
+          "KB-TOOL-001",
+          "KB-TOOL-002",
+          "KB-TOOL-003",
+          "KB-TOOL-004",
+          "KB-TOOL-005"
+        ]
+      },
+      "lines": 19,
+      "bytes": 798
+    },
+    {
+      "name": "06-verification-and-release-readiness.md",
+      "frontmatter": {
+        "title": "Verification and Release Readiness",
+        "authority": "current",
+        "repository_commit": "f18ef124a6e61754391b793a1b37a8a0f67491ab",
+        "research_cutoff": "2026-07-16",
+        "claim_ids": [
+          "KB-VAULT-001",
+          "KB-CONTRACT-001",
+          "KB-CLOUD-001",
+          "KB-RELEASE-001"
+        ]
+      },
+      "lines": 20,
+      "bytes": 876
+    },
+    {
+      "name": "07-risks-roadmap-and-open-decisions.md",
+      "frontmatter": {
+        "title": "Risks, Roadmap, and Open Decisions",
+        "authority": "current",
+        "repository_commit": "f18ef124a6e61754391b793a1b37a8a0f67491ab",
+        "research_cutoff": "2026-07-16",
+        "claim_ids": [
+          "KB-CAP-002",
+          "KB-CLOUD-001",
+          "KB-RELEASE-001",
+          "KB-ROADMAP-001"
+        ]
+      },
+      "lines": 20,
+      "bytes": 909
+    }
+  ],
+  "registries": {
+    "claims.json": {
+      "schemaVersion": "sapphirus.living-knowledge.v1",
+      "count": 17
+    },
+    "sources.json": {
+      "schemaVersion": "sapphirus.living-knowledge.v1",
+      "count": 28
+    },
+    "pins.json": {
+      "schemaVersion": "sapphirus.living-knowledge.v1",
+      "count": 8
+    },
+    "note-catalog.json": {
+      "schemaVersion": "sapphirus.living-knowledge.v1",
+      "count": 105,
+      "authorityClassCounts": {
+        "historical": 87,
+        "preserved_verbatim": 2,
+        "source_evidence": 11,
+        "supporting_reference": 5
+      },
+      "supersededCount": 92
+    }
+  },
+  "source_snapshots": [
+    {
+      "name": "BMAD-METHOD-main",
+      "files": 584,
+      "bytes": 10989027
+    },
+    {
+      "name": "bmad-builder-main",
+      "files": 299,
+      "bytes": 2862506
+    },
+    {
+      "name": "hermes-agent-main",
+      "files": 5873,
+      "bytes": 105911815
+    },
+    {
+      "name": "odysseus-dev",
+      "files": 1300,
+      "bytes": 28486907
+    },
+    {
+      "name": "openclaw-main",
+      "files": 12807,
+      "bytes": 147272042
+    }
+  ],
+  "historical_archive_comparison": {
+    "old_files": 120,
+    "current_files": 21035,
+    "same": 84,
+    "changed": 32,
+    "only_old": [
+      "Sapphirus AI Workspace - Visão Geral em Português.html",
+      "Untitled 1.base",
+      "Untitled 2.base",
+      "Untitled.base"
+    ],
+    "only_current_count": 20919
+  },
+  "repo_docs_inventory": {
+    "total_files": 129,
+    "total_bytes": 1359373,
+    "by_top": {
+      "(root)": {
+        "files": 1,
+        "bytes": 4991
+      },
+      "adr": {
+        "files": 10,
+        "bytes": 39999
+      },
+      "architecture": {
+        "files": 1,
+        "bytes": 5672
+      },
+      "bmad": {
+        "files": 32,
+        "bytes": 108591
+      },
+      "design": {
+        "files": 5,
+        "bytes": 61284
+      },
+      "development": {
+        "files": 1,
+        "bytes": 2236
+      },
+      "guides": {
+        "files": 1,
+        "bytes": 31267
+      },
+      "implementation-packets": {
+        "files": 20,
+        "bytes": 396413
+      },
+      "keystone": {
+        "files": 1,
+        "bytes": 5194
+      },
+      "operations": {
+        "files": 6,
+        "bytes": 71855
+      },
+      "provenance": {
+        "files": 2,
+        "bytes": 4368
+      },
+      "quality": {
+        "files": 3,
+        "bytes": 11696
+      },
+      "readiness": {
+        "files": 2,
+        "bytes": 5841
+      },
+      "reviews": {
+        "files": 20,
+        "bytes": 166782
+      },
+      "security": {
+        "files": 2,
+        "bytes": 8525
+      },
+      "superpowers": {
+        "files": 22,
+        "bytes": 434659
+      }
+    }
+  },
+  "repo_docs_name_counts": {
+    "Sapphirus": {
+      "occurrences": 284,
+      "files": 50
+    },
+    "Forge": {
+      "occurrences": 298,
+      "files": 41
+    },
+    "Entra": {
+      "occurrences": 100,
+      "files": 29
+    },
+    "OpenCode": {
+      "occurrences": 85,
+      "files": 9
+    },
+    "bmad-runtime-lib": {
+      "occurrences": 25,
+      "files": 14
+    }
+  },
+  "integration": {
+    "package_scripts": {
+      "vault:test": "node --test tools/tests/closed-manifest.test.mjs",
+      "vault:check": "node tools/verify-reference-vault.mjs"
+    },
+    "verify_source_mentions_vault": false,
+    "source_workflow_runs_verify_source": true,
+    "codeql_excludes_entire_lib": true,
+    "coderabbit_excludes_entire_lib": true,
+    "has_codeowners": false,
+    "has_contributing": false,
+    "has_agents": false
+  },
+  "commands": {
+    "library_validator": {
+      "command": "python bmad-runtime-lib/_source_review/validate_library.py",
+      "exit": 1,
+      "stdout": "{\n  \"root_markdown_files\": 105,\n  \"manifest_verified\": true,\n  \"errors\": [\n    \"sources.json: source 'SRC-REPO-001' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-002' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-003' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-004' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-005' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-006' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-007' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-008' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-009' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-010' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-011' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-012' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-013' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-014' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-015' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-016' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-017' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-018' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-019' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-020' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-021' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"sources.json: source 'SRC-REPO-022' is not available at repositoryCommit (fatal: not a git repository (or any of the parent directories): .git)\",\n    \"pins.json: pin pnpm mismatch: expected 'pnpm@11.12.0', observed 'pnpm@11.15.1'\",\n    \"pins.json: pin vite mismatch: expected '8.1.4', observed '8.1.5'\"\n  ],\n  \"warnings\": []\n}\n",
+      "stderr": ""
+    },
+    "living_knowledge_tests": {
+      "command": "python -m unittest discover -s bmad-runtime-lib/_source_review/tests -v",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "test_catalog_covers_every_root_manifest_note (test_living_knowledge.LivingKnowledgeValidationTests.test_catalog_covers_every_root_manifest_note) ... ok\ntest_claim_ids_are_closed (test_living_knowledge.LivingKnowledgeValidationTests.test_claim_ids_are_closed) ... ok\ntest_claim_requires_two_sources_or_an_exception (test_living_knowledge.LivingKnowledgeValidationTests.test_claim_requires_two_sources_or_an_exception) ... ok\ntest_claim_revalidation_deadline_is_enforced (test_living_knowledge.LivingKnowledgeValidationTests.test_claim_revalidation_deadline_is_enforced) ... ok\ntest_current_authority_is_rejected_outside_current_directory (test_living_knowledge.LivingKnowledgeValidationTests.test_current_authority_is_rejected_outside_current_directory) ... ok\ntest_current_authority_requires_eight_notes (test_living_knowledge.LivingKnowledgeValidationTests.test_current_authority_requires_eight_notes) ... ok\ntest_current_note_markdown_links_must_resolve (test_living_knowledge.LivingKnowledgeValidationTests.test_current_note_markdown_links_must_resolve) ... ok\ntest_duplicate_sources_do_not_count_as_corroboration (test_living_knowledge.LivingKnowledgeValidationTests.test_duplicate_sources_do_not_count_as_corroboration) ... ok\ntest_duplicate_subjects_require_explicit_supersession (test_living_knowledge.LivingKnowledgeValidationTests.test_duplicate_subjects_require_explicit_supersession) ... ok\ntest_external_sources_require_reviewed_host_and_iso_date (test_living_knowledge.LivingKnowledgeValidationTests.test_external_sources_require_reviewed_host_and_iso_date) ... ok\ntest_json_pin_drift_is_reported (test_living_knowledge.LivingKnowledgeValidationTests.test_json_pin_drift_is_reported) ... ok\ntest_legacy_status_current_is_rejected (test_living_knowledge.LivingKnowledgeValidationTests.test_legacy_status_current_is_rejected) ... ok\ntest_living_manifest_rejects_stale_file_set (test_living_knowledge.LivingKnowledgeValidationTests.test_living_manifest_rejects_stale_file_set) ... ok\ntest_manifest_markdown_bytes_are_line_ending_stable (test_living_knowledge.LivingKnowledgeValidationTests.test_manifest_markdown_bytes_are_line_ending_stable) ... ok\ntest_missing_registries_fail_closed (test_living_knowledge.LivingKnowledgeValidationTests.test_missing_registries_fail_closed) ... ok\ntest_note_and_source_commit_anchors_must_match (test_living_knowledge.LivingKnowledgeValidationTests.test_note_and_source_commit_anchors_must_match) ... ok\ntest_repository_source_locator_must_exist (test_living_knowledge.LivingKnowledgeValidationTests.test_repository_source_locator_must_exist) ... ok\ntest_repository_source_must_exist_at_declared_commit (test_living_knowledge.LivingKnowledgeValidationTests.test_repository_source_must_exist_at_declared_commit) ... ok\ntest_supersession_cycles_are_rejected (test_living_knowledge.LivingKnowledgeValidationTests.test_supersession_cycles_are_rejected) ... ok\ntest_supersession_targets_are_closed (test_living_knowledge.LivingKnowledgeValidationTests.test_supersession_targets_are_closed) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 0.020s\n\nOK\n"
+    },
+    "vault_check": {
+      "command": "node tools/verify-reference-vault.mjs",
+      "exit": 0,
+      "stdout": "Reference vault verified: 105 root Markdown files; root and living validator/manifest hashes unchanged.\n",
+      "stderr": ""
+    },
+    "vault_test": {
+      "command": "node --test tools/tests/closed-manifest.test.mjs",
+      "exit": 0,
+      "stdout": "TAP version 13\n# Subtest: canonical text bytes make LF and CRLF vault notes equivalent\nok 1 - canonical text bytes make LF and CRLF vault notes equivalent\n  ---\n  duration_ms: 0.965806\n  type: 'test'\n  ...\n# Subtest: closed living manifest accepts its exact file set\nok 2 - closed living manifest accepts its exact file set\n  ---\n  duration_ms: 6.743426\n  type: 'test'\n  ...\n# Subtest: closed living manifest rejects mutated, added, and removed files\n    # Subtest: mutation\n    ok 1 - mutation\n      ---\n      duration_ms: 3.160999\n      type: 'test'\n      ...\n    # Subtest: addition\n    ok 2 - addition\n      ---\n      duration_ms: 2.643741\n      type: 'test'\n      ...\n    # Subtest: removal\n    ok 3 - removal\n      ---\n      duration_ms: 3.372986\n      type: 'test'\n      ...\n    1..3\nok 3 - closed living manifest rejects mutated, added, and removed files\n  ---\n  duration_ms: 9.897376\n  type: 'test'\n  ...\n1..3\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 59.681818\n",
+      "stderr": ""
+    }
+  }
+}

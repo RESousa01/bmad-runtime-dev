@@ -7,11 +7,11 @@ use desktop_runtime::{
         BmadActionPlanKind, BmadArtifactCompletionHookRunHook, BmadArtifactKind,
         BmadInvocationDeclaredActionName, BmadInvocationMode,
     },
-    sha256_bytes, BmadDomainRuntime, BmadMethodSkill, BmadPrdSkill, BmadRuntimePort,
-    BmadSkillAuthorityRequirement, BmadSkillExecutionBindingInput, BmadSkillExecutionRequest,
-    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
-    MethodArtifactExpectation, MethodEvidenceClass, MethodModelBinding, MethodModelBindingData,
-    Sha256Digest,
+    canonical_method_skill_adapter, sha256_bytes, BmadDomainRuntime, BmadMethodSkill,
+    BmadPrdSkill, BmadRuntimePort, BmadSkillAuthorityRequirement, BmadSkillExecutionBindingInput,
+    BmadSkillExecutionRequest, BmadSkillRecoverySemantics, BmadSkillSupportState,
+    BmadSkillToolIntent, ContractId, MethodArtifactExpectation, MethodEvidenceClass,
+    MethodModelBinding, MethodModelBindingData, Sha256Digest,
 };
 
 const SKILL_ROOT: &str = "src/bmm-skills/2-plan-workflows/bmad-prd";
@@ -276,6 +276,31 @@ fn bmad_prd_exposes_an_explicit_generic_execution_contract() {
 
     assert_eq!(contract.package_name(), "bmad-method");
     assert_eq!(contract.package_version(), "6.10.0");
+}
+
+// Break caught: a missing or over-broad runtime registry can make the sole
+// accepted Method capability undispatchable, or re-enable preserved adapters
+// that source accounting deliberately keeps implementation-pending.
+#[test]
+fn runtime_registry_dispatches_only_the_accepted_prd_capability() {
+    assert_eq!(
+        canonical_method_skill_adapter("bmm:bmad-prd")
+            .expect("accepted PRD adapter")
+            .descriptor()
+            .canonical_id(),
+        "bmm:bmad-prd",
+    );
+    for pending in [
+        "bmm:bmad-spec",
+        "bmm:bmad-ux",
+        "bmm:bmad-check-implementation-readiness",
+        "core:bmad-deep-recon",
+    ] {
+        assert!(
+            canonical_method_skill_adapter(pending).is_none(),
+            "{pending} is preserved but not accepted for runtime dispatch",
+        );
+    }
 }
 
 // Break caught: an adapter contract can validate in isolation while no exact

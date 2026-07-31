@@ -54,3 +54,18 @@ pub use bmad_product_brief::BmadProductBriefSkill;
 pub use bmad_review::BmadReviewSkill;
 pub use bmad_spec::BmadSpecSkill;
 pub use bmad_ux::BmadUxSkill;
+
+static BMAD_PRD_RUNTIME_SKILL: BmadPrdSkill = BmadPrdSkill;
+
+/// Resolves only independently accepted Method capabilities to executable
+/// runtime adapters. Preserved or implementation-pending adapters remain
+/// protocol-known but cannot enter the host execution path through this map.
+#[must_use]
+pub fn canonical_method_skill_adapter(
+    canonical_id: &str,
+) -> Option<&'static dyn super::BmadMethodSkill> {
+    match canonical_id {
+        "bmm:bmad-prd" => Some(&BMAD_PRD_RUNTIME_SKILL),
+        _ => None,
+    }
+}

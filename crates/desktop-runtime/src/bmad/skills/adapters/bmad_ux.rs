@@ -30,7 +30,7 @@ use crate::generated_contracts::{
 };
 use crate::{
     BmadMethodSkill, BmadResource, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillExecutionActionBranch, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
+    BmadSkillExecutionBranch, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
     BmadSkillExecutionError, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
     BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
     MethodArtifactExpectation, MethodEvidenceClass, MethodExecutionProfile,
@@ -166,6 +166,52 @@ impl BmadMethodSkill for BmadUxSkill {
             "{doc_workspace}/validation-report.{md,html}",
             "sha256:8656945636fabe96624f8ef8fce931b073b5aecbe42d490584c1d5c7f31e1353",
         )?;
+        let mut branches = Vec::new();
+        for mode in [
+            BmadInvocationMode::Interactive,
+            BmadInvocationMode::Headless,
+        ] {
+            branches.push(BmadSkillExecutionBranch {
+                action: "create".to_owned(),
+                mode,
+                workflow: BmadSkillExecutionWorkflow {
+                    initial_step_key: "create_discovery".to_owned(),
+                    steps: vec![
+                        execution_step("create_discovery", Some("create_finalize"), source_hash),
+                        execution_step("create_finalize", None, source_hash),
+                    ],
+                },
+                artifact_expectations: vec![design.clone(), experience.clone()],
+                required_status_fields: Vec::new(),
+            });
+            branches.push(BmadSkillExecutionBranch {
+                action: "update".to_owned(),
+                mode,
+                workflow: BmadSkillExecutionWorkflow {
+                    initial_step_key: "update_finalize".to_owned(),
+                    steps: vec![execution_step("update_finalize", None, source_hash)],
+                },
+                artifact_expectations: vec![design.clone(), experience.clone()],
+                required_status_fields: Vec::new(),
+            });
+            branches.push(BmadSkillExecutionBranch {
+                action: "validate".to_owned(),
+                mode,
+                workflow: BmadSkillExecutionWorkflow {
+                    initial_step_key: "validate".to_owned(),
+                    steps: vec![BmadSkillExecutionStep {
+                        step_key: "validate".to_owned(),
+                        next_step_key: None,
+                        source_resource_path:
+                            "src/bmm-skills/2-plan-workflows/bmad-ux/references/validate.md"
+                                .to_owned(),
+                        source_resource_hash: validation_hash,
+                    }],
+                },
+                artifact_expectations: vec![validation.clone()],
+                required_status_fields: Vec::new(),
+            });
+        }
 
         BmadSkillExecutionContract::new(BmadSkillExecutionContractInput {
             descriptor: descriptor.clone(),
@@ -195,35 +241,7 @@ impl BmadMethodSkill for BmadUxSkill {
             method_schema_hash: digest(
                 "sha256:dda02f453dcf4edbb3fc66e0ad3a7c59d7087f5b44b526e40c435456c8c248c2",
             )?,
-            workflow: BmadSkillExecutionWorkflow {
-                initial_step_key: "create_discovery".to_owned(),
-                steps: vec![
-                    execution_step("create_discovery", Some("create_finalize"), source_hash),
-                    execution_step("create_finalize", None, source_hash),
-                    execution_step("update_finalize", None, source_hash),
-                    BmadSkillExecutionStep {
-                        step_key: "validate".to_owned(),
-                        next_step_key: None,
-                        source_resource_path:
-                            "src/bmm-skills/2-plan-workflows/bmad-ux/references/validate.md"
-                                .to_owned(),
-                        source_resource_hash: validation_hash,
-                    },
-                ],
-            },
-            action_branches: vec![
-                action_branch(
-                    "create",
-                    "create_discovery",
-                    &[&design.expectation_id, &experience.expectation_id],
-                ),
-                action_branch(
-                    "update",
-                    "update_finalize",
-                    &[&design.expectation_id, &experience.expectation_id],
-                ),
-                action_branch("validate", "validate", &[&validation.expectation_id]),
-            ],
+            branches,
             tool_intents: vec![
                 BmadSkillToolIntent::FileRead,
                 BmadSkillToolIntent::FileWrite,
@@ -233,7 +251,6 @@ impl BmadMethodSkill for BmadUxSkill {
                 BmadSkillToolIntent::Browser,
                 BmadSkillToolIntent::ExternalHandoff,
             ],
-            artifact_expectations: vec![design, experience, validation],
             recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
         })
     }
@@ -297,21 +314,6 @@ fn execution_step(
         next_step_key: next_step_key.map(str::to_owned),
         source_resource_path: "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md".to_owned(),
         source_resource_hash,
-    }
-}
-
-fn action_branch(
-    action: &str,
-    initial_step_key: &str,
-    artifact_expectation_ids: &[&ContractId],
-) -> BmadSkillExecutionActionBranch {
-    BmadSkillExecutionActionBranch {
-        action: action.to_owned(),
-        initial_step_key: initial_step_key.to_owned(),
-        artifact_expectation_ids: artifact_expectation_ids
-            .iter()
-            .map(|id| (*id).clone())
-            .collect(),
     }
 }
 

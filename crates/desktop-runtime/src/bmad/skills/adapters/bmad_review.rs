@@ -10,11 +10,12 @@ use crate::generated_contracts::{
 };
 use crate::{
     BmadMethodSkill, BmadResource, BmadSkillDescriptor, BmadSkillDescriptorInput,
-    BmadSkillExecutionContract, BmadSkillExecutionContractInput, BmadSkillExecutionError,
-    BmadSkillExecutionStep, BmadSkillExecutionWorkflow, BmadSkillRecoverySemantics,
-    BmadSkillSupportState, BmadSkillToolIntent, ContractId, MethodArtifactExpectation,
-    MethodEvidenceClass, MethodExecutionProfile, MethodExecutionProfileData,
-    MethodInvocationModes, MethodResourcePolicy, MethodRuntimeRequirement, Sha256Digest,
+    BmadSkillExecutionBranch, BmadSkillExecutionContract, BmadSkillExecutionContractInput,
+    BmadSkillExecutionError, BmadSkillExecutionStep, BmadSkillExecutionWorkflow,
+    BmadSkillRecoverySemantics, BmadSkillSupportState, BmadSkillToolIntent, ContractId,
+    MethodArtifactExpectation, MethodEvidenceClass, MethodExecutionProfile,
+    MethodExecutionProfileData, MethodInvocationModes, MethodResourcePolicy,
+    MethodRuntimeRequirement, Sha256Digest,
 };
 
 const SOURCE_PATH: &str = "src/core-skills/bmad-review/SKILL.md";
@@ -117,6 +118,29 @@ impl BmadMethodSkill for BmadReviewSkill {
             })
             .collect();
         let execution_profile = execution_profile(&descriptor)?;
+        let workflow = BmadSkillExecutionWorkflow {
+            initial_step_key: "resolve_customization".to_owned(),
+            steps,
+        };
+        let artifact_expectations = vec![MethodArtifactExpectation::from_source(
+            MethodArtifactExpectation {
+                expectation_kind: "method_artifact".to_owned(),
+                expectation_id: contract_id("expectation_01J00000000000000000000042")?,
+                artifact_kind: "report".to_owned(),
+                required: true,
+                storage_scope: "app_local".to_owned(),
+                expected_media_type: "application/json".to_owned(),
+                expected_content_schema_hash: None,
+                source_output_hint: Some(
+                    "{workflow.report_path} or governed findings JSON plus Markdown".to_owned(),
+                ),
+                completion_evidence_class: MethodEvidenceClass::Authoritative,
+                expectation_hash: digest(
+                    "sha256:06c9436ad79a4168cd240214713f534cda62665ac5da184d6431effc43f9e7f3",
+                )?,
+            },
+        )
+        .map_err(|_| BmadSkillExecutionError::ContractInvalid)?];
 
         BmadSkillExecutionContract::new(BmadSkillExecutionContractInput {
             descriptor,
@@ -146,38 +170,25 @@ impl BmadMethodSkill for BmadReviewSkill {
             method_schema_hash: digest(
                 "sha256:7e882e757a35b8d148c40d2a4ad2b41b16647f52d8f2a5d726df59824a238080",
             )?,
-            workflow: BmadSkillExecutionWorkflow {
-                initial_step_key: "resolve_customization".to_owned(),
-                steps,
-            },
+            branches: [BmadInvocationMode::Interactive, BmadInvocationMode::Headless]
+                .into_iter()
+                .map(|mode| BmadSkillExecutionBranch {
+                    action: String::new(),
+                    mode,
+                    workflow: workflow.clone(),
+                    artifact_expectations: artifact_expectations.clone(),
+                    required_status_fields: Vec::new(),
+                })
+                .collect(),
             tool_intents: vec![
                 BmadSkillToolIntent::FileRead,
                 BmadSkillToolIntent::FileWrite,
                 BmadSkillToolIntent::Process,
-                BmadSkillToolIntent::Network,
+                BmadSkillToolIntent::Web,
                 BmadSkillToolIntent::Browser,
                 BmadSkillToolIntent::Subagent,
                 BmadSkillToolIntent::ExternalHandoff,
             ],
-            artifact_expectations: vec![MethodArtifactExpectation::from_source(
-                MethodArtifactExpectation {
-                    expectation_kind: "method_artifact".to_owned(),
-                    expectation_id: contract_id("expectation_01J00000000000000000000042")?,
-                    artifact_kind: "report".to_owned(),
-                    required: true,
-                    storage_scope: "app_local".to_owned(),
-                    expected_media_type: "application/json".to_owned(),
-                    expected_content_schema_hash: None,
-                    source_output_hint: Some(
-                        "{workflow.report_path} or governed findings JSON plus Markdown".to_owned(),
-                    ),
-                    completion_evidence_class: MethodEvidenceClass::Authoritative,
-                    expectation_hash: digest(
-                        "sha256:06c9436ad79a4168cd240214713f534cda62665ac5da184d6431effc43f9e7f3",
-                    )?,
-                },
-            )
-            .map_err(|_| BmadSkillExecutionError::ContractInvalid)?],
             recovery: BmadSkillRecoverySemantics::MethodCheckpoint,
         })
     }
@@ -212,7 +223,7 @@ fn execution_profile(
                 "file_read".to_owned(),
                 "file_write".to_owned(),
                 "process".to_owned(),
-                "network".to_owned(),
+                "web".to_owned(),
                 "browser".to_owned(),
                 "subagent".to_owned(),
                 "external_handoff".to_owned(),

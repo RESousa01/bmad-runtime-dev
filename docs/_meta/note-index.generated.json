@@ -1,0 +1,357 @@
+{
+  "schemaVersion": "forge.knowledge.v2",
+  "generatedBy": "tools/knowledge/generate-index.mjs",
+  "documents": [
+    {
+      "path": "docs/adr/ADR-0011-documentation-authority-and-reference-boundary.md",
+      "title": "ADR-0011: Documentation authority and reference boundary",
+      "docType": "adr",
+      "status": "accepted",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-10-31"
+    },
+    {
+      "path": "docs/adr/ADR-0012-no-entra-authentication-and-model-access.md",
+      "title": "ADR-0012: No-Entra authentication and model access",
+      "docType": "adr",
+      "status": "accepted",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-09-30"
+    },
+    {
+      "path": "docs/adr/ADR-0013-forge-name-and-legacy-identifier-compatibility.md",
+      "title": "ADR-0013: Forge name and legacy identifier compatibility",
+      "docType": "adr",
+      "status": "accepted",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-10-31"
+    },
+    {
+      "path": "docs/architecture/adr-index.md",
+      "title": "Forge architecture decision index",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/architecture/bmad-method-and-builder.md",
+      "title": "Forge BMAD Method and Builder architecture",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "bmad-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/architecture/model-connectivity.md",
+      "title": "Forge model connectivity",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "security-operations-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/architecture/runtime-boundaries.md",
+      "title": "Forge runtime boundaries",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/architecture/state-evidence-and-recovery.md",
+      "title": "Forge state, evidence, and recovery",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/architecture/system-map.md",
+      "title": "Forge system map",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/architecture/workspace-and-execution.md",
+      "title": "Forge workspace and execution",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/archive/README.md",
+      "title": "Forge documentation archive",
+      "docType": "archive",
+      "status": "archived",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2027-07-31"
+    },
+    {
+      "path": "docs/current/architecture-and-authority.md",
+      "title": "Forge architecture and authority",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/current/authentication-and-model-access.md",
+      "title": "Forge authentication and model access",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "security-operations-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/current/capability-status.md",
+      "title": "Forge capability status",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "bmad-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/current/product-scope-and-modes.md",
+      "title": "Forge product scope and modes",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/current/product-state.md",
+      "title": "Forge product state",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/current/release-readiness.md",
+      "title": "Forge release readiness",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "security-operations-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/current/roadmap-and-known-gaps.md",
+      "title": "Forge roadmap and known gaps",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/current/security-and-trust.md",
+      "title": "Forge security and trust",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "security-operations-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/current/toolchain-and-verification.md",
+      "title": "Forge toolchain and verification",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "devex-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/development/agent-development-workflow.md",
+      "title": "Forge agent development workflow",
+      "docType": "runbook",
+      "status": "maintained",
+      "ownerRole": "devex-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/development/contribution-guide.md",
+      "title": "Forge contribution guide",
+      "docType": "runbook",
+      "status": "maintained",
+      "ownerRole": "devex-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/development/documentation-policy.md",
+      "title": "Forge documentation policy",
+      "docType": "runbook",
+      "status": "maintained",
+      "ownerRole": "devex-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/development/documentation-validation.md",
+      "title": "Forge documentation validation",
+      "docType": "runbook",
+      "status": "maintained",
+      "ownerRole": "devex-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/development/local-setup.md",
+      "title": "Forge local setup",
+      "docType": "runbook",
+      "status": "maintained",
+      "ownerRole": "devex-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/development/onboarding.md",
+      "title": "Forge onboarding",
+      "docType": "runbook",
+      "status": "maintained",
+      "ownerRole": "devex-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/development/testing-and-verification.md",
+      "title": "Forge testing and verification",
+      "docType": "runbook",
+      "status": "maintained",
+      "ownerRole": "devex-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/provenance/reference-vault.md",
+      "title": "Reference vault migration record",
+      "docType": "archive",
+      "status": "archived",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2027-07-31"
+    },
+    {
+      "path": "docs/README.md",
+      "title": "Forge team documentation",
+      "docType": "current",
+      "status": "current",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/reference/README.md",
+      "title": "Forge reference material",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "security-operations-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/reference/source-analysis/bmad-method-builder.md",
+      "title": "BMAD Method and Builder source analysis",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "bmad-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/reference/source-analysis/hermes.md",
+      "title": "Hermes source analysis",
+      "docType": "reference",
+      "status": "blocked",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/reference/source-analysis/historical-openclaw.md",
+      "title": "Historical OpenClaw source analysis",
+      "docType": "reference",
+      "status": "blocked",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/reference/source-analysis/odysseus.md",
+      "title": "Odysseus clean-room source analysis",
+      "docType": "reference",
+      "status": "blocked",
+      "ownerRole": "security-operations-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/reference/source-analysis/opencode.md",
+      "title": "OpenCode source analysis",
+      "docType": "reference",
+      "status": "blocked",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/reference/source-analysis/README.md",
+      "title": "Forge source-analysis index",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "architecture-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/reference/source-intake-policy.md",
+      "title": "Forge source intake policy",
+      "docType": "reference",
+      "status": "maintained",
+      "ownerRole": "security-operations-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-31"
+    },
+    {
+      "path": "docs/reviews/forge-knowledge-baseline-2026-07-31.md",
+      "title": "Forge knowledge migration baseline",
+      "docType": "review",
+      "status": "completed",
+      "ownerRole": "forge-maintainers",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-14"
+    },
+    {
+      "path": "docs/reviews/team-takeover-validation.md",
+      "title": "Forge documentation team takeover validation",
+      "docType": "review",
+      "status": "blocked",
+      "ownerRole": "devex-owner",
+      "lastVerified": "2026-07-31",
+      "reviewDue": "2026-08-07"
+    }
+  ]
+}

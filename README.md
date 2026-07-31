@@ -7,6 +7,11 @@ be Authenticode-signed for organization distribution; signing evidence remains d
 React/WebView2 renderer is a typed presentation client and never receives generic filesystem,
 process, token, database, or updater authority.
 
+Current team documentation starts at [`docs/README.md`](docs/README.md). Source, tests, and
+verification gates remain stronger evidence than documentation; accepted ADRs define decisions,
+and the tracked `bmad-runtime-lib` content is historical/reference material rather than current
+implementation authority.
+
 The current source slice covers D1 reads, deterministic local BMAD Help, and the governed D3
 edits vertical. Reads: typed
 native folder-selection IPC; opaque local-workspace listing, switching, and access revocation;
@@ -54,9 +59,10 @@ independent re-review at `23d9add3` are recorded in
 - `helpers/windows-auth-broker` — frozen, non-integrated WAM broker scaffold (D2)
 - `services/desktop-support-api` — frozen, non-integrated Azure support-plane scaffold (D2)
 
-The tracked `bmad-runtime-lib` folder is a reference-only context vault. It is not a workspace
-package, build input, CI dependency, application resource, or distribution artifact, and its
-imported third-party scripts are never executed by the product toolchain.
+The tracked `bmad-runtime-lib` folder is a temporary compatibility boundary for the frozen legacy
+archive. It is not current team guidance, a workspace package, build input, CI dependency,
+application resource, or distribution artifact, and its imported third-party scripts are never
+executed by the product toolchain.
 
 ## Prototype model providers
 
@@ -113,9 +119,10 @@ pnpm verify:source
 `verify:source` (and the default `verify`) covers the self-contained BMAD foundation gate,
 deterministic TypeScript 7.0.2 contract generation and conformance, sealed BMAD fixtures,
 renderer/UI typechecks and tests, the first-party secret scan, Node-based boundary inspection, and
-the Vite web-asset build. It does not read or execute imported context-vault content. The optional
-`vault:check` command is a development audit only. The contract generator-qualification job is an
-unconditional Windows CI gate with pinned Rust and .NET tools. The native desktop lane runs unless
+the Vite web-asset build. It does not read or execute imported reference-source content. Historical
+vault integrity is checked separately by `pnpm docs:check:legacy-archive`; current documentation is
+validated by `pnpm docs:verify`. The contract generator-qualification job is an unconditional
+Windows CI gate with pinned Rust and .NET tools. The native desktop lane runs unless
 the organization sets `SAPPHIRUS_NATIVE_LANE_FROZEN` to `true`; the signed-release workflow is the
 opt-in one, requiring `SAPPHIRUS_NATIVE_LANE_ENABLED`.
 The P1 signed-installer qualification job is additionally guarded by
@@ -133,6 +140,8 @@ Signed release builds set `SAPPHIRUS_UPDATE_ENDPOINT` to the HTTPS Tauri update 
 `SAPPHIRUS_UPDATE_PUBLIC_KEY` to its public verification key. The desktop updater is disabled
 when either build-time value is absent; private signing keys are never embedded in the app.
 
-The planned internal deployment is single-tenant and uses organization-managed identity, policy,
-and signed packages. No Docker, local server, local model, or GPU is required on employee
+The planned internal deployment is single-tenant and must work without Entra. Its production
+credential, attribution, rotation, and revocation design remains incomplete and must not be
+represented by placeholder identity values. Organization policy and signed packages remain part
+of the intended deployment. No Docker, local server, local model, or GPU is required on employee
 workstations.

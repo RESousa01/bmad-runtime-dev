@@ -322,10 +322,7 @@ fn bmad_ux_prepares_every_action_in_both_modes_with_source_artifact_parity() {
                     BmadActionPlanKind::Read,
                     BmadActionPlanKind::WriteProposal,
                     BmadActionPlanKind::CommandProposal,
-                    BmadActionPlanKind::Read,
                     BmadActionPlanKind::ModelCall,
-                    BmadActionPlanKind::Read,
-                    BmadActionPlanKind::ArtifactPlan,
                 ]
             );
             let output_hints = prepared
