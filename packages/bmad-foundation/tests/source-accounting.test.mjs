@@ -30,10 +30,9 @@ test("every pinned source member has one governed source-accounting treatment", 
   );
 });
 
-// Break caught: leaving a completed Phase 2 Method row in the
-// generator's blanket pending state makes every downstream projection stale
-// again the next time source-accounting.json is regenerated.
-test("the canonical PRD and Spec source rows are runtime-qualified while other rows stay pending", async () => {
+// Break caught: executable candidate code without independent acceptance can
+// be mistaken for product readiness and silently advertised by regeneration.
+test("only the independently accepted PRD source row is runtime-qualified", async () => {
   const accounting = JSON.parse(await readFile(accountingPath, "utf8"));
   const prd = accounting.members.find(
     (member) => member.path === "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
@@ -41,25 +40,59 @@ test("the canonical PRD and Spec source rows are runtime-qualified while other r
   const spec = accounting.members.find(
     (member) => member.path === "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
   );
+  const ux = accounting.members.find(
+    (member) => member.path === "src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md",
+  );
+  const readiness = accounting.members.find(
+    (member) =>
+      member.path
+      === "src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+  );
+  const deepRecon = accounting.members.find(
+    (member) => member.path === "src/core-skills/bmad-deep-recon/SKILL.md",
+  );
+  const help = accounting.members.find(
+    (member) => member.path === "src/core-skills/bmad-help/SKILL.md",
+  );
 
-  assert.equal(prd?.support_state, "exact");
-  assert.equal(prd?.ui_state, "runtime_available");
-  assert.equal(prd?.release_state, "qualified");
-  assert.equal(spec?.support_state, "adapted");
-  assert.equal(spec?.ui_state, "runtime_available");
-  assert.equal(spec?.release_state, "qualified");
+  assert.deepEqual(
+    {
+      support: prd?.support_state,
+      ui: prd?.ui_state,
+      release: prd?.release_state,
+    },
+    {
+      support: "exact",
+      ui: "runtime_available",
+      release: "qualified",
+    },
+  );
+
+  for (const row of [spec, ux, readiness, deepRecon, help]) {
+    assert.deepEqual(
+      {
+        support: row?.support_state,
+        ui: row?.ui_state,
+        release: row?.release_state,
+      },
+      {
+        support: "implementation_pending",
+        ui: "planned",
+        release: "blocked_pending_conformance",
+      },
+    );
+  }
   assert.deepEqual(accounting.totals.runtime_support, {
-    adapted: 1,
     exact: 1,
-    implementation_pending: 51,
+    implementation_pending: 52,
   });
   assert.deepEqual(accounting.totals.ui_support, {
-    planned: 51,
-    runtime_available: 2,
+    planned: 52,
+    runtime_available: 1,
   });
   assert.deepEqual(accounting.totals.release_state, {
-    blocked_pending_conformance: 51,
-    qualified: 2,
+    blocked_pending_conformance: 52,
+    qualified: 1,
   });
 });
 

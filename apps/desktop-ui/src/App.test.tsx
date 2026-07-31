@@ -1198,15 +1198,15 @@ async function bmadHelpRuntime({
               title: "Business Analyst",
               icon: "A",
               team: "software-development",
-              description: "Drafts a bounded product brief.",
+              description: "Drafts a bounded product requirements document.",
               availability: "available",
               blockerCodes: [],
               menus: [{
                 code: "CB",
-                description: "Create a product brief",
+                description: "Create a product requirements document",
                 targetKind: "skill_target",
-                displayLabel: "Product Brief",
-                capabilityId: "bmm:bmad-product-brief",
+                displayLabel: "Create PRD",
+                capabilityId: "bmm:bmad-prd",
                 availability: "available",
                 availabilityReason: null,
               }],
@@ -1367,7 +1367,9 @@ describe("Forge desktop workbench", () => {
       "value",
       "Draft a task before connecting OpenAI",
     );
-    expect(screen.getAllByText(/Connect OpenAI in Settings to send prompts/u).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(/Connect a model provider in Settings to send prompts/u).length,
+    ).toBeGreaterThan(0);
     expect(dispatchedCommandNames(invoke)).not.toContain("run.create");
   });
 
@@ -1568,7 +1570,7 @@ describe("Forge desktop workbench", () => {
     await user.click(screen.getByRole("button", { name: "Skills and agents" }));
     await user.click(await screen.findByRole("button", { name: "Start reviewed run" }));
     expect(
-      await screen.findByRole("dialog", { name: /Product Brief capability run/ }),
+      await screen.findByRole("dialog", { name: /Create PRD capability run/ }),
     ).toBeTruthy();
 
     // A brand-new task must not inherit the first task's run.
@@ -1576,7 +1578,7 @@ describe("Forge desktop workbench", () => {
     await user.click(screen.getByRole("button", { name: "Skills and agents" }));
     expect(await screen.findByRole("heading", { name: "Skills & agents" })).toBeTruthy();
     expect(
-      screen.queryByRole("dialog", { name: /Product Brief capability run/ }),
+      screen.queryByRole("dialog", { name: /Create PRD capability run/ }),
     ).toBeNull();
 
     // Returning to the first task restores its run. Tabs render as
@@ -1589,8 +1591,52 @@ describe("Forge desktop workbench", () => {
       await user.click(screen.getByRole("button", { name: "Skills and agents" }));
     }
     expect(
-      await screen.findByRole("dialog", { name: /Product Brief capability run/ }),
+      await screen.findByRole("dialog", { name: /Create PRD capability run/ }),
     ).toBeTruthy();
+  });
+
+  it("offers only the active task's attachments to a PRD run and never inserts them automatically", async () => {
+    const { runtime, invoke } = await bmadHelpRuntime({ runnableCapability: true });
+    const user = userEvent.setup();
+    render(
+      <App
+        hostRuntimeLoader={async () => runtime}
+        projectionPollIntervalMs={60_000}
+      />,
+    );
+    await enterFirstTask();
+
+    await user.click(screen.getByRole("button", { name: "Add file" }));
+    await waitFor(() => {
+      expect(dispatchedCommandNames(invoke)).toContain("context.preview");
+    });
+    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    await user.click(await screen.findByRole("button", { name: "Start reviewed run" }));
+
+    const firstRun = await screen.findByRole("dialog", {
+      name: /Create PRD capability run/,
+    });
+    const firstPaths = within(firstRun).getByRole("textbox", {
+      name: "Context file paths",
+    });
+    expect(firstPaths).toHaveProperty("value", "");
+    await user.click(
+      within(firstRun).getByRole("button", { name: "Add attached files (1)" }),
+    );
+    expect(firstPaths).toHaveProperty("value", "src/context.ts");
+
+    await user.click(screen.getByRole("button", { name: "New task" }));
+    await user.click(screen.getByRole("button", { name: "Skills and agents" }));
+    await user.click(await screen.findByRole("button", { name: "Start reviewed run" }));
+    const secondRun = await screen.findByRole("dialog", {
+      name: /Create PRD capability run/,
+    });
+    expect(
+      within(secondRun).queryByRole("button", { name: /Add attached files/ }),
+    ).toBeNull();
+    expect(
+      within(secondRun).getByRole("textbox", { name: "Context file paths" }),
+    ).toHaveProperty("value", "");
   });
 
   /// Attachments used to stay armed after the send that carried them, so every

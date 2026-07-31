@@ -75,7 +75,7 @@ param foundryApiKey string = ''
 param foundryInventoryMode string = 'ConfiguredAndProbed'
 
 @description('Canonical prerequisite-evidence hash (sha256:<hex>) proving the selected inventory mode was qualified against the live project before rollout.')
-param foundryPrerequisiteEvidenceHash string = 'sha256:0000000000000000000000000000000000000000000000000000000000000'
+param foundryPrerequisiteEvidenceHash string = 'sha256:0000000000000000000000000000000000000000000000000000000000000000'
 
 // Must stay equal to ProductionOptions.ModelProfileConfigurationPrefix in
 // services/desktop-support-api, which accepts only lowercase colon-separated

@@ -9,31 +9,58 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import process from "node:process";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
-const CHECKER = "tools/check-workflows.mjs";
+const TEST_PATH = fileURLToPath(import.meta.url);
+const TOOLS_DIR = dirname(TEST_PATH);
+const REPOSITORY_ROOT = dirname(TOOLS_DIR);
+const CHECKER = join(TOOLS_DIR, "check-workflows.mjs");
 
-const run = () => spawnSync(process.execPath, [CHECKER], { encoding: "utf8" });
+const run = ({ cwd = REPOSITORY_ROOT } = {}) =>
+  spawnSync(process.execPath, [CHECKER], {
+    cwd,
+    encoding: "utf8",
+  });
 
 /** Edits a workflow, runs the checker, then puts the file back. */
 function withMutation(workflow, mutate, assertion) {
-  const path = `.github/workflows/${workflow}`;
-  const backup = `${path}.bak`;
-  copyFileSync(path, backup);
+  const workflowPath = join(REPOSITORY_ROOT, ".github", "workflows", workflow);
+  const backup = `${workflowPath}.bak`;
+  copyFileSync(workflowPath, backup);
   try {
-    writeFileSync(path, mutate(readFileSync(path, "utf8")), "utf8");
+    writeFileSync(workflowPath, mutate(readFileSync(workflowPath, "utf8")), "utf8");
     assertion(run());
   } finally {
-    copyFileSync(backup, path);
-    spawnSync(process.execPath, ["-e", `require("node:fs").unlinkSync(${JSON.stringify(backup)})`]);
+    copyFileSync(backup, workflowPath);
+    unlinkSync(backup);
   }
 }
 
 test("the repository's workflows pass", () => {
   const result = run();
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+});
+
+test("the checker resolves the repository from its own module URL", () => {
+  const foreignCwd = mkdtempSync(join(tmpdir(), "sapphirus-workflow-check-"));
+  try {
+    const result = run({ cwd: foreignCwd });
+    assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  } finally {
+    rmSync(foreignCwd, { recursive: true, force: true });
+  }
 });
 
 test("a pnpm script that does not exist is reported", () => {

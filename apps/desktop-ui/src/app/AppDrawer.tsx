@@ -118,6 +118,7 @@ function SkillsPanel() {
           onReviewChangeSet={() => bmad.proposeChangeSet(bmad.run!.capabilityId)}
           onSubmit={bmad.submitRun}
           phase={bmad.run.phase}
+          suggestedContextPaths={bmad.suggestedContextPaths}
         />
       )}
       <BmadWorkflowPanel

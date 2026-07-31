@@ -126,7 +126,7 @@
     },
     "foundryPrerequisiteEvidenceHash": {
       "type": "string",
-      "defaultValue": "sha256:0000000000000000000000000000000000000000000000000000000000000",
+      "defaultValue": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "metadata": {
         "description": "Canonical prerequisite-evidence hash (sha256:<hex>) proving the selected inventory mode was qualified against the live project before rollout."
       }

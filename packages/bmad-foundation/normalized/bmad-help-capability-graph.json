@@ -1,8 +1,8 @@
 {
   "schemaVersion": "sapphirus.bmad-help-capability-graph.v1",
   "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
-  "sourceCatalogSha256": "827092afa5909dd4f17bf0363fbd55c3a558519b55c7d0eb9fcddc7b64dd4301",
-  "sourceAliasCatalogSha256": "61c003eeb122724cbb95d74d17834dfd6d03ac0e028dd269403fd172915a822f",
+  "sourceCatalogSha256": "02ed1d13ccb2e9780b64624b04f1086c74b8fb10fb8aac1d7a858a586dc196bb",
+  "sourceAliasCatalogSha256": "00312b97fa0f111d49a2b943996503e3f50bd494d0d0271431ffd7cdaa885766",
   "nodeCount": 45,
   "nodes": [
     {
@@ -110,13 +110,13 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "exact",
+      "supportState": "adapted",
       "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/3-solutioning/bmad-architecture/SKILL.md",
         "method:src/bmm-skills/v6-shims/bmad-create-architecture/SKILL.md"
       ],
-      "nodeHash": "sha256:f12c5067decfb3f49c320405d96121cff832ed76d381bf9cd2527bb5fecbe74c"
+      "nodeHash": "sha256:1fceffc57660ddee7498c6cc988e0308b295787e33314de07559538f2f85c3b9"
     },
     {
       "id": "bmm:bmad-check-implementation-readiness",
@@ -127,12 +127,12 @@
       "outputLocations": [
         "governed_artifact"
       ],
-      "supportState": "exact",
+      "supportState": "adapted",
       "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/3-solutioning/bmad-check-implementation-readiness/SKILL.md"
       ],
-      "nodeHash": "sha256:976c507704d4f1ba376e33e318f9a76a13f75571ba8db90b459aae538b20f286"
+      "nodeHash": "sha256:4a4cc553fbf7a01dd71a9585e90863fac056820d0a63170e2691fbd9c7dfd724"
     },
     {
       "id": "bmm:bmad-checkpoint-preview",
@@ -387,11 +387,11 @@
         "governed_artifact"
       ],
       "supportState": "adapted",
-      "uiState": "runtime_available",
+      "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md"
       ],
-      "nodeHash": "sha256:52048d8bd9986ea909dc19e699147f419431f4b42d668f30cfb34ca7cd1b5afa"
+      "nodeHash": "sha256:81a8b9a6606ffabef8f4139dec9209244a72c6374b4c6a5476f2f26cac70f280"
     },
     {
       "id": "bmm:bmad-sprint-planning",
@@ -430,16 +430,22 @@
       "sourceId": "method",
       "phase": "planning",
       "predecessorIds": [],
-      "followerIds": [],
+      "followerIds": [
+        "bmm:bmad-architecture",
+        "bmm:bmad-create-epics-and-stories",
+        "bmm:bmad-dev-story"
+      ],
       "outputLocations": [
-        "governed_artifact"
+        "planning_artifacts/DESIGN.md",
+        "planning_artifacts/EXPERIENCE.md",
+        "planning_artifacts/validation-report.{md,html}"
       ],
       "supportState": "exact",
       "uiState": "planned",
       "rowIds": [
         "method:src/bmm-skills/2-plan-workflows/bmad-ux/SKILL.md"
       ],
-      "nodeHash": "sha256:1448129e9ebf52419fd85d89f89c8c7aaba74595780d6b202f4bd431266eb66d"
+      "nodeHash": "sha256:27f20472226bfd040eef2ebcdbaeea2e3960e546ff051017e7ef57c60805a86b"
     },
     {
       "id": "builder:bmad-agent-builder:build-process",
@@ -831,5 +837,5 @@
       "deprecated": true
     }
   ],
-  "graphHash": "sha256:ba0c32277593d9bc4f063caaeeabb88bd35cb03b602d80784fb09dc357d061c5"
+  "graphHash": "sha256:3da82589b4ff3f4523687fa87feb7d734308947cb36860bc772f613c544f1c70"
 }

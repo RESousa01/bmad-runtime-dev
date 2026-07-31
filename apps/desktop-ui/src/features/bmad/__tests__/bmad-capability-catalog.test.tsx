@@ -20,6 +20,11 @@ describe("canonical BMAD capability catalog", () => {
         (row) => row.visibility === "public" && row.uiState === "runtime_available",
       ),
     ).toBe(true);
+    expect(
+      uiAdvertisedBmadCapabilities
+        .filter((row) => row.source.id === "method")
+        .map((row) => row.canonicalId),
+    ).toEqual(["bmm:bmad-prd"]);
   });
 
   it("resolves every alias to one canonical implementation with migration policy", () => {

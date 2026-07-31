@@ -63,6 +63,7 @@ import {
   parsePreferencesReply,
   parseRetentionManifestReply,
 } from "./appProtocol";
+import { isValidAzureOpenAiEndpoint } from "../../features/providers/providerValidation";
 import {
   buildApprovalDecisionEnvelope,
   buildChangesRecoveryDecisionEnvelope,
@@ -1062,7 +1063,7 @@ export class DesktopHostClient {
       || (providerId === "openai" && (endpoint !== null || region !== null))
       || (providerId === "azure"
         && (endpoint === null
-          || !/^https:\/\/[A-Za-z0-9.-]+(?:\/openai\/v1\/?)?$/u.test(endpoint)
+          || !isValidAzureOpenAiEndpoint(endpoint)
           || (region !== null && !/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/u.test(region))))
     ) {
       throw new HostCapabilityError("Enter valid provider connection details.");

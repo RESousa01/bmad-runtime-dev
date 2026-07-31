@@ -789,8 +789,21 @@ export function TaskWorkspace({
                 ? "Browse the included sample project structure and explore the desktop task flow."
                 : methodGuidanceAvailable
                   ? "Ask the Agent to inspect your local workspace, explain code, create a plan, or prepare skill-guided work."
-                  : "Connect OpenAI in Settings to send prompts. Files and Review remain available while disconnected."}
+                  : "Connect a model provider in Settings to send prompts."}
             </p>
+            {!isBrowserDemo
+              && !isReadOnlyRecovery
+              && !interactionDisabled
+              && !chatSendAvailable
+              && onOpenProviders !== undefined ? (
+                <Button
+                  onPress={onOpenProviders}
+                  size="small"
+                  variant="secondary"
+                >
+                  Connect model
+                </Button>
+              ) : null}
           </section>
         )}
       </div>
@@ -970,7 +983,7 @@ export function TaskWorkspace({
                 ? "Checking for a retained BMAD session."
                 : "Preparing and sending your message."
               : "Messages are sent through the selected model with only the files you attach."
-            : "Connect OpenAI in Settings to send prompts. Files and Review remain available while disconnected."}
+            : "Connect a model provider in Settings to send prompts."}
         </p>
       </form>
       {onOpenWorkspaceManager === undefined ? null : (

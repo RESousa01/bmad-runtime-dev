@@ -16,8 +16,10 @@ import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname.slice(1)), "..");
+const scriptPath = fileURLToPath(import.meta.url);
+const root = path.resolve(path.dirname(scriptPath), "..");
 const workflowsDir = path.join(root, ".github", "workflows");
 
 const readJson = (relative) => JSON.parse(readFileSync(path.join(root, relative), "utf8"));

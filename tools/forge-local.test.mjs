@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const ZERO_SHA256 = `sha256:${"0".repeat(64)}`;
 
 test("local compose runs the Forge UI and the existing support API without model credentials", async () => {
   const compose = await read("infra/local/compose.yaml");
@@ -87,6 +88,48 @@ test("Azure template passes the reviewed desktop client ID into the API containe
   );
   assert.match(compiledSource, /Sapphirus__ApprovedDesktopClientId/u);
   assert.match(compiledSource, /parameters\('approvedDesktopClientId'\)/u);
+});
+
+test("Foundry prerequisite evidence defaults use one canonical SHA-256 value", async () => {
+  const [
+    bicep,
+    currentParameters,
+    legacyParameters,
+    supportCompose,
+    compiled,
+  ] = await Promise.all([
+    read("infra/desktop-support/main.bicep"),
+    read("infra/desktop-support/main.example.bicepparam"),
+    read("infra/desktop-support/main.bicepparam.example"),
+    read("infra/desktop-support/local/docker-compose.yml"),
+    read("infra/desktop-support/main.json").then(JSON.parse),
+  ]);
+
+  assert.match(
+    ZERO_SHA256,
+    /^sha256:[0-9a-f]{64}$/u,
+  );
+  assert.ok(
+    bicep.includes(
+      `param foundryPrerequisiteEvidenceHash string = '${ZERO_SHA256}'`,
+    ),
+  );
+  for (const parameters of [currentParameters, legacyParameters]) {
+    assert.ok(
+      parameters.includes(
+        `param foundryPrerequisiteEvidenceHash = '${ZERO_SHA256}'`,
+      ),
+    );
+  }
+  assert.ok(
+    supportCompose.includes(
+      `Sapphirus__FoundryPrerequisiteEvidenceHash: ${ZERO_SHA256}`,
+    ),
+  );
+  assert.equal(
+    compiled.parameters?.foundryPrerequisiteEvidenceHash?.defaultValue,
+    ZERO_SHA256,
+  );
 });
 
 test("both Azure parameter examples and deployment guidance require the approved desktop client", async () => {

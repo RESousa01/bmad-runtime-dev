@@ -49,6 +49,7 @@ export interface BmadCapabilityPanelProps {
   readonly onReviewChangeSet?: () => void;
   readonly onSubmit: (manifestHash: string, decisionId: string) => void;
   readonly phase: CapabilityRunPhase;
+  readonly suggestedContextPaths?: readonly string[];
 }
 
 const CONSENT_DISCLOSURE =
@@ -103,18 +104,24 @@ interface ContextSelection {
 }
 
 function parseContextPaths(raw: string): ContextSelection {
-  const unique = [
-    ...new Set(
-      raw
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0),
-    ),
-  ];
+  const unique = uniqueContextPaths(
+    raw
+      .split("\n"),
+  );
   return {
     paths: unique.slice(0, MAX_CONTEXT_PATHS),
     droppedOverCap: Math.max(0, unique.length - MAX_CONTEXT_PATHS),
   };
+}
+
+function uniqueContextPaths(paths: readonly string[]): string[] {
+  return [
+    ...new Set(
+      paths
+        .map((path) => path.trim())
+        .filter((path) => path.length > 0),
+    ),
+  ];
 }
 
 /// The longest deadline this panel will arm a timer for.
@@ -210,12 +217,14 @@ export function BmadCapabilityPanel({
   onReviewChangeSet,
   onSubmit,
   phase,
+  suggestedContextPaths = [],
 }: BmadCapabilityPanelProps) {
   const isCanonicalPrd = capabilityId === "bmm:bmad-prd";
   const [prdAction, setPrdAction] = useState<"create" | "update" | "validate">("create");
   const [prdMode, setPrdMode] = useState<"interactive" | "headless">("interactive");
   const [rawPaths, setRawPaths] = useState("");
   const { paths: selectedPaths, droppedOverCap } = parseContextPaths(rawPaths);
+  const attachedPaths = uniqueContextPaths(suggestedContextPaths);
   const panelRef = useRunPanelFocus();
   const reviewExpired = useDeadlinePassed(
     phase.kind === "review" ? phase.review.expiresAt : null,
@@ -327,6 +336,18 @@ export function BmadCapabilityPanel({
               value={rawPaths}
             />
           </label>
+          {isCanonicalPrd && attachedPaths.length > 0 ? (
+            <Button
+              isDisabled={phase.kind === "preparing"}
+              onPress={() => {
+                const manualPaths = uniqueContextPaths(rawPaths.split("\n"));
+                setRawPaths(uniqueContextPaths([...manualPaths, ...attachedPaths]).join("\n"));
+              }}
+              variant="quiet"
+            >
+              Add attached files ({attachedPaths.length})
+            </Button>
+          ) : null}
           <p role="status">
             {selectedPaths.length === 0
               ? "No files selected yet. Name at least one to prepare a review."

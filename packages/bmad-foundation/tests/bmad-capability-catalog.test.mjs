@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
 
@@ -43,17 +45,22 @@ test("aliases are unambiguous, governed migrations to catalog implementations", 
   }
 });
 
-test("generated Rust and TypeScript projections are current", async () => {
-  const catalog = await readJson("capability-catalog.json");
-  const [rust, typescript] = await Promise.all([
-    readFile(new URL("../../crates/desktop-app/src/generated/bmad_capabilities.rs", root), "utf8"),
-    readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
-  ]);
+test("all generated capability products are byte-current", () => {
+  const packageRoot = fileURLToPath(root);
+  const result = spawnSync(
+    process.execPath,
+    ["scripts/generate-catalog.mjs", "--check"],
+    {
+      cwd: packageRoot,
+      encoding: "utf8",
+    },
+  );
 
-  assert.match(rust, new RegExp(`CAPABILITY_ROW_COUNT: usize = ${catalog.capabilities.length}`));
-  assert.match(typescript, new RegExp(`capabilityRowCount = ${catalog.capabilities.length}`));
-  assert.match(typescript, /builderPublicActionRowCount = 9/);
-  assert.match(typescript, /builderInternalActionRowCount = 1/);
+  assert.equal(
+    result.status,
+    0,
+    `${result.stdout}\n${result.stderr}`,
+  );
 });
 
 // Break caught: a canonical row can be qualified in source accounting and the
@@ -66,16 +73,18 @@ test("generated UI projections advertise only the qualified canonical PRD row", 
     readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
   ]);
   const prdRows = catalog.capabilities.filter((row) => row.canonicalId === "bmm:bmad-prd");
-  const qualified = prdRows.filter(
+  const advertisedMethodRows = catalog.capabilities.filter(
     (row) =>
-      row.visibility === "public"
+      row.source.id === "method"
+      && row.visibility === "public"
       && row.uiState === "runtime_available"
       && row.supportState !== "unavailable",
   );
+  const rustAdvertised = rust.split("pub const UI_ADVERTISED_CAPABILITIES", 2)[1];
 
   assert.equal(prdRows.length, 4);
   assert.deepEqual(
-    qualified.map((row) => row.rowId),
+    advertisedMethodRows.map((row) => row.rowId),
     ["method:src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md"],
   );
   assert.match(
@@ -83,9 +92,21 @@ test("generated UI projections advertise only the qualified canonical PRD row", 
     /pub const UI_ADVERTISED_CAPABILITIES[\s\S]*row_id: "method:src\/bmm-skills\/2-plan-workflows\/bmad-prd\/SKILL\.md"/,
   );
   assert.doesNotMatch(
-    rust.split("pub const UI_ADVERTISED_CAPABILITIES", 2)[1],
+    rustAdvertised,
     /v6-shims\/bmad-(create|edit|validate)-prd/,
   );
+  for (const canonicalId of [
+    "bmm:bmad-spec",
+    "bmm:bmad-ux",
+    "bmm:bmad-check-implementation-readiness",
+    "core:bmad-deep-recon",
+    "core:bmad-help",
+  ]) {
+    assert.doesNotMatch(
+      rustAdvertised,
+      new RegExp(`canonical_id: "${canonicalId}"`, "u"),
+    );
+  }
   assert.match(typescript, /row\.uiState === "runtime_available"/);
   assert.match(typescript, /row\.supportState !== "unavailable"/);
 });
@@ -122,40 +143,34 @@ test("readiness normalized envelope closes the exact pinned micro-file package",
   }
 });
 
-test("readiness catalog Help UI Rust and runtime manifest derive one runtime state", async () => {
-  const [catalog, ledger, help, manifest, typescript, rust, normalizedBytes] =
+test("readiness catalog Help UI and generated consumers derive one availability state", async () => {
+  const [catalog, ledger, help, typescript, rust] =
     await Promise.all([
       readJson("capability-catalog.json"),
       readJson("compatibility-ledger.json"),
       readJson("normalized/bmad-help-capability-graph.json"),
-      readJson("runtime-manifest.json"),
       readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
       readFile(
         new URL("../../crates/desktop-app/src/generated/bmad_capabilities.rs", root),
         "utf8",
       ),
-      readFile(
-        new URL("normalized/bmad-check-implementation-readiness.package.json", root),
-      ),
     ]);
   const catalogRow = catalog.capabilities.find((row) => row.rowId === readinessRowId);
   const ledgerRow = ledger.rows.find((row) => row.rowId === readinessRowId);
   const helpNode = help.nodes.find((node) => node.id === readinessCanonicalId);
-  const manifestResource = manifest.resources.find(
-    (resource) =>
-      resource.path === "normalized/bmad-check-implementation-readiness.package.json",
-  );
-  const normalizedHash = createHash("sha256").update(normalizedBytes).digest("hex");
 
-  assert.equal(ledgerRow.decision, "adopt");
-  assert.equal(ledgerRow.supportState, "exact");
-  assert.equal(catalogRow.supportState, "exact");
-  assert.equal(catalogRow.uiState, "runtime_available");
-  assert.equal(helpNode.supportState, "exact");
-  assert.equal(helpNode.uiState, "runtime_available");
+  assert.equal(ledgerRow.decision, "adapt");
+  assert.equal(ledgerRow.supportState, "adapted");
+  assert.equal(catalogRow.supportState, "adapted");
+  assert.equal(catalogRow.uiState, "planned");
+  assert.equal(helpNode.supportState, "adapted");
+  assert.equal(helpNode.uiState, "planned");
   assert.match(typescript, /bmm:bmad-check-implementation-readiness/);
   assert.match(rust, /bmm:bmad-check-implementation-readiness/);
-  assert.equal(manifestResource.contentHash, `sha256:${normalizedHash}`);
+  assert.doesNotMatch(
+    rust.split("pub const UI_ADVERTISED_CAPABILITIES", 2)[1],
+    /bmm:bmad-check-implementation-readiness/u,
+  );
 });
 
 test("readiness source-derived goldens prove parity and durable lifecycle branches", async () => {
@@ -220,20 +235,18 @@ test("UX normalized envelope adapts the exact pinned micro-file package", async 
   }
 });
 
-test("UX catalog Help UI Rust ledger and runtime manifest derive one state", async () => {
-  const [catalog, ledger, accounting, help, manifest, typescript, rust, normalizedBytes] =
+test("UX catalog Help UI ledger and generated consumers derive one availability state", async () => {
+  const [catalog, ledger, accounting, help, typescript, rust] =
     await Promise.all([
       readJson("capability-catalog.json"),
       readJson("compatibility-ledger.json"),
       readJson("source-accounting.json"),
       readJson("normalized/bmad-help-capability-graph.json"),
-      readJson("runtime-manifest.json"),
       readFile(new URL("../../apps/desktop-ui/src/generated/bmadCapabilities.ts", root), "utf8"),
       readFile(
         new URL("../../crates/desktop-app/src/generated/bmad_capabilities.rs", root),
         "utf8",
       ),
-      readFile(new URL("normalized/bmad-ux.package.json", root)),
     ]);
   const catalogRow = catalog.capabilities.find((row) => row.rowId === uxRowId);
   const ledgerRow = ledger.rows.find((row) => row.rowId === uxRowId);
@@ -241,10 +254,6 @@ test("UX catalog Help UI Rust ledger and runtime manifest derive one state", asy
     (member) => member.member_key === uxRowId,
   );
   const helpNode = help.nodes.find((node) => node.id === uxCanonicalId);
-  const manifestResource = manifest.resources.find(
-    (resource) => resource.path === "normalized/bmad-ux.package.json",
-  );
-  const normalizedHash = createHash("sha256").update(normalizedBytes).digest("hex");
 
   // The compatibility decision adopts this pinned capability identity. Its
   // execution treatment is separately and explicitly adapted into native,
@@ -253,7 +262,8 @@ test("UX catalog Help UI Rust ledger and runtime manifest derive one state", asy
   assert.equal(accountingRow.treatment, "adapt");
   assert.equal(ledgerRow.supportState, "exact");
   assert.equal(catalogRow.supportState, "exact");
-  assert.equal(catalogRow.uiState, "runtime_available");
+  assert.equal(catalogRow.uiState, "planned");
+  assert.equal(helpNode.uiState, "planned");
   assert.deepEqual(catalogRow.declaredActions, ["create", "update", "validate"]);
   assert.deepEqual(helpNode.followerIds, [
     "bmm:bmad-architecture",
@@ -267,29 +277,8 @@ test("UX catalog Help UI Rust ledger and runtime manifest derive one state", asy
   ]);
   assert.match(typescript, /bmm:bmad-ux/);
   assert.match(rust, /bmm:bmad-ux/);
-  assert.equal(manifestResource.contentHash, `sha256:${normalizedHash}`);
-});
-
-test("UX source-derived goldens prove action parity and complete durable recovery", async () => {
-  const golden = await readJson(
-    "../../artifacts/bmad100/method/bmad-ux/golden/source-derived-cases.json",
+  assert.doesNotMatch(
+    rust.split("pub const UI_ADVERTISED_CAPABILITIES", 2)[1],
+    /bmm:bmad-ux/u,
   );
-  assert.deepEqual(golden.declaredModes, ["interactive", "headless"]);
-  assert.equal(golden.modeParity.interactiveAndHeadlessUseIdenticalActionBranches, true);
-  assert.deepEqual(Object.keys(golden.declaredActions), ["create", "update", "validate"]);
-  assert.deepEqual(golden.lifecycleCases, [
-    "cancel",
-    "fail",
-    "retry",
-    "repair",
-    "restart",
-    "resume",
-    "upgrade",
-    "stale_upgrade",
-  ]);
-  assert.deepEqual(golden.authority.distinctHostReplacements, {
-    web: "network_unavailable_fact",
-    browser: "browser_unavailable_fact",
-    external_handoff: "external_handoff_unavailable_fact",
-  });
 });

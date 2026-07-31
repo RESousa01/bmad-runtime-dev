@@ -118,6 +118,7 @@ export interface BmadSlice {
   readonly helpState: BmadRequestState;
   readonly personaPerspectives: ReadonlyMap<string, BmadPersonaPerspectiveView>;
   readonly run: ActiveCapabilityRunState | null;
+  readonly suggestedContextPaths: readonly string[];
   readonly workflow: {
     readonly state: BmadWorkflowStateProjection | null;
     readonly loading: boolean;

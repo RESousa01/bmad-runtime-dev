@@ -510,6 +510,50 @@ describe("TaskWorkspace Method guidance", () => {
     expect(screen.queryByText("Demo response")).toBeNull();
   });
 
+  it("opens provider settings from an ordinary disconnected task", async () => {
+    const user = userEvent.setup();
+    const onOpenProviders = vi.fn();
+    render(
+      <TaskWorkspace
+        {...createProps({
+          chatSendAvailable: false,
+          methodGuidanceAvailable: false,
+          onOpenProviders,
+        })}
+      />,
+    );
+
+    expect(
+      screen.getAllByText("Connect a model provider in Settings to send prompts."),
+    ).toHaveLength(2);
+    await user.click(screen.getByRole("button", { name: "Connect model" }));
+    expect(onOpenProviders).toHaveBeenCalledOnce();
+  });
+
+  it("does not offer provider connection in browser demo or read-only recovery", () => {
+    const { rerender } = render(
+      <TaskWorkspace
+        {...createProps({
+          chatSendAvailable: false,
+          isBrowserDemo: true,
+          onOpenProviders: vi.fn(),
+        })}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Connect model" })).toBeNull();
+
+    rerender(
+      <TaskWorkspace
+        {...createProps({
+          chatSendAvailable: false,
+          isReadOnlyRecovery: true,
+          onOpenProviders: vi.fn(),
+        })}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Connect model" })).toBeNull();
+  });
+
   it("renders a tool call as a request, never as something Forge said", () => {
     const { container } = render(
       <TaskWorkspace

@@ -7,6 +7,7 @@ import type {
   ModelProviderId,
   ModelSelection,
 } from "../../lib/hostClient";
+import { isValidAzureOpenAiEndpoint } from "../../features/providers/providerValidation";
 import { ProviderIcon } from "./ProviderIcon";
 
 const providers: ReadonlyArray<{
@@ -94,7 +95,7 @@ export function ProviderSection({
   const [azureRegionDraft, setAzureRegionDraft] = useState("");
   const modelIsValid = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/u.test(modelDraft);
   const azureEndpointIsValid = selectedProvider !== "azure"
-    || /^https:\/\/[A-Za-z0-9.-]+(?:\/openai\/v1\/?)?$/u.test(azureEndpointDraft);
+    || isValidAzureOpenAiEndpoint(azureEndpointDraft);
   const selectedProviderName = selectedProvider === "azure" ? "Azure OpenAI" : "OpenAI";
   const selectedProviderConnected = modelAuthStatus?.status === "development_ready"
     && modelAuthStatus.mode === "direct_provider_development"
@@ -274,15 +275,20 @@ export function ProviderSection({
             </div>
             {selectedProvider === "azure" ? (
               <div className="provider-connection__azure">
-                <label htmlFor="forge-azure-endpoint">Azure endpoint</label>
+                <label htmlFor="forge-azure-endpoint">Azure OpenAI v1 endpoint</label>
                 <input
-                  aria-label="Azure OpenAI endpoint"
+                  aria-label="Azure OpenAI v1 endpoint"
                   id="forge-azure-endpoint"
                   onChange={(event) => setAzureEndpointDraft(event.currentTarget.value)}
-                  placeholder="https://resource.openai.azure.com"
+                  placeholder="https://<resource>.openai.azure.com/openai/v1/"
                   spellCheck={false}
                   value={azureEndpointDraft}
                 />
+                <small>
+                  Use the Azure OpenAI v1 endpoint. Foundry project endpoints ending in
+                  {" "}.services.ai.azure.com/api/projects/... are not supported by this
+                  local PoC.
+                </small>
                 <label htmlFor="forge-azure-region">Region (optional)</label>
                 <input
                   aria-label="Azure OpenAI region"

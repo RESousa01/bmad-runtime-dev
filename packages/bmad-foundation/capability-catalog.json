@@ -10,8 +10,8 @@
       "version": "2.1.0"
     }
   },
-  "sourceAccountingSha256": "168f72d54426bc4dd5564270d128e0f3569e8dba5c69b6a9bb1618e7029f121e",
-  "compatibilityLedgerSha256": "39cff760550c3d4ddb8fb0707200067a93aef55e09e2cdad71f22e6e02f5e32c",
+  "sourceAccountingSha256": "a65f5d4b2861a9d3d18faa28dee148227abef71c0f6d437b1e9574ede312ad44",
+  "compatibilityLedgerSha256": "2a1c006dd250926e50fb56f8eaae99cacea818dd604ab5e20cb704b894abef37",
   "counts": {
     "method": 48,
     "builderPublic": 9,
@@ -31,6 +31,7 @@
       "canonicalId": "bmm:bmad-agent-analyst",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -45,6 +46,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -68,6 +71,7 @@
       "canonicalId": "bmm:bmad-agent-tech-writer",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -82,6 +86,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -105,6 +111,7 @@
       "canonicalId": "bmm:bmad-document-project",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -119,6 +126,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -142,6 +151,7 @@
       "canonicalId": "bmm:bmad-prfaq",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -156,6 +166,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -179,6 +191,7 @@
       "canonicalId": "bmm:bmad-product-brief",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -193,6 +206,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -216,6 +231,7 @@
       "canonicalId": "bmm:bmad-agent-pm",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -230,6 +246,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -253,6 +271,7 @@
       "canonicalId": "bmm:bmad-agent-ux-designer",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -267,6 +286,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -294,6 +315,7 @@
         "bmm:bmad-validate-prd"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -308,6 +330,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "runtime_available",
       "visibility": "public",
@@ -331,6 +355,7 @@
       "canonicalId": "bmm:bmad-spec",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -345,8 +370,10 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "adapted",
-      "uiState": "runtime_available",
+      "uiState": "planned",
       "visibility": "public",
       "evidence": [
         {
@@ -368,6 +395,11 @@
       "canonicalId": "bmm:bmad-ux",
       "aliases": [],
       "action": null,
+      "declaredActions": [
+        "create",
+        "update",
+        "validate"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -380,7 +412,15 @@
         "durable_evidence"
       ],
       "outputs": [
-        "governed_artifact"
+        "planning_artifacts/DESIGN.md",
+        "planning_artifacts/EXPERIENCE.md",
+        "planning_artifacts/validation-report.{md,html}"
+      ],
+      "predecessorIds": [],
+      "followerIds": [
+        "bmm:bmad-architecture",
+        "bmm:bmad-create-epics-and-stories",
+        "bmm:bmad-dev-story"
       ],
       "supportState": "exact",
       "uiState": "planned",
@@ -405,6 +445,7 @@
       "canonicalId": "bmm:bmad-agent-architect",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -419,6 +460,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -444,6 +487,7 @@
         "bmm:bmad-create-architecture"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -458,7 +502,9 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "exact",
+      "predecessorIds": [],
+      "followerIds": [],
+      "supportState": "adapted",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -481,6 +527,7 @@
       "canonicalId": "bmm:bmad-check-implementation-readiness",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -495,7 +542,9 @@
       "outputs": [
         "governed_artifact"
       ],
-      "supportState": "exact",
+      "predecessorIds": [],
+      "followerIds": [],
+      "supportState": "adapted",
       "uiState": "planned",
       "visibility": "public",
       "evidence": [
@@ -518,6 +567,7 @@
       "canonicalId": "bmm:bmad-create-epics-and-stories",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -532,6 +582,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -555,6 +607,7 @@
       "canonicalId": "bmm:bmad-generate-project-context",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -569,6 +622,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -592,6 +647,7 @@
       "canonicalId": "bmm:bmad-agent-dev",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -606,6 +662,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -629,6 +687,7 @@
       "canonicalId": "bmm:bmad-checkpoint-preview",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -643,6 +702,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -666,6 +727,7 @@
       "canonicalId": "bmm:bmad-code-review",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -680,6 +742,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -703,6 +767,7 @@
       "canonicalId": "bmm:bmad-correct-course",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -717,6 +782,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -740,6 +807,7 @@
       "canonicalId": "bmm:bmad-create-story",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -754,6 +822,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -777,6 +847,7 @@
       "canonicalId": "bmm:bmad-dev-auto",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -791,6 +862,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -814,6 +887,7 @@
       "canonicalId": "bmm:bmad-dev-story",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -828,6 +902,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -851,6 +927,7 @@
       "canonicalId": "bmm:bmad-qa-generate-e2e-tests",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -865,6 +942,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -888,6 +967,7 @@
       "canonicalId": "bmm:bmad-quick-dev",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -902,6 +982,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -925,6 +1007,7 @@
       "canonicalId": "bmm:bmad-retrospective",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -939,6 +1022,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -962,6 +1047,7 @@
       "canonicalId": "bmm:bmad-sprint-planning",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -976,6 +1062,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -999,6 +1087,7 @@
       "canonicalId": "bmm:bmad-sprint-status",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1013,6 +1102,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1038,6 +1129,7 @@
         "bmm:bmad-create-architecture"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1052,6 +1144,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1079,6 +1173,7 @@
         "bmm:bmad-validate-prd"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1093,6 +1188,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1120,6 +1217,7 @@
         "bmm:bmad-technical-research"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1134,6 +1232,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1161,6 +1261,7 @@
         "bmm:bmad-validate-prd"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1175,6 +1276,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1202,6 +1305,7 @@
         "bmm:bmad-technical-research"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1216,6 +1320,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1243,6 +1349,7 @@
         "bmm:bmad-technical-research"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1257,6 +1364,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1284,6 +1393,7 @@
         "bmm:bmad-validate-prd"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1298,6 +1408,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1321,6 +1433,7 @@
       "canonicalId": "core:bmad-advanced-elicitation",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1335,6 +1448,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -1358,6 +1473,7 @@
       "canonicalId": "core:bmad-brainstorming",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1372,6 +1488,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -1395,6 +1513,7 @@
       "canonicalId": "core:bmad-customize",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1409,6 +1528,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -1436,6 +1557,7 @@
         "bmm:bmad-technical-research"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1450,6 +1572,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -1473,6 +1597,7 @@
       "canonicalId": "core:bmad-forge-idea",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1487,6 +1612,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -1510,6 +1637,7 @@
       "canonicalId": "core:bmad-help",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1524,6 +1652,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "adapted",
       "uiState": "planned",
       "visibility": "public",
@@ -1547,6 +1677,7 @@
       "canonicalId": "core:bmad-party-mode",
       "aliases": [],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1561,6 +1692,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -1591,6 +1724,7 @@
         "core:bmad-review-verification-gap"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1605,6 +1739,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "exact",
       "uiState": "planned",
       "visibility": "public",
@@ -1635,6 +1771,7 @@
         "core:bmad-review-verification-gap"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1649,6 +1786,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1679,6 +1818,7 @@
         "core:bmad-review-verification-gap"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1693,6 +1833,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1723,6 +1865,7 @@
         "core:bmad-review-verification-gap"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1737,6 +1880,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1767,6 +1912,7 @@
         "core:bmad-review-verification-gap"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1781,6 +1927,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1811,6 +1959,7 @@
         "core:bmad-review-verification-gap"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1825,6 +1974,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1855,6 +2006,7 @@
         "core:bmad-review-verification-gap"
       ],
       "action": null,
+      "declaredActions": [],
       "args": [],
       "modes": [
         "interactive",
@@ -1869,6 +2021,8 @@
       "outputs": [
         "governed_artifact"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "unavailable",
       "uiState": "planned",
       "visibility": "public",
@@ -1892,6 +2046,9 @@
       "canonicalId": "builder:bmad-bmb-setup:configure",
       "aliases": [],
       "action": "configure",
+      "declaredActions": [
+        "configure"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -1908,6 +2065,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "planned",
       "visibility": "public",
@@ -1934,6 +2093,9 @@
         "builder:agent.edit"
       ],
       "action": "build-process",
+      "declaredActions": [
+        "build-process"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -1953,6 +2115,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "planned",
       "visibility": "public",
@@ -1978,6 +2142,9 @@
         "builder:agent.analyze"
       ],
       "action": "quality-analysis",
+      "declaredActions": [
+        "quality-analysis"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -1995,6 +2162,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "planned",
       "visibility": "public",
@@ -2020,6 +2189,9 @@
         "builder:workflow.build_edit"
       ],
       "action": "build-process",
+      "declaredActions": [
+        "build-process"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -2038,6 +2210,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "planned",
       "visibility": "public",
@@ -2063,6 +2237,9 @@
         "builder:workflow.analyze"
       ],
       "action": "quality-analysis",
+      "declaredActions": [
+        "quality-analysis"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -2079,6 +2256,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "planned",
       "visibility": "public",
@@ -2102,6 +2281,9 @@
       "canonicalId": "builder:bmad-workflow-builder:convert-process",
       "aliases": [],
       "action": "convert-process",
+      "declaredActions": [
+        "convert-process"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -2117,6 +2299,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "planned",
       "visibility": "public",
@@ -2140,6 +2324,9 @@
       "canonicalId": "builder:bmad-module-builder:ideate-module",
       "aliases": [],
       "action": "ideate-module",
+      "declaredActions": [
+        "ideate-module"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -2155,6 +2342,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "planned",
       "visibility": "public",
@@ -2178,6 +2367,9 @@
       "canonicalId": "builder:bmad-module-builder:create-module",
       "aliases": [],
       "action": "create-module",
+      "declaredActions": [
+        "create-module"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -2195,6 +2387,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "planned",
       "visibility": "public",
@@ -2218,6 +2412,9 @@
       "canonicalId": "builder:bmad-module-builder:validate-module",
       "aliases": [],
       "action": "validate-module",
+      "declaredActions": [
+        "validate-module"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -2233,6 +2430,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "planned",
       "visibility": "public",
@@ -2256,6 +2455,9 @@
       "canonicalId": "builder:bmad-eval-runner:run-evals",
       "aliases": [],
       "action": "run-evals",
+      "declaredActions": [
+        "run-evals"
+      ],
       "args": [],
       "modes": [
         "interactive",
@@ -2277,6 +2479,8 @@
       "outputs": [
         "inactive_builder_draft"
       ],
+      "predecessorIds": [],
+      "followerIds": [],
       "supportState": "implementation_pending",
       "uiState": "internal",
       "visibility": "internal",
@@ -2289,5 +2493,5 @@
       ]
     }
   ],
-  "catalogSha256": "6957e06d4ee5235a167a10e4ec22029090df662ffdfc18b652fb54759bcd158d"
+  "catalogSha256": "adec36ebb1538e87d20a295d9d7556869e4a7610969d61286b3cdea67c765f00"
 }

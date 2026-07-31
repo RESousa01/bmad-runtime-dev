@@ -71,7 +71,7 @@ services:
       Sapphirus__FoundryProjectEndpoint: https://forge-contract.services.ai.azure.com/api/projects/forge-contract
       Sapphirus__FoundryApiKey: synthetic-local-placeholder-key-not-a-real-secret
       Sapphirus__FoundryInventoryMode: ConfiguredAndProbed
-      Sapphirus__FoundryPrerequisiteEvidenceHash: sha256:0000000000000000000000000000000000000000000000000000000000000
+      Sapphirus__FoundryPrerequisiteEvidenceHash: sha256:0000000000000000000000000000000000000000000000000000000000000000
       Sapphirus__FoundryDeploymentRefreshSeconds: "300"
       Sapphirus__FoundryCatalogMaximumStaleSeconds: "1800"
       Sapphirus__ModelProfileConfigurationPrefix: "desktop-support:model-profile:"

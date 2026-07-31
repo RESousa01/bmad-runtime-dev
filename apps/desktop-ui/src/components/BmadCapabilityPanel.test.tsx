@@ -78,6 +78,39 @@ describe("BmadCapabilityPanel", () => {
     await expectAccessible(container);
   });
 
+  it("adds active-task attachments only on explicit request and preserves manual path order", async () => {
+    const props = {
+      ...createProps({ kind: "selecting" }),
+      capabilityId: "bmm:bmad-prd",
+      capabilityLabel: "Create PRD",
+      suggestedContextPaths: [
+        "src/attached.ts",
+        "docs/manual.md",
+        "src/attached.ts",
+      ],
+    };
+    const user = userEvent.setup();
+    render(<BmadCapabilityPanel {...props} />);
+
+    const contextPaths = screen.getByRole("textbox", { name: "Context file paths" });
+    await user.type(contextPaths, "docs/manual.md\nnotes/second.md");
+    expect(contextPaths).toHaveProperty("value", "docs/manual.md\nnotes/second.md");
+
+    await user.click(screen.getByRole("button", { name: "Add attached files (2)" }));
+    expect(contextPaths).toHaveProperty(
+      "value",
+      "docs/manual.md\nnotes/second.md\nsrc/attached.ts",
+    );
+    expect(props.onPrepare).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: /prepare reviewed context/i }));
+    expect(props.onPrepare).toHaveBeenCalledWith(
+      ["docs/manual.md", "notes/second.md", "src/attached.ts"],
+      "create",
+      "interactive",
+    );
+  });
+
   it("passes the selected canonical PRD action and mode to production prepare", async () => {
     const props = {
       ...createProps({ kind: "selecting" }),

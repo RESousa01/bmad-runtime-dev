@@ -205,6 +205,53 @@ describe("SettingsDialog", () => {
     expect(keyInput.value).toBe("");
   });
 
+  it("rejects a Foundry project endpoint and submits an Azure OpenAI v1 endpoint", async () => {
+    const props = createProps({
+      initialSection: "agent-model",
+      modelAuthStatus: {
+        ...connectedModel,
+        status: "unavailable",
+        mode: "offline",
+        developmentOnly: false,
+        signInAvailable: true,
+        signOutAvailable: false,
+      },
+      modelSelection: { providerId: "azure", modelId: "forge-gpt-5" },
+    });
+    const user = userEvent.setup();
+    const runtimeCredential = ["azure", "test", "runtime", "only"].join("-");
+    render(<SettingsDialog {...props} />);
+
+    const endpoint = screen.getByLabelText<HTMLInputElement>("Azure OpenAI v1 endpoint");
+    const keyInput = screen.getByLabelText<HTMLInputElement>("Azure OpenAI API key");
+    const connect = screen.getByRole("button", { name: "Connect Azure OpenAI" });
+    await user.type(keyInput, runtimeCredential);
+    await user.type(
+      endpoint,
+      "https://example.services.ai.azure.com/api/projects/Forge",
+    );
+    expect(connect).toHaveProperty("disabled", true);
+    await user.click(connect);
+    expect(props.onModelConnect).not.toHaveBeenCalled();
+
+    await user.clear(endpoint);
+    await user.type(
+      endpoint,
+      "https://forge-models.openai.azure.com/openai/v1/",
+    );
+    expect(connect).toHaveProperty("disabled", false);
+    await user.click(connect);
+    expect(props.onModelConnect).toHaveBeenCalledWith({
+      providerId: "azure",
+      modelId: "forge-gpt-5",
+      apiKey: runtimeCredential,
+      endpoint: "https://forge-models.openai.azure.com/openai/v1/",
+      region: null,
+    });
+    expect(keyInput.value).toBe("");
+    expect(document.body.textContent).not.toContain(runtimeCredential);
+  });
+
   it("disconnects the active provider without asking for its key again", async () => {
     const props = createProps({ initialSection: "agent-model" });
     const user = userEvent.setup();

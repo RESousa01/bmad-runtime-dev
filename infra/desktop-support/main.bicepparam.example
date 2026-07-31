@@ -21,7 +21,7 @@ param foundryProjectResourceId = '/subscriptions/00000000-0000-0000-0000-0000000
 // through the deployment pipeline's own secret injection.
 param foundryApiKey = 'replace-with-deployment-pipeline-secret-injection'
 param foundryInventoryMode = 'ConfiguredAndProbed'
-param foundryPrerequisiteEvidenceHash = 'sha256:0000000000000000000000000000000000000000000000000000000000000'
+param foundryPrerequisiteEvidenceHash = 'sha256:0000000000000000000000000000000000000000000000000000000000000000'
 param modelProfileConfigurationPrefix = 'desktop-support:model-profile:'
 param foundryDeploymentRefreshSeconds = 300
 param foundryCatalogMaximumStaleSeconds = 1800

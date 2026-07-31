@@ -2586,6 +2586,7 @@ export function App({
         }
       },
       run: capabilityRun,
+      suggestedContextPaths: attachmentPaths(attachments),
       submitRun: (manifestHash, decisionId) => void submitCapabilityRun(manifestHash, decisionId),
       viewPersona: (agentCode) => void viewPersonaPerspective(agentCode),
       workflow: workflowState,

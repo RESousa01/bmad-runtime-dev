@@ -13,7 +13,7 @@ test("bmad-spec is exposed from the canonical catalog without aliases", async ()
     (capability) => capability.canonicalId === "bmm:bmad-spec",
   );
   assert.equal(spec.supportState, "adapted");
-  assert.equal(spec.uiState, "runtime_available");
+  assert.equal(spec.uiState, "planned");
   assert.deepEqual(spec.aliases, []);
   assert.deepEqual(spec.modes, ["interactive", "headless"]);
 });
@@ -54,7 +54,7 @@ test("bmad-spec managed instructions retain source branches and authority bounda
   }
 });
 
-test("bmad-spec is projected consistently into Help and generated consumers", async () => {
+test("bmad-spec is preserved but absent from advertised generated consumers", async () => {
   const [help, compatibility, adoption, rust, typescript] = await Promise.all([
     readJson("normalized/bmad-help-capability-graph.json"),
     readJson("compatibility-ledger.json"),
@@ -71,7 +71,7 @@ test("bmad-spec is projected consistently into Help and generated consumers", as
       outputLocations: helpNode?.outputLocations,
     },
     {
-      uiState: "runtime_available",
+      uiState: "planned",
       predecessorIds: [],
       followerIds: [],
       outputLocations: ["governed_artifact"],
@@ -87,4 +87,8 @@ test("bmad-spec is projected consistently into Help and generated consumers", as
   assert.equal(managedOutput?.authority, "none");
   assert.match(rust, /canonical_id: "bmm:bmad-spec"/u);
   assert.match(typescript, /"canonicalId": "bmm:bmad-spec"/u);
+  assert.doesNotMatch(
+    rust.split("pub const UI_ADVERTISED_CAPABILITIES", 2)[1],
+    /canonical_id: "bmm:bmad-spec"/u,
+  );
 });

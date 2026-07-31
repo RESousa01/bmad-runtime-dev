@@ -21,39 +21,14 @@ const SEMANTIC_TEST_SET = [
   "output_conformance",
 ];
 
-// Phase 2 rows move here only after their executable adapter, canonical
-// projection, Help/UI topology, and required evidence have all qualified.
-// Keeping the state in the generator prevents a later accounting refresh from
-// silently reopening a completed row.
+// This is an independently accepted-evidence allowlist. Executable candidate
+// code, a branch, reported green gates, or a receipt without independent
+// acceptance does not qualify a Method row for product availability.
 const QUALIFIED_METHOD_ROWS = new Map([
   [
     "src/bmm-skills/2-plan-workflows/bmad-prd/SKILL.md",
     {
       supportState: "exact",
-      uiState: "runtime_available",
-      releaseState: "qualified",
-    },
-  ],
-  [
-    "src/bmm-skills/2-plan-workflows/bmad-spec/SKILL.md",
-    {
-      supportState: "adapted",
-      uiState: "runtime_available",
-      releaseState: "qualified",
-    },
-  ],
-  [
-    "src/core-skills/bmad-deep-recon/SKILL.md",
-    {
-      supportState: "exact",
-      uiState: "runtime_available",
-      releaseState: "qualified",
-    },
-  ],
-  [
-    "src/core-skills/bmad-help/SKILL.md",
-    {
-      supportState: "adapted",
       uiState: "runtime_available",
       releaseState: "qualified",
     },

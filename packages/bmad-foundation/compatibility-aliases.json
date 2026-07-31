@@ -1,7 +1,7 @@
 {
   "schemaVersion": "sapphirus.bmad.compatibility-aliases/v1",
   "generatedBy": "packages/bmad-foundation/scripts/generate-catalog.mjs",
-  "sourceCatalogSha256": "827092afa5909dd4f17bf0363fbd55c3a558519b55c7d0eb9fcddc7b64dd4301",
+  "sourceCatalogSha256": "02ed1d13ccb2e9780b64624b04f1086c74b8fb10fb8aac1d7a858a586dc196bb",
   "resolutionPolicy": "Aliases resolve exactly once before dispatch and never grant authority.",
   "aliases": [
     {
@@ -149,5 +149,5 @@
       "source": "src/core-skills/v6-shims/bmad-review-verification-gap/SKILL.md"
     }
   ],
-  "aliasCatalogSha256": "011632092cc5adc3f6e5578c59faa73b84219ec6dd0fdc5b92bfdd91d0bc2b55"
+  "aliasCatalogSha256": "be8b5a946de1c4e7e44d78a2aa9ab5f0661cc92f4285f0ec12e5a31a46902019"
 }
